@@ -17,7 +17,20 @@ from utils.doctor_appointment_helper import (
     add_appointment, get_upcoming_appointments,
     get_due_appointment_reminders
 )
-from models import Doctor
+from utils.shopping_helper import (
+    get_shopping_lists, get_shopping_list_by_name, create_shopping_list,
+    add_item_to_list, get_items_in_list, toggle_item_checked,
+    get_due_shopping_lists
+)
+from utils.medication_helper import (
+    get_medications, get_medication_by_name, add_medication,
+    update_medication_quantity, refill_medication, get_medications_to_refill
+)
+from utils.product_helper import (
+    get_products, add_product, get_product_by_name,
+    set_product_as_recurring, mark_product_as_ordered, get_due_product_orders
+)
+from models import Doctor, ShoppingList, ShoppingItem, Medication, Product
 
 def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
     """
@@ -262,6 +275,27 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
         log.append("- list doctors - Show your saved doctors")
         log.append("- set appointment with [doctor] on [date/time] - Schedule an appointment")
         log.append("- show appointments - List your upcoming appointments")
+        log.append("")
+        log.append("📋 Shopping Lists:")
+        log.append("- create list [name] - Create a new shopping list")
+        log.append("- add [item] to [list name] - Add an item to a shopping list")
+        log.append("- show lists - Display all your shopping lists")
+        log.append("- show items in [list name] - Show items in a specific list")
+        log.append("- mark list [name] as ordered - Mark a list as ordered")
+        log.append("")
+        log.append("💊 Medications:")
+        log.append("- add medication [name] - Add a medication to track")
+        log.append("- refill [medication] with [quantity] - Record a medication refill")
+        log.append("- show medications - List all your tracked medications")
+        log.append("- show medications to refill - Show medications that need refills")
+        log.append("")
+        log.append("🛒 Products:")
+        log.append("- track product [name] [url] - Add a product to track")
+        log.append("- set product [name] as recurring every [days] days - Set up recurring orders")
+        log.append("- order product [name] - Mark a product as ordered")
+        log.append("- show products - List all your tracked products")
+        log.append("- show products to order - Show products due for ordering")
+        log.append("")
         log.append("- connect spotify - Connect Spotify account")
         log.append("- connect google - Connect Google account")
         log.append("- help - Show this help menu")
