@@ -33,7 +33,26 @@ from utils.product_helper import (
     set_product_as_recurring, mark_product_as_ordered, get_due_product_orders
 )
 
-from models import Doctor, ShoppingList, ShoppingItem, Medication, Product
+# Import budget helpers
+from utils.budget_helper import (
+    get_budgets, get_budget_by_name, create_budget, get_budget_summary,
+    get_expenses, add_expense, get_recurring_payments, get_upcoming_payments,
+    mark_payment_paid, ExpenseCategory
+)
+
+# Import travel helpers
+from utils.travel_helper import (
+    get_trips, get_trip_by_name, create_trip, get_upcoming_trips, get_active_trip,
+    get_itinerary, add_itinerary_item, get_accommodations, add_accommodation,
+    get_travel_documents, add_travel_document, get_packing_list, add_packing_item,
+    toggle_packed_status, generate_standard_packing_list, get_packing_progress
+)
+
+from models import (
+    Doctor, ShoppingList, ShoppingItem, Medication, Product,
+    Budget, Expense, RecurringPayment, Trip, ItineraryItem, 
+    Accommodation, TravelDocument, PackingItem
+)
 
 def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
     """
@@ -280,10 +299,33 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
         log.append("- show appointments - List your upcoming appointments")
         log.append("")
         log.append("📋 Shopping Lists:")
-        log.append("- create list [name] - Create a new shopping list")
-        log.append("- add [item] to [list name] - Add an item to a shopping list")
-        log.append("- show lists - Display all your shopping lists")
-        log.append("- show items in [list name] - Show items in a specific list")
+        log.append("- create shopping list [name] - Create a new shopping list")
+        log.append("- show shopping lists - Show all your shopping lists")
+        log.append("- add [item] to [list] - Add an item to a shopping list")
+        log.append("- show [list] - View items in a specific shopping list")
+        log.append("")
+        log.append("💼 Products:")
+        log.append("- add product [name] - Add a product to track")
+        log.append("- show products - List all your tracked products")
+        log.append("- set [product] as recurring every [days] days - Set up automatic reordering")
+        log.append("- show products to order - Show products due for ordering")
+        log.append("")
+        log.append("💰 Budget & Expenses:")
+        log.append("- create budget [name] [amount] - Create a new budget")
+        log.append("- show budgets - List all your budgets")
+        log.append("- budget summary - Show your current month's budget summary")
+        log.append("- add expense [description] [amount] - Record a new expense")
+        log.append("- show expenses - List your recent expenses")
+        log.append("- show upcoming payments - Show bills and recurring payments due soon")
+        log.append("")
+        log.append("✈️ Travel Planning:")
+        log.append("- plan trip to [destination] from [start_date] to [end_date] - Plan a new trip")
+        log.append("- show trips - List all your upcoming trips")
+        log.append("- show trip details for [destination] - Show detailed info about a trip")
+        log.append("- generate packing list for [destination] - Create a standard packing list")
+        log.append("- show packing list for [destination] - View your trip packing list")
+        log.append("- pack/unpack [item] - Mark items on your packing list")
+        log.append("- add to packing list [item] - Add a new item to your packing list")
         log.append("- mark list [name] as ordered - Mark a list as ordered")
         log.append("")
         log.append("💊 Medications:")
@@ -957,6 +999,745 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
             
         except Exception as e:
             log.append(f"❌ Error checking products to order: {str(e)}")
+            return True
+            
+    # Budget & Expense Command Handlers
+    elif cmd.startswith("create budget "):
+        try:
+            # Parse "create budget [name] [amount]"
+            parts = cmd[14:].strip().split(" ", 1)
+            if len(parts) < 2:
+                log.append("❌ Please include both a name and amount for the budget.")
+                log.append("Format: create budget [name] [amount]")
+                return True
+                
+            budget_name = parts[0]
+            
+            # Try to extract the amount
+            try:
+                # Look for the amount in the second part
+                amount_match = re.search(r'(\d+(\.\d+)?)', parts[1])
+                if amount_match:
+                    amount = float(amount_match.group(1))
+                else:
+                    log.append("❌ Could not find a valid amount in your command.")
+                    log.append("Format: create budget [name] [amount]")
+                    return True
+            except (ValueError, TypeError):
+                log.append(f"❌ Invalid amount: {parts[1]}. Please enter a number.")
+                return True
+                
+            # Try to extract category if provided
+            category = None
+            category_match = re.search(r'category (\w+)', parts[1].lower())
+            if category_match:
+                category_name = category_match.group(1).upper()
+                # Find matching category if available
+                for cat in ExpenseCategory:
+                    if cat.name.startswith(category_name) or category_name in cat.value.upper():
+                        category = cat.value
+                        break
+                        
+            budget = create_budget(name=budget_name, amount=amount, category=category, session=session)
+            if budget:
+                log.append(f"✅ Created budget: {budget_name} with amount ${amount:.2f}")
+                if category:
+                    log.append(f"Category: {category}")
+            else:
+                log.append("❌ Failed to create budget. Please try again.")
+            return True
+            
+        except Exception as e:
+            log.append(f"❌ Error creating budget: {str(e)}")
+            return True
+            
+    elif cmd == "show budgets" or "my budgets" in cmd:
+        try:
+            budgets = get_budgets(session)
+            if not budgets:
+                log.append("ℹ️ You don't have any budgets set up yet.")
+                log.append("Use 'create budget [name] [amount]' to create one.")
+            else:
+                log.append("💰 Your budgets:")
+                for budget in budgets:
+                    amount_str = f"${budget.amount:.2f}"
+                    category_str = f" ({budget.category})" if budget.category else ""
+                    log.append(f"- {budget.name}: {amount_str}{category_str}")
+                    
+                    # Calculate spent/remaining
+                    if budget.expenses:
+                        spent = sum(expense.amount for expense in budget.expenses)
+                        remaining = budget.amount - spent
+                        percent = (spent / budget.amount * 100) if budget.amount > 0 else 0
+                        log.append(f"  Spent: ${spent:.2f} ({percent:.1f}%) | Remaining: ${remaining:.2f}")
+            return True
+            
+        except Exception as e:
+            log.append(f"❌ Error retrieving budgets: {str(e)}")
+            return True
+            
+    elif cmd == "budget summary" or cmd == "show budget summary":
+        try:
+            summary = get_budget_summary(session)
+            if not summary or summary.get('total_budget', 0) == 0:
+                log.append("ℹ️ You don't have any budgets set up for this month.")
+                log.append("Use 'create budget [name] [amount]' to create one.")
+            else:
+                log.append(f"💰 Budget Summary for {summary['month']}:")
+                log.append(f"Total Budget: ${summary['total_budget']:.2f}")
+                log.append(f"Total Spent: ${summary['total_spent']:.2f} ({summary['percent_used']:.1f}%)")
+                log.append(f"Remaining: ${summary['remaining']:.2f}")
+                
+                # Show category breakdown if available
+                categories = summary.get('categories', {})
+                if categories:
+                    log.append("\nCategory Breakdown:")
+                    for cat_name, cat_data in categories.items():
+                        if cat_data['budget'] > 0:
+                            percent = (cat_data['spent'] / cat_data['budget'] * 100) if cat_data['budget'] > 0 else 0
+                            log.append(f"- {cat_name}: ${cat_data['spent']:.2f} of ${cat_data['budget']:.2f} ({percent:.1f}%)")
+            return True
+            
+        except Exception as e:
+            log.append(f"❌ Error generating budget summary: {str(e)}")
+            return True
+            
+    elif cmd.startswith("add expense "):
+        try:
+            # Parse "add expense [description] [amount]"
+            parts = cmd[12:].strip().split(" ", 1)
+            if len(parts) < 2:
+                log.append("❌ Please include both a description and amount for the expense.")
+                log.append("Format: add expense [description] [amount]")
+                return True
+                
+            expense_desc = parts[0]
+            
+            # Try to extract the amount
+            try:
+                # Look for the amount in the second part
+                amount_match = re.search(r'(\d+(\.\d+)?)', parts[1])
+                if amount_match:
+                    amount = float(amount_match.group(1))
+                else:
+                    log.append("❌ Could not find a valid amount in your command.")
+                    log.append("Format: add expense [description] [amount]")
+                    return True
+            except (ValueError, TypeError):
+                log.append(f"❌ Invalid amount: {parts[1]}. Please enter a number.")
+                return True
+                
+            # Try to extract category if provided
+            category = None
+            category_match = re.search(r'category (\w+)', parts[1].lower())
+            if category_match:
+                category_name = category_match.group(1).upper()
+                # Find matching category if available
+                for cat in ExpenseCategory:
+                    if cat.name.startswith(category_name) or category_name in cat.value.upper():
+                        category = cat.value
+                        break
+                        
+            # Try to extract budget name if provided
+            budget_name = None
+            budget_match = re.search(r'budget (\w+)', parts[1].lower())
+            if budget_match:
+                budget_name = budget_match.group(1)
+                
+            expense = add_expense(
+                description=expense_desc, 
+                amount=amount, 
+                category=category,
+                budget_name=budget_name,
+                session=session
+            )
+            
+            if expense:
+                log.append(f"✅ Added expense: {expense_desc} for ${amount:.2f}")
+                if category:
+                    log.append(f"Category: {category}")
+                if budget_name:
+                    log.append(f"Budget: {budget_name}")
+            else:
+                log.append("❌ Failed to add expense. Please try again.")
+            return True
+            
+        except Exception as e:
+            log.append(f"❌ Error adding expense: {str(e)}")
+            return True
+            
+    elif cmd == "show expenses" or "my expenses" in cmd:
+        try:
+            expenses = get_expenses(session)
+            if not expenses:
+                log.append("ℹ️ You don't have any expenses recorded yet.")
+                log.append("Use 'add expense [description] [amount]' to add one.")
+            else:
+                log.append("💸 Your recent expenses:")
+                
+                # Group by date
+                today = datetime.datetime.now().date()
+                yesterday = today - datetime.timedelta(days=1)
+                this_week = today - datetime.timedelta(days=7)
+                this_month = today.replace(day=1)
+                
+                today_expenses = []
+                yesterday_expenses = []
+                week_expenses = []
+                month_expenses = []
+                older_expenses = []
+                
+                for expense in expenses:
+                    expense_date = expense.date.date() if expense.date else None
+                    if expense_date == today:
+                        today_expenses.append(expense)
+                    elif expense_date == yesterday:
+                        yesterday_expenses.append(expense)
+                    elif expense_date and expense_date >= this_week:
+                        week_expenses.append(expense)
+                    elif expense_date and expense_date >= this_month:
+                        month_expenses.append(expense)
+                    else:
+                        older_expenses.append(expense)
+                
+                # Display expenses by time group
+                if today_expenses:
+                    log.append("\nToday:")
+                    for expense in today_expenses:
+                        category_str = f" ({expense.category})" if expense.category else ""
+                        log.append(f"- {expense.description}: ${expense.amount:.2f}{category_str}")
+                        
+                if yesterday_expenses:
+                    log.append("\nYesterday:")
+                    for expense in yesterday_expenses:
+                        category_str = f" ({expense.category})" if expense.category else ""
+                        log.append(f"- {expense.description}: ${expense.amount:.2f}{category_str}")
+                        
+                if week_expenses:
+                    log.append("\nThis Week:")
+                    for expense in week_expenses:
+                        date_str = expense.date.strftime("%a") if expense.date else "Unknown"
+                        category_str = f" ({expense.category})" if expense.category else ""
+                        log.append(f"- {date_str}: {expense.description}: ${expense.amount:.2f}{category_str}")
+                        
+                if month_expenses:
+                    log.append("\nThis Month:")
+                    for expense in month_expenses[:5]:  # Limit to 5 entries
+                        date_str = expense.date.strftime("%b %d") if expense.date else "Unknown"
+                        category_str = f" ({expense.category})" if expense.category else ""
+                        log.append(f"- {date_str}: {expense.description}: ${expense.amount:.2f}{category_str}")
+                    
+                    if len(month_expenses) > 5:
+                        log.append(f"  ... and {len(month_expenses) - 5} more expenses this month")
+                
+                # Calculate and show totals
+                total_today = sum(e.amount for e in today_expenses)
+                total_week = sum(e.amount for e in today_expenses + yesterday_expenses + week_expenses)
+                total_month = sum(e.amount for e in today_expenses + yesterday_expenses + week_expenses + month_expenses)
+                
+                log.append("\nSummary:")
+                log.append(f"Today: ${total_today:.2f}")
+                log.append(f"This Week: ${total_week:.2f}")
+                log.append(f"This Month: ${total_month:.2f}")
+            
+            return True
+            
+        except Exception as e:
+            log.append(f"❌ Error retrieving expenses: {str(e)}")
+            return True
+            
+    elif cmd == "show upcoming payments" or "bills due" in cmd:
+        try:
+            payments = get_upcoming_payments(session)
+            if not payments:
+                log.append("✅ You don't have any upcoming payments due.")
+            else:
+                log.append("📅 Upcoming payments due:")
+                for payment in payments:
+                    due_date = payment.next_due_date.strftime("%B %d") if payment.next_due_date else "Unknown"
+                    category_str = f" ({payment.category})" if payment.category else ""
+                    log.append(f"- {payment.name}: ${payment.amount:.2f} due {due_date}{category_str}")
+                    
+                    # Show payment link if available
+                    if payment.website:
+                        log.append(f"  🔗 Pay at: {payment.website}")
+            return True
+            
+        except Exception as e:
+            log.append(f"❌ Error checking upcoming payments: {str(e)}")
+            return True
+            
+    # Travel Planning Command Handlers
+    elif cmd.startswith("plan trip "):
+        try:
+            # Parse "plan trip to [destination] from [start_date] to [end_date]"
+            trip_info = cmd[10:].strip()
+            
+            # Extract destination
+            destination = None
+            destination_match = re.search(r'to ([^\"]*?)(?= from| on| for| starting| $)', trip_info)
+            if destination_match:
+                destination = destination_match.group(1).strip()
+            
+            if not destination:
+                log.append("❌ Please specify a destination for your trip.")
+                log.append("Format: plan trip to [destination] from [start_date] to [end_date]")
+                return True
+                
+            # Extract dates if provided
+            start_date = None
+            end_date = None
+            
+            # Look for "from [date] to [date]" pattern
+            dates_match = re.search(r'from (.*?) to (.*?)(?= for| $)', trip_info)
+            if dates_match:
+                start_date_str = dates_match.group(1).strip()
+                end_date_str = dates_match.group(2).strip()
+                
+                # Parse dates
+                date_formats = [
+                    "%Y-%m-%d",  # 2023-10-15
+                    "%B %d",  # October 15
+                    "%B %d, %Y",  # October 15, 2023
+                    "%b %d",  # Oct 15
+                    "%b %d, %Y",  # Oct 15, 2023
+                ]
+                
+                # Try to parse start date
+                for fmt in date_formats:
+                    try:
+                        # Add current year if not specified
+                        if "%Y" not in fmt and "," not in start_date_str:
+                            current_year = datetime.datetime.now().year
+                            start_date = datetime.datetime.strptime(f"{start_date_str}, {current_year}", f"{fmt}, %Y")
+                        else:
+                            start_date = datetime.datetime.strptime(start_date_str, fmt)
+                        break
+                    except ValueError:
+                        continue
+                
+                # Try to parse end date
+                for fmt in date_formats:
+                    try:
+                        # Add current year if not specified
+                        if "%Y" not in fmt and "," not in end_date_str:
+                            current_year = datetime.datetime.now().year
+                            end_date = datetime.datetime.strptime(f"{end_date_str}, {current_year}", f"{fmt}, %Y")
+                        else:
+                            end_date = datetime.datetime.strptime(end_date_str, fmt)
+                        break
+                    except ValueError:
+                        continue
+            
+            # Generate a name for the trip
+            name = f"Trip to {destination}"
+            
+            # Create the trip
+            trip = create_trip(
+                name=name,
+                destination=destination,
+                start_date=start_date,
+                end_date=end_date,
+                session=session
+            )
+            
+            if trip:
+                log.append(f"✅ Created trip to {destination}")
+                if start_date and end_date:
+                    duration = (end_date - start_date).days
+                    log.append(f"Dates: {start_date.strftime('%B %d')} to {end_date.strftime('%B %d')} ({duration} days)")
+                
+                # Offer to generate a packing list
+                log.append("\nWould you like me to generate a standard packing list for this trip?")
+                log.append("Type 'generate packing list for [destination]' to create one.")
+            else:
+                log.append("❌ Failed to create trip. Please try again.")
+            return True
+            
+        except Exception as e:
+            log.append(f"❌ Error planning trip: {str(e)}")
+            return True
+            
+    elif cmd == "show trips" or "my trips" in cmd:
+        try:
+            # Get both upcoming and active trips
+            upcoming_trips = get_upcoming_trips(session)
+            active_trip = get_active_trip(session)
+            
+            if not upcoming_trips and not active_trip:
+                log.append("ℹ️ You don't have any upcoming trips.")
+                log.append("Use 'plan trip to [destination]' to plan one.")
+            else:
+                # Show active trip first if any
+                if active_trip:
+                    log.append("🌟 Currently Active Trip:")
+                    log.append(f"- {active_trip.name} ({active_trip.destination})")
+                    if active_trip.start_date and active_trip.end_date:
+                        duration = (active_trip.end_date - active_trip.start_date).days
+                        today = datetime.datetime.now()
+                        days_left = (active_trip.end_date - today).days
+                        log.append(f"  Dates: {active_trip.start_date.strftime('%B %d')} to {active_trip.end_date.strftime('%B %d')} ({duration} days)")
+                        log.append(f"  {days_left} days remaining")
+                    log.append(f"  Type 'show trip details for {active_trip.destination}' for more information")
+                
+                # Show upcoming trips
+                upcoming_trips = [t for t in upcoming_trips if not active_trip or t.id != active_trip.id]
+                if upcoming_trips:
+                    log.append("\n🗓️ Upcoming Trips:")
+                    for trip in upcoming_trips:
+                        log.append(f"- {trip.name} ({trip.destination})")
+                        if trip.start_date:
+                            # Calculate days until trip
+                            today = datetime.datetime.now()
+                            days_until = (trip.start_date - today).days
+                            date_str = trip.start_date.strftime("%B %d")
+                            log.append(f"  Starting: {date_str} (in {days_until} days)")
+            return True
+            
+        except Exception as e:
+            log.append(f"❌ Error retrieving trips: {str(e)}")
+            return True
+            
+    elif "trip details" in cmd.lower():
+        try:
+            # Parse "show trip details for [destination]"
+            destination = None
+            destination_match = re.search(r'for ([^\"]*?)(?= $|$)', cmd)
+            if destination_match:
+                destination = destination_match.group(1).strip()
+            
+            if destination:
+                # Try to find trip by destination
+                trip = get_trip_by_name(destination, session)
+                if not trip:
+                    # Try getting active trip if no destination specified
+                    trip = get_active_trip(session)
+                    
+            else:
+                # If no destination specified, get active trip
+                trip = get_active_trip(session)
+                
+            if not trip:
+                log.append("❌ No matching trip found.")
+                log.append("Use 'show trips' to see your trips.")
+                return True
+                
+            log.append(f"🧳 {trip.name} Details:")
+            log.append(f"Destination: {trip.destination}")
+            
+            if trip.start_date and trip.end_date:
+                duration = (trip.end_date - trip.start_date).days
+                log.append(f"Dates: {trip.start_date.strftime('%B %d')} to {trip.end_date.strftime('%B %d')} ({duration} days)")
+                
+                # Show countdown if trip is upcoming
+                today = datetime.datetime.now()
+                if trip.start_date > today:
+                    days_until = (trip.start_date - today).days
+                    log.append(f"Starting in {days_until} days")
+                elif trip.end_date > today:
+                    days_left = (trip.end_date - today).days
+                    log.append(f"{days_left} days remaining")
+                    
+            if trip.budget:
+                log.append(f"Budget: ${trip.budget:.2f}")
+                
+            if trip.notes:
+                log.append(f"Notes: {trip.notes}")
+                
+            # Show itinerary summary
+            itinerary = get_itinerary(trip.id, session)
+            if itinerary:
+                log.append(f"\nItinerary: {len(itinerary)} items")
+                # Group by date
+                by_date = {}
+                for item in itinerary:
+                    date_key = item.date.strftime("%Y-%m-%d") if item.date else "Unscheduled"
+                    if date_key not in by_date:
+                        by_date[date_key] = []
+                    by_date[date_key].append(item)
+                    
+                # Show first few days
+                for date_key in sorted(by_date.keys())[:3]:
+                    if date_key == "Unscheduled":
+                        display_date = "Unscheduled"
+                    else:
+                        display_date = datetime.datetime.strptime(date_key, "%Y-%m-%d").strftime("%A, %B %d")
+                    log.append(f"- {display_date}: {len(by_date[date_key])} activities")
+                
+                if len(by_date) > 3:
+                    log.append(f"  ... and {len(by_date) - 3} more days")
+                    
+                log.append("Type 'show itinerary for [destination]' to see the full schedule")
+                
+            # Show accommodation summary
+            accommodations = get_accommodations(trip.id, session)
+            if accommodations:
+                log.append(f"\nAccommodations: {len(accommodations)}")
+                for acc in accommodations[:2]:
+                    check_in = acc.check_in_date.strftime("%B %d") if acc.check_in_date else "?"
+                    check_out = acc.check_out_date.strftime("%B %d") if acc.check_out_date else "?"
+                    log.append(f"- {acc.name}: {check_in} to {check_out}")
+                    
+                if len(accommodations) > 2:
+                    log.append(f"  ... and {len(accommodations) - 2} more accommodations")
+                    
+            # Show travel document summary
+            documents = get_travel_documents(trip.id, session)
+            if documents:
+                log.append(f"\nTravel Documents: {len(documents)}")
+                for doc in documents[:2]:
+                    doc_type = f"({doc.document_type})" if doc.document_type else ""
+                    log.append(f"- {doc.name} {doc_type}")
+                    
+                if len(documents) > 2:
+                    log.append(f"  ... and {len(documents) - 2} more documents")
+                    
+            # Show packing progress
+            packing_progress = get_packing_progress(trip.id, session)
+            if packing_progress and packing_progress['total_items'] > 0:
+                log.append(f"\nPacking List: {packing_progress['packed_items']}/{packing_progress['total_items']} items packed ({packing_progress['percent_packed']:.0f}%)")
+                log.append("Type 'show packing list for [destination]' to view and update")
+                
+            return True
+            
+        except Exception as e:
+            log.append(f"❌ Error retrieving trip details: {str(e)}")
+            return True
+            
+    elif "generate packing list" in cmd.lower():
+        try:
+            # Parse "generate packing list for [destination]"
+            destination = None
+            destination_match = re.search(r'for ([^\"]*?)(?= $|$)', cmd)
+            if destination_match:
+                destination = destination_match.group(1).strip()
+            
+            if destination:
+                # Try to find trip by destination
+                trip = get_trip_by_name(destination, session)
+                if not trip:
+                    # Try getting active trip if no destination specified
+                    trip = get_active_trip(session)
+                    
+            else:
+                # If no destination specified, get active trip
+                trip = get_active_trip(session)
+                
+            if not trip:
+                log.append("❌ No matching trip found.")
+                log.append("Use 'show trips' to see your trips.")
+                return True
+                
+            # Generate the packing list
+            items = generate_standard_packing_list(trip.id, session)
+            if items:
+                log.append(f"✅ Generated a packing list with {len(items)} items for your trip to {trip.destination}")
+                log.append("Type 'show packing list for [destination]' to view and update")
+            else:
+                log.append("❌ Failed to generate packing list. Please try again.")
+                
+            return True
+            
+        except Exception as e:
+            log.append(f"❌ Error generating packing list: {str(e)}")
+            return True
+            
+    elif "packing list" in cmd.lower() and ("show" in cmd.lower() or "view" in cmd.lower()):
+        try:
+            # Parse "show packing list for [destination]"
+            destination = None
+            destination_match = re.search(r'for ([^\"]*?)(?= $|$)', cmd)
+            if destination_match:
+                destination = destination_match.group(1).strip()
+            
+            if destination:
+                # Try to find trip by destination
+                trip = get_trip_by_name(destination, session)
+                if not trip:
+                    # Try getting active trip if no destination specified
+                    trip = get_active_trip(session)
+                    
+            else:
+                # If no destination specified, get active trip
+                trip = get_active_trip(session)
+                
+            if not trip:
+                log.append("❌ No matching trip found.")
+                log.append("Use 'show trips' to see your trips.")
+                return True
+                
+            # Get packing items organized by category
+            items = get_packing_list(trip.id, session)
+            if not items:
+                log.append(f"ℹ️ No packing list found for your trip to {trip.destination}")
+                log.append("Type 'generate packing list for [destination]' to create one")
+                return True
+                
+            # Group by category
+            categories = {}
+            for item in items:
+                category = item.category or "Uncategorized"
+                if category not in categories:
+                    categories[category] = []
+                categories[category].append(item)
+                
+            log.append(f"🧳 Packing List for {trip.destination}:")
+            
+            # Show packing progress
+            packed_items = sum(1 for item in items if item.is_packed)
+            percent_packed = (packed_items / len(items) * 100) if items else 0
+            log.append(f"Progress: {packed_items}/{len(items)} items packed ({percent_packed:.0f}%)")
+            
+            # Show items by category
+            for category, cat_items in categories.items():
+                log.append(f"\n{category}:")
+                for item in cat_items:
+                    check = "☑️" if item.is_packed else "☐"
+                    quantity_str = f" ({item.quantity})" if item.quantity > 1 else ""
+                    log.append(f"- {check} {item.name}{quantity_str}")
+                    
+            log.append("\nUse 'pack [item]' to mark an item as packed")
+            log.append("Use 'unpack [item]' to mark an item as not packed")
+            log.append("Use 'add to packing list [item]' to add a new item")
+                
+            return True
+            
+        except Exception as e:
+            log.append(f"❌ Error retrieving packing list: {str(e)}")
+            return True
+            
+    elif cmd.startswith("pack "):
+        try:
+            item_name = cmd[5:].strip()
+            
+            # Find the active trip
+            trip = get_active_trip(session)
+            if not trip:
+                log.append("❌ No active trip found.")
+                log.append("Use 'show trips' to see your trips.")
+                return True
+                
+            # Get all packing items for this trip
+            items = get_packing_list(trip.id, session)
+            
+            # Find the item by name (case-insensitive)
+            matching_items = [i for i in items if item_name.lower() in i.name.lower()]
+            
+            if not matching_items:
+                log.append(f"❌ Item '{item_name}' not found in your packing list.")
+                return True
+                
+            # If multiple matches, try to find an exact match
+            if len(matching_items) > 1:
+                exact_matches = [i for i in matching_items if i.name.lower() == item_name.lower()]
+                if exact_matches:
+                    matching_items = exact_matches
+                    
+            # Toggle the first matching item
+            item = toggle_packed_status(matching_items[0].id, session)
+            if item:
+                status = "packed" if item.is_packed else "unpacked"
+                log.append(f"✅ Marked '{item.name}' as {status}")
+            else:
+                log.append(f"❌ Failed to update item status. Please try again.")
+                
+            return True
+            
+        except Exception as e:
+            log.append(f"❌ Error updating packing status: {str(e)}")
+            return True
+            
+    elif cmd.startswith("unpack "):
+        try:
+            item_name = cmd[7:].strip()
+            
+            # Find the active trip
+            trip = get_active_trip(session)
+            if not trip:
+                log.append("❌ No active trip found.")
+                log.append("Use 'show trips' to see your trips.")
+                return True
+                
+            # Get all packing items for this trip
+            items = get_packing_list(trip.id, session)
+            
+            # Find the item by name (case-insensitive)
+            matching_items = [i for i in items if item_name.lower() in i.name.lower()]
+            
+            if not matching_items:
+                log.append(f"❌ Item '{item_name}' not found in your packing list.")
+                return True
+                
+            # If multiple matches, try to find an exact match
+            if len(matching_items) > 1:
+                exact_matches = [i for i in matching_items if i.name.lower() == item_name.lower()]
+                if exact_matches:
+                    matching_items = exact_matches
+                    
+            # Toggle the first matching item
+            item = toggle_packed_status(matching_items[0].id, session)
+            if item:
+                status = "packed" if item.is_packed else "unpacked"
+                log.append(f"✅ Marked '{item.name}' as {status}")
+            else:
+                log.append(f"❌ Failed to update item status. Please try again.")
+                
+            return True
+            
+        except Exception as e:
+            log.append(f"❌ Error updating packing status: {str(e)}")
+            return True
+            
+    elif cmd.startswith("add to packing list "):
+        try:
+            item_name = cmd[19:].strip()
+            
+            # Find the active trip
+            trip = get_active_trip(session)
+            if not trip:
+                log.append("❌ No active trip found.")
+                log.append("Use 'show trips' to see your trips.")
+                return True
+                
+            # Try to extract category if provided
+            category = None
+            category_match = re.search(r'in (\w+)$', item_name)
+            if category_match:
+                category = category_match.group(1).strip()
+                item_name = item_name.replace(f"in {category}", "").strip()
+                
+            # Try to extract quantity if provided
+            quantity = 1
+            quantity_match = re.search(r'(\d+) (.+)', item_name)
+            if quantity_match:
+                try:
+                    quantity = int(quantity_match.group(1))
+                    item_name = quantity_match.group(2)
+                except ValueError:
+                    pass
+                    
+            # Add the item
+            item = add_packing_item(
+                trip_id=trip.id,
+                name=item_name,
+                category=category,
+                quantity=quantity,
+                session=session
+            )
+            
+            if item:
+                log.append(f"✅ Added '{item_name}' to your packing list")
+                if quantity > 1:
+                    log.append(f"Quantity: {quantity}")
+                if category:
+                    log.append(f"Category: {category}")
+            else:
+                log.append(f"❌ Failed to add item to packing list. Please try again.")
+                
+            return True
+            
+        except Exception as e:
+            log.append(f"❌ Error adding to packing list: {str(e)}")
             return True
     
     # General command handling
