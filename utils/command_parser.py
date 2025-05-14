@@ -5,9 +5,46 @@ import re
 from utils.logger import log_workout, log_mood
 from utils.scraper import scrape_aa_reflection
 
+import datetime
+import logging
+import re
+from flask import url_for
+from utils.logger import log_workout, log_mood
+from utils.scraper import scrape_aa_reflection
+from utils.ai_helper import parse_natural_language
+
 def parse_command(cmd, calendar, tasks, keep, spotify, log):
-    """Parse and execute user commands"""
+    """
+    Parse and execute user commands, with natural language support
+    """
     result = {"redirect": None}
+    
+    # First, try to use AI to understand natural language commands
+    try:
+        # Check if this is a built-in command that doesn't need AI parsing
+        if cmd in ["help", "clear", "logout", "connect spotify", "connect google"] or \
+           cmd.startswith("add ") and " at " in cmd or \
+           cmd.startswith("what's my day") or cmd.startswith("whats my day") or \
+           "aa reflection" in cmd or "daily reflection" in cmd or \
+           cmd.startswith("log workout") or cmd.startswith("log mood") or \
+           cmd.startswith("add task") or cmd.startswith("add note") or \
+           cmd.startswith("play "):
+            # Use the standard parsing logic for recognized command formats
+            pass
+        else:
+            # Try AI parsing for natural language
+            ai_parsed = parse_natural_language(cmd)
+            
+            if ai_parsed and isinstance(ai_parsed, dict) and "error" not in ai_parsed:
+                confidence = ai_parsed.get("confidence")
+                if confidence and float(confidence) > 0.7:
+                    # Replace the original command with the AI-structured version
+                    old_cmd = cmd
+                    cmd = ai_parsed.get("structured_command", cmd)
+                    log.append(f"🧠 I understood that as: {cmd}")
+    except Exception as e:
+        logging.error(f"Error in AI command parsing: {str(e)}")
+        # Continue with standard parsing if AI fails
     
     # Handle calendar events: "add X at Y"
     if cmd.startswith("add ") and " at " in cmd:
@@ -29,10 +66,23 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log):
                 
             # Parse time
             if ":" in time_str:
-                hour, minute = map(int, time_str.split(":", 1))
+                try:
+                    hour, minute = map(int, time_str.split(":", 1))
+                except (ValueError, TypeError):
+                    # Default to noon if we can't parse the time
+                    hour, minute = 12, 0
             else:
-                hour = int(re.search(r'\d+', time_str).group())
-                minute = 0
+                time_match = re.search(r'\d+', time_str)
+                if time_match:
+                    try:
+                        hour = int(time_match.group())
+                        minute = 0
+                    except (ValueError, TypeError):
+                        # Default to noon if we can't parse the time
+                        hour, minute = 12, 0
+                else:
+                    # Default to noon if no time found
+                    hour, minute = 12, 0
                 
             # Handle am/pm
             if "pm" in time_str.lower() and hour < 12:
@@ -200,11 +250,76 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log):
         log.append("- play [song/artist] - Play music on Spotify")
         log.append("- add task: [task] - Add a task to Google Tasks")
         log.append("- add note: [note] - Add a note to Google Keep")
+        log.append("- weekly summary - Get an AI summary of your week")
+        log.append("- motivate me - Get a motivational quote")
         log.append("- connect spotify - Connect Spotify account")
         log.append("- connect google - Connect Google account")
         log.append("- help - Show this help menu")
         log.append("- clear - Clear the command log")
+        log.append("")
+        log.append("💡 You can also type commands in natural language! For example:")
+        log.append("  \"I need to see the dentist next Friday at 2pm\"")
+        log.append("  \"What does my schedule look like today?\"")
+        log.append("  \"I went for a 5k run this morning\"")
         
+    # Weekly summary
+    elif "weekly summary" in cmd.lower():
+        try:
+            from utils.ai_helper import generate_weekly_summary
+            from utils.logger import get_workout_entries, get_mood_entries
+            
+            # Get calendar events for the week
+            now = datetime.datetime.now()
+            start_of_week = (now - datetime.timedelta(days=now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+            end_of_week = start_of_week + datetime.timedelta(days=7)
+            
+            events_result = calendar.events().list(
+                calendarId="primary", 
+                timeMin=start_of_week.isoformat() + "Z",
+                timeMax=end_of_week.isoformat() + "Z",
+                singleEvents=True,
+                orderBy="startTime"
+            ).execute()
+            
+            # Get recent tasks
+            tasks_result = tasks.tasks().list(tasklist="@default", maxResults=10).execute()
+            
+            # Get workout and mood logs
+            workout_entries = get_workout_entries(limit=7)
+            mood_entries = get_mood_entries(limit=7)
+            
+            # Generate summary
+            summary = generate_weekly_summary(
+                events_result.get("items", []),
+                tasks_result.get("items", []),
+                workout_entries,
+                mood_entries
+            )
+            
+            log.append("📊 Your Weekly Summary")
+            log.append(summary)
+            
+        except Exception as e:
+            logging.error(f"Error generating weekly summary: {str(e)}")
+            log.append(f"❌ Error generating weekly summary: {str(e)}")
+    
+    # Motivational quote
+    elif "motivate" in cmd.lower() or "quote" in cmd.lower():
+        try:
+            from utils.ai_helper import get_motivation_quote
+            theme = None
+            
+            # Extract theme if provided
+            if "about" in cmd.lower():
+                theme = cmd.lower().split("about", 1)[1].strip()
+            
+            quote = get_motivation_quote(theme)
+            log.append(f"✨ {quote}")
+            
+        except Exception as e:
+            logging.error(f"Error generating motivational quote: {str(e)}")
+            log.append(f"❌ Error generating quote: {str(e)}")
+            
     # Clear command
     elif cmd == "clear":
         log.clear()
