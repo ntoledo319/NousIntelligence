@@ -33,6 +33,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard') }}" data-bs-toggle="tooltip" title="View dashboard">
+                            <i class="fas fa-tachometer-alt me-1"></i>
+                            <span class="d-none d-lg-inline">Dashboard</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('help_page') }}" data-bs-toggle="tooltip" title="View help page">
                             <i class="fas fa-question-circle me-1"></i>
                             <span class="d-none d-lg-inline">Help</span>
@@ -68,6 +75,13 @@
                             <i class="fas fa-sign-out-alt me-1"></i>
                             <span class="d-none d-lg-inline">Logout</span>
                         </a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link btn theme-toggle" id="themeToggle" data-bs-toggle="tooltip" title="Toggle dark/light theme">
+                            <i class="fas fa-moon me-1 theme-icon-dark"></i>
+                            <i class="fas fa-sun me-1 theme-icon-light d-none"></i>
+                            <span class="d-none d-lg-inline">Theme</span>
+                        </button>
                     </li>
                 </ul>
             </div>
@@ -131,5 +145,57 @@
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Theme Toggle JavaScript -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        const darkIcon = document.querySelector('.theme-icon-dark');
+        const lightIcon = document.querySelector('.theme-icon-light');
+        
+        // Check for saved theme preference or use device preference
+        const getCurrentTheme = () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                return savedTheme;
+            }
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        };
+        
+        // Apply theme to the document
+        const applyTheme = (theme) => {
+            htmlElement.setAttribute('data-bs-theme', theme);
+            
+            // Toggle icons
+            if (theme === 'dark') {
+                darkIcon.classList.remove('d-none');
+                lightIcon.classList.add('d-none');
+            } else {
+                darkIcon.classList.add('d-none');
+                lightIcon.classList.remove('d-none');
+            }
+            
+            // Store preference
+            localStorage.setItem('theme', theme);
+        };
+        
+        // Set initial theme
+        applyTheme(getCurrentTheme());
+        
+        // Toggle theme on button click
+        themeToggle.addEventListener('click', function() {
+            const currentTheme = htmlElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
+        });
+        
+        // Update theme if device preference changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            const newTheme = e.matches ? 'dark' : 'light';
+            applyTheme(newTheme);
+        });
+    });
+    </script>
 </body>
 </html>

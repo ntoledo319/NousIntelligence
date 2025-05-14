@@ -33,17 +33,25 @@
                 </div>
             </div>
             <div class="card-body">
-                <form method="post" class="command-form">
+                <form method="post" class="command-form" id="commandForm">
                     <div class="input-group">
-                        <input type="text" name="cmd" class="form-control" 
+                        <input type="text" name="cmd" id="commandInput" class="form-control" 
                                placeholder='Type a command or ask a question...' autocomplete="off" 
                                autofocus>
+                        <button type="button" id="voiceButton" class="btn btn-outline-info" title="Speak a command">
+                            <i class="fas fa-microphone"></i>
+                        </button>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
-                    <div class="mt-2 small text-muted">
-                        <span>Try: <code>help</code>, <code>show trips</code>, or <code>budget summary</code></span>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <div class="small text-muted">
+                            <span>Try: <code>help</code>, <code>show trips</code>, or <code>budget summary</code></span>
+                        </div>
+                        <div id="voiceStatus" class="small text-info d-none">
+                            <i class="fas fa-circle-notch fa-spin me-1"></i> Listening...
+                        </div>
                     </div>
                 </form>
                 
@@ -199,7 +207,7 @@
     </div>
 </div>
 
-<!-- JavaScript for submitting commands from quick actions -->
+<!-- JavaScript for submitting commands and voice recognition -->
 <script>
 function submitCommand(cmd) {
     const input = document.querySelector('input[name="cmd"]');
@@ -209,8 +217,9 @@ function submitCommand(cmd) {
     }
 }
 
-// Initialize tooltips
+// Initialize tooltips and other UI components
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function(tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
@@ -220,6 +229,102 @@ document.addEventListener('DOMContentLoaded', function() {
     const terminal = document.querySelector('.terminal-output');
     if (terminal) {
         terminal.scrollTop = terminal.scrollHeight;
+    }
+    
+    // Set up voice recognition if available
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        setupVoiceRecognition();
+    } else {
+        const voiceButton = document.getElementById('voiceButton');
+        if (voiceButton) {
+            voiceButton.classList.add('disabled');
+            voiceButton.setAttribute('title', 'Voice recognition not supported in this browser');
+        }
+    }
+});
+
+// Voice recognition setup
+function setupVoiceRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    // Configure recognition
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+    
+    const voiceButton = document.getElementById('voiceButton');
+    const voiceStatus = document.getElementById('voiceStatus');
+    const commandInput = document.getElementById('commandInput');
+    const commandForm = document.getElementById('commandForm');
+    
+    // Handle voice button click
+    voiceButton.addEventListener('click', function() {
+        try {
+            recognition.start();
+            voiceStatus.classList.remove('d-none');
+            voiceButton.classList.add('active');
+            voiceButton.querySelector('i').classList.remove('fa-microphone');
+            voiceButton.querySelector('i').classList.add('fa-stop');
+        } catch (e) {
+            console.error('Speech recognition error:', e);
+        }
+    });
+    
+    // Speech recognition event handlers
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        commandInput.value = transcript;
+        
+        // Visual feedback
+        voiceButton.classList.remove('active');
+        voiceButton.querySelector('i').classList.add('fa-microphone');
+        voiceButton.querySelector('i').classList.remove('fa-stop');
+        voiceStatus.classList.add('d-none');
+        
+        // Submit after a short delay to allow the user to see what was recognized
+        setTimeout(() => {
+            commandForm.submit();
+        }, 500);
+    };
+    
+    recognition.onend = function() {
+        voiceButton.classList.remove('active');
+        voiceButton.querySelector('i').classList.add('fa-microphone');
+        voiceButton.querySelector('i').classList.remove('fa-stop');
+        voiceStatus.classList.add('d-none');
+    };
+    
+    recognition.onerror = function(event) {
+        voiceStatus.textContent = 'Error: ' + event.error;
+        setTimeout(() => {
+            voiceStatus.classList.add('d-none');
+        }, 3000);
+        
+        voiceButton.classList.remove('active');
+        voiceButton.querySelector('i').classList.add('fa-microphone');
+        voiceButton.querySelector('i').classList.remove('fa-stop');
+    };
+}
+
+// Add keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Alt+V for voice input
+    if (e.altKey && e.key === 'v') {
+        e.preventDefault();
+        document.getElementById('voiceButton').click();
+    }
+    
+    // Alt+D for dashboard
+    if (e.altKey && e.key === 'd') {
+        e.preventDefault();
+        window.location.href = '{{ url_for("dashboard") }}';
+    }
+    
+    // Alt+H for help
+    if (e.altKey && e.key === 'h') {
+        e.preventDefault();
+        submitCommand('help');
     }
 });
 </script>
