@@ -11,6 +11,14 @@ from utils.spotify_helper import get_spotify_client
 from utils.scraper import scrape_aa_reflection
 from utils.command_parser import parse_command
 from utils.logger import log_workout, log_mood
+from utils.doctor_appointment_helper import (
+    get_doctors, get_doctor_by_id, get_doctor_by_name, 
+    add_doctor, update_doctor, delete_doctor,
+    get_upcoming_appointments, get_appointments_by_doctor,
+    add_appointment, update_appointment_status, set_appointment_reminder,
+    get_due_appointment_reminders
+)
+from models import db, Doctor, Appointment, AppointmentReminder
 
 # Load environment variables
 load_dotenv()
@@ -18,6 +26,21 @@ load_dotenv()
 # Flask config
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET") or os.environ.get("FLASK_SECRET") or "change_this_in_production!"
+
+# Configure database
+database_url = os.environ.get("DATABASE_URL")
+if database_url:
+    print(f"Using database URL: {database_url}")
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    db.init_app(app)
+    
+    # Create tables if they don't exist
+    with app.app_context():
+        db.create_all()
+        logging.info("Database tables created (if they didn't exist already)")
+else:
+    print("No DATABASE_URL found in environment variables")
 
 # OAuth config
 GOOGLE_CLIENT_SECRETS = os.environ.get("GOOGLE_CLIENT_SECRETS_FILE", "client_secret.json")
