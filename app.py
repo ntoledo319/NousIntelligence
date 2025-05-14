@@ -18,7 +18,23 @@ from utils.doctor_appointment_helper import (
     add_appointment, update_appointment_status, set_appointment_reminder,
     get_due_appointment_reminders
 )
-from models import db, Doctor, Appointment, AppointmentReminder
+from utils.shopping_helper import (
+    get_shopping_lists, get_shopping_list_by_id, get_shopping_list_by_name,
+    create_shopping_list, add_item_to_list, get_items_in_list,
+    toggle_item_checked, remove_item_from_list, set_list_as_recurring,
+    mark_list_as_ordered, get_due_shopping_lists
+)
+from utils.medication_helper import (
+    get_medications, get_medication_by_id, get_medication_by_name,
+    add_medication, update_medication_quantity, refill_medication,
+    get_medications_to_refill, get_medications_by_doctor
+)
+from utils.product_helper import (
+    get_products, get_product_by_id, get_product_by_name,
+    add_product, set_product_as_recurring, mark_product_as_ordered,
+    get_due_product_orders, update_product_price
+)
+from models import db, Doctor, Appointment, AppointmentReminder, ShoppingList, ShoppingItem, Medication, Product
 
 # Load environment variables
 load_dotenv()
@@ -367,3 +383,369 @@ def api_get_due_reminders():
             "next_reminder": reminder.next_reminder.isoformat() if reminder.next_reminder else None
         })
     return jsonify(result)
+
+# Shopping List API endpoints
+@app.route("/api/shopping-lists", methods=["GET"])
+def api_get_shopping_lists():
+    """Get all shopping lists for the current user"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    shopping_lists = get_shopping_lists(session)
+    return jsonify([lst.to_dict() for lst in shopping_lists])
+
+@app.route("/api/shopping-lists", methods=["POST"])
+def api_create_shopping_list():
+    """Create a new shopping list"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data or not data.get("name"):
+        return jsonify({"error": "List name is required"}), 400
+    
+    shopping_list = create_shopping_list(
+        name=data.get("name"),
+        description=data.get("description"),
+        store=data.get("store"),
+        session=session
+    )
+    
+    if shopping_list:
+        return jsonify(shopping_list.to_dict()), 201
+    else:
+        return jsonify({"error": "Failed to create shopping list"}), 500
+
+@app.route("/api/shopping-lists/<int:list_id>", methods=["GET"])
+def api_get_shopping_list(list_id):
+    """Get a specific shopping list"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    shopping_list = get_shopping_list_by_id(list_id, session)
+    if not shopping_list:
+        return jsonify({"error": "Shopping list not found"}), 404
+    
+    return jsonify(shopping_list.to_dict())
+
+@app.route("/api/shopping-lists/<int:list_id>/items", methods=["GET"])
+def api_get_list_items(list_id):
+    """Get all items in a shopping list"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    items = get_items_in_list(list_id, session)
+    return jsonify([item.to_dict() for item in items])
+
+@app.route("/api/shopping-lists/<int:list_id>/items", methods=["POST"])
+def api_add_list_item(list_id):
+    """Add an item to a shopping list"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data or not data.get("name"):
+        return jsonify({"error": "Item name is required"}), 400
+    
+    item = add_item_to_list(
+        list_id=list_id,
+        item_name=data.get("name"),
+        quantity=data.get("quantity", 1),
+        unit=data.get("unit"),
+        category=data.get("category"),
+        notes=data.get("notes"),
+        session=session
+    )
+    
+    if item:
+        return jsonify(item.to_dict()), 201
+    else:
+        return jsonify({"error": "Failed to add item to list"}), 500
+
+@app.route("/api/shopping-lists/items/<int:item_id>/check", methods=["PUT"])
+def api_toggle_item_checked(item_id):
+    """Toggle an item as checked/unchecked"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if data is None or "is_checked" not in data:
+        return jsonify({"error": "is_checked status is required"}), 400
+    
+    item = toggle_item_checked(item_id, data.get("is_checked"), session)
+    if item:
+        return jsonify(item.to_dict())
+    else:
+        return jsonify({"error": "Failed to update item or item not found"}), 404
+
+@app.route("/api/shopping-lists/items/<int:item_id>", methods=["DELETE"])
+def api_remove_list_item(item_id):
+    """Remove an item from a shopping list"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    success = remove_item_from_list(item_id, session)
+    if success:
+        return jsonify({"status": "removed"})
+    else:
+        return jsonify({"error": "Failed to remove item or item not found"}), 404
+
+@app.route("/api/shopping-lists/<int:list_id>/recurring", methods=["PUT"])
+def api_set_list_recurring(list_id):
+    """Set a shopping list as recurring"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data or not data.get("frequency_days"):
+        return jsonify({"error": "frequency_days is required"}), 400
+    
+    try:
+        frequency_days = int(data.get("frequency_days"))
+    except (ValueError, TypeError):
+        return jsonify({"error": "frequency_days must be a number"}), 400
+    
+    shopping_list = set_list_as_recurring(list_id, frequency_days, session)
+    if shopping_list:
+        return jsonify(shopping_list.to_dict())
+    else:
+        return jsonify({"error": "Failed to update list or list not found"}), 404
+
+@app.route("/api/shopping-lists/<int:list_id>/ordered", methods=["PUT"])
+def api_mark_list_ordered(list_id):
+    """Mark a shopping list as ordered"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    shopping_list = mark_list_as_ordered(list_id, session)
+    if shopping_list:
+        return jsonify(shopping_list.to_dict())
+    else:
+        return jsonify({"error": "Failed to update list or list not found"}), 404
+
+@app.route("/api/shopping-lists/due", methods=["GET"])
+def api_get_due_lists():
+    """Get shopping lists that are due for ordering"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    shopping_lists = get_due_shopping_lists(session)
+    return jsonify([lst.to_dict() for lst in shopping_lists])
+
+# Medication API endpoints
+@app.route("/api/medications", methods=["GET"])
+def api_get_medications():
+    """Get all medications for the current user"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    medications = get_medications(session)
+    return jsonify([med.to_dict() for med in medications])
+
+@app.route("/api/medications", methods=["POST"])
+def api_add_medication():
+    """Add a new medication"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data or not data.get("name"):
+        return jsonify({"error": "Medication name is required"}), 400
+    
+    medication = add_medication(
+        name=data.get("name"),
+        dosage=data.get("dosage"),
+        instructions=data.get("instructions"),
+        doctor_name=data.get("doctor_name"),
+        pharmacy=data.get("pharmacy"),
+        quantity=data.get("quantity"),
+        refills=data.get("refills"),
+        session=session
+    )
+    
+    if medication:
+        return jsonify(medication.to_dict()), 201
+    else:
+        return jsonify({"error": "Failed to add medication"}), 500
+
+@app.route("/api/medications/<int:medication_id>", methods=["GET"])
+def api_get_medication(medication_id):
+    """Get a specific medication"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    medication = get_medication_by_id(medication_id, session)
+    if not medication:
+        return jsonify({"error": "Medication not found"}), 404
+    
+    return jsonify(medication.to_dict())
+
+@app.route("/api/medications/<int:medication_id>/quantity", methods=["PUT"])
+def api_update_medication_quantity(medication_id):
+    """Update a medication's remaining quantity"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data or "quantity" not in data:
+        return jsonify({"error": "Quantity is required"}), 400
+    
+    try:
+        quantity = int(data.get("quantity"))
+    except (ValueError, TypeError):
+        return jsonify({"error": "Quantity must be a number"}), 400
+    
+    medication = update_medication_quantity(medication_id, quantity, session)
+    if medication:
+        return jsonify(medication.to_dict())
+    else:
+        return jsonify({"error": "Failed to update medication or medication not found"}), 404
+
+@app.route("/api/medications/<int:medication_id>/refill", methods=["PUT"])
+def api_refill_medication(medication_id):
+    """Record a medication refill"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data or "quantity_added" not in data:
+        return jsonify({"error": "quantity_added is required"}), 400
+    
+    try:
+        quantity_added = int(data.get("quantity_added"))
+        refills_remaining = int(data.get("refills_remaining")) if "refills_remaining" in data else None
+    except (ValueError, TypeError):
+        return jsonify({"error": "Quantity values must be numbers"}), 400
+    
+    medication = refill_medication(medication_id, quantity_added, refills_remaining, session)
+    if medication:
+        return jsonify(medication.to_dict())
+    else:
+        return jsonify({"error": "Failed to refill medication or medication not found"}), 404
+
+@app.route("/api/medications/refill-needed", methods=["GET"])
+def api_get_medications_to_refill():
+    """Get medications that need to be refilled"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    medications = get_medications_to_refill(session)
+    return jsonify([med.to_dict() for med in medications])
+
+@app.route("/api/doctors/<int:doctor_id>/medications", methods=["GET"])
+def api_get_doctor_medications(doctor_id):
+    """Get medications prescribed by a specific doctor"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    medications = get_medications_by_doctor(doctor_id, session)
+    return jsonify([med.to_dict() for med in medications])
+
+# Product API endpoints
+@app.route("/api/products", methods=["GET"])
+def api_get_products():
+    """Get all tracked products for the current user"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    products = get_products(session)
+    return jsonify([product.to_dict() for product in products])
+
+@app.route("/api/products", methods=["POST"])
+def api_add_product():
+    """Add a new product to track"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data or not data.get("name"):
+        return jsonify({"error": "Product name is required"}), 400
+    
+    product = add_product(
+        name=data.get("name"),
+        url=data.get("url"),
+        description=data.get("description"),
+        price=data.get("price"),
+        source=data.get("source"),
+        session=session
+    )
+    
+    if product:
+        return jsonify(product.to_dict()), 201
+    else:
+        return jsonify({"error": "Failed to add product"}), 500
+
+@app.route("/api/products/<int:product_id>", methods=["GET"])
+def api_get_product(product_id):
+    """Get a specific product"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    product = get_product_by_id(product_id, session)
+    if not product:
+        return jsonify({"error": "Product not found"}), 404
+    
+    return jsonify(product.to_dict())
+
+@app.route("/api/products/<int:product_id>/recurring", methods=["PUT"])
+def api_set_product_recurring(product_id):
+    """Set a product as recurring"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data or not data.get("frequency_days"):
+        return jsonify({"error": "frequency_days is required"}), 400
+    
+    try:
+        frequency_days = int(data.get("frequency_days"))
+    except (ValueError, TypeError):
+        return jsonify({"error": "frequency_days must be a number"}), 400
+    
+    product = set_product_as_recurring(product_id, frequency_days, session)
+    if product:
+        return jsonify(product.to_dict())
+    else:
+        return jsonify({"error": "Failed to update product or product not found"}), 404
+
+@app.route("/api/products/<int:product_id>/ordered", methods=["PUT"])
+def api_mark_product_ordered(product_id):
+    """Mark a product as ordered"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    product = mark_product_as_ordered(product_id, session)
+    if product:
+        return jsonify(product.to_dict())
+    else:
+        return jsonify({"error": "Failed to update product or product not found"}), 404
+
+@app.route("/api/products/due", methods=["GET"])
+def api_get_due_products():
+    """Get products that are due for ordering"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    products = get_due_product_orders(session)
+    return jsonify([product.to_dict() for product in products])
+
+@app.route("/api/products/<int:product_id>/price", methods=["PUT"])
+def api_update_product_price(product_id):
+    """Update a product's price"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data or "price" not in data:
+        return jsonify({"error": "Price is required"}), 400
+    
+    try:
+        price = float(data.get("price"))
+    except (ValueError, TypeError):
+        return jsonify({"error": "Price must be a number"}), 400
+    
+    product = update_product_price(product_id, price, session)
+    if product:
+        return jsonify(product.to_dict())
+    else:
+        return jsonify({"error": "Failed to update product or product not found"}), 404
