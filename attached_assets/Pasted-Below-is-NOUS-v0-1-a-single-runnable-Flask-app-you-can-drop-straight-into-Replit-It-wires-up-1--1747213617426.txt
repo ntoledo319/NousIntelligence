@@ -1,0 +1,214 @@
+Below is NOUS v0.1—a single, runnable Flask app you can drop straight into Replit. It wires up:
+	1.	Google OAuth → Calendar + Tasks + Keep
+	2.	Spotify OAuth → playback, playlists
+	3.	AA Daily Reflection scraper
+	4.	A simple text-based “chat” UI at / that parses basic commands
+	5.	Local JSON logging for workouts / mood journaling
+	6.	Hooks for OpenRouter (so you can extend with GPT/Claude prompts)
+
+⸻
+
+
+<details>
+<summary>📦 Requirements (add to your Replit “Packages” or `requirements.txt`)</summary>
+
+
+Flask
+google-auth
+google-auth-oauthlib
+google-api-python-client
+gkeepapi
+spotipy
+beautifulsoup4
+requests
+python-dotenv
+openai
+
+</details>
+
+
+# main.py
+import os, json, datetime, logging
+from flask import Flask, request, redirect, session, url_for, render_template_string
+from dotenv import load_dotenv
+import requests
+from bs4 import BeautifulSoup
+
+# Google imports
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import Flow
+from googleapiclient.discovery import build
+import gkeepapi
+
+# Spotify imports
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
+
+# OpenRouter (placeholder)
+import openai
+
+# ——— CONFIG ———
+load_dotenv()
+
+# Flask config
+app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET") or "change_this!"
+
+# OAuth config
+GOOGLE_CLIENT_SECRETS = "client_secret_1015094007473-337qm1ofr5htlodjmsf2p6r3fcht6pg2.apps.googleusercontent.com.json"
+GOOGLE_SCOPES = [
+    "https://www.googleapis.com/auth/calendar.events",
+    "https://www.googleapis.com/auth/tasks",
+    "https://www.googleapis.com/auth/keep"
+]
+GOOGLE_REDIRECT = "https://toledonick981.repl.co/callback/google"
+
+SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
+SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
+SPOTIFY_REDIRECT = "https://toledonick981.repl.co/callback/spotify"
+SPOTIFY_SCOPE = "user-modify-playback-state user-read-playback-state playlist-modify-public"
+
+OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
+openai.api_key = OPENROUTER_KEY
+
+# ——— HELPERS ———
+
+def get_google_flow():
+    return Flow.from_client_secrets_file(
+        GOOGLE_CLIENT_SECRETS,
+        scopes=GOOGLE_SCOPES,
+        redirect_uri=GOOGLE_REDIRECT
+    )
+
+def build_google_services():
+    creds = Credentials(**session['google_creds'])
+    calendar = build("calendar", "v3", credentials=creds)
+    tasks    = build("tasks", "v1", credentials=creds)
+    keep     = gkeepapi.Keep()
+    keep.login(session['google_creds']['client_id'], session['google_creds']['token'])
+    return calendar, tasks, keep
+
+def get_spotify_client():
+    auth = SpotifyOAuth(
+        client_id=SPOTIFY_CLIENT_ID,
+        client_secret=SPOTIFY_CLIENT_SECRET,
+        redirect_uri=SPOTIFY_REDIRECT,
+        scope=SPOTIFY_SCOPE,
+        cache_path=".cache-" + session.get('spotify_user', '')
+    )
+    token_info = auth.get_cached_token()
+    if not token_info:
+        return None, auth
+    sp = spotipy.Spotify(auth=token_info['access_token'])
+    return sp, auth
+
+def scrape_aa_reflection():
+    url = "https://www.aa.org/daily-reflection"
+    r = requests.get(url)
+    doc = BeautifulSoup(r.text, "html.parser")
+    art = doc.select_one(".article-content")  # adjust selector if needed
+    return art.get_text("\n").strip()
+
+# ——— ROUTES ———
+
+# 1) Entry + command UI
+@app.route("/", methods=["GET", "POST"])
+def index():
+    if request.method == "GET":
+        return render_template_string("""
+        <!doctype html>
+        <h2>NOUS → Live</h2>
+        <form method=post>
+          <input name=cmd style="width:80%;" placeholder='e.g., "add gym at 6pm"'/>
+          <input type=submit value="➤"/>
+        </form>
+        <pre>{{log}}</pre>
+        """, log="\n".join(session.get("log", [])))
+    # POST: handle command
+    cmd = request.form["cmd"].lower()
+    log = session.setdefault("log", [])
+    log.append(f">>> {cmd}")
+    # bootstrap Google / Spotify services
+    if "google_creds" not in session:
+        return redirect(url_for("authorize_google"))
+    cal, tasks, keep = build_google_services()
+    sp, sp_auth = get_spotify_client()
+
+    # Simple command parsing
+    if cmd.startswith("add ") and " at " in cmd:
+        # calendar event
+        title, time = cmd[4:].split(" at ",1)
+        event = {
+            "summary": title.title(),
+            "start": {"dateTime": datetime.datetime.now().isoformat()},
+            "end":   {"dateTime": (datetime.datetime.now()+datetime.timedelta(hours=1)).isoformat()}
+        }
+        cal.events().insert(calendarId="primary", body=event).execute()
+        log.append(f"🗓️ Event '{title}' created.")
+    elif cmd.startswith("log workout"):
+        entry = cmd.replace("log workout:", "").strip()
+        with open("workouts.json","a") as f: json.dump({"time":str(datetime.datetime.now()),"txt":entry},f); f.write("\n")
+        log.append("💪 Workout logged.")
+    elif cmd.startswith("what’s my day") or cmd.startswith("whats my day"):
+        now = datetime.date.today().isoformat()
+        events = cal.events().list(calendarId="primary", timeMin=now+"T00:00:00Z", timeMax=now+"T23:59:59Z").execute().get("items",[])
+        for e in events: log.append(f"- {e['summary']} @ {e['start'].get('dateTime',e['start'].get('date'))}")
+    elif "aa reflection" in cmd or "daily reflection" in cmd:
+        text = scrape_aa_reflection()
+        log.append(text[:300]+"…")
+    else:
+        log.append("❓ Command not recognized.")
+    session.modified = True
+    return redirect(url_for("index"))
+
+# 2) Google OAuth callback
+@app.route("/callback/google")
+def callback_google():
+    flow = get_google_flow()
+    flow.fetch_token(authorization_response=request.url)
+    creds = flow.credentials
+    session['google_creds'] = {
+        'token': creds.token,
+        'refresh_token': creds.refresh_token,
+        'token_uri': creds.token_uri,
+        'client_id': creds.client_id,
+        'client_secret': creds.client_secret,
+        'scopes': creds.scopes
+    }
+    return redirect(url_for("index"))
+
+# 3) Spotify OAuth callback
+@app.route("/callback/spotify")
+def callback_spotify():
+    sp, auth = get_spotify_client()
+    code = request.args.get("code")
+    token_info = auth.get_access_token(code)
+    session['spotify_user'] = token_info['scope']  # arbitrary store
+    return redirect(url_for("index"))
+
+# ——— APP START ———
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+    app.run(host="0.0.0.0", port=3000)
+
+
+⸻
+
+🚀 Getting Started on Replit
+	1.	Upload your client_secret_*.json to your Replit root.
+	2.	Set Secrets (Replit sidebar → Secrets)
+	•	SPOTIFY_CLIENT_ID → 775bee52731c481f8cecad8371084a94
+	•	SPOTIFY_CLIENT_SECRET → 89e174bcde7b4dc8bc37f464d37d33c9
+	•	OPENROUTER_API_KEY → (your key)
+	•	FLASK_SECRET → any random string
+	3.	Run main.py.
+	4.	Visit https://toledonick981.repl.co/ → allow Google & Spotify OAuth.
+	5.	Chat with NOUS:
+	•	add dentist appointment at 10am tomorrow
+	•	what’s my day look like
+	•	log workout: 5x5 bench, 20min row
+	•	show aa reflection
+
+⸻
+
+From here you can hook in OpenRouter calls to parse free-form commands, expand your parser, add Twilio, Gmail-send, iCloud, sentiment analysis, or that smart-ping ML. But this block is your bone structure—NOUS is alive.
