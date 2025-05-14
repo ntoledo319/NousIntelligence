@@ -99,6 +99,134 @@ def index():
         
     log = session.setdefault("log", [])
     log.append(f">>> {cmd}")
+
+
+@app.route("/dashboard")
+def dashboard():
+    """Show dashboard with data visualizations and summaries"""
+    # Check if user is authenticated
+    if "google_creds" not in session:
+        flash("Please connect your Google account to access the dashboard", "warning")
+        return redirect(url_for("index"))
+        
+    # Prepare data for the dashboard
+    data = {}
+    
+    # Get budget data
+    try:
+        data['budget_summary'] = get_budget_summary(session)
+        
+        # Format budget categories for the chart
+        if data['budget_summary'] and 'categories' in data['budget_summary']:
+            # Filter out categories with 0 budget
+            budget_categories = {
+                cat: details['budget'] 
+                for cat, details in data['budget_summary']['categories'].items() 
+                if details['budget'] > 0
+            }
+            data['budget_categories'] = budget_categories
+    except Exception as e:
+        logging.error(f"Error fetching budget data: {str(e)}")
+    
+    # Get trip data
+    try:
+        active_trip = get_active_trip(session)
+        if active_trip:
+            # Calculate days remaining
+            today = datetime.datetime.now()
+            days_left = (active_trip.end_date - today).days if active_trip.end_date else 0
+            
+            # Check if it has itinerary
+            itinerary = get_itinerary(active_trip.id, session)
+            
+            trip_data = active_trip.to_dict()
+            trip_data['days_left'] = days_left
+            trip_data['has_itinerary'] = len(itinerary) > 0
+            trip_data['itinerary_count'] = len(itinerary)
+            
+            data['active_trip'] = trip_data
+        
+        upcoming_trips = get_upcoming_trips(session)
+        if upcoming_trips:
+            # Format upcoming trips data
+            upcoming_data = []
+            for trip in upcoming_trips:
+                today = datetime.datetime.now()
+                days_until = (trip.start_date - today).days if trip.start_date else 0
+                
+                trip_dict = trip.to_dict()
+                trip_dict['days_until'] = days_until
+                upcoming_data.append(trip_dict)
+                
+            data['upcoming_trips'] = upcoming_data
+    except Exception as e:
+        logging.error(f"Error fetching trip data: {str(e)}")
+    
+    # Get appointment data
+    try:
+        from utils.doctor_appointment_helper import get_upcoming_appointments
+        appointments = get_upcoming_appointments(session)
+        if appointments:
+            data['appointments'] = appointments
+            
+        # Check medications to refill
+        from utils.medication_helper import get_medications_to_refill
+        medications_to_refill = get_medications_to_refill(session)
+        if medications_to_refill:
+            data['medications_to_refill'] = medications_to_refill
+    except Exception as e:
+        logging.error(f"Error fetching health data: {str(e)}")
+        
+    # Get shopping data
+    try:
+        from utils.shopping_helper import get_shopping_lists, get_due_shopping_lists
+        from utils.product_helper import get_due_product_orders
+        
+        shopping_lists = get_shopping_lists(session)
+        if shopping_lists:
+            data['shopping_lists'] = shopping_lists
+            
+            # Calculate total items
+            total_items = sum(len(lst.items) for lst in shopping_lists if lst.items)
+            data['total_items'] = total_items
+            
+            # Get due lists
+            due_lists = get_due_shopping_lists(session)
+            if due_lists:
+                data['due_lists'] = due_lists
+                
+            # Get products to order
+            products_to_order = get_due_product_orders(session)
+            if products_to_order:
+                data['products_to_order'] = products_to_order
+    except Exception as e:
+        logging.error(f"Error fetching shopping data: {str(e)}")
+        
+    # Create some recent activity (could be replaced with actual activity log)
+    data['recent_activity'] = [
+        {
+            'action': 'Added budget',
+            'description': 'Created monthly budget for groceries',
+            'time_ago': '2 hours ago'
+        },
+        {
+            'action': 'Booked flight',
+            'description': 'Reserved tickets for Paris trip',
+            'time_ago': '1 day ago'
+        },
+        {
+            'action': 'Added expense',
+            'description': 'Recorded $45.99 for dinner',
+            'time_ago': '2 days ago'
+        },
+        {
+            'action': 'Scheduled appointment',
+            'description': 'Doctor visit on June 15',
+            'time_ago': '3 days ago'
+        },
+    ]
+            
+    return render_template("dashboard.html", **data)
     
     # Check for auth
     if "google_creds" not in session and not cmd.startswith("help"):
