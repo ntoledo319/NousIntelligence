@@ -1,0 +1,64 @@
+/* Custom styles for NOUS assistant */
+
+/* Terminal output styling */
+.terminal-output {
+    font-family: 'Courier New', monospace;
+    min-height: 300px;
+    max-height: 500px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    line-height: 1.5;
+}
+
+.terminal-line {
+    margin-bottom: 8px;
+}
+
+.user-cmd {
+    color: var(--bs-info);
+    font-weight: bold;
+}
+
+/* Custom scrollbar for terminal */
+.terminal-output::-webkit-scrollbar {
+    width: 8px;
+}
+
+.terminal-output::-webkit-scrollbar-track {
+    background: #343a40;
+}
+
+.terminal-output::-webkit-scrollbar-thumb {
+    background-color: #666;
+    border-radius: 4px;
+}
+
+/* Styling for command form */
+.input-group .form-control {
+    font-family: 'Courier New', monospace;
+}
+
+/* Card and alert styling */
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.alert {
+    border-radius: 0.25rem;
+}
+
+/* Badge styling */
+.badge {
+    font-weight: normal;
+    padding: 0.25em 0.5em;
+}
+
+/* Animation for flash messages */
+.alert {
+    animation: fadein 0.5s;
+}
+
+@keyframes fadein {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
