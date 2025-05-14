@@ -1,0 +1,363 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="mb-4">
+            <h2 class="mb-4"><i class="fas fa-tachometer-alt me-2 text-primary"></i>Dashboard</h2>
+            
+            <div class="row g-4">
+                <!-- Budget Summary Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-3">
+                                <h5 class="card-title text-info mb-0">Budget</h5>
+                                <i class="fas fa-chart-pie text-info fs-4"></i>
+                            </div>
+                            {% if budget_summary %}
+                                <h3 class="mb-1">${{ "%.2f"|format(budget_summary.total_budget) }}</h3>
+                                <div class="progress mb-2" style="height: 8px;">
+                                    <div class="progress-bar bg-info" role="progressbar" 
+                                        style="width: {{ budget_summary.percent_used }}%;" 
+                                        aria-valuenow="{{ budget_summary.percent_used }}" 
+                                        aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="small text-muted">{{ budget_summary.percent_used|int }}% used</span>
+                                    <span class="small text-info">${{ "%.2f"|format(budget_summary.remaining) }} left</span>
+                                </div>
+                            {% else %}
+                                <p class="card-text text-muted">No budget data available</p>
+                                <a href="#" onclick="submitCommand('create budget monthly 1000');return false;" class="btn btn-sm btn-outline-info">Create Budget</a>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <a href="#" onclick="submitCommand('budget summary');return false;" class="text-decoration-none text-info small">View Details <i class="fas fa-arrow-right ms-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Trip Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-3">
+                                <h5 class="card-title text-primary mb-0">Trips</h5>
+                                <i class="fas fa-plane-departure text-primary fs-4"></i>
+                            </div>
+                            {% if active_trip %}
+                                <h4 class="mb-2">{{ active_trip.destination }}</h4>
+                                <p class="card-text text-muted">
+                                    {% if active_trip.days_left > 0 %}
+                                        {{ active_trip.days_left }} days remaining
+                                    {% else %}
+                                        Ends today!
+                                    {% endif %}
+                                </p>
+                                <div class="mt-2">
+                                    <span class="badge bg-primary me-1">Active</span>
+                                    {% if active_trip.has_itinerary %}
+                                        <span class="badge bg-success">{{ active_trip.itinerary_count }} activities</span>
+                                    {% endif %}
+                                </div>
+                            {% elif upcoming_trips %}
+                                <h4 class="mb-2">{{ upcoming_trips[0].destination }}</h4>
+                                <p class="card-text text-muted">
+                                    Starting in {{ upcoming_trips[0].days_until }} days
+                                </p>
+                                <div class="mt-2">
+                                    <span class="badge bg-secondary me-1">Upcoming</span>
+                                    <span class="badge bg-info">{{ upcoming_trips|length }} planned</span>
+                                </div>
+                            {% else %}
+                                <p class="card-text text-muted">No upcoming trips</p>
+                                <a href="#" onclick="submitCommand('plan trip to Paris');return false;" class="btn btn-sm btn-outline-primary">Plan Trip</a>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <a href="#" onclick="submitCommand('show trips');return false;" class="text-decoration-none text-primary small">View All Trips <i class="fas fa-arrow-right ms-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Appointments Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-3">
+                                <h5 class="card-title text-success mb-0">Health</h5>
+                                <i class="fas fa-heartbeat text-success fs-4"></i>
+                            </div>
+                            {% if appointments %}
+                                <h4 class="mb-2">{{ appointments|length }} Appointments</h4>
+                                <p class="card-text">
+                                    Next: {{ appointments[0].date.strftime('%b %d') }} 
+                                    <strong>{{ appointments[0].doctor.name }}</strong>
+                                </p>
+                                <div class="mt-2">
+                                    <span class="badge bg-success me-1">{{ appointments|length }} upcoming</span>
+                                    {% if medications_to_refill %}
+                                    <span class="badge bg-warning">{{ medications_to_refill|length }} refills needed</span>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <p class="card-text text-muted">No upcoming appointments</p>
+                                <a href="#" onclick="submitCommand('show doctors');return false;" class="btn btn-sm btn-outline-success">Check Doctors</a>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <a href="#" onclick="submitCommand('show appointments');return false;" class="text-decoration-none text-success small">View Appointments <i class="fas fa-arrow-right ms-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Shopping Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-3">
+                                <h5 class="card-title text-danger mb-0">Shopping</h5>
+                                <i class="fas fa-shopping-cart text-danger fs-4"></i>
+                            </div>
+                            {% if shopping_lists %}
+                                <h4 class="mb-2">{{ shopping_lists|length }} Lists</h4>
+                                <p class="card-text">
+                                    {{ total_items }} items in total
+                                </p>
+                                <div class="mt-2">
+                                    {% if due_lists %}
+                                    <span class="badge bg-warning me-1">{{ due_lists|length }} due soon</span>
+                                    {% endif %}
+                                    {% if products_to_order %}
+                                    <span class="badge bg-danger">{{ products_to_order|length }} to order</span>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <p class="card-text text-muted">No shopping lists</p>
+                                <a href="#" onclick="submitCommand('create shopping list groceries');return false;" class="btn btn-sm btn-outline-danger">Create List</a>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <a href="#" onclick="submitCommand('show shopping lists');return false;" class="text-decoration-none text-danger small">View Shopping Lists <i class="fas fa-arrow-right ms-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Charts Section -->
+        <div class="row g-4 mt-2">
+            <!-- Budget Distribution Chart -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-pie me-2 text-info"></i>Budget Distribution
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="budgetChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity Timeline -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-history me-2 text-warning"></i>Recent Activity
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            {% if recent_activity %}
+                                {% for activity in recent_activity %}
+                                <div class="list-group-item bg-transparent">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ activity.action }}</h6>
+                                        <small class="text-muted">{{ activity.time_ago }}</small>
+                                    </div>
+                                    <p class="mb-1 small text-muted">{{ activity.description }}</p>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="list-group-item bg-transparent text-center py-4">
+                                    <p class="text-muted mb-0">No recent activity</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Commands Section -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-terminal me-2 text-primary"></i>Command Center
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('index') }}" class="mb-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-end-0">
+                            <i class="fas fa-greater-than text-primary"></i>
+                        </span>
+                        <input type="text" name="cmd" class="form-control ps-0 border-start-0" 
+                                placeholder="Type a command..." autocomplete="off" 
+                                autofocus>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="row row-cols-2 row-cols-md-4 g-3">
+                    <div class="col">
+                        <div class="d-grid">
+                            <button class="btn btn-outline-primary" onclick="submitCommand('show calendar')">
+                                <i class="fas fa-calendar-alt me-2"></i>Calendar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="d-grid">
+                            <button class="btn btn-outline-success" onclick="submitCommand('show expenses')">
+                                <i class="fas fa-receipt me-2"></i>Expenses
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="d-grid">
+                            <button class="btn btn-outline-info" onclick="submitCommand('show trips')">
+                                <i class="fas fa-suitcase me-2"></i>Trips
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="d-grid">
+                            <button class="btn btn-outline-warning" onclick="submitCommand('show tasks')">
+                                <i class="fas fa-tasks me-2"></i>Tasks
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Budget Chart Data
+const budgetData = {
+    labels: [
+        {% if budget_categories %}
+            {% for category, amount in budget_categories.items() %}
+                '{{ category }}',
+            {% endfor %}
+        {% else %}
+            'Housing', 'Food', 'Transportation', 'Entertainment', 'Other'
+        {% endif %}
+    ],
+    datasets: [{
+        label: 'Budget Allocation',
+        data: [
+            {% if budget_categories %}
+                {% for category, amount in budget_categories.items() %}
+                    {{ amount }},
+                {% endfor %}
+            {% else %}
+                30, 20, 15, 10, 25
+            {% endif %}
+        ],
+        backgroundColor: [
+            'rgba(54, 162, 235, 0.7)',
+            'rgba(255, 99, 132, 0.7)',
+            'rgba(255, 206, 86, 0.7)',
+            'rgba(75, 192, 192, 0.7)',
+            'rgba(153, 102, 255, 0.7)',
+            'rgba(255, 159, 64, 0.7)',
+            'rgba(199, 199, 199, 0.7)',
+            'rgba(83, 102, 255, 0.7)',
+            'rgba(40, 159, 64, 0.7)',
+            'rgba(210, 199, 199, 0.7)',
+        ],
+        borderColor: [
+            'rgba(54, 162, 235, 1)',
+            'rgba(255, 99, 132, 1)',
+            'rgba(255, 206, 86, 1)',
+            'rgba(75, 192, 192, 1)',
+            'rgba(153, 102, 255, 1)',
+            'rgba(255, 159, 64, 1)',
+            'rgba(199, 199, 199, 1)',
+            'rgba(83, 102, 255, 1)',
+            'rgba(40, 159, 64, 1)',
+            'rgba(210, 199, 199, 1)',
+        ],
+        borderWidth: 1
+    }]
+};
+
+// Initialize Budget Chart
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('budgetChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: budgetData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        padding: 10,
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    padding: 10,
+                    cornerRadius: 4,
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return `${label}: $${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+            cutout: '70%',
+            animation: {
+                animateScale: true,
+                animateRotate: true
+            }
+        }
+    });
+});
+
+// Function to submit commands
+function submitCommand(cmd) {
+    fetch('{{ url_for("index") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            'cmd': cmd
+        })
+    }).then(() => window.location.href = '{{ url_for("index") }}');
+}
+</script>
+{% endblock %}

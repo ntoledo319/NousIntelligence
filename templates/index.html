@@ -2,92 +2,225 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card border-dark mb-4">
+    <div class="col-lg-9">
+        <div class="card mb-4">
             <div class="card-header bg-primary text-white">
-                <h3 class="mb-0">
-                    <i class="fas fa-terminal me-2"></i>NOUS Command Interface
-                </h3>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">
+                        <i class="fas fa-terminal me-2"></i>NOUS Command Interface
+                    </h3>
+                    <div class="connection-status d-none d-md-flex">
+                        {% if 'google_creds' in session %}
+                        <span class="badge bg-success me-2" data-bs-toggle="tooltip" title="Google services connected">
+                            <i class="fab fa-google me-1"></i>Connected
+                        </span>
+                        {% else %}
+                        <span class="badge bg-secondary me-2" data-bs-toggle="tooltip" title="Connect to Google services">
+                            <i class="fab fa-google me-1"></i>Not Connected
+                        </span>
+                        {% endif %}
+                        
+                        {% if 'spotify_user' in session %}
+                        <span class="badge bg-success" data-bs-toggle="tooltip" title="Spotify connected">
+                            <i class="fab fa-spotify me-1"></i>Connected
+                        </span>
+                        {% else %}
+                        <span class="badge bg-secondary" data-bs-toggle="tooltip" title="Connect to Spotify">
+                            <i class="fab fa-spotify me-1"></i>Not Connected
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
             <div class="card-body">
-                <form method="post" class="mb-3">
+                <form method="post" class="command-form">
                     <div class="input-group">
                         <input type="text" name="cmd" class="form-control" 
-                               placeholder='e.g., "add gym at 6pm"' autocomplete="off" 
+                               placeholder='Type a command or ask a question...' autocomplete="off" 
                                autofocus>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
+                    <div class="mt-2 small text-muted">
+                        <span>Try: <code>help</code>, <code>show trips</code>, or <code>budget summary</code></span>
+                    </div>
                 </form>
                 
                 {% if commands %}
-                <div class="card mb-3">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">Available Commands</h5>
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 text-info">
+                                <i class="fas fa-list-ul me-2"></i>Available Commands
+                            </h5>
+                            <span class="badge bg-info">Quick Reference</span>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Command</th>
-                                    <th>Description</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for cmd in commands %}
-                                <tr>
-                                    <td><code>{{ cmd.command }}</code></td>
-                                    <td>{{ cmd.description }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40%">Command</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for cmd in commands %}
+                                    <tr>
+                                        <td><code>{{ cmd.command }}</code></td>
+                                        <td>{{ cmd.description }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 {% endif %}
                 
-                <div class="terminal-output p-3 border border-secondary rounded bg-dark">
+                <div class="terminal-output">
                     {% if log and log|length > 0 %}
                         {% for entry in log %}
                             <div class="terminal-line {% if entry.startswith('>>>') %}user-cmd{% endif %}">
-                                {{ entry }}
+                                {% if entry.startswith('>>>') %}
+                                    <i class="fas fa-angle-right me-2"></i>{{ entry[3:] }}
+                                {% else %}
+                                    {{ entry }}
+                                {% endif %}
                             </div>
                         {% endfor %}
+                        <div class="typing-indicator">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
                     {% else %}
-                        <div class="terminal-line text-muted">
-                            Welcome to NOUS. Type "help" to see available commands.
+                        <div class="terminal-line">
+                            <span class="text-info"><i class="fas fa-info-circle me-2"></i>Welcome to NOUS!</span>
+                        </div>
+                        <div class="terminal-line">
+                            This is your personal assistant that helps you manage:
+                        </div>
+                        <div class="terminal-line">
+                            <span class="text-success">✓ Calendar and tasks</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="text-success">✓ Health appointments and medications</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="text-success">✓ Shopping lists and product tracking</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="text-success">✓ Budget and expense tracking</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="text-success">✓ Travel planning and packing lists</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="text-success">✓ Music playback and control</span>
+                        </div>
+                        <div class="terminal-line mt-3">
+                            Type <code>help</code> to see available commands, or just ask a question in natural language.
                         </div>
                     {% endif %}
                 </div>
             </div>
-            <div class="card-footer text-muted">
+            <div class="card-footer">
                 <div class="d-flex justify-content-between align-items-center">
-                    <div>
+                    <div class="d-flex align-items-center">
+                        <span class="me-2">
+                            <i class="fas fa-lightbulb text-warning"></i>
+                        </span>
+                        <small>You can use natural language to interact with NOUS</small>
+                    </div>
+                    <div class="connection-status d-flex d-md-none">
                         {% if 'google_creds' in session %}
-                        <span class="badge bg-success me-1">
-                            <i class="fab fa-google me-1"></i>Google
+                        <span class="badge bg-success me-2">
+                            <i class="fab fa-google"></i>
                         </span>
                         {% else %}
-                        <span class="badge bg-secondary me-1">
-                            <i class="fab fa-google me-1"></i>Google
+                        <span class="badge bg-secondary me-2">
+                            <i class="fab fa-google"></i>
                         </span>
                         {% endif %}
                         
                         {% if 'spotify_user' in session %}
-                        <span class="badge bg-success me-1">
-                            <i class="fab fa-spotify me-1"></i>Spotify
+                        <span class="badge bg-success">
+                            <i class="fab fa-spotify"></i>
                         </span>
                         {% else %}
-                        <span class="badge bg-secondary me-1">
-                            <i class="fab fa-spotify me-1"></i>Spotify
+                        <span class="badge bg-secondary">
+                            <i class="fab fa-spotify"></i>
                         </span>
                         {% endif %}
                     </div>
-                    <small>Type "help" for command list</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2 text-warning"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body py-3">
+                <div class="row g-3">
+                    <div class="col-6 col-md-3">
+                        <a href="#" onclick="submitCommand('show calendar');return false;" class="btn btn-outline-primary w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="fas fa-calendar-alt mb-2"></i>
+                            <span>Calendar</span>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a href="#" onclick="submitCommand('budget summary');return false;" class="btn btn-outline-success w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="fas fa-chart-pie mb-2"></i>
+                            <span>Budget</span>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a href="#" onclick="submitCommand('show trips');return false;" class="btn btn-outline-info w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="fas fa-plane-departure mb-2"></i>
+                            <span>Trips</span>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <a href="#" onclick="submitCommand('show medications');return false;" class="btn btn-outline-danger w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="fas fa-pills mb-2"></i>
+                            <span>Medications</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- JavaScript for submitting commands from quick actions -->
+<script>
+function submitCommand(cmd) {
+    const input = document.querySelector('input[name="cmd"]');
+    if (input) {
+        input.value = cmd;
+        input.form.submit();
+    }
+}
+
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Auto-scroll the terminal to bottom
+    const terminal = document.querySelector('.terminal-output');
+    if (terminal) {
+        terminal.scrollTop = terminal.scrollHeight;
+    }
+});
+</script>
 {% endblock %}
