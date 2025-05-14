@@ -86,7 +86,7 @@ def index():
         else:
             sp = None
             
-        result = parse_command(cmd, cal, tasks, keep, sp, log)
+        result = parse_command(cmd, cal, tasks, keep, sp, log, session)
         if result.get("redirect"):
             return redirect(result.get("redirect"))
             
@@ -197,3 +197,173 @@ def logout():
     session.clear()
     flash("You've been logged out. All credentials have been removed.", "info")
     return redirect(url_for("index"))
+
+# Doctor and appointment routes
+@app.route("/api/doctors", methods=["GET"])
+def api_get_doctors():
+    """Get all doctors for the current user"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    doctors = get_doctors(session)
+    return jsonify([doctor.to_dict() for doctor in doctors])
+
+@app.route("/api/doctors", methods=["POST"])
+def api_add_doctor():
+    """Add a new doctor"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data or not data.get("name"):
+        return jsonify({"error": "Doctor name is required"}), 400
+    
+    doctor = add_doctor(
+        name=data.get("name"),
+        specialty=data.get("specialty"),
+        phone=data.get("phone"),
+        address=data.get("address"),
+        notes=data.get("notes"),
+        session=session
+    )
+    
+    if doctor:
+        return jsonify(doctor.to_dict()), 201
+    else:
+        return jsonify({"error": "Failed to add doctor"}), 500
+
+@app.route("/api/doctors/<int:doctor_id>", methods=["GET"])
+def api_get_doctor(doctor_id):
+    """Get a specific doctor"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    doctor = get_doctor_by_id(doctor_id, session)
+    if not doctor:
+        return jsonify({"error": "Doctor not found"}), 404
+    
+    return jsonify(doctor.to_dict())
+
+@app.route("/api/doctors/<int:doctor_id>", methods=["PUT"])
+def api_update_doctor(doctor_id):
+    """Update a doctor"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    
+    doctor = update_doctor(
+        doctor_id=doctor_id,
+        name=data.get("name"),
+        specialty=data.get("specialty"),
+        phone=data.get("phone"),
+        address=data.get("address"),
+        notes=data.get("notes"),
+        session=session
+    )
+    
+    if doctor:
+        return jsonify(doctor.to_dict())
+    else:
+        return jsonify({"error": "Failed to update doctor or doctor not found"}), 404
+
+@app.route("/api/doctors/<int:doctor_id>", methods=["DELETE"])
+def api_delete_doctor(doctor_id):
+    """Delete a doctor"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    success = delete_doctor(doctor_id, session)
+    if success:
+        return jsonify({"status": "deleted"})
+    else:
+        return jsonify({"error": "Failed to delete doctor or doctor not found"}), 404
+
+@app.route("/api/appointments", methods=["GET"])
+def api_get_appointments():
+    """Get all upcoming appointments"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    appointments = get_upcoming_appointments(session)
+    return jsonify([appointment.to_dict() for appointment in appointments])
+
+@app.route("/api/doctors/<int:doctor_id>/appointments", methods=["GET"])
+def api_get_doctor_appointments(doctor_id):
+    """Get all appointments for a specific doctor"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    appointments = get_appointments_by_doctor(doctor_id, session)
+    return jsonify([appointment.to_dict() for appointment in appointments])
+
+@app.route("/api/appointments", methods=["POST"])
+def api_add_appointment():
+    """Add a new appointment"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data or not data.get("doctor_id") or not data.get("date"):
+        return jsonify({"error": "Doctor ID and date are required"}), 400
+    
+    try:
+        date = datetime.datetime.fromisoformat(data.get("date"))
+    except (ValueError, TypeError):
+        return jsonify({"error": "Invalid date format. Use ISO format (YYYY-MM-DDTHH:MM:SS)"}), 400
+    
+    appointment = add_appointment(
+        doctor_id=data.get("doctor_id"),
+        date=date,
+        reason=data.get("reason"),
+        status=data.get("status", "scheduled"),
+        notes=data.get("notes"),
+        session=session
+    )
+    
+    if appointment:
+        return jsonify(appointment.to_dict()), 201
+    else:
+        return jsonify({"error": "Failed to add appointment"}), 500
+
+@app.route("/api/appointments/<int:appointment_id>/status", methods=["PUT"])
+def api_update_appointment_status(appointment_id):
+    """Update an appointment status"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data or not data.get("status"):
+        return jsonify({"error": "Status is required"}), 400
+    
+    appointment = update_appointment_status(
+        appointment_id=appointment_id,
+        new_status=data.get("status"),
+        session=session
+    )
+    
+    if appointment:
+        return jsonify(appointment.to_dict())
+    else:
+        return jsonify({"error": "Failed to update appointment or appointment not found"}), 404
+
+@app.route("/api/reminders/due", methods=["GET"])
+def api_get_due_reminders():
+    """Get all due appointment reminders"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    reminders = get_due_appointment_reminders(session)
+    result = []
+    for reminder in reminders:
+        doctor = Doctor.query.get(reminder.doctor_id)
+        doctor_name = doctor.name if doctor else "Unknown"
+        result.append({
+            "doctor_id": reminder.doctor_id,
+            "doctor_name": doctor_name,
+            "frequency_months": reminder.frequency_months,
+            "last_appointment": reminder.last_appointment.isoformat() if reminder.last_appointment else None,
+            "next_reminder": reminder.next_reminder.isoformat() if reminder.next_reminder else None
+        })
+    return jsonify(result)

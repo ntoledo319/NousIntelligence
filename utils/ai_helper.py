@@ -36,10 +36,16 @@ def parse_natural_language(user_input):
         6. Music: "play [song/artist]"
         7. Query: "what's my day"
         8. AA Reflection: "show aa reflection"
+        9. Doctor: "add doctor [name]"
+        10. Doctor List: "list doctors"
+        11. Appointment: "set appointment with [doctor] on [date/time]"
+        12. Appointments List: "show appointments"
+        
+        If the user is asking about a doctor appointment or mentions a doctor visit, use the appropriate doctor or appointment command format.
         
         Respond with JSON in this exact format:
         {
-            "command_type": "calendar|task|note|mood|workout|music|query|reflection",
+            "command_type": "calendar|task|note|mood|workout|music|query|reflection|doctor|doctor_list|appointment|appointments_list",
             "structured_command": "the exact command in the proper format",
             "confidence": 0.0 to 1.0
         }

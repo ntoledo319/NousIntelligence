@@ -12,8 +12,14 @@ from flask import url_for
 from utils.logger import log_workout, log_mood
 from utils.scraper import scrape_aa_reflection
 from utils.ai_helper import parse_natural_language
+from utils.doctor_appointment_helper import (
+    get_doctors, get_doctor_by_name, add_doctor, 
+    add_appointment, get_upcoming_appointments,
+    get_due_appointment_reminders
+)
+from models import Doctor
 
-def parse_command(cmd, calendar, tasks, keep, spotify, log):
+def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
     """
     Parse and execute user commands, with natural language support
     """
@@ -252,6 +258,10 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log):
         log.append("- add note: [note] - Add a note to Google Keep")
         log.append("- weekly summary - Get an AI summary of your week")
         log.append("- motivate me - Get a motivational quote")
+        log.append("- add doctor [name] - Add a new doctor to your list")
+        log.append("- list doctors - Show your saved doctors")
+        log.append("- set appointment with [doctor] on [date/time] - Schedule an appointment")
+        log.append("- show appointments - List your upcoming appointments")
         log.append("- connect spotify - Connect Spotify account")
         log.append("- connect google - Connect Google account")
         log.append("- help - Show this help menu")
@@ -261,6 +271,8 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log):
         log.append("  \"I need to see the dentist next Friday at 2pm\"")
         log.append("  \"What does my schedule look like today?\"")
         log.append("  \"I went for a 5k run this morning\"")
+        log.append("  \"Add Dr. Smith as my dentist\"")
+        log.append("  \"When is my next doctor's appointment?\"")
         
     # Weekly summary
     elif "weekly summary" in cmd.lower():
@@ -319,6 +331,160 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log):
         except Exception as e:
             logging.error(f"Error generating motivational quote: {str(e)}")
             log.append(f"❌ Error generating quote: {str(e)}")
+    
+    # Add doctor command
+    elif cmd.startswith("add doctor"):
+        try:
+            # Extract doctor name
+            doctor_name = cmd.replace("add doctor", "", 1).strip()
+            if not doctor_name:
+                log.append("❌ Please provide a doctor name.")
+                return result
+                
+            # Check if doctor already exists
+            existing_doctor = get_doctor_by_name(doctor_name, session)
+            if existing_doctor:
+                log.append(f"ℹ️ Doctor '{doctor_name}' is already in your list.")
+                return result
+                
+            # Add the doctor
+            doctor = add_doctor(name=doctor_name, session=session)
+            if doctor:
+                log.append(f"✅ Added doctor: {doctor_name}")
+                log.append("You can add more details later using the web interface.")
+            else:
+                log.append(f"❌ Error adding doctor: {doctor_name}")
+        except Exception as e:
+            logging.error(f"Error adding doctor: {str(e)}")
+            log.append(f"❌ Error adding doctor: {str(e)}")
+    
+    # List doctors command
+    elif cmd == "list doctors" or "show doctors" in cmd or "my doctors" in cmd:
+        try:
+            doctors = get_doctors(session)
+            if not doctors:
+                log.append("ℹ️ You don't have any doctors saved yet.")
+                log.append("Use 'add doctor [name]' to add one.")
+            else:
+                log.append("👨‍⚕️ Your Doctors:")
+                for doctor in doctors:
+                    specialty = f" ({doctor.specialty})" if doctor.specialty else ""
+                    log.append(f"- {doctor.name}{specialty}")
+        except Exception as e:
+            logging.error(f"Error listing doctors: {str(e)}")
+            log.append(f"❌ Error listing doctors: {str(e)}")
+    
+    # Set appointment command
+    elif cmd.startswith("set appointment") or "schedule" in cmd and "appointment" in cmd:
+        try:
+            # First, check if we have a doctor name
+            doctor_name = None
+            appointment_date = None
+            
+            # Try to extract doctor name
+            if "with" in cmd:
+                parts = cmd.split("with", 1)
+                if len(parts) > 1 and "on" in parts[1]:
+                    doctor_part, date_part = parts[1].split("on", 1)
+                    doctor_name = doctor_part.strip()
+                    date_str = date_part.strip()
+                elif len(parts) > 1:
+                    doctor_name = parts[1].strip()
+            
+            if not doctor_name:
+                log.append("❌ Please specify a doctor name using 'with [doctor name]'.")
+                return result
+                
+            # Find the doctor
+            doctor = get_doctor_by_name(doctor_name, session)
+            if not doctor:
+                log.append(f"❌ Doctor '{doctor_name}' not found in your list.")
+                log.append("Use 'add doctor [name]' to add them first.")
+                return result
+                
+            # Parse the date/time
+            now = datetime.datetime.now()
+            appointment_date = now + datetime.timedelta(days=7)  # Default to a week from now
+            
+            if "tomorrow" in cmd:
+                appointment_date = now + datetime.timedelta(days=1)
+            elif "today" in cmd:
+                appointment_date = now
+            elif "next week" in cmd:
+                appointment_date = now + datetime.timedelta(days=7)
+            
+            # Try to extract time if specified
+            time_match = re.search(r'(\d{1,2})(?::(\d{2}))?\s*(am|pm)?', cmd, re.IGNORECASE)
+            if time_match:
+                hour = int(time_match.group(1))
+                minute = int(time_match.group(2)) if time_match.group(2) else 0
+                am_pm = time_match.group(3).lower() if time_match.group(3) else None
+                
+                if am_pm == 'pm' and hour < 12:
+                    hour += 12
+                elif am_pm == 'am' and hour == 12:
+                    hour = 0
+                    
+                appointment_date = appointment_date.replace(hour=hour, minute=minute)
+            
+            # Add the appointment
+            appointment = add_appointment(
+                doctor_id=doctor.id,
+                date=appointment_date,
+                reason="Regular checkup",  # Default reason
+                session=session
+            )
+            
+            if appointment:
+                # Format date for display
+                formatted_date = appointment_date.strftime("%A, %B %d at %I:%M %p")
+                log.append(f"🗓️ Appointment scheduled with Dr. {doctor.name} on {formatted_date}")
+                
+                # If Google Calendar is connected, add it there too
+                if calendar:
+                    end_time = appointment_date + datetime.timedelta(hours=1)
+                    event = {
+                        "summary": f"Doctor Appointment: {doctor.name}",
+                        "location": doctor.address if doctor.address else "",
+                        "description": "Created via NOUS Assistant",
+                        "start": {"dateTime": appointment_date.isoformat()},
+                        "end": {"dateTime": end_time.isoformat()},
+                        "reminders": {
+                            "useDefault": False,
+                            "overrides": [
+                                {"method": "popup", "minutes": 60},
+                                {"method": "popup", "minutes": 24 * 60}  # Day before
+                            ]
+                        }
+                    }
+                    calendar.events().insert(calendarId="primary", body=event).execute()
+                    log.append("📅 Added to your Google Calendar with reminders.")
+            else:
+                log.append(f"❌ Error scheduling appointment")
+        except Exception as e:
+            logging.error(f"Error scheduling appointment: {str(e)}")
+            log.append(f"❌ Error scheduling appointment: {str(e)}")
+    
+    # Show appointments command
+    elif cmd == "show appointments" or "my appointments" in cmd:
+        try:
+            appointments = get_upcoming_appointments(session)
+            if not appointments:
+                log.append("ℹ️ You don't have any upcoming appointments scheduled.")
+            else:
+                log.append("🗓️ Your Upcoming Appointments:")
+                for appointment in appointments:
+                    # Get doctor name
+                    doctor = Doctor.query.get(appointment.doctor_id)
+                    doctor_name = doctor.name if doctor else "Unknown Doctor"
+                    
+                    # Format date
+                    formatted_date = appointment.date.strftime("%A, %B %d at %I:%M %p")
+                    reason = f" for {appointment.reason}" if appointment.reason else ""
+                    log.append(f"- {formatted_date}: Dr. {doctor_name}{reason}")
+        except Exception as e:
+            logging.error(f"Error showing appointments: {str(e)}")
+            log.append(f"❌ Error showing appointments: {str(e)}")
             
     # Clear command
     elif cmd == "clear":
