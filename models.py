@@ -1,7 +1,25 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+import enum
 
 db = SQLAlchemy()
+
+# Enum for expense categories
+class ExpenseCategory(enum.Enum):
+    HOUSING = "Housing"
+    TRANSPORTATION = "Transportation"
+    FOOD = "Food"
+    UTILITIES = "Utilities"
+    INSURANCE = "Insurance"
+    HEALTHCARE = "Healthcare"
+    SAVINGS = "Savings"
+    PERSONAL = "Personal"
+    ENTERTAINMENT = "Entertainment"
+    EDUCATION = "Education" 
+    DEBT = "Debt"
+    GIFTS = "Gifts"
+    TRAVEL = "Travel"
+    OTHER = "Other"
 
 class Doctor(db.Model):
     """Model for storing doctor information"""
@@ -177,4 +195,251 @@ class Product(db.Model):
             'frequency_days': self.frequency_days,
             'next_order_date': self.next_order_date.isoformat() if self.next_order_date else None,
             'last_ordered': self.last_ordered.isoformat() if self.last_ordered else None
+        }
+        
+# Budget & Expense Tracking Models
+
+class Budget(db.Model):
+    """Model for budget categories and limits"""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    category = db.Column(db.String(50))  # Uses ExpenseCategory values
+    amount = db.Column(db.Float, nullable=False)  # Monthly budget amount
+    start_date = db.Column(db.DateTime, default=datetime.utcnow)
+    end_date = db.Column(db.DateTime)  # For fixed-period budgets
+    is_recurring = db.Column(db.Boolean, default=True)  # Monthly recurring by default
+    user_id = db.Column(db.String(255))  # User identifier (from session)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationship with expenses
+    expenses = db.relationship('Expense', backref='budget', lazy=True)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'category': self.category,
+            'amount': self.amount,
+            'start_date': self.start_date.isoformat() if self.start_date else None,
+            'end_date': self.end_date.isoformat() if self.end_date else None,
+            'is_recurring': self.is_recurring,
+            'spent': sum(expense.amount for expense in self.expenses) if self.expenses else 0,
+            'remaining': self.amount - sum(expense.amount for expense in self.expenses) if self.expenses else self.amount
+        }
+
+class Expense(db.Model):
+    """Model for tracking expenses"""
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.String(255), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+    category = db.Column(db.String(50))  # Uses ExpenseCategory values
+    payment_method = db.Column(db.String(50))  # e.g., cash, credit card, etc.
+    budget_id = db.Column(db.Integer, db.ForeignKey('budget.id'), nullable=True)
+    is_recurring = db.Column(db.Boolean, default=False)
+    recurring_frequency = db.Column(db.String(20))  # daily, weekly, monthly, yearly
+    next_due_date = db.Column(db.DateTime)  # For recurring expenses
+    notes = db.Column(db.Text)
+    user_id = db.Column(db.String(255))  # User identifier (from session)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'description': self.description,
+            'amount': self.amount,
+            'date': self.date.isoformat() if self.date else None,
+            'category': self.category,
+            'payment_method': self.payment_method,
+            'budget_name': self.budget.name if self.budget else None,
+            'is_recurring': self.is_recurring,
+            'recurring_frequency': self.recurring_frequency,
+            'next_due_date': self.next_due_date.isoformat() if self.next_due_date else None,
+            'notes': self.notes
+        }
+
+class RecurringPayment(db.Model):
+    """Model for tracking recurring payments"""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    due_day = db.Column(db.Integer)  # Day of month when payment is due
+    frequency = db.Column(db.String(20), nullable=False)  # monthly, yearly, etc.
+    category = db.Column(db.String(50))  # Uses ExpenseCategory values
+    start_date = db.Column(db.DateTime)
+    end_date = db.Column(db.DateTime)  # For fixed-term payments
+    next_due_date = db.Column(db.DateTime)
+    payment_method = db.Column(db.String(50))
+    website = db.Column(db.String(255))  # For online payments
+    notes = db.Column(db.Text)
+    user_id = db.Column(db.String(255))  # User identifier (from session)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'amount': self.amount,
+            'due_day': self.due_day,
+            'frequency': self.frequency,
+            'category': self.category,
+            'start_date': self.start_date.isoformat() if self.start_date else None,
+            'end_date': self.end_date.isoformat() if self.end_date else None,
+            'next_due_date': self.next_due_date.isoformat() if self.next_due_date else None,
+            'payment_method': self.payment_method,
+            'website': self.website,
+            'notes': self.notes
+        }
+
+# Travel Planning Models
+
+class Trip(db.Model):
+    """Model for storing trip information"""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    destination = db.Column(db.String(100), nullable=False)
+    start_date = db.Column(db.DateTime)
+    end_date = db.Column(db.DateTime)
+    notes = db.Column(db.Text)
+    budget = db.Column(db.Float)  # Budget for the trip
+    user_id = db.Column(db.String(255))  # User identifier (from session)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    itinerary_items = db.relationship('ItineraryItem', backref='trip', lazy=True, cascade="all, delete-orphan")
+    accommodations = db.relationship('Accommodation', backref='trip', lazy=True, cascade="all, delete-orphan")
+    travel_documents = db.relationship('TravelDocument', backref='trip', lazy=True, cascade="all, delete-orphan")
+    packing_items = db.relationship('PackingItem', backref='trip', lazy=True, cascade="all, delete-orphan")
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'destination': self.destination,
+            'start_date': self.start_date.isoformat() if self.start_date else None,
+            'end_date': self.end_date.isoformat() if self.end_date else None,
+            'notes': self.notes,
+            'budget': self.budget,
+            'duration': (self.end_date - self.start_date).days if self.start_date and self.end_date else None,
+            'itinerary_count': len(self.itinerary_items) if self.itinerary_items else 0,
+            'accommodation_count': len(self.accommodations) if self.accommodations else 0,
+            'document_count': len(self.travel_documents) if self.travel_documents else 0,
+            'packed_items': sum(1 for item in self.packing_items if item.is_packed) if self.packing_items else 0,
+            'total_items': len(self.packing_items) if self.packing_items else 0
+        }
+
+class ItineraryItem(db.Model):
+    """Model for trip itinerary items"""
+    id = db.Column(db.Integer, primary_key=True)
+    trip_id = db.Column(db.Integer, db.ForeignKey('trip.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    date = db.Column(db.DateTime)
+    start_time = db.Column(db.Time)
+    end_time = db.Column(db.Time)
+    location = db.Column(db.String(255))
+    address = db.Column(db.String(255))
+    reservation_confirmation = db.Column(db.String(100))
+    category = db.Column(db.String(50))  # e.g., activity, transportation, meal
+    notes = db.Column(db.Text)
+    cost = db.Column(db.Float)  # Cost of this activity
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'trip_id': self.trip_id,
+            'name': self.name,
+            'date': self.date.isoformat() if self.date else None,
+            'start_time': self.start_time.isoformat() if self.start_time else None,
+            'end_time': self.end_time.isoformat() if self.end_time else None,
+            'location': self.location,
+            'address': self.address,
+            'reservation_confirmation': self.reservation_confirmation,
+            'category': self.category,
+            'notes': self.notes,
+            'cost': self.cost
+        }
+
+class Accommodation(db.Model):
+    """Model for trip accommodations"""
+    id = db.Column(db.Integer, primary_key=True)
+    trip_id = db.Column(db.Integer, db.ForeignKey('trip.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    check_in_date = db.Column(db.DateTime)
+    check_out_date = db.Column(db.DateTime)
+    address = db.Column(db.String(255))
+    booking_confirmation = db.Column(db.String(100))
+    booking_site = db.Column(db.String(100))  # e.g., Airbnb, Booking.com
+    phone = db.Column(db.String(20))
+    cost = db.Column(db.Float)
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'trip_id': self.trip_id,
+            'name': self.name,
+            'check_in_date': self.check_in_date.isoformat() if self.check_in_date else None,
+            'check_out_date': self.check_out_date.isoformat() if self.check_out_date else None,
+            'address': self.address,
+            'booking_confirmation': self.booking_confirmation,
+            'booking_site': self.booking_site,
+            'phone': self.phone,
+            'cost': self.cost,
+            'notes': self.notes
+        }
+
+class TravelDocument(db.Model):
+    """Model for storing travel documents"""
+    id = db.Column(db.Integer, primary_key=True)
+    trip_id = db.Column(db.Integer, db.ForeignKey('trip.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    document_type = db.Column(db.String(50))  # e.g., flight, train, rental car
+    confirmation_number = db.Column(db.String(100))
+    provider = db.Column(db.String(100))  # e.g., airline, rail company
+    departure_location = db.Column(db.String(100))
+    arrival_location = db.Column(db.String(100))
+    departure_time = db.Column(db.DateTime)
+    arrival_time = db.Column(db.DateTime)
+    notes = db.Column(db.Text)
+    cost = db.Column(db.Float)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'trip_id': self.trip_id,
+            'name': self.name,
+            'document_type': self.document_type,
+            'confirmation_number': self.confirmation_number,
+            'provider': self.provider,
+            'departure_location': self.departure_location,
+            'arrival_location': self.arrival_location,
+            'departure_time': self.departure_time.isoformat() if self.departure_time else None,
+            'arrival_time': self.arrival_time.isoformat() if self.arrival_time else None,
+            'notes': self.notes,
+            'cost': self.cost
+        }
+
+class PackingItem(db.Model):
+    """Model for trip packing list items"""
+    id = db.Column(db.Integer, primary_key=True)
+    trip_id = db.Column(db.Integer, db.ForeignKey('trip.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    category = db.Column(db.String(50))  # e.g., clothing, toiletries, documents
+    quantity = db.Column(db.Integer, default=1)
+    is_packed = db.Column(db.Boolean, default=False)
+    notes = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'trip_id': self.trip_id,
+            'name': self.name,
+            'category': self.category,
+            'quantity': self.quantity,
+            'is_packed': self.is_packed,
+            'notes': self.notes
         }

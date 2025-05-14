@@ -34,7 +34,23 @@ from utils.product_helper import (
     add_product, set_product_as_recurring, mark_product_as_ordered,
     get_due_product_orders, update_product_price
 )
+from utils.budget_helper import (
+    get_budgets, get_budget_by_id, get_budget_by_name, create_budget, update_budget,
+    delete_budget, get_budget_summary, get_expenses, get_expense_by_id, add_expense,
+    update_expense, delete_expense, get_recurring_payments, get_upcoming_payments,
+    mark_payment_paid
+)
+from utils.travel_helper import (
+    get_trips, get_trip_by_id, get_trip_by_name, create_trip, update_trip,
+    delete_trip, get_trip_cost, get_upcoming_trips, get_active_trip,
+    get_itinerary, add_itinerary_item, update_itinerary_item, delete_itinerary_item,
+    get_accommodations, add_accommodation, update_accommodation, delete_accommodation,
+    get_travel_documents, add_travel_document, update_travel_document, delete_travel_document,
+    get_packing_list, add_packing_item, toggle_packed_status, delete_packing_item,
+    generate_standard_packing_list, get_packing_progress
+)
 from models import db, Doctor, Appointment, AppointmentReminder, ShoppingList, ShoppingItem, Medication, Product
+from models import Budget, Expense, RecurringPayment, Trip, ItineraryItem, Accommodation, TravelDocument, PackingItem
 
 # Load environment variables
 load_dotenv()
@@ -749,3 +765,697 @@ def api_update_product_price(product_id):
         return jsonify(product.to_dict())
     else:
         return jsonify({"error": "Failed to update product or product not found"}), 404
+
+# Budget & Expense Tracking API endpoints
+@app.route("/api/budgets", methods=["GET"])
+def api_get_budgets():
+    """Get all budgets for the current user"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    budgets = get_budgets(session)
+    return jsonify([budget.to_dict() for budget in budgets])
+
+@app.route("/api/budgets/summary", methods=["GET"])
+def api_get_budget_summary():
+    """Get a summary of all budgets for the current month"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    summary = get_budget_summary(session)
+    return jsonify(summary)
+
+@app.route("/api/budgets", methods=["POST"])
+def api_create_budget():
+    """Create a new budget"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data or not data.get("name") or "amount" not in data:
+        return jsonify({"error": "Name and amount are required"}), 400
+    
+    try:
+        amount = float(data.get("amount"))
+    except (ValueError, TypeError):
+        return jsonify({"error": "Amount must be a number"}), 400
+    
+    budget = create_budget(
+        name=data.get("name"),
+        amount=amount,
+        category=data.get("category"),
+        is_recurring=data.get("is_recurring", True),
+        start_date=data.get("start_date"),
+        end_date=data.get("end_date"),
+        session=session
+    )
+    
+    if budget:
+        return jsonify(budget.to_dict()), 201
+    else:
+        return jsonify({"error": "Failed to create budget"}), 500
+
+@app.route("/api/budgets/<int:budget_id>", methods=["GET"])
+def api_get_budget(budget_id):
+    """Get a specific budget"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    budget = get_budget_by_id(budget_id, session)
+    if not budget:
+        return jsonify({"error": "Budget not found"}), 404
+    
+    return jsonify(budget.to_dict())
+
+@app.route("/api/budgets/<int:budget_id>", methods=["PUT"])
+def api_update_budget(budget_id):
+    """Update a budget"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    
+    try:
+        amount = float(data.get("amount")) if "amount" in data else None
+    except (ValueError, TypeError):
+        return jsonify({"error": "Amount must be a number"}), 400
+    
+    budget = update_budget(
+        budget_id=budget_id,
+        name=data.get("name"),
+        amount=amount,
+        category=data.get("category"),
+        is_recurring=data.get("is_recurring"),
+        start_date=data.get("start_date"),
+        end_date=data.get("end_date"),
+        session=session
+    )
+    
+    if budget:
+        return jsonify(budget.to_dict())
+    else:
+        return jsonify({"error": "Failed to update budget or budget not found"}), 404
+
+@app.route("/api/budgets/<int:budget_id>", methods=["DELETE"])
+def api_delete_budget(budget_id):
+    """Delete a budget"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    success = delete_budget(budget_id, session)
+    if success:
+        return jsonify({"status": "deleted"})
+    else:
+        return jsonify({"error": "Failed to delete budget or budget not found"}), 404
+
+@app.route("/api/expenses", methods=["GET"])
+def api_get_expenses():
+    """Get all expenses for the current user"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    # Parse optional query parameters for filtering
+    start_date = request.args.get("start_date")
+    end_date = request.args.get("end_date")
+    category = request.args.get("category")
+    
+    expenses = get_expenses(session, start_date, end_date, category)
+    return jsonify([expense.to_dict() for expense in expenses])
+
+@app.route("/api/expenses", methods=["POST"])
+def api_add_expense():
+    """Add a new expense"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data or not data.get("description") or "amount" not in data:
+        return jsonify({"error": "Description and amount are required"}), 400
+    
+    try:
+        amount = float(data.get("amount"))
+    except (ValueError, TypeError):
+        return jsonify({"error": "Amount must be a number"}), 400
+    
+    expense = add_expense(
+        description=data.get("description"),
+        amount=amount,
+        date=data.get("date"),
+        category=data.get("category"),
+        payment_method=data.get("payment_method"),
+        budget_name=data.get("budget_name"),
+        is_recurring=data.get("is_recurring", False),
+        recurring_frequency=data.get("recurring_frequency"),
+        next_due_date=data.get("next_due_date"),
+        notes=data.get("notes"),
+        session=session
+    )
+    
+    if expense:
+        return jsonify(expense.to_dict()), 201
+    else:
+        return jsonify({"error": "Failed to add expense"}), 500
+
+@app.route("/api/expenses/<int:expense_id>", methods=["GET"])
+def api_get_expense(expense_id):
+    """Get a specific expense"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    expense = get_expense_by_id(expense_id, session)
+    if not expense:
+        return jsonify({"error": "Expense not found"}), 404
+    
+    return jsonify(expense.to_dict())
+
+@app.route("/api/expenses/<int:expense_id>", methods=["PUT"])
+def api_update_expense(expense_id):
+    """Update an expense"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    
+    try:
+        amount = float(data.get("amount")) if "amount" in data else None
+    except (ValueError, TypeError):
+        return jsonify({"error": "Amount must be a number"}), 400
+    
+    expense = update_expense(
+        expense_id=expense_id,
+        description=data.get("description"),
+        amount=amount,
+        date=data.get("date"),
+        category=data.get("category"),
+        payment_method=data.get("payment_method"),
+        budget_name=data.get("budget_name"),
+        is_recurring=data.get("is_recurring"),
+        recurring_frequency=data.get("recurring_frequency"),
+        next_due_date=data.get("next_due_date"),
+        notes=data.get("notes"),
+        session=session
+    )
+    
+    if expense:
+        return jsonify(expense.to_dict())
+    else:
+        return jsonify({"error": "Failed to update expense or expense not found"}), 404
+
+@app.route("/api/expenses/<int:expense_id>", methods=["DELETE"])
+def api_delete_expense(expense_id):
+    """Delete an expense"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    success = delete_expense(expense_id, session)
+    if success:
+        return jsonify({"status": "deleted"})
+    else:
+        return jsonify({"error": "Failed to delete expense or expense not found"}), 404
+
+@app.route("/api/recurring-payments", methods=["GET"])
+def api_get_recurring_payments():
+    """Get all recurring payments for the current user"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    payments = get_recurring_payments(session)
+    return jsonify([payment.to_dict() for payment in payments])
+
+@app.route("/api/recurring-payments/upcoming", methods=["GET"])
+def api_get_upcoming_payments():
+    """Get upcoming payments due in the next 30 days"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    # Get days parameter (default: 30)
+    days = request.args.get("days", 30, type=int)
+    
+    payments = get_upcoming_payments(session, days)
+    return jsonify([payment.to_dict() for payment in payments])
+
+@app.route("/api/recurring-payments/<int:payment_id>/paid", methods=["PUT"])
+def api_mark_payment_paid(payment_id):
+    """Mark a recurring payment as paid"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    payment = mark_payment_paid(payment_id, session)
+    if payment:
+        return jsonify(payment.to_dict())
+    else:
+        return jsonify({"error": "Failed to mark payment as paid or payment not found"}), 404
+
+# Travel Planning API endpoints
+@app.route("/api/trips", methods=["GET"])
+def api_get_trips():
+    """Get all trips for the current user"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    # Parse optional query parameters
+    include_past = request.args.get("include_past", "false").lower() == "true"
+    
+    trips = get_trips(session, include_past)
+    return jsonify([trip.to_dict() for trip in trips])
+
+@app.route("/api/trips/upcoming", methods=["GET"])
+def api_get_upcoming_trips():
+    """Get trips starting in the next 30 days"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    # Get days parameter (default: 30)
+    days = request.args.get("days", 30, type=int)
+    
+    trips = get_upcoming_trips(session, days)
+    return jsonify([trip.to_dict() for trip in trips])
+
+@app.route("/api/trips/active", methods=["GET"])
+def api_get_active_trip():
+    """Get currently active trip (if any)"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    trip = get_active_trip(session)
+    if trip:
+        return jsonify(trip.to_dict())
+    else:
+        return jsonify({"message": "No active trip found"}), 404
+
+@app.route("/api/trips", methods=["POST"])
+def api_create_trip():
+    """Create a new trip"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data or not data.get("name") or not data.get("destination"):
+        return jsonify({"error": "Name and destination are required"}), 400
+    
+    trip = create_trip(
+        name=data.get("name"),
+        destination=data.get("destination"),
+        start_date=data.get("start_date"),
+        end_date=data.get("end_date"),
+        budget=data.get("budget"),
+        notes=data.get("notes"),
+        session=session
+    )
+    
+    if trip:
+        return jsonify(trip.to_dict()), 201
+    else:
+        return jsonify({"error": "Failed to create trip"}), 500
+
+@app.route("/api/trips/<int:trip_id>", methods=["GET"])
+def api_get_trip(trip_id):
+    """Get a specific trip"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    trip = get_trip_by_id(trip_id, session)
+    if not trip:
+        return jsonify({"error": "Trip not found"}), 404
+    
+    return jsonify(trip.to_dict())
+
+@app.route("/api/trips/<int:trip_id>/cost", methods=["GET"])
+def api_get_trip_cost(trip_id):
+    """Get the total cost of a trip"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    cost_data = get_trip_cost(trip_id, session)
+    if not cost_data:
+        return jsonify({"error": "Trip not found"}), 404
+    
+    return jsonify(cost_data)
+
+@app.route("/api/trips/<int:trip_id>", methods=["PUT"])
+def api_update_trip(trip_id):
+    """Update a trip"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    
+    trip = update_trip(
+        trip_id=trip_id,
+        name=data.get("name"),
+        destination=data.get("destination"),
+        start_date=data.get("start_date"),
+        end_date=data.get("end_date"),
+        budget=data.get("budget"),
+        notes=data.get("notes"),
+        session=session
+    )
+    
+    if trip:
+        return jsonify(trip.to_dict())
+    else:
+        return jsonify({"error": "Failed to update trip or trip not found"}), 404
+
+@app.route("/api/trips/<int:trip_id>", methods=["DELETE"])
+def api_delete_trip(trip_id):
+    """Delete a trip"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    success = delete_trip(trip_id, session)
+    if success:
+        return jsonify({"status": "deleted"})
+    else:
+        return jsonify({"error": "Failed to delete trip or trip not found"}), 404
+
+# Itinerary endpoints
+@app.route("/api/trips/<int:trip_id>/itinerary", methods=["GET"])
+def api_get_itinerary(trip_id):
+    """Get all itinerary items for a trip"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    items = get_itinerary(trip_id, session)
+    return jsonify([item.to_dict() for item in items])
+
+@app.route("/api/trips/<int:trip_id>/itinerary", methods=["POST"])
+def api_add_itinerary_item(trip_id):
+    """Add an item to a trip itinerary"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data or not data.get("name"):
+        return jsonify({"error": "Item name is required"}), 400
+    
+    item = add_itinerary_item(
+        trip_id=trip_id,
+        name=data.get("name"),
+        date=data.get("date"),
+        start_time=data.get("start_time"),
+        end_time=data.get("end_time"),
+        location=data.get("location"),
+        address=data.get("address"),
+        category=data.get("category"),
+        cost=data.get("cost"),
+        reservation_confirmation=data.get("reservation_confirmation"),
+        notes=data.get("notes"),
+        session=session
+    )
+    
+    if item:
+        return jsonify(item.to_dict()), 201
+    else:
+        return jsonify({"error": "Failed to add itinerary item"}), 500
+
+@app.route("/api/itinerary/<int:item_id>", methods=["PUT"])
+def api_update_itinerary_item(item_id):
+    """Update an itinerary item"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    
+    item = update_itinerary_item(
+        item_id=item_id,
+        name=data.get("name"),
+        date=data.get("date"),
+        start_time=data.get("start_time"),
+        end_time=data.get("end_time"),
+        location=data.get("location"),
+        address=data.get("address"),
+        category=data.get("category"),
+        cost=data.get("cost"),
+        reservation_confirmation=data.get("reservation_confirmation"),
+        notes=data.get("notes"),
+        session=session
+    )
+    
+    if item:
+        return jsonify(item.to_dict())
+    else:
+        return jsonify({"error": "Failed to update itinerary item or item not found"}), 404
+
+@app.route("/api/itinerary/<int:item_id>", methods=["DELETE"])
+def api_delete_itinerary_item(item_id):
+    """Delete an itinerary item"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    success = delete_itinerary_item(item_id, session)
+    if success:
+        return jsonify({"status": "deleted"})
+    else:
+        return jsonify({"error": "Failed to delete itinerary item or item not found"}), 404
+
+# Accommodation endpoints
+@app.route("/api/trips/<int:trip_id>/accommodations", methods=["GET"])
+def api_get_accommodations(trip_id):
+    """Get all accommodations for a trip"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    accommodations = get_accommodations(trip_id, session)
+    return jsonify([accommodation.to_dict() for accommodation in accommodations])
+
+@app.route("/api/trips/<int:trip_id>/accommodations", methods=["POST"])
+def api_add_accommodation(trip_id):
+    """Add an accommodation to a trip"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data or not data.get("name"):
+        return jsonify({"error": "Accommodation name is required"}), 400
+    
+    accommodation = add_accommodation(
+        trip_id=trip_id,
+        name=data.get("name"),
+        check_in_date=data.get("check_in_date"),
+        check_out_date=data.get("check_out_date"),
+        address=data.get("address"),
+        booking_confirmation=data.get("booking_confirmation"),
+        booking_site=data.get("booking_site"),
+        phone=data.get("phone"),
+        cost=data.get("cost"),
+        notes=data.get("notes"),
+        session=session
+    )
+    
+    if accommodation:
+        return jsonify(accommodation.to_dict()), 201
+    else:
+        return jsonify({"error": "Failed to add accommodation"}), 500
+
+@app.route("/api/accommodations/<int:accommodation_id>", methods=["PUT"])
+def api_update_accommodation(accommodation_id):
+    """Update an accommodation"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    
+    accommodation = update_accommodation(
+        accommodation_id=accommodation_id,
+        name=data.get("name"),
+        check_in_date=data.get("check_in_date"),
+        check_out_date=data.get("check_out_date"),
+        address=data.get("address"),
+        booking_confirmation=data.get("booking_confirmation"),
+        booking_site=data.get("booking_site"),
+        phone=data.get("phone"),
+        cost=data.get("cost"),
+        notes=data.get("notes"),
+        session=session
+    )
+    
+    if accommodation:
+        return jsonify(accommodation.to_dict())
+    else:
+        return jsonify({"error": "Failed to update accommodation or accommodation not found"}), 404
+
+@app.route("/api/accommodations/<int:accommodation_id>", methods=["DELETE"])
+def api_delete_accommodation(accommodation_id):
+    """Delete an accommodation"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    success = delete_accommodation(accommodation_id, session)
+    if success:
+        return jsonify({"status": "deleted"})
+    else:
+        return jsonify({"error": "Failed to delete accommodation or accommodation not found"}), 404
+
+# Travel documents endpoints
+@app.route("/api/trips/<int:trip_id>/documents", methods=["GET"])
+def api_get_travel_documents(trip_id):
+    """Get all travel documents for a trip"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    documents = get_travel_documents(trip_id, session)
+    return jsonify([document.to_dict() for document in documents])
+
+@app.route("/api/trips/<int:trip_id>/documents", methods=["POST"])
+def api_add_travel_document(trip_id):
+    """Add a travel document to a trip"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data or not data.get("name"):
+        return jsonify({"error": "Document name is required"}), 400
+    
+    document = add_travel_document(
+        trip_id=trip_id,
+        name=data.get("name"),
+        document_type=data.get("document_type"),
+        confirmation_number=data.get("confirmation_number"),
+        provider=data.get("provider"),
+        departure_location=data.get("departure_location"),
+        arrival_location=data.get("arrival_location"),
+        departure_time=data.get("departure_time"),
+        arrival_time=data.get("arrival_time"),
+        cost=data.get("cost"),
+        notes=data.get("notes"),
+        session=session
+    )
+    
+    if document:
+        return jsonify(document.to_dict()), 201
+    else:
+        return jsonify({"error": "Failed to add travel document"}), 500
+
+@app.route("/api/documents/<int:document_id>", methods=["PUT"])
+def api_update_travel_document(document_id):
+    """Update a travel document"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    
+    document = update_travel_document(
+        document_id=document_id,
+        name=data.get("name"),
+        document_type=data.get("document_type"),
+        confirmation_number=data.get("confirmation_number"),
+        provider=data.get("provider"),
+        departure_location=data.get("departure_location"),
+        arrival_location=data.get("arrival_location"),
+        departure_time=data.get("departure_time"),
+        arrival_time=data.get("arrival_time"),
+        cost=data.get("cost"),
+        notes=data.get("notes"),
+        session=session
+    )
+    
+    if document:
+        return jsonify(document.to_dict())
+    else:
+        return jsonify({"error": "Failed to update travel document or document not found"}), 404
+
+@app.route("/api/documents/<int:document_id>", methods=["DELETE"])
+def api_delete_travel_document(document_id):
+    """Delete a travel document"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    success = delete_travel_document(document_id, session)
+    if success:
+        return jsonify({"status": "deleted"})
+    else:
+        return jsonify({"error": "Failed to delete travel document or document not found"}), 404
+
+# Packing list endpoints
+@app.route("/api/trips/<int:trip_id>/packing", methods=["GET"])
+def api_get_packing_list(trip_id):
+    """Get all packing items for a trip"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    items = get_packing_list(trip_id, session)
+    return jsonify([item.to_dict() for item in items])
+
+@app.route("/api/trips/<int:trip_id>/packing/progress", methods=["GET"])
+def api_get_packing_progress(trip_id):
+    """Get packing progress statistics"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    progress = get_packing_progress(trip_id, session)
+    if progress:
+        return jsonify(progress)
+    else:
+        return jsonify({"error": "Trip not found"}), 404
+
+@app.route("/api/trips/<int:trip_id>/packing/generate", methods=["POST"])
+def api_generate_packing_list(trip_id):
+    """Generate a standard packing list for a trip"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    items = generate_standard_packing_list(trip_id, session)
+    if items:
+        return jsonify({"message": f"Generated {len(items)} packing items"}), 201
+    else:
+        return jsonify({"error": "Failed to generate packing list"}), 500
+
+@app.route("/api/trips/<int:trip_id>/packing", methods=["POST"])
+def api_add_packing_item(trip_id):
+    """Add an item to a trip packing list"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    data = request.json
+    if not data or not data.get("name"):
+        return jsonify({"error": "Item name is required"}), 400
+    
+    item = add_packing_item(
+        trip_id=trip_id,
+        name=data.get("name"),
+        category=data.get("category"),
+        quantity=data.get("quantity", 1),
+        notes=data.get("notes"),
+        session=session
+    )
+    
+    if item:
+        return jsonify(item.to_dict()), 201
+    else:
+        return jsonify({"error": "Failed to add packing item"}), 500
+
+@app.route("/api/packing/<int:item_id>/toggle", methods=["PUT"])
+def api_toggle_packed_status(item_id):
+    """Toggle the packed status of a packing item"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    item = toggle_packed_status(item_id, session)
+    if item:
+        return jsonify(item.to_dict())
+    else:
+        return jsonify({"error": "Failed to toggle item status or item not found"}), 404
+
+@app.route("/api/packing/<int:item_id>", methods=["DELETE"])
+def api_delete_packing_item(item_id):
+    """Delete a packing item"""
+    if "google_creds" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+    
+    success = delete_packing_item(item_id, session)
+    if success:
+        return jsonify({"status": "deleted"})
+    else:
+        return jsonify({"error": "Failed to delete packing item or item not found"}), 404
