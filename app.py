@@ -89,6 +89,13 @@ OPENROUTER_KEY = os.environ.get("OPENROUTER_API_KEY")
 def index():
     """Main entry point and command UI"""
     if request.method == "GET":
+        # Check if there's a command in the query parameters (from dashboard links)
+        cmd_from_query = request.args.get("cmd")
+        if cmd_from_query:
+            session.setdefault("log", []).append(f">>> {cmd_from_query}")
+            # Process the command
+            return process_command(cmd_from_query)
+            
         return render_template("index.html", log=session.get("log", []))
     
     # Handle POST command
@@ -99,6 +106,42 @@ def index():
         
     log = session.setdefault("log", [])
     log.append(f">>> {cmd}")
+    
+    # Process the command
+    return process_command(cmd)
+    
+def process_command(cmd):
+    """Process a command and return the appropriate response"""
+    log = session.get("log", [])
+    
+    # Check for auth
+    if "google_creds" not in session and not cmd.startswith("help"):
+        session["log"] = log  # Save log before redirect
+        flash("Please authorize Google services first", "info")
+        return redirect(url_for("authorize_google"))
+
+    # Handle commands
+    try:
+        if "google_creds" in session:
+            cal, tasks, keep = build_google_services(session)
+        else:
+            cal, tasks, keep = None, None, None
+            
+        if "spotify_user" in session:
+            sp, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT)
+        else:
+            sp = None
+            
+        result = parse_command(cmd, cal, tasks, keep, sp, log, session)
+        if result.get("redirect"):
+            return redirect(result.get("redirect"))
+            
+    except Exception as e:
+        logging.error(f"Error processing command: {str(e)}")
+        log.append(f"❌ Error: {str(e)}")
+    
+    session.modified = True
+    return redirect(url_for("index"))
 
 
 @app.route("/dashboard")
