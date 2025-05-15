@@ -77,6 +77,20 @@ class UserSettings(db.Model):
     # Setup wizard progress tracking
     setup_progress = db.Column(db.Text)  # JSON string to track setup wizard progress
     
+    # Notification settings
+    email_notifications = db.Column(db.Boolean, default=False)
+    push_notifications = db.Column(db.Boolean, default=False)
+    
+    # Feature settings
+    medication_reminders = db.Column(db.Boolean, default=False)
+    pain_tracking = db.Column(db.Boolean, default=False)
+    mindfulness_features = db.Column(db.Boolean, default=False)
+    shopping_lists = db.Column(db.Boolean, default=False)
+    product_tracking = db.Column(db.Boolean, default=False)
+    budget_reminder_enabled = db.Column(db.Boolean, default=False)
+    weather_alerts = db.Column(db.Boolean, default=False)
+    travel_planning = db.Column(db.Boolean, default=False)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
