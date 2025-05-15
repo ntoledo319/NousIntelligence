@@ -67,10 +67,20 @@
             <div class="card">
                 <div class="card-body py-5">
                     <h2 class="mb-4">Get Started Now</h2>
-                    <p class="mb-4">Sign in with your Replit account to access all features.</p>
-                    <a href="{{ url_for('replit_auth.login') }}" class="btn btn-primary btn-lg px-5">
-                        <i class="fas fa-sign-in-alt me-2"></i>Sign In
-                    </a>
+                    <p class="mb-4">Sign in to access all features.</p>
+                    
+                    <div class="d-grid gap-3 col-md-8 mx-auto">
+                        <a href="{{ url_for('google_auth.login') }}" class="btn btn-light btn-lg border">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" height="20" class="me-2">
+                            Sign In with Google
+                        </a>
+                        
+                        <div class="text-muted">- or -</div>
+                        
+                        <a href="{{ url_for('replit_auth.login') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In with Replit
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
