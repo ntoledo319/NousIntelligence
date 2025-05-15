@@ -8,7 +8,7 @@ import logging
 import json
 from datetime import datetime
 from openai import OpenAI
-from utils.knowledge_helper import query_knowledge_base, add_to_knowledge_base
+# Import knowledge base functions at runtime to avoid circular imports
 
 # Initialize OpenAI client with key directly from .env file
 env_path = '.env'
@@ -153,6 +153,7 @@ def analyze_gmail_content(content, headers=None, user_id=None):
         # Store analysis in knowledge base if applicable (do this outside the cached function)
         if user_id and 'summary' in analysis:
             knowledge_entry = f"Email Analysis: {analysis['summary']}"
+            from utils.knowledge_helper import add_to_knowledge_base
             add_to_knowledge_base(knowledge_entry, user_id, source="email_analysis")
             
         return analysis
@@ -219,6 +220,7 @@ def analyze_gmail_threads(threads, user_id=None):
         # Store thread analysis in knowledge base if applicable
         if user_id and 'thread_summary' in analysis:
             knowledge_entry = f"Email Thread Analysis: {analysis['thread_summary']}"
+            from utils.knowledge_helper import add_to_knowledge_base
             add_to_knowledge_base(knowledge_entry, user_id, source="email_thread_analysis")
             
         return analysis
