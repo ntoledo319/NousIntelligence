@@ -9,6 +9,7 @@ from google.oauth2.credentials import Credentials
 import io
 import base64
 import requests
+import json
 
 def get_photos_service(user_connection):
     """Build and return a Google Photos service object from user connection data"""

@@ -7,6 +7,7 @@ from utils.scraper import scrape_aa_reflection
 from utils.ai_helper import parse_natural_language, handle_conversation, analyze_gmail_content, analyze_gmail_threads
 from utils.google_helper import create_calendar_event
 from utils.gmail_helper import get_gmail_service, get_gmail_messages, get_message_content, get_gmail_threads, search_gmail
+from utils.google_api_manager import GoogleApiManager
 from utils.weather_helper import (
     get_current_weather, get_weather_forecast, get_location_coordinates,
     format_weather_output, format_forecast_output, get_pressure_trend,
@@ -659,6 +660,42 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
         log.append("")
         log.append("📧 Gmail Analysis Commands:")
         log.append("- analyze email: [content] - Analyze email content for key points and action items")
+        
+        # Google Drive section
+        log.append("")
+        log.append("📁 Google Drive Commands:")
+        log.append("- list files - Show your recent files in Google Drive")
+        log.append("- search drive: [query] - Search for files in Google Drive")
+        log.append("- create document: [title] - Create a new Google Doc")
+        log.append("- create spreadsheet: [title] - Create a new Google Sheet")
+        
+        # Google Maps section
+        log.append("")
+        log.append("🗺️ Google Maps Commands:")
+        log.append("- directions from [origin] to [destination] - Get directions between locations")
+        log.append("- find places near [location] - Find interesting places near a location")
+        
+        # Google Photos section
+        log.append("")
+        log.append("📷 Google Photos Commands:")
+        log.append("- list albums - Show your photo albums")
+        log.append("- recent photos - Show your recently added photos")
+        
+        # Google Docs/Sheets section
+        log.append("")
+        log.append("📝 Google Docs & Sheets Commands:")
+        log.append("- create recovery journal - Create a recovery journal document")
+        log.append("- create medication tracker - Create a medication tracking spreadsheet")
+        log.append("- create budget tracker - Create a budget spreadsheet")
+        log.append("- create travel planner: [destination] - Create a travel planning document")
+        
+        # YouTube section
+        log.append("")
+        log.append("🎥 YouTube Commands:")
+        log.append("- search youtube: [query] - Search for videos on YouTube")
+        log.append("- find recovery videos - Find AA and recovery-related videos")
+        log.append("- find meditation videos - Find guided meditation videos")
+        log.append("- create recovery playlist - Create a playlist with recovery-related videos")
         
         # Medical commands
         log.append("")
