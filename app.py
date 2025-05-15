@@ -54,7 +54,7 @@ from utils.travel_helper import (
     generate_standard_packing_list, get_packing_progress
 )
 from models import db, Doctor, Appointment, AppointmentReminder, ShoppingList, ShoppingItem, Medication, Product
-from models import Budget, Expense, RecurringPayment, Trip, ItineraryItem, Accommodation, TravelDocument, PackingItem
+from models import Budget, Expense, RecurringPayment, Trip, ItineraryItem, Accommodation, TravelDocument, PackingItem, WeatherLocation
 
 # Load environment variables
 load_dotenv()
@@ -1634,3 +1634,163 @@ def api_delete_packing_item(item_id):
         return jsonify({"status": "deleted"})
     else:
         return jsonify({"error": "Failed to delete packing item or item not found"}), 404
+        
+        
+# Weather API endpoints
+@app.route("/api/weather/current", methods=["GET"])
+def api_get_current_weather():
+    """Get current weather for a location"""
+    try:
+        location = request.args.get("location")
+        units = request.args.get("units", "imperial")
+        
+        if not location:
+            # Try to get primary saved location
+            primary_location = WeatherLocation.query.filter_by(user_id=session.get("user_id"), is_primary=True).first()
+            
+            if primary_location:
+                # Update last accessed time
+                primary_location.last_accessed = datetime.utcnow()
+                db.session.commit()
+                
+                # Get weather using coordinates
+                weather_data = get_current_weather(f"{primary_location.latitude},{primary_location.longitude}", primary_location.units)
+                return jsonify({"success": True, "location": primary_location.to_dict(), "weather": weather_data})
+            else:
+                return jsonify({"success": False, "error": "No location provided and no primary location saved"}), 400
+        
+        # Get weather for the provided location
+        weather_data = get_current_weather(location, units)
+        
+        if not weather_data:
+            return jsonify({"success": False, "error": "Location not found"}), 404
+            
+        return jsonify({"success": True, "weather": weather_data})
+    except Exception as e:
+        logging.error(f"Error getting weather: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 400
+        
+@app.route("/api/weather/forecast", methods=["GET"])
+def api_get_weather_forecast():
+    """Get weather forecast for a location"""
+    try:
+        location = request.args.get("location")
+        days = int(request.args.get("days", "5"))
+        units = request.args.get("units", "imperial")
+        
+        if not location:
+            # Try to get primary saved location
+            primary_location = WeatherLocation.query.filter_by(user_id=session.get("user_id"), is_primary=True).first()
+            
+            if primary_location:
+                # Update last accessed time
+                primary_location.last_accessed = datetime.utcnow()
+                db.session.commit()
+                
+                # Get forecast using coordinates
+                forecast_data = get_weather_forecast(f"{primary_location.latitude},{primary_location.longitude}", days, primary_location.units)
+                return jsonify({"success": True, "location": primary_location.to_dict(), "forecast": forecast_data})
+            else:
+                return jsonify({"success": False, "error": "No location provided and no primary location saved"}), 400
+        
+        # Get forecast for provided location
+        forecast_data = get_weather_forecast(location, days, units)
+        
+        if not forecast_data:
+            return jsonify({"success": False, "error": "Location not found"}), 404
+            
+        return jsonify({"success": True, "forecast": forecast_data})
+    except Exception as e:
+        logging.error(f"Error getting weather forecast: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 400
+        
+@app.route("/api/weather/locations", methods=["GET"])
+def api_get_weather_locations():
+    """Get all saved weather locations for the current user"""
+    try:
+        user_id = session.get("user_id")
+        locations = WeatherLocation.query.filter_by(user_id=user_id).all()
+        return jsonify({"success": True, "locations": [loc.to_dict() for loc in locations]})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 400
+        
+@app.route("/api/weather/locations", methods=["POST"])
+def api_add_weather_location():
+    """Add a new weather location"""
+    try:
+        data = request.json
+        location_name = data.get("name")
+        
+        if not location_name:
+            return jsonify({"success": False, "error": "Location name is required"}), 400
+            
+        # Get coordinates using OpenWeatherMap Geocoding API
+        lat, lon, display_name = get_location_coordinates(location_name)
+        
+        if lat is None or lon is None:
+            return jsonify({"success": False, "error": "Location not found"}), 404
+            
+        user_id = session.get("user_id")
+        is_primary = data.get("is_primary", False)
+        
+        # If setting as primary, remove primary flag from other locations
+        if is_primary:
+            WeatherLocation.query.filter_by(user_id=user_id, is_primary=True).update({"is_primary": False})
+            
+        # Create new location
+        new_location = WeatherLocation(
+            name=location_name,
+            display_name=display_name,
+            latitude=lat,
+            longitude=lon,
+            is_primary=is_primary,
+            units=data.get("units", "imperial"),
+            user_id=user_id,
+            last_accessed=datetime.utcnow()
+        )
+        
+        db.session.add(new_location)
+        db.session.commit()
+        
+        return jsonify({"success": True, "location": new_location.to_dict()})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 400
+        
+@app.route("/api/weather/locations/<int:location_id>", methods=["DELETE"])
+def api_delete_weather_location(location_id):
+    """Delete a saved weather location"""
+    try:
+        location = WeatherLocation.query.filter_by(id=location_id, user_id=session.get("user_id")).first()
+        
+        if not location:
+            return jsonify({"success": False, "error": "Location not found"}), 404
+            
+        db.session.delete(location)
+        db.session.commit()
+        
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 400
+        
+@app.route("/api/weather/locations/<int:location_id>/primary", methods=["PUT"])
+def api_set_primary_weather_location(location_id):
+    """Set a location as the primary weather location"""
+    try:
+        user_id = session.get("user_id")
+        
+        # Remove primary flag from all locations
+        WeatherLocation.query.filter_by(user_id=user_id, is_primary=True).update({"is_primary": False})
+        
+        # Set new primary location
+        location = WeatherLocation.query.filter_by(id=location_id, user_id=user_id).first()
+        
+        if not location:
+            return jsonify({"success": False, "error": "Location not found"}), 404
+            
+        location.is_primary = True
+        location.last_accessed = datetime.utcnow()
+        db.session.commit()
+        
+        return jsonify({"success": True, "location": location.to_dict()})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 400
