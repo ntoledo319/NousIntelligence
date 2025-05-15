@@ -1,49 +1,115 @@
 #!/usr/bin/env python
+"""
+Test script for OpenAI and OpenRouter API keys.
+
+This script verifies that the API keys are valid and the API endpoints
+are accessible. It will try both OpenAI and OpenRouter APIs.
+"""
+
 import os
+import sys
 import logging
-from openai import OpenAI
-import dotenv
+import requests
+import json
+from dotenv import load_dotenv
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 # Load environment variables
-logging.basicConfig(level=logging.INFO)
-dotenv.load_dotenv()
+load_dotenv()
 
-# Manually set OpenAI API key from .env file
-env_path = '.env'
-if os.path.exists(env_path):
-    with open(env_path, 'r') as f:
-        for line in f:
-            if line.strip().startswith('OPENAI_API_KEY='):
-                key = line.strip().split('=', 1)[1]
-                logging.info(f"Found OpenAI API key in .env file, setting in environment")
-                os.environ['OPENAI_API_KEY'] = key
+# Get API keys
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 
-# Print environment variables (masking sensitive parts)
-env_vars = os.environ.keys()
-for key in env_vars:
-    if key.endswith('KEY') or key.endswith('SECRET'):
-        value = os.environ.get(key)
-        if value:
-            # Show just the beginning of the key
-            masked_value = value[:8] + "..." + value[-4:] if len(value) > 12 else "***"
-            print(f"{key}: {masked_value}")
-
-# Get OpenAI API key directly
-openai_api_key = os.environ.get("OPENAI_API_KEY")
-print(f"\nDirect OPENAI_API_KEY check: {'Found' if openai_api_key else 'Not found'}")
-if openai_api_key:
-    print(f"Key starts with: {openai_api_key[:8]}...")
-
-# Test OpenAI API
-if openai_api_key:
-    print("\nTesting OpenAI API...")
+def test_openai_api():
+    """Test OpenAI API key and endpoint."""
+    
+    if not OPENAI_API_KEY:
+        logging.error("OpenAI API key not found in environment variables")
+        return False
+    
     try:
-        client = OpenAI(api_key=openai_api_key)
-        response = client.embeddings.create(
-            model="text-embedding-ada-002",
-            input="Testing OpenAI embeddings API"
-        )
-        print(f"API test successful! Embedding size: {len(response.data[0].embedding)}")
-        print(f"First few dimensions: {response.data[0].embedding[:3]}")
+        # Simple models list API call to check access
+        url = "https://api.openai.com/v1/models"
+        headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"}
+        
+        logging.info("Testing OpenAI API access...")
+        response = requests.get(url, headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            logging.info("✅ OpenAI API access successful")
+            # Show a few available models
+            models = response.json().get("data", [])
+            if models:
+                logging.info("Available models:")
+                for model in models[:5]:  # Just show a few
+                    logging.info(f"  - {model.get('id')}")
+            return True
+        else:
+            logging.error(f"❌ OpenAI API access failed: {response.status_code}")
+            logging.error(f"Response: {response.text}")
+            return False
+    
     except Exception as e:
-        print(f"API test failed: {str(e)}")
+        logging.error(f"❌ Error testing OpenAI API: {str(e)}")
+        return False
+
+def test_openrouter_api():
+    """Test OpenRouter API key and endpoints."""
+    
+    if not OPENROUTER_API_KEY:
+        logging.error("OpenRouter API key not found in environment variables")
+        return False
+    
+    try:
+        # Test with a models list request
+        url = "https://openrouter.ai/api/v1/models"
+        headers = {
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "HTTP-Referer": "https://nous.replit.app/",
+            "X-Title": "Nous AI Assistant"
+        }
+        
+        logging.info("Testing OpenRouter API access...")
+        response = requests.get(url, headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            logging.info("✅ OpenRouter API access successful")
+            # Show available models
+            models = response.json()
+            if models:
+                logging.info("Available models:")
+                for model in models['data'][:5]:  # Just show a few
+                    logging.info(f"  - {model.get('id')}")
+            return True
+        else:
+            logging.error(f"❌ OpenRouter API access failed: {response.status_code}")
+            logging.error(f"Response: {response.text}")
+            return False
+    
+    except Exception as e:
+        logging.error(f"❌ Error testing OpenRouter API: {str(e)}")
+        return False
+
+def main():
+    """Run the API key tests."""
+    print("\n=== Testing AI API Keys ===\n")
+    
+    openai_success = test_openai_api()
+    print("\n" + "-" * 50 + "\n")
+    openrouter_success = test_openrouter_api()
+    
+    print("\n=== Test Summary ===")
+    print(f"OpenAI API: {'✅ PASSED' if openai_success else '❌ FAILED'}")
+    print(f"OpenRouter API: {'✅ PASSED' if openrouter_success else '❌ FAILED'}")
+    
+    # Return overall success status for shell usage
+    return 0 if (openai_success or openrouter_success) else 1
+
+if __name__ == "__main__":
+    sys.exit(main())
