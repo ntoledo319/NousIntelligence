@@ -13,8 +13,17 @@ logging.basicConfig(level=logging.INFO)
 def search_knowledge_base(query, user_id=None):
     """Search for relevant knowledge in the database."""
     with app.app_context():
-        # Use a very low threshold for testing purposes
-        results = query_knowledge_base(query, user_id, similarity_threshold=0.01)
+        # Debug - print all knowledge entries first
+        from models import KnowledgeBase
+        all_entries = KnowledgeBase.query.all()
+        print(f"\nAll knowledge entries ({len(all_entries)}):")
+        for entry in all_entries:
+            print(f"ID {entry.id}: {entry.content[:50]}...")
+        
+        print("\nSearching for relevant entries with very low threshold...")
+        
+        # Use an extremely low threshold for testing purposes
+        results = query_knowledge_base(query, user_id, similarity_threshold=0.001, top_k=5)
         if results:
             print(f"\n✅ Found {len(results)} relevant entries:\n")
             for i, (entry, similarity) in enumerate(results, 1):
