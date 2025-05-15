@@ -4,7 +4,8 @@ import enum
 import numpy as np
 from flask_login import UserMixin
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import UniqueConstraint, func, text
+import json
 
 db = SQLAlchemy()
 
