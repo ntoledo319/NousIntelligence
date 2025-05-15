@@ -622,3 +622,81 @@ def toggle_pain_monitoring():
         flash(f'Error updating settings: {result.get("error")}', 'error')
         
     return redirect(url_for('aa_bp.settings'))
+
+
+# Export routes
+@aa_bp.route('/inventory/export/<inventory_id>', methods=['GET'])
+@login_required
+def export_inventory(inventory_id):
+    """Export a nightly inventory as text"""
+    user_id = get_user_id()
+    format_type = request.args.get('format', 'txt')
+    
+    # Get inventory data
+    inventory = db.session.query(AANightlyInventory).filter_by(
+        id=inventory_id, 
+        user_id=user_id
+    ).first()
+    
+    if not inventory:
+        flash('Inventory not found', 'error')
+        return redirect(url_for('aa_bp.dashboard'))
+    
+    # Get template for field labels
+    template_data = get_nightly_inventory_template()
+    template = template_data.get('template', {})
+    
+    # Format the inventory data as text
+    date_str = inventory.date.strftime('%A, %B %d, %Y') if inventory.date else 'No date'
+    content = f"==========================\n"
+    content += f"NIGHTLY INVENTORY\n"
+    content += f"{date_str}\n"
+    content += f"==========================\n\n"
+    
+    # Add all inventory fields with their labels
+    for field, prompt in template.items():
+        field_value = getattr(inventory, field, '') or 'No response'
+        content += f"{prompt}\n{field_value}\n\n"
+    
+    # Return as downloadable file or JSON
+    if format_type == 'txt':
+        response = Response(content, mimetype='text/plain')
+        response.headers['Content-Disposition'] = f'attachment; filename=inventory_{date_str.replace(" ", "_")}.txt'
+        return response
+    else:
+        return jsonify({"error": "Unsupported format"}), 400
+
+@aa_bp.route('/spot-check/export/<check_type>', methods=['GET'])
+@login_required
+def export_spot_check(check_type):
+    """Export the current spot check as text"""
+    format_type = request.args.get('format', 'txt')
+    
+    # Get spot check question
+    spot_check = get_random_spot_check(category=check_type)
+    
+    if not spot_check or 'question' not in spot_check:
+        flash('Spot check not found', 'error')
+        return redirect(url_for('aa_bp.dashboard'))
+    
+    # Format the spot check data as text
+    content = f"==========================\n"
+    content += f"SPOT CHECK INVENTORY\n"
+    content += f"{check_type.capitalize() if check_type else 'Spot Check'}\n"
+    content += f"==========================\n\n"
+    
+    content += f"Question: {spot_check['question']}\n"
+    
+    if spot_check.get('prompt'):
+        content += f"Prompt: {spot_check['prompt']}\n\n"
+    
+    if spot_check.get('follow_up'):
+        content += f"Follow-up question to consider: {spot_check['follow_up']}\n\n"
+    
+    # Return as downloadable file or JSON
+    if format_type == 'txt':
+        response = Response(content, mimetype='text/plain')
+        response.headers['Content-Disposition'] = f'attachment; filename=spot_check_{check_type}.txt'
+        return response
+    else:
+        return jsonify({"error": "Unsupported format"}), 400

@@ -20,7 +20,7 @@
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
                             <li><a class="dropdown-item" href="#" id="copyToClipboard"><i class="fas fa-copy"></i> Copy to clipboard</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('aa_routes.export_inventory', inventory_id=inventory.id, format='txt') }}" target="_blank"><i class="fas fa-file-alt"></i> Download as TXT</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('aa.export_inventory', inventory_id=inventory.id, format='txt') }}" target="_blank"><i class="fas fa-file-alt"></i> Download as TXT</a></li>
                         </ul>
                     </div>
                 </div>
