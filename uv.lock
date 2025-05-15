@@ -1368,6 +1368,22 @@ wheels = [
 ]
 
 [[package]]
+name = "python-amazon-paapi"
+version = "5.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "certifi" },
+    { name = "python-dateutil" },
+    { name = "setuptools" },
+    { name = "six" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/11/16/0fa14e98a03d083e12ba3b7ea40561950b3f34d578622eabc3be5df89788/python-amazon-paapi-5.0.1.tar.gz", hash = "sha256:7e6767d4e2ee8f85b1658630823f9a8374081d7b3ab9f62699e8fe8d8f76f6a2", size = 66921 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/29/5e/ff3781bf69ce32d900bbdf9a702dfa26f4a866e3f23987e3173a6cb52a36/python_amazon_paapi-5.0.1-py3-none-any.whl", hash = "sha256:4bde8629f1373fc99c94d657d89e809768b83e34f5f639a97e19cc65e45eced7", size = 196920 },
+]
+
+[[package]]
 name = "python-dateutil"
 version = "2.9.0.post0"
 source = { registry = "https://pypi.org/simple" }
@@ -1486,6 +1502,7 @@ dependencies = [
     { name = "openrouter" },
     { name = "psycopg2-binary" },
     { name = "pyjwt" },
+    { name = "python-amazon-paapi" },
     { name = "python-dotenv" },
     { name = "requests" },
     { name = "spotipy" },
@@ -1516,6 +1533,7 @@ requires-dist = [
     { name = "openrouter", specifier = ">=1.0" },
     { name = "psycopg2-binary", specifier = ">=2.9.10" },
     { name = "pyjwt", specifier = ">=2.10.1" },
+    { name = "python-amazon-paapi", specifier = ">=5.0.1" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "spotipy", specifier = ">=2.25.1" },
@@ -1563,6 +1581,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/da/8a/22b7beea3ee0d44b1916c0c1cb0ee3af23b700b6da9f04991899d0c555d4/rsa-4.9.1.tar.gz", hash = "sha256:e7bdbfdb5497da4c07dfd35530e1a902659db6ff241e39d9953cad06ebd0ae75", size = 29034 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/64/8d/0133e4eb4beed9e425d9a98ed6e081a55d195481b7632472be1af08d2f6b/rsa-4.9.1-py3-none-any.whl", hash = "sha256:68635866661c6836b8d39430f97a996acbd61bfa49406748ea243539fe239762", size = 34696 },
+]
+
+[[package]]
+name = "setuptools"
+version = "80.7.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/9e/8b/dc1773e8e5d07fd27c1632c45c1de856ac3dbf09c0147f782ca6d990cf15/setuptools-80.7.1.tar.gz", hash = "sha256:f6ffc5f0142b1bd8d0ca94ee91b30c0ca862ffd50826da1ea85258a06fd94552", size = 1319188 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a1/18/0e835c3a557dc5faffc8f91092f62fc337c1dab1066715842e7a4b318ec4/setuptools-80.7.1-py3-none-any.whl", hash = "sha256:ca5cc1069b85dc23070a6628e6bcecb3292acac802399c7f8edc0100619f9009", size = 1200776 },
 ]
 
 [[package]]

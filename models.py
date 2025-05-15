@@ -32,6 +32,9 @@ class User(UserMixin, db.Model):
     # Relationship with user settings
     settings = db.relationship('UserSettings', backref='user', uselist=False, cascade="all, delete-orphan")
     
+    # Relationship with assistant profile
+    assistant_profile = db.relationship('AssistantProfile', backref='user', uselist=False, cascade="all, delete-orphan")
+    
     def is_administrator(self):
         """Check if user has admin privileges"""
         return self.is_admin
