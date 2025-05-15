@@ -978,6 +978,449 @@ def get_track_audio_features(spotify, track_name):
         logging.error(f"Error getting track audio features: {str(e)}")
         return f"Error retrieving audio features: {str(e)}"
 
+# ---- AI Enhanced Analysis ----
+
+import json  # Make sure json is imported at the top level
+
+def analyze_track_with_ai(spotify, track_name, output_format="text"):
+    """
+    Analyze a track using AI and return detailed insights about the music
+    
+    Args:
+        spotify: Spotify client
+        track_name: Name of the track to analyze
+        output_format: Format for the output ('text' or 'json')
+        
+    Returns:
+        str or dict: Analysis results
+    """
+    try:
+        # Import dynamically to avoid circular imports
+        from utils.ai_helper import client as ai_client
+        
+        if not ai_client:
+            return "AI analysis unavailable (missing OpenAI API key)"
+            
+        # Search for the track
+        results = spotify.search(q=track_name, type='track', limit=1)
+        if not results['tracks']['items']:
+            return f"No track found for '{track_name}'"
+            
+        track = results['tracks']['items'][0]
+        
+        # Get audio features
+        features = spotify.audio_features(track['id'])[0]
+        
+        if not features:
+            return f"No audio features found for '{track['name']}'"
+            
+        # Get track details
+        album = track['album']['name']
+        artist = track['artists'][0]['name']
+        
+        # Prepare data for AI analysis
+        analysis_data = {
+            "track_name": track['name'],
+            "artist": artist,
+            "album": album,
+            "release_date": track['album'].get('release_date', 'Unknown'),
+            "popularity": track['popularity'],
+            "duration_ms": track['duration_ms'],
+            "audio_features": {
+                "danceability": features['danceability'],
+                "energy": features['energy'],
+                "key": get_musical_key(features['key']),
+                "loudness": features['loudness'],
+                "mode": "Major" if features['mode'] == 1 else "Minor",
+                "speechiness": features['speechiness'],
+                "acousticness": features['acousticness'],
+                "instrumentalness": features['instrumentalness'],
+                "liveness": features['liveness'],
+                "valence": features['valence'],
+                "tempo": features['tempo'],
+                "time_signature": features['time_signature']
+            }
+        }
+        
+        # Create a prompt for AI analysis
+        from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
+        
+        system_prompt = """
+        You are a professional music analyst and critic with deep knowledge of music theory, 
+        music production, cultural context, and music history. Analyze the provided track 
+        information and audio features to provide insightful commentary.
+        
+        Your analysis should include:
+        1. Overview of the track's musical characteristics
+        2. Mood and emotional impact based on features like valence, energy, and mode
+        3. Production style and sound characteristics
+        4. Musical elements (rhythm, harmony, melody) based on tempo, key, and other features
+        5. Potential cultural or musical influences
+        6. Similar artists or tracks the listener might enjoy
+        
+        Be specific, insightful, and helpful without being overly technical for general audience.
+        """
+        
+        user_prompt = f"Please analyze this track:\n{json.dumps(analysis_data, indent=2)}"
+        
+        # Prepare messages with proper typing
+        messages = []
+        
+        # Add system message
+        system_msg: ChatCompletionSystemMessageParam = {
+            "role": "system",
+            "content": system_prompt
+        }
+        messages.append(system_msg)
+        
+        # Add user message
+        user_msg: ChatCompletionUserMessageParam = {
+            "role": "user",
+            "content": user_prompt
+        }
+        messages.append(user_msg)
+        
+        # Get AI analysis
+        response = ai_client.chat.completions.create(
+            model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+            messages=messages,
+            max_tokens=800,
+            temperature=0.7
+        )
+        
+        analysis = response.choices[0].message.content
+        
+        # Return in requested format
+        if output_format == "json":
+            return {
+                "track": {
+                    "name": track['name'],
+                    "artist": artist,
+                    "album": album
+                },
+                "features": analysis_data["audio_features"],
+                "analysis": analysis
+            }
+        else:
+            # Format as text
+            result = f"🎵 AI Analysis of '{track['name']}' by {artist}\n\n"
+            result += analysis
+            return result
+            
+    except Exception as e:
+        logging.error(f"Error analyzing track with AI: {str(e)}")
+        return f"Error performing AI analysis: {str(e)}"
+
+def get_personalized_playlist_based_on_mood(spotify, mood_description, playlist_name=None, user_id=None):
+    """
+    Generate a personalized playlist based on user's mood and listening history
+    
+    Args:
+        spotify: Spotify client
+        mood_description: Natural language description of the mood
+        playlist_name: Optional custom name for the playlist
+        user_id: Optional user ID for additional context
+        
+    Returns:
+        str: Result message
+    """
+    try:
+        # Import dynamically to avoid circular imports
+        from utils.ai_helper import client as ai_client, conversation_memory
+        
+        if not ai_client:
+            return "AI personalization unavailable (missing OpenAI API key)"
+            
+        # Get user's top artists and tracks for personalization
+        top_tracks = spotify.current_user_top_tracks(limit=10, time_range='medium_term')
+        top_artists = spotify.current_user_top_artists(limit=10, time_range='medium_term')
+        
+        # Extract names and IDs
+        track_data = [{"name": t["name"], "id": t["id"], "artist": t["artists"][0]["name"]} for t in top_tracks["items"]]
+        artist_data = [{"name": a["name"], "id": a["id"], "genres": a["genres"]} for a in top_artists["items"]]
+        
+        # Add user context if available
+        context_str = ""
+        if user_id:
+            context = conversation_memory.get_context_summary(user_id)
+            if context:
+                context_str = f"Additional user context:\n{context}"
+                
+        # Create a prompt
+        from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
+        
+        system_prompt = """
+        You are a music curator specializing in creating personalized playlists based on mood and
+        listening history. Using the provided information about the user's top tracks, artists, 
+        and the desired mood, recommend a playlist strategy.
+        
+        Your response should be in JSON format with:
+        1. A seed selection strategy (which artists, tracks, or genres to use as seeds)
+        2. Specific seed_artists (list of artist IDs, max 2)
+        3. Specific seed_tracks (list of track IDs, max 2)
+        4. Recommended seed_genres (list of genre names, max 1)
+        5. Audio feature targets that match the mood (danceability, energy, valence, etc)
+        6. A creative name for the playlist if one isn't provided
+        7. A brief description of the playlist
+        
+        The JSON should follow this structure:
+        {
+            "seed_artists": ["artist_id1", "artist_id2"],
+            "seed_tracks": ["track_id1", "track_id2"],
+            "seed_genres": ["genre1"],
+            "audio_features": {
+                "target_danceability": 0.7,
+                "target_energy": 0.8,
+                "target_valence": 0.5,
+                "etc": "..."
+            },
+            "playlist_name": "Suggested name",
+            "description": "Brief description of the playlist mood and style"
+        }
+        """
+        
+        user_prompt = f"""
+        Create a personalized playlist based on this mood: "{mood_description}"
+        
+        User's top tracks:
+        {json.dumps(track_data, indent=2)}
+        
+        User's top artists:
+        {json.dumps(artist_data, indent=2)}
+        
+        {context_str}
+        """
+        
+        # Prepare messages with proper typing
+        messages = []
+        
+        # Add system message
+        system_msg: ChatCompletionSystemMessageParam = {
+            "role": "system",
+            "content": system_prompt
+        }
+        messages.append(system_msg)
+        
+        # Add user message
+        user_msg: ChatCompletionUserMessageParam = {
+            "role": "user",
+            "content": user_prompt
+        }
+        messages.append(user_msg)
+        
+        # Get AI recommendations
+        response = ai_client.chat.completions.create(
+            model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+            messages=messages,
+            response_format={"type": "json_object"},
+            temperature=0.7
+        )
+        
+        strategy = json.loads(response.choices[0].message.content)
+        
+        # Use the provided name or the AI-suggested one
+        final_name = playlist_name or strategy.get("playlist_name", f"Mood: {mood_description}")
+        
+        # Create the actual recommendation parameters
+        recommendation_params = {
+            "limit": 25
+        }
+        
+        # Add seed parameters
+        if "seed_artists" in strategy and strategy["seed_artists"]:
+            recommendation_params["seed_artists"] = strategy["seed_artists"]
+            
+        if "seed_tracks" in strategy and strategy["seed_tracks"]:
+            recommendation_params["seed_tracks"] = strategy["seed_tracks"]
+            
+        if "seed_genres" in strategy and strategy["seed_genres"]:
+            recommendation_params["seed_genres"] = strategy["seed_genres"]
+            
+        # Add audio features targets
+        if "audio_features" in strategy:
+            for key, value in strategy["audio_features"].items():
+                if key.startswith("target_"):
+                    recommendation_params[key] = value
+        
+        # Get recommendations
+        recommendations = spotify.recommendations(**recommendation_params)
+        
+        # Create the playlist
+        user_info = spotify.current_user()
+        user_id = user_info['id']
+        
+        playlist = spotify.user_playlist_create(
+            user=user_id,
+            name=final_name,
+            public=True,
+            description=strategy.get("description", f"Playlist for {mood_description} mood")
+        )
+        
+        # Add tracks to playlist
+        if recommendations["tracks"]:
+            track_uris = [track["uri"] for track in recommendations["tracks"]]
+            spotify.playlist_add_items(playlist["id"], track_uris)
+            
+            # Return success message
+            track_count = len(track_uris)
+            mood_emoji = get_mood_emoji(mood_description)
+            return f"{mood_emoji} Created '{final_name}' playlist with {track_count} tracks - {playlist['external_urls']['spotify']}"
+        else:
+            return f"Couldn't find suitable tracks for {mood_description} mood"
+    
+    except Exception as e:
+        logging.error(f"Error creating personalized mood playlist: {str(e)}")
+        return f"Error creating mood playlist: {str(e)}"
+
+def get_mood_emoji(mood):
+    """Helper function to get an emoji for a mood"""
+    mood_lower = mood.lower()
+    
+    if any(word in mood_lower for word in ["happy", "joy", "upbeat", "cheerful"]):
+        return "😊"
+    elif any(word in mood_lower for word in ["sad", "melancholy", "down", "blue"]):
+        return "😢"
+    elif any(word in mood_lower for word in ["calm", "relax", "peaceful", "chill"]):
+        return "😌"
+    elif any(word in mood_lower for word in ["energetic", "workout", "pump", "energy"]):
+        return "💪"
+    elif any(word in mood_lower for word in ["focus", "concentrate", "study", "work"]):
+        return "🧠"
+    elif any(word in mood_lower for word in ["romantic", "love", "passion"]):
+        return "❤️"
+    elif any(word in mood_lower for word in ["party", "dance", "celebration"]):
+        return "🎉"
+    else:
+        return "🎵"
+
+def analyze_user_music_taste(spotify, time_range='medium_term', user_id=None):
+    """
+    Analyze a user's music taste based on their listening history
+    
+    Args:
+        spotify: Spotify client
+        time_range: Time range for analysis ('short_term', 'medium_term', 'long_term')
+        user_id: Optional user ID for additional context
+        
+    Returns:
+        str: Analysis of user's music taste
+    """
+    try:
+        # Import dynamically to avoid circular imports
+        from utils.ai_helper import client as ai_client
+        
+        if not ai_client:
+            return "AI analysis unavailable (missing OpenAI API key)"
+        
+        # Get user's top tracks, artists, and genres
+        top_tracks = spotify.current_user_top_tracks(limit=20, time_range=time_range)
+        top_artists = spotify.current_user_top_artists(limit=20, time_range=time_range)
+        
+        # Get audio features for top tracks
+        track_ids = [track['id'] for track in top_tracks['items']]
+        audio_features = {}
+        
+        if track_ids:
+            features_list = spotify.audio_features(track_ids)
+            for i, features in enumerate(features_list):
+                if features:
+                    track_name = top_tracks['items'][i]['name']
+                    audio_features[track_name] = features
+        
+        # Collect genres from top artists
+        genres = []
+        for artist in top_artists['items']:
+            genres.extend(artist.get('genres', []))
+        
+        # Count genre occurrences
+        genre_counts = Counter(genres)
+        top_genres = genre_counts.most_common(10)
+        
+        # Calculate average audio features across all tracks
+        avg_features = {}
+        if audio_features:
+            feature_keys = ['danceability', 'energy', 'valence', 'acousticness', 'instrumentalness', 'tempo']
+            for key in feature_keys:
+                values = [features[key] for features in audio_features.values() if key in features]
+                if values:
+                    avg_features[key] = sum(values) / len(values)
+        
+        # Prepare data for AI analysis
+        analysis_data = {
+            "top_tracks": [{"name": t['name'], "artist": t['artists'][0]['name']} for t in top_tracks['items'][:10]],
+            "top_artists": [{"name": a['name'], "genres": a.get('genres', [])} for a in top_artists['items'][:10]],
+            "top_genres": [{"genre": g, "count": c} for g, c in top_genres],
+            "average_audio_features": avg_features,
+            "time_range": {
+                "short_term": "last 4 weeks",
+                "medium_term": "last 6 months",
+                "long_term": "several years"
+            }.get(time_range, time_range)
+        }
+        
+        # Create a prompt for AI analysis
+        from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
+        
+        system_prompt = """
+        You are a music taste analyst with deep knowledge of music genres, artists, trends, and
+        cultural context. Analyze the provided listening history data to give insightful
+        commentary about the user's music preferences.
+        
+        Your analysis should include:
+        1. A summary of their overall music taste and preferences
+        2. Genre analysis and patterns
+        3. Mood and energy preferences based on audio features
+        4. Interesting observations about their listening habits
+        5. Personalized recommendations for exploring new music based on their taste
+        
+        Be conversational, insightful, and respectful in your analysis.
+        """
+        
+        user_prompt = f"Please analyze this music listening data:\n{json.dumps(analysis_data, indent=2)}"
+        
+        # Prepare messages with proper typing
+        messages = []
+        
+        # Add system message
+        system_msg: ChatCompletionSystemMessageParam = {
+            "role": "system",
+            "content": system_prompt
+        }
+        messages.append(system_msg)
+        
+        # Add user message
+        user_msg: ChatCompletionUserMessageParam = {
+            "role": "user",
+            "content": user_prompt
+        }
+        messages.append(user_msg)
+        
+        # Get AI analysis
+        response = ai_client.chat.completions.create(
+            model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+            messages=messages,
+            max_tokens=800,
+            temperature=0.7
+        )
+        
+        analysis = response.choices[0].message.content
+        
+        # Format the result
+        time_range_text = {
+            "short_term": "the last 4 weeks",
+            "medium_term": "the last 6 months",
+            "long_term": "several years"
+        }.get(time_range, time_range)
+        
+        result = f"🎧 Analysis of Your Music Taste ({time_range_text})\n\n"
+        result += analysis
+        
+        return result
+            
+    except Exception as e:
+        logging.error(f"Error analyzing music taste: {str(e)}")
+        return f"Error analyzing music taste: {str(e)}"
+
 # ---- Social Features ----
 
 def follow_artist(spotify, artist_name):

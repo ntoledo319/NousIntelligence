@@ -680,7 +680,7 @@ def analyze_image(image_data, prompt=None):
         logging.error(f"Error analyzing image: {str(e)}")
         return {"success": False, "error": f"Image analysis failed: {str(e)}"}
         
-def generate_image(prompt, style=None, size="1024x1024"):
+def generate_image(prompt: str, style: Optional[str] = None, size: str = "1024x1024"):
     """
     Generate an image using AI based on a prompt
     
@@ -700,13 +700,35 @@ def generate_image(prompt, style=None, size="1024x1024"):
         full_prompt = prompt
         if style:
             full_prompt = f"{prompt} Style: {style}."
+        
+        # Validate size parameter using a literal type
+        from typing import Literal
+        
+        # Cast to the valid literal type
+        if size == "1024x1024":
+            size_param: Literal["1024x1024"] = "1024x1024"
+        elif size == "1792x1024":
+            size_param: Literal["1792x1024"] = "1792x1024"
+        elif size == "1024x1792":
+            size_param: Literal["1024x1792"] = "1024x1792"
+        elif size == "1536x1024":
+            size_param: Literal["1536x1024"] = "1536x1024"
+        elif size == "1024x1536":
+            size_param: Literal["1024x1536"] = "1024x1536"
+        elif size == "512x512":
+            size_param: Literal["512x512"] = "512x512"
+        elif size == "256x256":
+            size_param: Literal["256x256"] = "256x256"
+        else:
+            # Default to 1024x1024 if not one of the valid sizes
+            size_param: Literal["1024x1024"] = "1024x1024"
             
         # Call the DALL-E API
         response = client.images.generate(
             model="dall-e-3",
             prompt=full_prompt,
             n=1,
-            size=size
+            size=size_param
         )
         
         # Extract the image URL
