@@ -1,0 +1,103 @@
+You are updating an existing AI personal assistant application named "Nous," hosted on Replit. Nous must now integrate a robust, resource-conscious self-learning mechanism. Follow these steps carefully:
+
+1. Create an internal knowledge base (KB) with SQLite:
+- Structure: Create a table `knowledge_base` with columns: `id` (INTEGER PRIMARY KEY), `content` (TEXT), `embedding` (BLOB).
+
+Example SQLite setup:
+```python
+import sqlite3
+
+conn = sqlite3.connect('nous_kb.db')
+c = conn.cursor()
+c.execute('''CREATE TABLE IF NOT EXISTS knowledge_base
+             (id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT, embedding BLOB)''')
+conn.commit()
+```
+
+2. Implement embedding-based memory with `sentence-transformers` and `FAISS`:
+
+Installation (ensure this runs on Replit Shell):
+```shell
+pip install sentence-transformers faiss-cpu numpy
+```
+
+Python snippet for embedding generation and indexing:
+```python
+from sentence_transformers import SentenceTransformer
+import numpy as np
+import faiss
+
+model = SentenceTransformer('all-MiniLM-L6-v2')
+
+# Function to embed and store knowledge
+def add_to_kb(content, cursor, index):
+    embedding = model.encode([content])[0]
+    cursor.execute("INSERT INTO knowledge_base (content, embedding) VALUES (?, ?)",
+                   (content, embedding.tobytes()))
+    index.add(np.array([embedding]))
+
+# Load existing embeddings to FAISS at startup
+def initialize_index(cursor):
+    cursor.execute("SELECT embedding FROM knowledge_base")
+    embeddings = [np.frombuffer(row[0], dtype=np.float32) for row in cursor.fetchall()]
+    dimension = embeddings[0].shape[0] if embeddings else 384
+    index = faiss.IndexFlatL2(dimension)
+    if embeddings:
+        index.add(np.array(embeddings))
+    return index
+```
+
+3. Integrate query handling to first check the local KB:
+```python
+def query_kb(question, cursor, index, threshold=0.4):
+    q_embedding = model.encode([question])[0]
+    distances, indices = index.search(np.array([q_embedding]), k=1)
+    if distances[0][0] < threshold:
+        cursor.execute("SELECT content FROM knowledge_base WHERE id=?", (indices[0][0]+1,))
+        return cursor.fetchone()[0]
+    else:
+        return None
+```
+
+4. Implement self-learning feedback loop:
+- After answering a new question from an external AI (OpenRouter), automatically store the response:
+```python
+response = external_ai_api_call(question)
+if response:
+    add_to_kb(response, c, index)
+    conn.commit()
+```
+
+5. Schedule a daily "self-reflection" routine within Replit's built-in cron system:
+- Command:
+```shell
+python self_reflect.py
+```
+- Python script (`self_reflect.py`) to identify knowledge gaps and auto-update KB:
+```python
+# self_reflect.py
+from sqlite3 import connect
+from your_api import external_ai_api_call
+
+conn = connect('nous_kb.db')
+c = conn.cursor()
+
+reflection_questions = [
+    "What topics in my current knowledge base are unclear or incomplete?",
+    "Suggest improvements or updates to my stored knowledge."
+]
+
+for rq in reflection_questions:
+    reflection_response = external_ai_api_call(rq)
+    if reflection_response:
+        add_to_kb(reflection_response, c, initialize_index(c))
+
+conn.commit()
+```
+
+6. Confirm Nous adapts prompts based on recent conversation history stored locally:
+- Keep local context in SQLite, clearing outdated entries regularly for optimal resource use.
+
+---
+
+This code and workflow update Nous with robust self-learning, cross-referencing, embedding-based memory, and resource optimization specifically tuned for Replit hosting.
