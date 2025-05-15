@@ -6,6 +6,10 @@ from utils.logger import log_workout, log_mood
 from utils.scraper import scrape_aa_reflection
 from utils.ai_helper import parse_natural_language
 from utils.google_helper import create_calendar_event
+from utils.weather_helper import (
+    get_current_weather, get_weather_forecast, get_location_coordinates,
+    format_weather_output, format_forecast_output
+)
 
 # Import doctor appointment helpers
 from utils.doctor_appointment_helper import (

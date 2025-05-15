@@ -1,12 +1,14 @@
 """
 Weather helper module for NOUS Assistant
 Uses OpenWeatherMap API to fetch weather data
+Includes pain flare prediction based on barometric pressure changes
 """
 
 import os
 import requests
 import json
 import datetime
+import math
 from typing import Dict, List, Optional, Tuple, Any, Union
 
 # API Configuration
@@ -330,3 +332,74 @@ def format_forecast_output(forecast_data: Dict[str, Any]) -> str:
         output.append("")
     
     return "\n".join(output)
+
+# Pain Flare Prediction Functions
+
+def get_pressure_trend(location: str, hours: int = 24) -> Dict[str, Any]:
+    """
+    Get barometric pressure trend over time for a location
+    
+    Parameters:
+    - location: City name or location
+    - hours: Number of hours to analyze (max 5 days, 120 hours)
+    
+    Returns dictionary with pressure trend data
+    """
+    if not OPENWEATHER_API_KEY:
+        raise ValueError("OpenWeatherMap API key not found in environment variables")
+    
+    # First get coordinates for the location
+    lat, lon, full_location = get_location_coordinates(location)
+    
+    if lat is None or lon is None:
+        return None
+    
+    # Get forecast data which contains pressure predictions
+    url = f"{WEATHER_API_BASE_URL}/forecast?lat={lat}&lon={lon}&appid={OPENWEATHER_API_KEY}"
+    response = requests.get(url)
+    
+    if response.status_code != 200:
+        raise Exception(f"API error: {response.status_code} - {response.text}")
+    
+    data = response.json()
+    
+    # Create pressure trend data
+    pressure_data = []
+    timestamps = []
+    
+    # Limit to the requested number of hours
+    limit = min(hours, len(data['list']))
+    
+    for i in range(limit):
+        item = data['list'][i]
+        dt = datetime.datetime.fromtimestamp(item['dt'])
+        pressure = item['main']['pressure']  # hPa (hectopascals)
+        pressure_data.append(pressure)
+        timestamps.append(dt)
+    
+    # Calculate pressure changes
+    pressure_changes = []
+    for i in range(1, len(pressure_data)):
+        change = pressure_data[i] - pressure_data[i-1]
+        pressure_changes.append(change)
+    
+    # Calculate overall trend
+    if len(pressure_data) > 1:
+        overall_change = pressure_data[-1] - pressure_data[0]
+    else:
+        overall_change = 0
+        
+    # Maximum rate of change
+    if pressure_changes:
+        max_change = max(pressure_changes, key=abs)
+    else:
+        max_change = 0
+    
+    return {
+        "location": full_location,
+        "pressure_data": [{"timestamp": ts.isoformat(), "pressure": p} for ts, p in zip(timestamps, pressure_data)],
+        "overall_change": overall_change,
+        "max_change": max_change,
+        "current_pressure": pressure_data[0] if pressure_data else None,
+        "trend_direction": "rising" if overall_change > 0 else "falling" if overall_change < 0 else "stable"
+    }
