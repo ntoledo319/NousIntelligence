@@ -1,0 +1,210 @@
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from openrouter import OpenRouterClient
+
+# ——— CONFIG ———
+API_KEY = "YOUR_OPENROUTER_API_KEY"
+MODEL   = "YOUR_MODEL_NAME"  # e.g. "gpt-4o-mini", "gpt-4o"
+
+client = OpenRouterClient(api_key=API_KEY)
+app = FastAPI(title="DBT Skills Coach Bot")
+
+# ——— DATA MODELS ———
+class Message(BaseModel):
+    user_id: str
+    text: str
+
+class EditRequest(BaseModel):
+    user_id: str
+    original: str
+    target_skill: str   # e.g. "DEAR MAN", "radical acceptance"
+    tone: str           # e.g. "gentle", "firm", "loving"
+
+# ——— DETAILED PROMPT TEMPLATES ———
+PROMPTS = {
+    "skills_on_demand": """
+You are a compassionate DBT coach. The user says: "{text}"
+1. Identify the single DBT skill most fitting for their need.
+2. Explain why this skill matches their situation (1–2 sentences).
+3. Provide clear, step-by-step instructions on how to do it, referencing core DBT principles briefly.
+""",
+
+    "diary_card": """
+You are an expert DBT diary card generator. Based on the user's description: "{text}"
+Produce a structured diary card entry including:
+- Date (today’s date)
+- Mood rating (0–5)
+- Triggers they noted
+- Urges they felt
+- DBT skill they used (if any)
+- A short reflective note (1–2 sentences)
+""",
+
+    "validate": """
+You are skilled in DBT validation. The user shares: "{text}"
+1. Mirror back their feelings (“It makes sense…”).
+2. Normalize why it’s valid to feel that way.
+3. End with a brief empathic statement of support.
+""",
+
+    "distress": """
+The user is in crisis and needs a Distress Tolerance skill. They say: "{text}"
+Guide them through the TIPP skill:
+- Temperature: how to safely change body temperature
+- Intense exercise: quick movement suggestion
+- Paced breathing: steps and timing
+- Progressive muscle relaxation: brief walkthrough
+Keep it concise and actionable.
+""",
+
+    "chain_analysis": """
+You are guiding a DBT chain analysis. The user describes a behavior: "{text}"
+Ask one question at a time in this order:
+1. Vulnerability factors
+2. Prompting event
+3. Interpretation
+4. Emotions
+5. Body sensations
+6. Actions
+7. Consequences
+After each question, wait for their response before proceeding.
+""",
+
+    "wise_mind": """
+Help the user access Wise Mind. They share: "{text}"
+1. Ask what their emotional mind says.
+2. Ask what their rational mind says.
+3. Guide them to merge both into a balanced Wise Mind statement.
+""",
+
+    "radical_acceptance": """
+Detect resistance to reality in: "{text}"
+1. Define radical acceptance.
+2. Provide empathic examples.
+3. Invite them to try saying “I accept…” about the unchangeable fact.
+4. Offer a brief mantra or phrase to practice.
+""",
+
+    "interpersonal": """
+User scenario: "{text}"
+Coach them through the DEAR MAN skill:
+- Describe the situation
+- Express feelings
+- Assert needs
+- Reinforce positive outcome
+- Remain Mindful
+- Appear confident
+- Negotiate if needed
+Provide a filled-in message example.
+""",
+
+    "dialectic": """
+User statement: "{text}"
+1. Acknowledge the truth in their perspective.
+2. Offer the valid counter-truth.
+3. Synthesize both into one balanced dialectical statement.
+""",
+
+    "trigger_map": """
+You have access to past trigger history for user {user_id}. They mention: "{text}"
+1. Recall similar triggers they’ve logged.
+2. Describe any pattern.
+3. Recommend a targeted DBT skill to cope.
+""",
+
+    "skill_of_day": """
+You are a DBT coach delivering a daily skill. For user {user_id}:
+1. Name today’s DBT skill.
+2. Explain its purpose (1–2 sentences).
+3. Give a one-sentence challenge to practice it today.
+""",
+
+    "edit_message": """
+Edit the user’s message to weave in {target_skill} and a {tone} tone.
+Original message:
+\"\"\"
+{original}
+\"\"\"
+Ensure it:
+- Reflects DBT skill principles
+- Validates emotion
+- Maintains clarity and intent
+""",
+
+    "advise": """
+User situation: "{text}"
+1. Validate their experience.
+2. Recommend specific DBT skills to apply.
+3. Offer concrete next steps (1–3 bullet points).
+"""
+}
+
+# ——— HELPER TO CALL OPENROUTER ———
+def call_router(prompt_key: str, **kwargs) -> str:
+    prompt = PROMPTS[prompt_key].format(**kwargs)
+    resp = client.chat.completions.create(
+        model=MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.7
+    )
+    if not resp.choices:
+        raise HTTPException(status_code=500, detail="No response from LLM")
+    return resp.choices[0].message.content.strip()
+
+# ——— API ENDPOINTS ———
+@app.post("/skills_on_demand")
+def skills_on_demand(msg: Message):
+    return {"response": call_router("skills_on_demand", text=msg.text)}
+
+@app.post("/diary_card")
+def diary_card(msg: Message):
+    return {"response": call_router("diary_card", text=msg.text)}
+
+@app.post("/validate")
+def validate(msg: Message):
+    return {"response": call_router("validate", text=msg.text)}
+
+@app.post("/distress_tolerance")
+def distress(msg: Message):
+    return {"response": call_router("distress", text=msg.text)}
+
+@app.post("/chain_analysis")
+def chain_analysis(msg: Message):
+    return {"response": call_router("chain_analysis", text=msg.text)}
+
+@app.post("/wise_mind")
+def wise_mind(msg: Message):
+    return {"response": call_router("wise_mind", text=msg.text)}
+
+@app.post("/radical_acceptance")
+def radical_acceptance(msg: Message):
+    return {"response": call_router("radical_acceptance", text=msg.text)}
+
+@app.post("/interpersonal_effectiveness")
+def interpersonal(msg: Message):
+    return {"response": call_router("interpersonal", text=msg.text)}
+
+@app.post("/dialectic_generator")
+def dialectic(msg: Message):
+    return {"response": call_router("dialectic", text=msg.text)}
+
+@app.post("/trigger_map")
+def trigger_map(msg: Message):
+    return {"response": call_router("trigger_map", user_id=msg.user_id, text=msg.text)}
+
+@app.post("/skill_of_the_day")
+def skill_of_day(msg: Message):
+    return {"response": call_router("skill_of_day", user_id=msg.user_id)}
+
+@app.post("/edit_message")
+def edit_message(req: EditRequest):
+    return {"edited": call_router(
+        "edit_message",
+        original=req.original,
+        target_skill=req.target_skill,
+        tone=req.tone
+    )}
+
+@app.post("/advise")
+def advise(msg: Message):
+    return {"advice": call_router("advise", text=msg.text)}
