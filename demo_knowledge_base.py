@@ -74,8 +74,9 @@ def get_pseudo_embedding(text):
     
     return embedding
 
-def query_knowledge_base_direct(query, threshold=0.1):
-    """Directly query the knowledge base with a user question."""
+def query_knowledge_base_direct(query, threshold=0.00001):
+    """Directly query the knowledge base with a user question. 
+    Using very low threshold for demo purposes."""
     with app.app_context():
         # Generate query embedding
         query_embedding = get_pseudo_embedding(query)

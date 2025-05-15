@@ -9,9 +9,10 @@ import logging
 import numpy as np
 from datetime import datetime
 from openai import OpenAI
-from app import db
-from models import KnowledgeBase, ReflectionPrompt, User
 from sqlalchemy import desc
+
+# Import db and models within functions to avoid circular imports
+# These will be imported when needed
 
 # Initialize OpenAI client with key directly from .env file
 env_path = '.env'
@@ -92,6 +93,10 @@ def add_to_knowledge_base(content, user_id=None, source="conversation"):
     Returns:
         KnowledgeBase: The newly created knowledge entry
     """
+    # Import here to avoid circular imports
+    from app import db
+    from models import KnowledgeBase
+    
     try:
         # Generate embedding
         embedding = get_embedding_for_text(content)
