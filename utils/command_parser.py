@@ -17,7 +17,27 @@ from utils.dbt_helper import (
     distress_tolerance, chain_analysis, wise_mind, radical_acceptance,
     interpersonal_effectiveness, dialectic_generator, trigger_map,
     skill_of_the_day, edit_message, advise, log_dbt_skill,
-    get_skill_logs, create_diary_card, get_diary_cards
+    get_skill_logs, create_diary_card, get_diary_cards,
+    analyze_skill_effectiveness, get_skill_recommendations
+)
+
+# Import DBT challenges functions
+from utils.dbt_helper import (
+    get_available_challenges, create_challenge, update_challenge_progress,
+    mark_challenge_completed, reset_challenge, generate_personalized_challenge
+)
+
+# Import crisis management functions
+from utils.dbt_crisis_helper import (
+    get_crisis_resources, add_crisis_resource, update_crisis_resource,
+    delete_crisis_resource, generate_crisis_plan, get_grounding_exercise,
+    get_crisis_de_escalation
+)
+
+# Import emotion regulation functions
+from utils.dbt_emotion_helper import (
+    log_emotion, get_emotion_history, get_emotion_stats, generate_emotion_insights,
+    get_opposite_action_suggestion, identify_emotion, check_emotion_vulnerability
 )
 
 # Import doctor appointment helpers

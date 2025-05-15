@@ -63,6 +63,109 @@ class DBTDiaryCard(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
+# DBT Skill Recommendation model
+class DBTSkillRecommendation(db.Model):
+    """Model for personalized skill recommendations"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(255))  # User identifier (from session)
+    situation_type = db.Column(db.String(100))  # General type of situation
+    skill_name = db.Column(db.String(100))  # Recommended skill
+    category = db.Column(db.String(50))  # Skill category
+    confidence_score = db.Column(db.Float, default=0.0)  # How confident we are in this recommendation (0.0-1.0)
+    times_used = db.Column(db.Integer, default=0)  # How many times user has used this skill
+    avg_effectiveness = db.Column(db.Float, default=0.0)  # Average effectiveness rating (0.0-5.0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'situation_type': self.situation_type,
+            'skill_name': self.skill_name,
+            'category': self.category,
+            'confidence_score': self.confidence_score,
+            'times_used': self.times_used,
+            'avg_effectiveness': self.avg_effectiveness
+        }
+
+# DBT Skill Challenge model
+class DBTSkillChallenge(db.Model):
+    """Model for DBT skill challenges"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(255))  # User identifier (from session)
+    challenge_name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    skill_category = db.Column(db.String(50))  # Primary skill category for this challenge
+    difficulty = db.Column(db.Integer, default=1)  # 1-5 scale
+    is_completed = db.Column(db.Boolean, default=False)
+    progress = db.Column(db.Integer, default=0)  # Progress percentage (0-100)
+    start_date = db.Column(db.DateTime, default=datetime.utcnow)
+    completed_date = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'challenge_name': self.challenge_name,
+            'description': self.description,
+            'skill_category': self.skill_category,
+            'difficulty': self.difficulty,
+            'is_completed': self.is_completed,
+            'progress': self.progress,
+            'start_date': self.start_date.isoformat() if self.start_date else None,
+            'completed_date': self.completed_date.isoformat() if self.completed_date else None
+        }
+
+# Crisis Resource model
+class DBTCrisisResource(db.Model):
+    """Model for crisis resources"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(255))  # User identifier (from session)
+    name = db.Column(db.String(100), nullable=False)
+    contact_info = db.Column(db.String(255))
+    resource_type = db.Column(db.String(50))  # e.g., hotline, therapist, hospital
+    notes = db.Column(db.Text)
+    is_emergency = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'contact_info': self.contact_info,
+            'resource_type': self.resource_type,
+            'notes': self.notes,
+            'is_emergency': self.is_emergency
+        }
+
+# Emotion Tracking model
+class DBTEmotionTrack(db.Model):
+    """Model for tracking emotions"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(255))  # User identifier (from session)
+    emotion_name = db.Column(db.String(50), nullable=False)
+    intensity = db.Column(db.Integer)  # 1-10 scale
+    trigger = db.Column(db.Text)
+    body_sensations = db.Column(db.Text)  # Physical sensations
+    thoughts = db.Column(db.Text)  # Associated thoughts
+    urges = db.Column(db.Text)  # Action urges
+    opposite_action = db.Column(db.Text)  # Opposite action taken
+    date_recorded = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'emotion_name': self.emotion_name,
+            'intensity': self.intensity,
+            'trigger': self.trigger,
+            'body_sensations': self.body_sensations,
+            'thoughts': self.thoughts,
+            'urges': self.urges,
+            'opposite_action': self.opposite_action,
+            'date_recorded': self.date_recorded.isoformat() if self.date_recorded else None
+        }
+
 # Enum for expense categories
 class ExpenseCategory(enum.Enum):
     HOUSING = "Housing"
