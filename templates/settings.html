@@ -1,0 +1,153 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-cog me-2"></i>Settings
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('save_settings') }}">
+                        <h4 class="mb-3">Conversation Settings</h4>
+                        
+                        <!-- Conversation Difficulty -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Conversation Difficulty</label>
+                            <p class="text-muted small mb-3">
+                                Select how technical you want NOUS responses to be. This affects the complexity and detail level of AI-generated responses.
+                            </p>
+                            
+                            <div class="difficulty-selector mb-3">
+                                <div class="form-check difficulty-option">
+                                    <input class="form-check-input" type="radio" name="conversation_difficulty" id="difficulty_beginner" value="beginner" 
+                                        {% if settings and settings.conversation_difficulty == 'beginner' %}checked{% endif %}>
+                                    <label class="form-check-label" for="difficulty_beginner">
+                                        <span class="difficulty-title">Beginner</span><br>
+                                        <small class="text-muted">Simple language, basic explanations, no technical terms</small>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check difficulty-option">
+                                    <input class="form-check-input" type="radio" name="conversation_difficulty" id="difficulty_intermediate" value="intermediate"
+                                        {% if not settings or settings.conversation_difficulty == 'intermediate' %}checked{% endif %}>
+                                    <label class="form-check-label" for="difficulty_intermediate">
+                                        <span class="difficulty-title">Intermediate</span><br>
+                                        <small class="text-muted">Balanced language, some technical terms with explanations</small>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check difficulty-option">
+                                    <input class="form-check-input" type="radio" name="conversation_difficulty" id="difficulty_advanced" value="advanced"
+                                        {% if settings and settings.conversation_difficulty == 'advanced' %}checked{% endif %}>
+                                    <label class="form-check-label" for="difficulty_advanced">
+                                        <span class="difficulty-title">Advanced</span><br>
+                                        <small class="text-muted">Technical language, assumes domain knowledge</small>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check difficulty-option">
+                                    <input class="form-check-input" type="radio" name="conversation_difficulty" id="difficulty_expert" value="expert"
+                                        {% if settings and settings.conversation_difficulty == 'expert' %}checked{% endif %}>
+                                    <label class="form-check-label" for="difficulty_expert">
+                                        <span class="difficulty-title">Expert</span><br>
+                                        <small class="text-muted">Highly technical, specialized terminology, maximum detail</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Voice Response Settings -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Voice Responses</label>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="enable_voice_responses" name="enable_voice_responses" 
+                                       {% if settings and settings.enable_voice_responses %}checked{% endif %}>
+                                <label class="form-check-label" for="enable_voice_responses">Enable voice responses</label>
+                            </div>
+                            <p class="text-muted small">
+                                When enabled, NOUS will respond with voice in addition to text
+                            </p>
+                        </div>
+                        
+                        <!-- Preferred Language -->
+                        <div class="mb-4">
+                            <label for="preferred_language" class="form-label fw-bold">Preferred Language</label>
+                            <select class="form-select" id="preferred_language" name="preferred_language">
+                                <option value="en-US" {% if not settings or settings.preferred_language == 'en-US' %}selected{% endif %}>English (US)</option>
+                                <option value="en-GB" {% if settings and settings.preferred_language == 'en-GB' %}selected{% endif %}>English (UK)</option>
+                                <option value="es-ES" {% if settings and settings.preferred_language == 'es-ES' %}selected{% endif %}>Spanish</option>
+                                <option value="fr-FR" {% if settings and settings.preferred_language == 'fr-FR' %}selected{% endif %}>French</option>
+                                <option value="de-DE" {% if settings and settings.preferred_language == 'de-DE' %}selected{% endif %}>German</option>
+                                <option value="it-IT" {% if settings and settings.preferred_language == 'it-IT' %}selected{% endif %}>Italian</option>
+                                <option value="ja-JP" {% if settings and settings.preferred_language == 'ja-JP' %}selected{% endif %}>Japanese</option>
+                                <option value="ko-KR" {% if settings and settings.preferred_language == 'ko-KR' %}selected{% endif %}>Korean</option>
+                                <option value="zh-CN" {% if settings and settings.preferred_language == 'zh-CN' %}selected{% endif %}>Chinese (Simplified)</option>
+                            </select>
+                            <p class="text-muted small">
+                                Used for voice recognition and speech synthesis
+                            </p>
+                        </div>
+                        
+                        <!-- Interface Theme -->
+                        <div class="mb-4">
+                            <label for="theme" class="form-label fw-bold">Interface Theme</label>
+                            <select class="form-select" id="theme" name="theme">
+                                <option value="light" {% if not settings or settings.theme == 'light' %}selected{% endif %}>Light</option>
+                                <option value="dark" {% if settings and settings.theme == 'dark' %}selected{% endif %}>Dark</option>
+                                <option value="auto" {% if settings and settings.theme == 'auto' %}selected{% endif %}>Auto (follow system)</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Submit button -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('index') }}" class="btn btn-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Settings</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add some basic styling for the difficulty options -->
+<style>
+.difficulty-option {
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    transition: all 0.2s ease;
+}
+
+.difficulty-option:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+.difficulty-title {
+    font-weight: 600;
+    font-size: 1.05rem;
+}
+
+.form-check-input:checked ~ .form-check-label .difficulty-title {
+    color: var(--nous-primary);
+}
+
+.difficulty-option input:checked + label {
+    color: var(--nous-primary);
+}
+
+.form-check-input:checked ~ .form-check-label {
+    color: var(--nous-primary);
+}
+
+.difficulty-option input:checked {
+    background-color: var(--nous-primary);
+    border-color: var(--nous-primary);
+}
+</style>
+{% endblock %}

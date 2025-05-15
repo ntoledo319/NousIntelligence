@@ -52,7 +52,8 @@ def set_difficulty(difficulty_level):
         
         # Create settings if they don't exist
         if not current_user.settings:
-            settings = UserSettings(user_id=current_user.id)
+            settings = UserSettings()
+            settings.user_id = current_user.id
             db.session.add(settings)
         else:
             settings = current_user.settings
