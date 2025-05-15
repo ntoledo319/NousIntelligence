@@ -63,5 +63,5 @@ def welcome():
     <p>Your email: {current_user.email if current_user.email else 'Not provided'}</p>
     <p><a href="{url_for('index')}">Go to Command Interface</a></p>
     <p><a href="{url_for('protected_dashboard')}">Go to Dashboard</a></p>
-    <p><a href="{url_for('replit_auth.logout')}">Logout</a></p>
+    <p><a href="{url_for('google_auth.logout')}">Logout</a></p>
     """
