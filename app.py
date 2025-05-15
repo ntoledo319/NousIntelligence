@@ -72,6 +72,10 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Configure database
 database_url = os.environ.get("DATABASE_URL")
+# Make sure DATABASE_URL is in the correct format for SQLAlchemy
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
 if database_url:
     print(f"Using database URL: {database_url}")
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
@@ -79,26 +83,26 @@ if database_url:
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
         'pool_pre_ping': True,  # Verify connections before using from pool
         'pool_recycle': 300,    # Recycle connections every 5 minutes
-        'pool_size': 15,        # Maximum number of connections to keep in pool
+        'pool_size': 10,        # Maximum number of connections to keep in pool
         'max_overflow': 5,      # Maximum number of connections to create beyond pool_size
         'pool_timeout': 30,     # Timeout for getting a connection from pool (seconds)
         'echo_pool': False,     # Don't log all pool checkouts/checkins
         'pool_use_lifo': True,  # Use last-in-first-out to reduce number of open connections
-        'execution_options': {
-            'timeout': 10       # Statement execution timeout (seconds)
-        }
     }
     db.init_app(app)
     
     # Create tables if they don't exist
     with app.app_context():
-        db.create_all()
-        logging.info("Database tables created (if they didn't exist already)")
-        
-        # Start the maintenance scheduler
-        from utils.maintenance_helper import start_maintenance_scheduler
-        start_maintenance_scheduler()
-        logging.info("Maintenance scheduler started")
+        try:
+            db.create_all()
+            logging.info("Database tables created (if they didn't exist already)")
+            
+            # Start the maintenance scheduler
+            from utils.maintenance_helper import start_maintenance_scheduler
+            start_maintenance_scheduler()
+            logging.info("Maintenance scheduler started")
+        except Exception as e:
+            logging.error(f"Error initializing database: {str(e)}")
 else:
     print("No DATABASE_URL found in environment variables")
     
