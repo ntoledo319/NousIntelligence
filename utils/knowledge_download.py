@@ -9,22 +9,327 @@ import logging
 import requests
 import time
 from datetime import datetime
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
+from pathlib import Path
 
 from utils.knowledge_helper import add_to_knowledge_base
 from app import app, db
 from models import KnowledgeBase, User
 
+# Base directory for static knowledge files
+STATIC_DIR = Path(os.path.dirname(os.path.abspath(__file__))) / '..' / 'static'
+
+def _load_static_json(filename: str) -> Dict:
+    """Load a static JSON file from the static directory."""
+    try:
+        filepath = STATIC_DIR / filename
+        if not filepath.exists():
+            logging.error(f"Static file not found: {filepath}")
+            return {}
+        
+        with open(filepath, 'r') as f:
+            return json.load(f)
+    except Exception as e:
+        logging.error(f"Error loading static file {filename}: {str(e)}")
+        return {}
+
+
+def _store_knowledge_entries(entries: List[str], category: str) -> int:
+    """
+    Store multiple knowledge entries in the database.
+    
+    Args:
+        entries: List of knowledge entry texts
+        category: Category tag to add to each entry
+        
+    Returns:
+        int: Number of entries successfully added
+    """
+    count = 0
+    for entry in entries:
+        if not entry.strip():
+            continue
+            
+        # Add category tag to entry
+        tagged_entry = f"{entry.strip()} [Category: {category}]"
+        
+        try:
+            add_to_knowledge_base(tagged_entry, source=f"pre_downloaded/{category}")
+            count += 1
+            # Small delay to avoid overwhelming the API or database
+            time.sleep(0.1)
+        except Exception as e:
+            logging.error(f"Error storing knowledge entry: {str(e)}")
+            
+    return count
+
+
+def _download_basic_facts() -> int:
+    """
+    Download basic facts that are frequently requested.
+    
+    Returns:
+        int: Number of entries added
+    """
+    # First check if we have a static file
+    basic_facts = _load_static_json('temp_basic_facts.json')
+    if basic_facts and isinstance(basic_facts, dict) and 'facts' in basic_facts:
+        return _store_knowledge_entries(basic_facts['facts'], "basic_facts")
+    
+    # Otherwise, use a set of hard-coded basic facts that are commonly requested
+    facts = [
+        "The Earth is the third planet from the Sun in our solar system.",
+        "Water boils at 100 degrees Celsius (212 degrees Fahrenheit) at sea level.",
+        "The human body has 206 bones.",
+        "The speed of light in a vacuum is approximately 299,792,458 meters per second.",
+        "There are 24 hours in a day and 365 days in a standard year.",
+        "The United States has 50 states.",
+        "The tallest mountain on Earth is Mount Everest, at 8,848.86 meters (29,031.7 feet) above sea level.",
+        "The human brain weighs about 3 pounds (1.4 kilograms).",
+        "The Moon is approximately 238,855 miles (384,400 kilometers) away from Earth.",
+        "DNA stands for deoxyribonucleic acid.",
+        "The human body is made up of approximately 60% water.",
+        "The Earth's atmosphere is composed of approximately 78% nitrogen, 21% oxygen, and 1% other gases.",
+        "The coldest temperature theoretically possible is absolute zero, which is -273.15°C (-459.67°F).",
+        "The Great Wall of China is approximately 13,171 miles (21,196 kilometers) long.",
+        "The Amazon Rainforest produces about 20% of the Earth's oxygen.",
+        "The average adult human body contains about 5 liters of blood.",
+        "The Sahara Desert is the largest hot desert in the world, covering about 3.6 million square miles.",
+        "The Pacific Ocean is the largest and deepest ocean on Earth.",
+        "Sound travels at approximately 343 meters per second (1,125 feet per second) in air at room temperature.",
+        "The human heart beats about 100,000 times per day."
+    ]
+    
+    return _store_knowledge_entries(facts, "basic_facts")
+
+
+def _download_health_information() -> int:
+    """
+    Download health information that is commonly requested.
+    
+    Returns:
+        int: Number of entries added
+    """
+    health_info = [
+        "Adults should aim for 7-9 hours of sleep per night for optimal health.",
+        "The recommended daily water intake is about 3.7 liters (125 ounces) for men and 2.7 liters (91 ounces) for women, including water from all foods and beverages.",
+        "Regular physical activity can help reduce the risk of chronic diseases like heart disease, type 2 diabetes, and some cancers.",
+        "The CDC recommends at least 150 minutes of moderate-intensity aerobic activity or 75 minutes of vigorous activity each week, plus muscle-strengthening activities at least 2 days per week.",
+        "A balanced diet includes a variety of fruits, vegetables, whole grains, lean proteins, and healthy fats.",
+        "It's recommended to consume at least 5 servings of fruits and vegetables daily.",
+        "High blood pressure (hypertension) is generally defined as blood pressure higher than 130/80 mm Hg.",
+        "Normal resting heart rate for adults ranges from 60 to 100 beats per minute.",
+        "Type 2 diabetes can often be prevented or delayed with healthy lifestyle changes like weight loss, regular physical activity, and a balanced diet.",
+        "Mental health is as important as physical health and includes emotional, psychological, and social well-being.",
+        "Vaccines help prevent serious illnesses by training your immune system to recognize and fight specific pathogens.",
+        "Hand washing with soap and water for at least 20 seconds is one of the most effective ways to prevent the spread of infections.",
+        "Sunscreen with at least SPF 30 should be applied daily to exposed skin, even on cloudy days, to help prevent skin cancer.",
+        "Smoking is the leading preventable cause of death worldwide.",
+        "Stress management techniques include deep breathing, meditation, physical activity, and maintaining social connections.",
+        "Annual check-ups with your healthcare provider are important for preventative care and early detection of potential health issues.",
+        "Dental health affects overall health, and it's recommended to brush teeth twice daily and floss once daily.",
+        "Chronic inflammation in the body is linked to many health conditions including heart disease, diabetes, and arthritis.",
+        "The Mediterranean diet, which emphasizes plant foods, fish, olive oil, and limited red meat, is associated with numerous health benefits.",
+        "Maintaining a healthy weight reduces the risk of many conditions including heart disease, stroke, diabetes, and certain cancers."
+    ]
+    
+    return _store_knowledge_entries(health_info, "health_information")
+
+def _download_aa_principles() -> int:
+    """
+    Download AA principles, steps, and common recovery support information.
+    
+    Returns:
+        int: Number of entries added
+    """
+    # Try to load from static file first
+    aa_data = _load_static_json('aa_data/reflections.json')
+    stored_count = 0
+    
+    # If we have reflections data, store them
+    if aa_data and 'reflections' in aa_data:
+        reflections = []
+        for reflection in aa_data['reflections']:
+            if 'prompt' in reflection:
+                reflections.append(reflection['prompt'])
+        if reflections:
+            stored_count += _store_knowledge_entries(reflections, "aa_principles")
+    
+    # Add core AA principles and concepts
+    aa_principles = [
+        "The 12 Steps of AA provide a framework for recovery from alcoholism and addiction.",
+        "Step 1: We admitted we were powerless over alcohol — that our lives had become unmanageable.",
+        "Step 2: Came to believe that a Power greater than ourselves could restore us to sanity.",
+        "Step 3: Made a decision to turn our will and our lives over to the care of God as we understood Him.",
+        "Step 4: Made a searching and fearless moral inventory of ourselves.",
+        "Step 5: Admitted to God, to ourselves, and to another human being the exact nature of our wrongs.",
+        "Step 6: Were entirely ready to have God remove all these defects of character.",
+        "Step 7: Humbly asked Him to remove our shortcomings.",
+        "Step 8: Made a list of all persons we had harmed, and became willing to make amends to them all.",
+        "Step 9: Made direct amends to such people wherever possible, except when to do so would injure them or others.",
+        "Step 10: Continued to take personal inventory and when we were wrong promptly admitted it.",
+        "Step 11: Sought through prayer and meditation to improve our conscious contact with God as we understood Him, praying only for knowledge of His will for us and the power to carry that out.",
+        "Step 12: Having had a spiritual awakening as the result of these steps, we tried to carry this message to alcoholics, and to practice these principles in all our affairs.",
+        "The Big Book of Alcoholics Anonymous serves as the basic text for AA.",
+        "One day at a time is a core principle in recovery, focusing on staying sober just for today.",
+        "Sponsorship involves a more experienced AA member guiding a newcomer through the recovery process.",
+        "Regular meeting attendance is considered essential for maintaining sobriety in AA.",
+        "The serenity prayer: 'God, grant me the serenity to accept the things I cannot change, courage to change the things I can, and wisdom to know the difference.'",
+        "H.A.L.T. stands for Hungry, Angry, Lonely, Tired - common triggers for relapse that should be addressed.",
+        "Making amends is the process of acknowledging harm done to others and taking action to repair relationships."
+    ]
+    
+    # Add the hard-coded principles as well
+    stored_count += _store_knowledge_entries(aa_principles, "aa_principles")
+    return stored_count
+
+
+def _download_mindfulness_exercises() -> int:
+    """
+    Download mindfulness exercises and techniques.
+    
+    Returns:
+        int: Number of entries added
+    """
+    # Try to load from static file first
+    mindfulness_data = _load_static_json('aa_data/mindfulness.json')
+    if mindfulness_data and 'exercises' in mindfulness_data:
+        exercises = []
+        for exercise in mindfulness_data['exercises']:
+            if 'instructions' in exercise:
+                exercises.append(f"{exercise.get('name', 'Mindfulness Exercise')}: {exercise['instructions']}")
+        if exercises:
+            return _store_knowledge_entries(exercises, "mindfulness_exercises")
+    
+    # Default mindfulness exercises if file not found
+    exercises = [
+        "Body Scan: Lie down and focus your attention slowly from your feet to your head, noticing sensations without judgment.",
+        "Mindful Breathing: Focus on your breath, noticing the sensation of air moving in and out of your body.",
+        "Five Senses Exercise: Notice five things you can see, four things you can touch, three things you can hear, two things you can smell, and one thing you can taste.",
+        "Mindful Walking: While walking, pay attention to the sensation of your feet touching the ground, your breath, and your surroundings.",
+        "Mindful Eating: Eat slowly, paying attention to the taste, texture, and smell of your food.",
+        "Loving-Kindness Meditation: Direct positive wishes and goodwill to yourself and others.",
+        "3-Minute Breathing Space: Observe your thoughts and feelings, focus on your breath, and expand awareness to your whole body.",
+        "Mindful Observation: Choose a natural object and focus on it for five minutes, observing it as if seeing it for the first time.",
+        "Mindful Listening: Close your eyes and notice all the sounds around you without labeling or judging them.",
+        "Mindful Movement: Perform gentle stretches or yoga poses while focusing on bodily sensations and breath."
+    ]
+    
+    return _store_knowledge_entries(exercises, "mindfulness_exercises")
+
+
+def _download_dbt_skills() -> int:
+    """
+    Download Dialectical Behavior Therapy skills and concepts.
+    
+    Returns:
+        int: Number of entries added
+    """
+    dbt_skills = [
+        "DBT (Dialectical Behavior Therapy) is a type of cognitive-behavioral therapy that helps people manage difficult emotions and improve relationships.",
+        "DBT is based on four modules: mindfulness, distress tolerance, emotion regulation, and interpersonal effectiveness.",
+        "Mindfulness in DBT involves being fully aware and present in the moment without judgment.",
+        "Wise Mind is a DBT concept representing the integration of emotional mind and reasonable mind.",
+        "STOP skill: Stop, Take a step back, Observe, Proceed mindfully - used to prevent impulsive reactions in emotional situations.",
+        "PLEASE skill: treat PhysicaL illness, Eat healthy, Avoid mood-altering drugs, Sleep well, Exercise - taking care of physical health to improve emotional health.",
+        "DEAR MAN: a DBT interpersonal effectiveness skill for making requests assertively (Describe, Express, Assert, Reinforce, stay Mindful, Appear confident, Negotiate).",
+        "GIVE skill: (Gentle, Interested, Validate, Easy manner) - for maintaining relationships while addressing problems.",
+        "FAST skill: (Fair, no Apologies, Stick to values, Truthful) - for maintaining self-respect in relationships.",
+        "Radical acceptance in DBT means completely accepting reality as it is, not as you wish it to be.",
+        "The TIPP skill (Temperature, Intense exercise, Paced breathing, Progressive muscle relaxation) helps manage overwhelming emotions.",
+        "Emotion regulation in DBT involves identifying, understanding, and changing emotional responses.",
+        "Opposite action is a DBT technique where you act opposite to the urge associated with a negative emotion.",
+        "Distress tolerance skills help you cope with painful events when you cannot make things better right away.",
+        "Interpersonal effectiveness in DBT focuses on maintaining relationships and self-respect while achieving goals.",
+        "Self-soothing using the five senses is a distress tolerance skill to comfort yourself during emotional distress.",
+        "Checking the facts is a DBT technique to examine if your emotional response matches the situation.",
+        "The ABC PLEASE skill adds: Accumulate positive emotions, Build mastery, Cope ahead to the basic PLEASE skill.",
+        "Chain analysis is a DBT technique to break down a problem behavior to understand what triggers and maintains it.",
+        "Willingness vs. willfulness: willingness means accepting reality and responding effectively; willfulness means refusing to accept reality."
+    ]
+    
+    return _store_knowledge_entries(dbt_skills, "dbt_skills")
+
+
+def _download_grounding_exercises() -> int:
+    """
+    Download grounding exercises for managing anxiety and crisis situations.
+    
+    Returns:
+        int: Number of entries added
+    """
+    grounding_exercises = [
+        "5-4-3-2-1 Technique: Acknowledge 5 things you see, 4 things you feel, 3 things you hear, 2 things you smell, and 1 thing you taste.",
+        "Deep Breathing: Breathe in slowly for 4 counts, hold for 4 counts, exhale for 6 counts. Repeat 5-10 times.",
+        "The 3-3-3 Rule: Name 3 things you see, 3 things you hear, and move 3 parts of your body.",
+        "Physical Grounding: Feel your feet on the ground, your back against the chair, or hold a piece of ice in your hand.",
+        "Category Game: Pick a category (like 'fruits' or 'countries') and name as many items as you can in that category.",
+        "Body Awareness: Tense and then relax each muscle group, starting from toes and working upward.",
+        "Describe Your Environment: Describe your surroundings in detail, focusing on colors, textures, and shapes.",
+        "Mental Math: Count backward from 100 by 7s or solve simple math problems in your head.",
+        "Name Game: Work through the alphabet naming animals, cities, or foods that start with each letter.",
+        "Object Focus: Hold an object and focus on its weight, texture, temperature, and other physical properties.",
+        "Rhythmic Movement: Tap your feet, clap your hands, or rock gently while counting.",
+        "Cold Water: Splash cold water on your face or hold a cold pack to your forehead to activate the diving reflex.",
+        "Affirmations: Repeat calming statements like 'I am safe', 'This feeling will pass', or 'I am grounded'.",
+        "Color Identification: Look around and identify all objects of a specific color, then move to another color.",
+        "Orientation: Tell yourself your name, the date, where you are, and why you're there.",
+        "Guided Imagery: Imagine a safe, peaceful place in detail, engaging all your senses.",
+        "Progressive Muscle Relaxation: Tense and relax each muscle group for 5 seconds, moving from feet to head.",
+        "Focus on a Single Task: Engage in a simple activity like counting backward, reciting a poem, or singing a song.",
+        "Mindful Walking: Walk slowly, paying attention to each step and the sensation of your feet touching the ground.",
+        "Hand Temperature: Focus on warming or cooling your hands by imagining them in warm water or snow."
+    ]
+    
+    return _store_knowledge_entries(grounding_exercises, "grounding_exercises")
+
+
 # Categories of knowledge that are worth pre-caching
 KNOWLEDGE_CATEGORIES = [
+    # General Knowledge
     "basic_facts",
+    
+    # Health & Medical
     "health_information",
-    "common_procedures",
     "medication_info",
+    "medical_procedures",
+    "dbt_skills",             # Dialectical Behavior Therapy
+    "crisis_resources",
+    "grounding_exercises",
+    "emotional_regulation",
+    
+    # Practical & Daily Life
+    "common_procedures",
+    "shopping_tips",
+    "budgeting_principles",
+    "product_information",
+    
+    # Emergency & Safety
     "emergency_protocols",
+    
+    # Travel & Location
     "weather_patterns",
     "travel_guidelines",
-    "shopping_tips"
+    "packing_essentials",
+    
+    # Recovery Support
+    "aa_principles",
+    "mindfulness_exercises", 
+    "reflection_prompts",
+    "spot_check_questions",
+    
+    # Technology & Integration
+    "google_api_guides",
+    "spotify_features",
+    "smart_home_setup",
+    
+    # Doctor & Medication 
+    "appointment_types",
+    "medication_reminders",
+    
+    # Specialized User Interfaces
+    "voice_interaction_tips",
+    "accessibility_features"
 ]
 
 def download_and_store_knowledge(category: str, force_refresh: bool = False) -> int:
@@ -53,24 +358,28 @@ def download_and_store_knowledge(category: str, force_refresh: bool = False) -> 
     # Different sources for different categories
     entries_added = 0
     
+    # General Knowledge
     if category == "basic_facts":
         entries_added = _download_basic_facts()
+    
+    # Health & Medical
     elif category == "health_information":
         entries_added = _download_health_information()
-    elif category == "common_procedures":
-        entries_added = _download_common_procedures()
-    elif category == "medication_info":
-        entries_added = _download_medication_info()
-    elif category == "emergency_protocols":
-        entries_added = _download_emergency_protocols()
-    elif category == "weather_patterns":
-        entries_added = _download_weather_patterns()
-    elif category == "travel_guidelines":
-        entries_added = _download_travel_guidelines()
-    elif category == "shopping_tips":
-        entries_added = _download_shopping_tips()
+    elif category == "dbt_skills":
+        entries_added = _download_dbt_skills()
+    elif category == "grounding_exercises":
+        entries_added = _download_grounding_exercises()
+    
+    # Recovery Support
+    elif category == "aa_principles":
+        entries_added = _download_aa_principles()
+    elif category == "mindfulness_exercises":
+        entries_added = _download_mindfulness_exercises()
+    
+    # Implementation for other categories would follow the same pattern
+    # For now, we're focusing on the essential ones with the highest payoff
     else:
-        logging.warning(f"Unknown category: {category}")
+        logging.info(f"Category {category} not implemented yet, skipping")
         
     logging.info(f"Added {entries_added} knowledge entries for category {category}")
     return entries_added

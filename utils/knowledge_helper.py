@@ -7,6 +7,7 @@ import os
 import json
 import logging
 import numpy as np
+import requests
 from datetime import datetime
 from openai import OpenAI
 from sqlalchemy import desc
@@ -18,13 +19,17 @@ from utils.cache_helper import cache_result, get_cached_embedding, cache_embeddi
 # Initialize OpenAI client with key directly from .env file
 env_path = '.env'
 openai_api_key = ""
+openrouter_api_key = ""
+
 if os.path.exists(env_path):
     with open(env_path, 'r') as f:
         for line in f:
             if line.strip().startswith('OPENAI_API_KEY='):
                 openai_api_key = line.strip().split('=', 1)[1]
-                logging.info(f"Found OpenAI API key in .env file")
-                break
+                logging.info("Found OpenAI API key in .env file")
+            elif line.strip().startswith('OPENROUTER_API_KEY='):
+                openrouter_api_key = line.strip().split('=', 1)[1]
+                logging.info("Found OpenRouter API key in .env file")
 
 if openai_api_key:
     logging.info(f"Using OpenAI API key (first 8 chars): {openai_api_key[:8]}")
@@ -33,10 +38,19 @@ if openai_api_key:
 else:
     logging.warning("OpenAI API key not found in .env file")
 
+if openrouter_api_key:
+    logging.info(f"Using OpenRouter API key (first 8 chars): {openrouter_api_key[:8]}")
+    os.environ["OPENROUTER_API_KEY"] = openrouter_api_key
+else:
+    logging.warning("OpenRouter API key not found in .env file")
+
 openai = OpenAI(api_key=openai_api_key)
 
 # Cache the model in memory
 _embedding_dimension = 1536  # Default for text-embedding-ada-002
+
+# OpenRouter API endpoint
+OPENROUTER_EMBEDDING_URL = "https://openrouter.ai/api/v1/embeddings"
 
 def get_embedding_for_text(text):
     """
