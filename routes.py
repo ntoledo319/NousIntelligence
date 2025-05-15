@@ -12,8 +12,8 @@ import logging
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.exceptions import HTTPException
 
-# Import Google auth blueprint
-from google_auth import google_auth as google_auth_bp
+# Import Google auth blueprint - using the new implementation
+from google_oauth import google_oauth as google_auth_bp
 
 # Import other blueprints
 from routes.beta_routes import beta_bp
@@ -22,7 +22,7 @@ from routes.amazon_routes import amazon_bp
 from routes.setup_routes import setup_bp
 
 # Register the blueprints
-app.register_blueprint(google_auth_bp)
+app.register_blueprint(google_auth_bp)  # This has no prefix to match Google Cloud config
 app.register_blueprint(beta_bp, url_prefix="/beta")
 app.register_blueprint(aa_bp, url_prefix="/aa") 
 app.register_blueprint(amazon_bp, url_prefix="/amazon")

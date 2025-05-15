@@ -161,63 +161,66 @@ def callback():
             from google.oauth2.credentials import Credentials
             
             # Create credentials object for Google APIs
-            creds = Credentials(
+            token_scopes = [
+                # Google Calendar scopes
+                "https://www.googleapis.com/auth/calendar",
+                "https://www.googleapis.com/auth/calendar.events",
+                
+                # Google Tasks and Keep scopes
+                "https://www.googleapis.com/auth/tasks",
+                "https://www.googleapis.com/auth/keep",
+                
+                # Gmail scopes
+                "https://www.googleapis.com/auth/gmail.readonly",
+                "https://www.googleapis.com/auth/gmail.labels",
+                
+                # Google Drive scopes
+                "https://www.googleapis.com/auth/drive.readonly",
+                "https://www.googleapis.com/auth/drive.file",
+                
+                # Google Maps scopes
+                "https://www.googleapis.com/auth/maps",
+                
+                # Google Photos scopes
+                "https://www.googleapis.com/auth/photoslibrary.readonly",
+                
+                # Google Docs/Sheets scopes
+                "https://www.googleapis.com/auth/documents",
+                "https://www.googleapis.com/auth/spreadsheets",
+                
+                # YouTube scopes
+                "https://www.googleapis.com/auth/youtube.readonly"
+            ]
+            
+            google_creds = Credentials(
                 token=access_token,
                 refresh_token=token_response.json().get('refresh_token'),
                 client_id=GOOGLE_CLIENT_ID,
                 client_secret=GOOGLE_CLIENT_SECRET,
                 token_uri="https://oauth2.googleapis.com/token",
-                scopes=[
-                    # Google Calendar scopes
-                    "https://www.googleapis.com/auth/calendar",
-                    "https://www.googleapis.com/auth/calendar.events",
-                    
-                    # Google Tasks and Keep scopes
-                    "https://www.googleapis.com/auth/tasks",
-                    "https://www.googleapis.com/auth/keep",
-                    
-                    # Gmail scopes
-                    "https://www.googleapis.com/auth/gmail.readonly",
-                    "https://www.googleapis.com/auth/gmail.labels",
-                    
-                    # Google Drive scopes
-                    "https://www.googleapis.com/auth/drive.readonly",
-                    "https://www.googleapis.com/auth/drive.file",
-                    
-                    # Google Maps scopes
-                    "https://www.googleapis.com/auth/maps",
-                    
-                    # Google Photos scopes
-                    "https://www.googleapis.com/auth/photoslibrary.readonly",
-                    
-                    # Google Docs/Sheets scopes
-                    "https://www.googleapis.com/auth/documents",
-                    "https://www.googleapis.com/auth/spreadsheets",
-                    
-                    # YouTube scopes
-                    "https://www.googleapis.com/auth/youtube.readonly"
-                ]
+                scopes=token_scopes
             )
             
             # Save to database
-            save_google_credentials(user.id, creds)
+            save_google_credentials(user.id, google_creds)
+            
+            # Also save to session for current browser session
+            creds_dict = {
+                'token': google_creds.token,
+                'refresh_token': google_creds.refresh_token,
+                'client_id': google_creds.client_id,
+                'client_secret': google_creds.client_secret,
+                'scopes': google_creds.scopes,
+                'token_uri': google_creds.token_uri
+            }
+            session['google_creds'] = creds_dict
+            
+            flash("Google account connected successfully!", "success")
         except ImportError:
             # If auth_helper isn't available, log a warning
             import logging
             logging.warning("utils.auth_helper not available, skipping credential storage")
-        
-        # Also save to session for current browser session
-        creds_dict = {
-            'token': creds.token,
-            'refresh_token': creds.refresh_token,
-            'client_id': creds.client_id,
-            'client_secret': creds.client_secret,
-            'scopes': creds.scopes,
-            'token_uri': creds.token_uri
-        }
-        session['google_creds'] = creds_dict
-        
-        flash("Google account connected successfully!", "success")
+            flash("You've logged in, but we couldn't connect to all Google services", "warning")
     else:
         flash("You've logged in, but we couldn't connect to Google services", "warning")
 
