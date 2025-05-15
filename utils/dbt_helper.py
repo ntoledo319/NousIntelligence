@@ -12,9 +12,27 @@ from models import (
 # Helper functions for DBT chatbot functionality
 
 # OpenRouter API configuration
-OPENROUTER_KEY = os.environ.get("OPENROUTER_API_KEY")
-DEFAULT_MODEL = "gpt-4o"  # Default to gpt-4o if not specified
+OPENROUTER_KEY = os.environ.get("OPENROUTER_KEY")
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
+
+# Model configuration for different tasks to balance quality and cost
+MODELS = {
+    # High-capability models for complex reasoning tasks
+    "high_capability": "gpt-4o",  # Best quality for complex tasks
+    
+    # Medium-capability models for standard tasks
+    "medium_capability": "gpt-4o-mini",  # Good balance of quality and cost
+    
+    # Lower-cost models for simpler tasks
+    "basic_capability": "meta-llama/llama-3-8b-instruct",  # Cost-effective for simple tasks
+    
+    # Default model if none specified
+    "default": "gpt-4o-mini"
+}
+
+# Check OpenRouter availability
+if not OPENROUTER_KEY:
+    logging.warning("No OpenRouter API key found. AI features will be limited.")
 
 # ——— DETAILED PROMPT TEMPLATES ———
 PROMPTS = {
@@ -136,8 +154,19 @@ User situation: "{text}"
 }
 
 
-def call_router(prompt_key, **kwargs):
-    """Call OpenRouter with the specified prompt and arguments"""
+def call_router(prompt_key, capability_level="medium_capability", **kwargs):
+    """
+    Call OpenRouter with the specified prompt and arguments
+    
+    Args:
+        prompt_key: Key to select the prompt template from PROMPTS
+        capability_level: Level of model capability required for task
+                        ("high_capability", "medium_capability", "basic_capability")
+        **kwargs: Arguments to format the prompt template
+        
+    Returns:
+        dict: Response from the language model or error message
+    """
     if not OPENROUTER_KEY:
         return {"error": "OpenRouter API key not configured"}
         
@@ -145,29 +174,52 @@ def call_router(prompt_key, **kwargs):
         # Format the prompt with the provided arguments
         prompt = PROMPTS[prompt_key].format(**kwargs)
         
+        # Select appropriate model based on task complexity
+        model = MODELS.get(capability_level, MODELS["default"])
+        
         # Prepare the request
         headers = {
             "Authorization": f"Bearer {OPENROUTER_KEY}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://nous.chat",  # Identify your application
+            "X-Title": "NOUS DBT Assistant"  # Add context about your application
         }
         
         data = {
-            "model": DEFAULT_MODEL,
+            "model": model,
             "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.7
+            "temperature": 0.7,
+            "max_tokens": 1000  # Adjust based on expected response length
         }
         
         # Call the API
         response = requests.post(
             OPENROUTER_API_URL,
             headers=headers,
-            json=data
+            json=data,
+            timeout=30  # Set a reasonable timeout
         )
         
+        # Check for errors and handle them appropriately
         if response.status_code != 200:
-            logging.error(f"OpenRouter API error: {response.status_code} - {response.text}")
-            return {"error": f"API Error: {response.status_code}"}
+            error_message = f"OpenRouter API error: {response.status_code}"
+            try:
+                error_detail = response.json()
+                error_message += f" - {error_detail.get('error', {}).get('message', '')}"
+            except:
+                pass
+                
+            logging.error(error_message)
             
+            # If we get a 429 or 500+ error, try with a simpler model
+            if response.status_code in [429] or response.status_code >= 500:
+                if capability_level != "basic_capability":
+                    logging.info(f"Rate limited or server error, trying with basic capability model")
+                    return call_router(prompt_key, "basic_capability", **kwargs)
+            
+            return {"error": error_message}
+            
+        # Parse the successful response
         result = response.json()
         
         if not result.get("choices"):
@@ -178,6 +230,10 @@ def call_router(prompt_key, **kwargs):
         
     except Exception as e:
         logging.error(f"Error calling OpenRouter: {str(e)}")
+        # Attempt fallback to a different model if available
+        if capability_level != "basic_capability":
+            logging.info(f"Attempting fallback to basic capability model")
+            return call_router(prompt_key, "basic_capability", **kwargs)
         return {"error": f"Error: {str(e)}"}
 
 
@@ -476,30 +532,53 @@ def extract_situation_types(situations, max_types=3):
         return ["general"]
 
 
-def call_router_direct(prompt):
-    """Simple version of call_router for internal use"""
+def call_router_direct(prompt, capability_level="medium_capability"):
+    """
+    Simple version of call_router for internal use
+    
+    Args:
+        prompt: The prompt to send to the model
+        capability_level: Level of model capability required for task
+        
+    Returns:
+        str: Model response text or None if failed
+    """
     if not OPENROUTER_KEY:
         return None
         
     try:
+        # Select appropriate model based on task complexity
+        model = MODELS.get(capability_level, MODELS["default"])
+        
         headers = {
             "Authorization": f"Bearer {OPENROUTER_KEY}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://nous.chat",
+            "X-Title": "NOUS DBT Assistant"
         }
         
         data = {
-            "model": DEFAULT_MODEL,
+            "model": model,
             "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.7
+            "temperature": 0.7,
+            "max_tokens": 1000
         }
         
         response = requests.post(
             OPENROUTER_API_URL,
             headers=headers,
-            json=data
+            json=data,
+            timeout=30
         )
         
         if response.status_code != 200:
+            logging.warning(f"OpenRouter API error: {response.status_code}")
+            
+            # Try with a simpler model if we hit rate limits or server errors
+            if (response.status_code in [429] or response.status_code >= 500) and capability_level != "basic_capability":
+                logging.info("Attempting fallback to basic capability model")
+                return call_router_direct(prompt, "basic_capability")
+                
             return None
             
         result = response.json()
@@ -511,6 +590,10 @@ def call_router_direct(prompt):
         
     except Exception as e:
         logging.error(f"Error in direct router call: {str(e)}")
+        # Try with a simpler model if we encounter an error
+        if capability_level != "basic_capability":
+            logging.info("Attempting fallback to basic capability model after exception")
+            return call_router_direct(prompt, "basic_capability")
         return None
 
 
