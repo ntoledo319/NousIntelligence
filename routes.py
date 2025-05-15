@@ -9,6 +9,8 @@ from utils.security_helper import (
 )
 from utils.setup_wizard import get_setup_progress
 import logging
+from sqlalchemy.exc import SQLAlchemyError
+from werkzeug.exceptions import HTTPException
 
 # Import Google auth blueprint
 from google_auth import google_auth as google_auth_bp
@@ -339,3 +341,35 @@ def welcome():
         user_name=first_name,
         user_email=email
     )
+
+# Error handlers for the application
+@app.errorhandler(404)
+def page_not_found(e):
+    """Handle 404 errors"""
+    return render_template('errors/404.html'), 404
+
+@app.errorhandler(500)
+def server_error(e):
+    """Handle 500 errors"""
+    logging.error(f"500 error: {str(e)}")
+    return render_template('errors/500.html'), 500
+
+@app.errorhandler(403)
+def forbidden(e):
+    """Handle 403 errors"""
+    return render_template('errors/403.html'), 403
+
+@app.errorhandler(SQLAlchemyError)
+def handle_db_error(e):
+    """Handle database errors"""
+    logging.error(f"Database error: {str(e)}")
+    db.session.rollback()
+    return render_template('errors/500.html', error_message="A database error occurred."), 500
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """Handle all other exceptions"""
+    if isinstance(e, HTTPException):
+        return e
+    logging.error(f"Unhandled exception: {str(e)}")
+    return render_template('errors/500.html', error_message="An unexpected error occurred."), 500

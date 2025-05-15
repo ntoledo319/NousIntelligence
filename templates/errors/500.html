@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block title %}Server Error{% endblock %}
+
+{% block content %}
+<div class="container error-page my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="error-icon mb-4">
+                <i class="fas fa-exclamation-triangle display-1 text-warning"></i>
+            </div>
+            <h1 class="display-4 mb-4">Server Error</h1>
+            <p class="lead mb-4">Sorry, something went wrong on our end.</p>
+            {% if error_message %}
+            <div class="alert alert-danger">
+                {{ error_message }}
+            </div>
+            {% endif %}
+            <div class="error-actions">
+                <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-home me-2"></i> Go to Home
+                </a>
+                <button onclick="window.location.reload()" class="btn btn-outline-primary btn-lg ms-2">
+                    <i class="fas fa-sync-alt me-2"></i> Try Again
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
