@@ -42,7 +42,7 @@ MODELS = {
 # Tracking rate limits with proper type for dict access
 class RateLimitTracker:
     def __init__(self):
-        self.last_429 = 0  # timestamp of last 429 error
+        self.last_429 = 0.0  # timestamp of last 429 error (as float)
         self.backoff_time = 5  # seconds to wait after a 429
         self.consecutive_errors = 0  # count of consecutive errors
 
@@ -206,9 +206,9 @@ def call_router(prompt_key, capability_level="medium_capability", **kwargs):
         return {"error": f"Error formatting prompt: {str(e)}"}
     
     # Check if we're in a backoff period
-    time_since_429 = time.time() - RATE_LIMIT_TRACKING["last_429"]
-    if time_since_429 < RATE_LIMIT_TRACKING["backoff_time"]:
-        wait_time = RATE_LIMIT_TRACKING["backoff_time"] - time_since_429
+    time_since_429 = time.time() - RATE_LIMIT_TRACKING.last_429
+    if time_since_429 < RATE_LIMIT_TRACKING.backoff_time:
+        wait_time = RATE_LIMIT_TRACKING.backoff_time - time_since_429
         logger.info(f"Rate limit backoff. Waiting {wait_time:.2f}s")
         time.sleep(wait_time)
     
@@ -247,14 +247,14 @@ def call_router(prompt_key, capability_level="medium_capability", **kwargs):
             error_message = f"OpenRouter API error: {response.status_code}"
             
             # Track consecutive errors
-            RATE_LIMIT_TRACKING["consecutive_errors"] += 1
+            RATE_LIMIT_TRACKING.consecutive_errors += 1
             
             # Handle rate limits
             if response.status_code == 429:
-                RATE_LIMIT_TRACKING["last_429"] = time.time()
+                RATE_LIMIT_TRACKING.last_429 = time.time()
                 # Increase backoff time exponentially (as integers)
-                current_backoff = RATE_LIMIT_TRACKING["backoff_time"]
-                RATE_LIMIT_TRACKING["backoff_time"] = int(current_backoff * 2)
+                current_backoff = RATE_LIMIT_TRACKING.backoff_time
+                RATE_LIMIT_TRACKING.backoff_time = int(current_backoff * 2)
                 error_message += " (Rate limited)"
             
             try:
@@ -277,12 +277,12 @@ def call_router(prompt_key, capability_level="medium_capability", **kwargs):
         result = response.json()
         
         # Reset consecutive errors counter on success
-        RATE_LIMIT_TRACKING["consecutive_errors"] = 0
+        RATE_LIMIT_TRACKING.consecutive_errors = 0
         
         # If the backoff time has grown, reduce it gradually (as integers)
-        if RATE_LIMIT_TRACKING["backoff_time"] > 5:
-            current_backoff = RATE_LIMIT_TRACKING["backoff_time"]
-            RATE_LIMIT_TRACKING["backoff_time"] = max(5, int(current_backoff / 2))
+        if RATE_LIMIT_TRACKING.backoff_time > 5:
+            current_backoff = RATE_LIMIT_TRACKING.backoff_time
+            RATE_LIMIT_TRACKING.backoff_time = max(5, int(current_backoff / 2))
         
         if not result.get("choices"):
             logger.error("No response from LLM")
@@ -295,7 +295,7 @@ def call_router(prompt_key, capability_level="medium_capability", **kwargs):
         logger.error(error_message)
         
         # Track consecutive errors
-        RATE_LIMIT_TRACKING["consecutive_errors"] += 1
+        RATE_LIMIT_TRACKING.consecutive_errors += 1
         
         # Attempt fallback to a different model if available
         if capability_level != "basic_capability":
@@ -600,21 +600,20 @@ def extract_situation_types(situations, max_types=3):
         return ["general"]
 
 
-def call_router_direct(prompt, capability_level="medium_capability", force_provider=None):
+def call_router_direct(prompt, capability_level="medium_capability"):
     """
     Simple version of call_router for internal use
     
     Args:
         prompt: The prompt to send to the model
         capability_level: Level of model capability required for task
-        force_provider: Force the use of a specific provider ("openrouter" or "openai")
         
     Returns:
         str: Model response text or None if failed
     """
     # Use our main router but with a direct prompt
     custom_data = {"direct_prompt": prompt}
-    result = call_router("direct", capability_level, force_provider, **custom_data)
+    result = call_router("direct", capability_level, **custom_data)
     
     if result and "response" in result:
         return result["response"]
@@ -623,6 +622,35 @@ def call_router_direct(prompt, capability_level="medium_capability", force_provi
 
 # Add the direct prompt handler to our PROMPTS dictionary
 PROMPTS["direct"] = "{direct_prompt}"
+PROMPTS["test"] = "Respond with 'OK' if you can receive this message. Use a single word."
+
+def test_openrouter_connection():
+    """Test the OpenRouter connection with different capability levels"""
+    results = {}
+    
+    for level in ["basic_capability", "medium_capability", "high_capability"]:
+        try:
+            result = call_router("test", level)
+            if "response" in result:
+                results[level] = {
+                    "status": "success",
+                    "model": MODELS.get(level, MODELS["default"]),
+                    "response": result["response"][:50] + "..." if len(result["response"]) > 50 else result["response"]
+                }
+            else:
+                results[level] = {
+                    "status": "error",
+                    "model": MODELS.get(level, MODELS["default"]),
+                    "error": result.get("error", "Unknown error")
+                }
+        except Exception as e:
+            results[level] = {
+                "status": "exception",
+                "model": MODELS.get(level, MODELS["default"]),
+                "error": str(e)
+            }
+    
+    return results
 
 
 def get_skill_recommendations(session_obj, situation_description=None, limit=5):
