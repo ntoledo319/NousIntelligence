@@ -7,6 +7,13 @@ from sqlalchemy import UniqueConstraint
 
 db = SQLAlchemy()
 
+# Enum for conversation difficulty levels
+class ConversationDifficulty(enum.Enum):
+    BEGINNER = "beginner"        # Simple language, basic concepts, extra explanations
+    INTERMEDIATE = "intermediate"  # Standard language, more technical terms
+    ADVANCED = "advanced"        # Technical language, assumes domain knowledge
+    EXPERT = "expert"            # Highly technical, specialized terminology
+
 # User model for authentication
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -17,6 +24,31 @@ class User(UserMixin, db.Model):
     profile_image_url = db.Column(db.String, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship with user settings
+    settings = db.relationship('UserSettings', backref='user', uselist=False, cascade="all, delete-orphan")
+
+# UserSettings model to store user preferences
+class UserSettings(db.Model):
+    __tablename__ = 'user_settings'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String, db.ForeignKey('users.id'), nullable=False)
+    conversation_difficulty = db.Column(db.String(20), default=ConversationDifficulty.INTERMEDIATE.value)
+    enable_voice_responses = db.Column(db.Boolean, default=False)
+    preferred_language = db.Column(db.String(10), default='en-US')
+    theme = db.Column(db.String(20), default='light')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'conversation_difficulty': self.conversation_difficulty,
+            'enable_voice_responses': self.enable_voice_responses,
+            'preferred_language': self.preferred_language,
+            'theme': self.theme
+        }
 
 # OAuth model for token storage
 class OAuth(OAuthConsumerMixin, db.Model):

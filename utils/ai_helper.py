@@ -295,6 +295,7 @@ def get_motivation_quote(theme=None):
 def handle_conversation(user_id, message, context_data=None):
     """
     Handle a free-form conversation with the AI assistant, with improved context awareness
+    and adaptive difficulty levels
     
     Args:
         user_id: The unique identifier for the user
@@ -302,8 +303,10 @@ def handle_conversation(user_id, message, context_data=None):
         context_data: Optional additional context data to include (dict with context types as keys)
         
     Returns:
-        str: The AI assistant's response
+        str: The AI assistant's response adapted to the user's preferred difficulty level
     """
+    # Import here to avoid circular imports
+    from utils.adaptive_conversation import get_difficulty_context, adapt_response
     try:
         if not client:
             return "Conversation functionality not available (missing API key)"
@@ -322,7 +325,7 @@ def handle_conversation(user_id, message, context_data=None):
         # Get user context summary
         context_str = conversation_memory.get_formatted_context(user_id)
             
-        # Prepare the system message with context
+        # Prepare the system message with context and appropriate difficulty level
         system_content = """You are NOUS, a helpful, friendly, and intelligent personal assistant. 
         Respond conversationally and helpfully to the user. Keep responses concise but informative.
         You're running within a larger personal assistant application that has specialized functions 
@@ -336,6 +339,11 @@ def handle_conversation(user_id, message, context_data=None):
         - Keep responses under 150 words unless detailed information is requested
         
         The current date and time is: """ + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n"
+        
+        # Add difficulty-specific instructions
+        difficulty_context = get_difficulty_context()
+        if difficulty_context:
+            system_content += f"\n{difficulty_context}\n"
         
         # Add context information if available
         if len(context_str) > 10:
