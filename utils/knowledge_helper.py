@@ -14,7 +14,7 @@ from sqlalchemy import desc
 from utils.cache_helper import cache_result, get_cached_embedding, cache_embedding
 
 # Import db and models within functions to avoid circular imports
-# These will be imported when needed
+# These will be imported when needed to prevent circular dependencies
 
 # Initialize OpenAI client with key directly from .env file
 env_path = '.env'
@@ -151,14 +151,10 @@ def get_embedding_for_text(text):
     except Exception as e:
         logging.error(f"Error generating embedding with OpenAI: {str(e)}")
         
-        # If it's a quota error, try OpenRouter
+        # If it's a quota error, go straight to local fallback
+        # OpenRouter doesn't seem to support embeddings currently
         if "quota" in str(e).lower() or "rate limit" in str(e).lower():
-            logging.warning("OpenAI quota exceeded, trying OpenRouter as fallback")
-            openrouter_embedding = get_embedding_via_openrouter(cleaned_text)
-            if openrouter_embedding is not None:
-                # Cache the OpenRouter embedding
-                cache_embedding(text, openrouter_embedding, ttl_seconds=86400)
-                return openrouter_embedding
+            logging.warning("OpenAI quota exceeded, skipping OpenRouter and using local fallback")
     
     # If we get here, both OpenAI and OpenRouter failed (or weren't available)
     # Create a deterministic fallback embedding as last resort
