@@ -448,6 +448,10 @@ def handle_conversation(user_id, message, context_data=None):
             system_content += f"\n{memory_context}\n"
             system_content += "\nUse this context information to personalize your responses and show continuity with previous interactions."
             
+        # Add knowledge base context if available
+        if kb_context:
+            system_content += kb_context
+            
         # Prepare the messages for the API call with proper typing
         messages: List[ChatCompletionMessageParam] = []
         
@@ -492,6 +496,20 @@ def handle_conversation(user_id, message, context_data=None):
                 # Then apply adaptive difficulty transformation if needed
                 if ADAPTIVE_CONVERSATION_ENABLED:
                     assistant_message = adapt_response(assistant_message)
+                
+                # Store response in knowledge base if it's significant enough
+                if KNOWLEDGE_BASE_ENABLED and len(assistant_message) > 100:
+                    # Get a combined context for storing useful knowledge
+                    knowledge_content = f"Question: {message}\nAnswer: {assistant_message}"
+                    
+                    # Only add to KB if it's not just a simple follow-up or greeting
+                    if len(message) > 15 and not message.lower().startswith(('hi', 'hello', 'hey', 'thanks', 'thank')):
+                        # Store in KB in a background-like manner (don't block the response)
+                        try:
+                            add_to_knowledge_base(knowledge_content, user_id=user_id)
+                            logging.info(f"Added response to knowledge base for user {user_id}")
+                        except Exception as kb_error:
+                            logging.error(f"Failed to add to knowledge base: {str(kb_error)}")
                 
                 return assistant_message
             else:

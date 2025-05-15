@@ -5,6 +5,13 @@ from flask import url_for
 from utils.logger import log_workout, log_mood
 from utils.scraper import scrape_aa_reflection
 from utils.ai_helper import parse_natural_language, handle_conversation, analyze_gmail_content, analyze_gmail_threads
+
+# Import knowledge base utilities if available
+try:
+    from utils.knowledge_helper import query_knowledge_base, add_to_knowledge_base, run_self_reflection, prune_knowledge_base
+    KNOWLEDGE_BASE_ENABLED = True
+except ImportError:
+    KNOWLEDGE_BASE_ENABLED = False
 from utils.google_helper import create_calendar_event
 from utils.gmail_helper import get_gmail_service, get_gmail_messages, get_message_content, get_gmail_threads, search_gmail
 from utils.google_api_manager import GoogleApiManager
