@@ -4,6 +4,65 @@ import enum
 
 db = SQLAlchemy()
 
+# Enum for DBT (Dialectical Behavior Therapy) skills
+class DBTSkillCategory(enum.Enum):
+    MINDFULNESS = "Mindfulness"
+    DISTRESS_TOLERANCE = "Distress Tolerance"
+    EMOTION_REGULATION = "Emotion Regulation"
+    INTERPERSONAL_EFFECTIVENESS = "Interpersonal Effectiveness"
+    RADICAL_ACCEPTANCE = "Radical Acceptance"
+    WISE_MIND = "Wise Mind"
+    DIALECTICS = "Dialectics"
+    OTHER = "Other"
+
+# DBT Skills log model
+class DBTSkillLog(db.Model):
+    """Model for tracking DBT skill usage"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(255))  # User identifier (from session)
+    skill_name = db.Column(db.String(100), nullable=False)
+    category = db.Column(db.String(50))  # Uses DBTSkillCategory values
+    situation = db.Column(db.Text)  # The situation where the skill was used
+    effectiveness = db.Column(db.Integer)  # Rating from 1-5 of how effective the skill was
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'skill_name': self.skill_name,
+            'category': self.category,
+            'situation': self.situation,
+            'effectiveness': self.effectiveness,
+            'notes': self.notes,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+# DBT Diary Card model
+class DBTDiaryCard(db.Model):
+    """Model for DBT diary cards"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(255))  # User identifier (from session)
+    date = db.Column(db.Date, default=datetime.utcnow().date)
+    mood_rating = db.Column(db.Integer)  # 0-5 scale
+    triggers = db.Column(db.Text)  # What triggered emotions
+    urges = db.Column(db.Text)  # Urges felt
+    skills_used = db.Column(db.Text)  # Skills used
+    reflection = db.Column(db.Text)  # Reflection notes
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'date': self.date.isoformat() if self.date else None,
+            'mood_rating': self.mood_rating,
+            'triggers': self.triggers,
+            'urges': self.urges,
+            'skills_used': self.skills_used,
+            'reflection': self.reflection,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
 # Enum for expense categories
 class ExpenseCategory(enum.Enum):
     HOUSING = "Housing"

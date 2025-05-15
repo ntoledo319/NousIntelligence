@@ -11,6 +11,14 @@ from utils.weather_helper import (
     format_weather_output, format_forecast_output, get_pressure_trend,
     calculate_pain_flare_risk, get_storm_severity, format_pain_forecast_output
 )
+# Import DBT helper functions
+from utils.dbt_helper import (
+    skills_on_demand, generate_diary_card, validate_experience, 
+    distress_tolerance, chain_analysis, wise_mind, radical_acceptance,
+    interpersonal_effectiveness, dialectic_generator, trigger_map,
+    skill_of_the_day, edit_message, advise, log_dbt_skill,
+    get_skill_logs, create_diary_card, get_diary_cards
+)
 
 # Import doctor appointment helpers
 from utils.doctor_appointment_helper import (
@@ -354,6 +362,25 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
         log.append("- set primary location [name] - Set your default weather location")
         log.append("- pain forecast in [location] - Get pain flare risk prediction")
         log.append("- pain forecast next [hours] hours - Check extended pain forecast")
+        log.append("")
+        log.append("🧠 DBT Skills & Mental Health:")
+        log.append("- dbt skill for [situation] - Get a DBT skill suggestion for your situation")
+        log.append("- diary card [description] - Generate and save a DBT diary card")
+        log.append("- validate [experience] - Get validation for difficult feelings")
+        log.append("- distress [situation] - Get distress tolerance skills for crisis")
+        log.append("- chain analysis [behavior] - Start a DBT chain analysis")
+        log.append("- wise mind [dilemma] - Balance emotional and rational thinking")
+        log.append("- radical acceptance [situation] - Practice radical acceptance")
+        log.append("- accept [situation] - Short form for radical acceptance")
+        log.append("- interpersonal [situation] - Get interpersonal effectiveness skills")
+        log.append("- dialectic [thought] - Generate a dialectical perspective")
+        log.append("- trigger map [pattern] - Analyze your trigger patterns")
+        log.append("- skill of the day - Get a random DBT skill to practice")
+        log.append("- dbt advice [situation] - Get general DBT advice")
+        log.append("- edit message with [skill] tone [tone]: [message] - Edit your communication")
+        log.append("- log skill [name] category [category] effectiveness [1-5]: [situation] - Log your skill use")
+        log.append("- show diary cards - View your recent diary cards")
+        log.append("- my dbt skills - View your logged DBT skills")
         log.append("")
         log.append("- connect spotify - Connect Spotify account")
         log.append("- connect google - Connect Google account")
@@ -1819,6 +1846,316 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
         except Exception as e:
             log.append(f"❌ Error generating pain flare forecast: {str(e)}")
         
+        return result
+        
+    # === DBT Commands ===
+    
+    # Handle DBT skill suggestions
+    elif cmd.startswith("dbt skill for "):
+        text = cmd[13:].strip()
+        try:
+            response = skills_on_demand(text)
+            if "error" in response:
+                log.append(f"❌ Error: {response['error']}")
+            else:
+                log.append(f"🧠 DBT Skill Suggestion: {response['response']}")
+        except Exception as e:
+            log.append(f"❌ Error getting DBT skill suggestion: {str(e)}")
+        return result
+        
+    # Handle DBT diary card generation
+    elif cmd.startswith("diary card "):
+        text = cmd[11:].strip()
+        try:
+            response = generate_diary_card(text)
+            if "error" in response:
+                log.append(f"❌ Error: {response['error']}")
+            else:
+                card_text = response['response']
+                log.append(f"📝 Generated Diary Card:")
+                log.append(card_text)
+                
+                # Try to parse and save the diary card
+                try:
+                    # Very basic parsing - would be better with structured response from API
+                    mood_match = re.search(r'Mood rating.*?(\d)', card_text)
+                    mood_rating = int(mood_match.group(1)) if mood_match else 3
+                    
+                    triggers = None
+                    urges = None
+                    skills_used = None
+                    reflection = None
+                    
+                    # Extract triggers
+                    triggers_match = re.search(r'Triggers:(.+?)(?:Urges:|$)', card_text, re.DOTALL)
+                    if triggers_match:
+                        triggers = triggers_match.group(1).strip()
+                    
+                    # Extract urges
+                    urges_match = re.search(r'Urges:(.+?)(?:DBT skill|Skills used:|$)', card_text, re.DOTALL)
+                    if urges_match:
+                        urges = urges_match.group(1).strip()
+                    
+                    # Extract skills used
+                    skills_match = re.search(r'(?:DBT skill|Skills used):(.+?)(?:Reflection|Note:|$)', card_text, re.DOTALL)
+                    if skills_match:
+                        skills_used = skills_match.group(1).strip()
+                    
+                    # Extract reflection
+                    reflection_match = re.search(r'(?:Reflection|Note):(.+?)$', card_text, re.DOTALL)
+                    if reflection_match:
+                        reflection = reflection_match.group(1).strip()
+                    
+                    # Save to database
+                    create_result = create_diary_card(
+                        session, mood_rating, triggers, urges, skills_used, reflection
+                    )
+                    
+                    if create_result.get("status") == "success":
+                        log.append("✅ Diary card saved to your records")
+                    else:
+                        log.append(f"⚠️ {create_result.get('message', 'Could not save diary card')}")
+                        
+                except Exception as parse_error:
+                    logging.error(f"Error parsing diary card: {str(parse_error)}")
+                    log.append("⚠️ Generated diary card, but couldn't save it automatically")
+        except Exception as e:
+            log.append(f"❌ Error generating diary card: {str(e)}")
+        return result
+        
+    # Handle DBT validation
+    elif cmd.startswith("validate "):
+        text = cmd[9:].strip()
+        try:
+            response = validate_experience(text)
+            if "error" in response:
+                log.append(f"❌ Error: {response['error']}")
+            else:
+                log.append(f"💙 Validation: {response['response']}")
+        except Exception as e:
+            log.append(f"❌ Error with validation: {str(e)}")
+        return result
+        
+    # Handle distress tolerance
+    elif cmd.startswith("distress "):
+        text = cmd[9:].strip()
+        try:
+            response = distress_tolerance(text)
+            if "error" in response:
+                log.append(f"❌ Error: {response['error']}")
+            else:
+                log.append(f"🧘 Distress Tolerance: {response['response']}")
+        except Exception as e:
+            log.append(f"❌ Error with distress tolerance: {str(e)}")
+        return result
+        
+    # Handle chain analysis
+    elif cmd.startswith("chain analysis "):
+        text = cmd[15:].strip()
+        try:
+            response = chain_analysis(text)
+            if "error" in response:
+                log.append(f"❌ Error: {response['error']}")
+            else:
+                log.append(f"🔗 Chain Analysis: {response['response']}")
+        except Exception as e:
+            log.append(f"❌ Error with chain analysis: {str(e)}")
+        return result
+        
+    # Handle wise mind
+    elif cmd.startswith("wise mind "):
+        text = cmd[10:].strip()
+        try:
+            response = wise_mind(text)
+            if "error" in response:
+                log.append(f"❌ Error: {response['error']}")
+            else:
+                log.append(f"🧠 Wise Mind: {response['response']}")
+        except Exception as e:
+            log.append(f"❌ Error accessing wise mind: {str(e)}")
+        return result
+        
+    # Handle radical acceptance
+    elif cmd.startswith("radical acceptance ") or cmd.startswith("accept "):
+        text = cmd[18:].strip() if cmd.startswith("radical acceptance ") else cmd[7:].strip()
+        try:
+            response = radical_acceptance(text)
+            if "error" in response:
+                log.append(f"❌ Error: {response['error']}")
+            else:
+                log.append(f"🙏 Radical Acceptance: {response['response']}")
+        except Exception as e:
+            log.append(f"❌ Error with radical acceptance: {str(e)}")
+        return result
+        
+    # Handle interpersonal effectiveness
+    elif cmd.startswith("interpersonal "):
+        text = cmd[14:].strip()
+        try:
+            response = interpersonal_effectiveness(text)
+            if "error" in response:
+                log.append(f"❌ Error: {response['error']}")
+            else:
+                log.append(f"👥 Interpersonal Effectiveness: {response['response']}")
+        except Exception as e:
+            log.append(f"❌ Error with interpersonal effectiveness: {str(e)}")
+        return result
+        
+    # Handle dialectic generation
+    elif cmd.startswith("dialectic "):
+        text = cmd[10:].strip()
+        try:
+            response = dialectic_generator(text)
+            if "error" in response:
+                log.append(f"❌ Error: {response['error']}")
+            else:
+                log.append(f"⚖️ Dialectic Perspective: {response['response']}")
+        except Exception as e:
+            log.append(f"❌ Error generating dialectic: {str(e)}")
+        return result
+        
+    # Handle trigger mapping
+    elif cmd.startswith("trigger map "):
+        text = cmd[12:].strip()
+        try:
+            response = trigger_map(text)
+            if "error" in response:
+                log.append(f"❌ Error: {response['error']}")
+            else:
+                log.append(f"🔍 Trigger Analysis: {response['response']}")
+        except Exception as e:
+            log.append(f"❌ Error analyzing triggers: {str(e)}")
+        return result
+        
+    # Handle skill of the day
+    elif cmd == "skill of the day" or cmd == "dbt skill":
+        try:
+            response = skill_of_the_day()
+            if "error" in response:
+                log.append(f"❌ Error: {response['error']}")
+            else:
+                log.append(f"✨ DBT Skill of the Day: {response['response']}")
+        except Exception as e:
+            log.append(f"❌ Error getting skill of the day: {str(e)}")
+        return result
+        
+    # Handle message editing with DBT skills
+    elif cmd.startswith("edit message with "):
+        # Example: "edit message with DEAR MAN tone firm: I need you to stop interrupting me"
+        try:
+            # Parse the command
+            match = re.match(r'edit message with ([^:]+) tone ([^:]+):(.+)', cmd[16:])
+            if match:
+                skill = match.group(1).strip()
+                tone = match.group(2).strip()
+                message = match.group(3).strip()
+                
+                response = edit_message(message, skill, tone)
+                if "error" in response:
+                    log.append(f"❌ Error: {response['error']}")
+                else:
+                    log.append(f"✏️ Edited Message ({skill}, {tone} tone):")
+                    log.append(response['response'])
+            else:
+                log.append("❌ Invalid format. Use: 'edit message with [skill] tone [tone]: [your message]'")
+                log.append("Example: 'edit message with DEAR MAN tone firm: I need you to stop interrupting me'")
+        except Exception as e:
+            log.append(f"❌ Error editing message: {str(e)}")
+        return result
+        
+    # Handle DBT advice
+    elif cmd.startswith("dbt advice "):
+        text = cmd[11:].strip()
+        try:
+            response = advise(text)
+            if "error" in response:
+                log.append(f"❌ Error: {response['error']}")
+            else:
+                log.append(f"💡 DBT Advice: {response['response']}")
+        except Exception as e:
+            log.append(f"❌ Error getting DBT advice: {str(e)}")
+        return result
+        
+    # Handle viewing recent diary cards
+    elif cmd == "show diary cards" or cmd == "my diary cards":
+        try:
+            cards = get_diary_cards(session)
+            if not cards:
+                log.append("📝 You don't have any diary cards yet. Try creating one with 'diary card [your day description]'")
+            else:
+                log.append(f"📝 Your recent diary cards ({len(cards)}):")
+                for i, card in enumerate(cards[:3]):  # Show max 3 cards
+                    log.append(f"--- Card {i+1} ({card['date']}) ---")
+                    log.append(f"Mood: {card['mood_rating']}/5")
+                    if card['triggers']:
+                        log.append(f"Triggers: {card['triggers']}")
+                    if card['skills_used']:
+                        log.append(f"Skills: {card['skills_used']}")
+                if len(cards) > 3:
+                    log.append(f"...and {len(cards) - 3} more.")
+        except Exception as e:
+            log.append(f"❌ Error retrieving diary cards: {str(e)}")
+        return result
+        
+    # Handle viewing recent skill logs
+    elif cmd == "show skills" or cmd == "my dbt skills":
+        try:
+            logs = get_skill_logs(session)
+            if not logs:
+                log.append("🧠 You haven't logged any DBT skills yet.")
+            else:
+                log.append(f"🧠 Your recent DBT skills ({len(logs)}):")
+                for i, skill_log in enumerate(logs[:5]):  # Show max 5 skills
+                    log.append(f"- {skill_log['skill_name']} ({skill_log['category']})")
+                    if skill_log['effectiveness']:
+                        log.append(f"  Effectiveness: {skill_log['effectiveness']}/5")
+                if len(logs) > 5:
+                    log.append(f"...and {len(logs) - 5} more.")
+        except Exception as e:
+            log.append(f"❌ Error retrieving skill logs: {str(e)}")
+        return result
+        
+    # Handle logging a DBT skill
+    elif cmd.startswith("log skill "):
+        # Expected format: "log skill [skill_name] category [category] effectiveness [1-5]: [situation]"
+        try:
+            # Basic pattern matching - could be improved with regex
+            parts = cmd[10:].split("category")
+            if len(parts) < 2:
+                log.append("❌ Please include a category. Format: 'log skill [name] category [category] effectiveness [1-5]: [situation]'")
+                return result
+                
+            skill_name = parts[0].strip()
+            
+            category_parts = parts[1].split("effectiveness")
+            category = category_parts[0].strip()
+            
+            effectiveness = None
+            situation = None
+            
+            if len(category_parts) > 1:
+                eff_parts = category_parts[1].split(":", 1)
+                try:
+                    effectiveness = int(eff_parts[0].strip())
+                    if effectiveness < 1 or effectiveness > 5:
+                        raise ValueError("Effectiveness must be between 1 and 5")
+                except ValueError:
+                    log.append("❌ Effectiveness must be a number between 1 and 5")
+                    return result
+                
+                if len(eff_parts) > 1:
+                    situation = eff_parts[1].strip()
+            
+            # Log the skill
+            log_result = log_dbt_skill(session, skill_name, category, situation, effectiveness, None)
+            
+            if log_result["status"] == "success":
+                log.append(f"✅ {log_result['message']}")
+            else:
+                log.append(f"❌ {log_result['message']}")
+                
+        except Exception as e:
+            log.append(f"❌ Error logging skill: {str(e)}")
         return result
     
     else:
