@@ -1,0 +1,160 @@
+{% extends 'layout.html' %}
+
+{% block title %}Create Personalized Mindfulness Exercise{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <a href="{{ url_for('voice_mindfulness.index') }}" class="btn btn-outline-secondary mb-3">
+            <i class="fas fa-arrow-left me-2"></i> Back to Exercises
+        </a>
+        <h1 class="display-5 mb-3">
+            <i class="fas fa-magic text-primary me-2"></i> Create Personalized Mindfulness
+        </h1>
+        <p class="lead">Tell us about your current situation to receive a tailored mindfulness exercise.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-body">
+                <form action="{{ url_for('voice_mindfulness.personalized_exercise') }}" method="post">
+                    <div class="mb-4">
+                        <label for="mood" class="form-label">How are you feeling right now?</label>
+                        <select class="form-select form-select-lg mb-3" id="mood" name="mood">
+                            <option value="" selected>Select your current mood...</option>
+                            <option value="anxious">Anxious</option>
+                            <option value="stressed">Stressed</option>
+                            <option value="overwhelmed">Overwhelmed</option>
+                            <option value="sad">Sad or depressed</option>
+                            <option value="angry">Angry or frustrated</option>
+                            <option value="restless">Restless</option>
+                            <option value="tired">Tired or fatigued</option>
+                            <option value="distracted">Distracted</option>
+                            <option value="calm">Calm</option>
+                            <option value="other">Other (specify in situation)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="situation" class="form-label">What are you dealing with? (Optional)</label>
+                        <textarea class="form-control" id="situation" name="situation" rows="3" 
+                                  placeholder="Example: Having trouble focusing at work, conflict with family, feeling anxious about an upcoming presentation..."></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="duration" class="form-label">How much time do you have? (minutes)</label>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <input type="range" class="form-range" min="1" max="15" value="5" id="durationRange">
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="duration" name="duration" min="1" max="15" value="5">
+                                    <span class="input-group-text">minutes</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-wand-magic-sparkles me-2"></i> Create Exercise
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Mobile-friendly quick suggestions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Common Scenarios</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary scenario-btn" 
+                            data-mood="anxious" 
+                            data-situation="feeling anxious and stressed about work">
+                        Work Anxiety
+                    </button>
+                    <button class="btn btn-outline-primary scenario-btn" 
+                            data-mood="overwhelmed" 
+                            data-situation="feeling overwhelmed with too many tasks">
+                        Overwhelmed
+                    </button>
+                    <button class="btn btn-outline-primary scenario-btn" 
+                            data-mood="angry" 
+                            data-situation="dealing with frustration or conflict">
+                        Frustration/Conflict
+                    </button>
+                    <button class="btn btn-outline-primary scenario-btn" 
+                            data-mood="sad" 
+                            data-situation="feeling down or depressed">
+                        Low Mood
+                    </button>
+                    <button class="btn btn-outline-primary scenario-btn" 
+                            data-mood="restless" 
+                            data-situation="can't focus, mind is racing">
+                        Racing Thoughts
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tips -->
+        <div class="card bg-light">
+            <div class="card-body">
+                <h5 class="card-title">Tips for Better Results</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item bg-transparent">Be specific about your situation</li>
+                    <li class="list-group-item bg-transparent">Choose a duration you can fully commit to</li>
+                    <li class="list-group-item bg-transparent">Find a quiet place before starting</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sync the range slider with the number input
+        const durationRange = document.getElementById('durationRange');
+        const durationInput = document.getElementById('duration');
+        
+        durationRange.addEventListener('input', function() {
+            durationInput.value = this.value;
+        });
+        
+        durationInput.addEventListener('input', function() {
+            durationRange.value = this.value;
+        });
+        
+        // Quick scenario selection
+        const scenarioBtns = document.querySelectorAll('.scenario-btn');
+        const moodSelect = document.getElementById('mood');
+        const situationInput = document.getElementById('situation');
+        
+        scenarioBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const mood = this.getAttribute('data-mood');
+                const situation = this.getAttribute('data-situation');
+                
+                moodSelect.value = mood;
+                situationInput.value = situation;
+                
+                // Scroll to the submit button
+                document.querySelector('button[type="submit"]').scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}
