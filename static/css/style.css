@@ -1,40 +1,101 @@
 /* Custom styles for NOUS assistant */
 
 :root {
-    --terminal-bg: #1a1b26;
-    --terminal-text: #a9b1d6;
-    --terminal-user: #7aa2f7;
-    --terminal-success: #9ece6a;
-    --terminal-warning: #e0af68;
-    --terminal-error: #f7768e;
-    --terminal-info: #2ac3de;
-    --accent-color: #7aa2f7;
-    --card-bg: #24283b;
-    --nav-bg: #1a1b26;
+    /* Logo-inspired colors - based on the NOUS logo */
+    --terminal-bg: #0a1225;
+    --terminal-text: #c5d1e8;
+    --terminal-user: #5a92ff;
+    --terminal-success: #5acea6;
+    --terminal-warning: #ffba68;
+    --terminal-error: #ff6b8e;
+    --terminal-info: #38c4de;
+    --accent-color: #5a92ff;
+    --card-bg: #162340;
+    --nav-bg: #0a1225;
+    
+    /* NOUS brand colors */
+    --nous-primary: #142d69;
+    --nous-secondary: #5a92ff;
+    --nous-accent: #ff6b8e;
+    --nous-dark: #0a1225;
+    --nous-light: #e8f0ff;
 }
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.6;
+    background-color: var(--nous-light);
+    color: var(--nous-dark);
+}
+
+/* Logo styling */
+.navbar-logo {
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.hero-logo {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 /* Navbar styling */
 .navbar {
-    background-color: var(--nav-bg) !important;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    background-color: var(--nous-primary) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
     padding: 0.75rem 1rem;
 }
 
 .navbar-brand {
     font-weight: 700;
     letter-spacing: 1px;
+    color: #ffffff !important;
 }
 
-.navbar-brand i {
-    color: var(--accent-color);
+/* Button styles inspired by the NOUS logo */
+.btn-primary {
+    background-color: var(--nous-primary);
+    border-color: var(--nous-primary);
 }
 
-/* Terminal output styling */
+.btn-primary:hover, .btn-primary:focus {
+    background-color: var(--nous-secondary);
+    border-color: var(--nous-secondary);
+}
+
+.btn-outline-primary {
+    color: var(--nous-primary);
+    border-color: var(--nous-primary);
+}
+
+.btn-outline-primary:hover, .btn-outline-primary:focus {
+    background-color: var(--nous-primary);
+    border-color: var(--nous-primary);
+}
+
+/* Card styling */
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background-color: var(--nous-primary);
+    color: white;
+    border-bottom: none;
+}
+
+/* Terminal output styling - inspired by NOUS logo colors */
 .terminal-output {
     font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
     min-height: 350px;
@@ -42,12 +103,12 @@ body {
     overflow-y: auto;
     white-space: pre-wrap;
     line-height: 1.6;
-    background-color: var(--terminal-bg);
-    color: var(--terminal-text);
-    border-radius: 8px;
-    padding: 16px;
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: var(--nous-dark);
+    color: var(--nous-light);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.4), 0 5px 15px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--nous-primary);
 }
 
 .terminal-line {
