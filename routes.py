@@ -78,6 +78,17 @@ def index():
     # Render the main dashboard/index page
     return render_template('index.html', user=current_user)
 
+# Login page
+@app.route('/login')
+def login_page():
+    """Display login page"""
+    # If user is already logged in, redirect to home
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    # Render the login page
+    return render_template('login.html')
+
 # Help page
 @app.route('/help')
 def help_page():

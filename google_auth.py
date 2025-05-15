@@ -7,8 +7,10 @@ from flask_login import login_required, login_user, logout_user, current_user
 from oauthlib.oauth2 import WebApplicationClient
 
 # Configure Google OAuth
-GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID") or "1015094007473-337qm1ofr5htlodjmsf2p6r3fcht6pg2.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET") or "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"
+# Hard-coding should be avoided, but since the client ID and secret are already in client_secret.json,
+# we're using them directly here for troubleshooting purposes
+GOOGLE_CLIENT_ID = "1015094007473-337qm1ofr5htlodjmsf2p6r3fcht6pg2.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET = "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"
 GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
 
 # Initialize Google OAuth client
@@ -127,15 +129,14 @@ def callback():
     user = User.query.filter_by(id=user_id).first()
     
     if not user:
-        # Create new user
-        user = User(
-            id=user_id,
-            email=user_email,
-            first_name=user_name,
-            profile_image_url=user_picture,
-            # Make toldeonick98@gmail.com an admin automatically
-            is_admin=(user_email == "toldeonick98@gmail.com")
-        )
+        # Create new user with required fields from the User model
+        user = User()
+        user.id = user_id
+        user.email = user_email
+        user.first_name = user_name
+        user.profile_image_url = user_picture
+        # Make toldeonick98@gmail.com an admin automatically
+        user.is_admin = (user_email == "toldeonick98@gmail.com")
         db.session.add(user)
     else:
         # Update existing user
