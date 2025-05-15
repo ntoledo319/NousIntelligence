@@ -50,9 +50,9 @@ openai = OpenAI(api_key=openai_api_key)
 _embedding_dimension = 1536  # Default for text-embedding-ada-002
 
 # OpenRouter API endpoints
-OPENROUTER_BASE_URL = "https://openrouter.ai"  # Standard URL without api prefix
-OPENROUTER_EMBEDDING_URL = f"{OPENROUTER_BASE_URL}/api/v1/embeddings"
-OPENROUTER_CHAT_COMPLETION_URL = f"{OPENROUTER_BASE_URL}/api/v1/chat/completions"
+OPENROUTER_BASE_URL = "https://openrouter.ai/api"  # OpenRouter API base URL
+OPENROUTER_EMBEDDING_URL = f"{OPENROUTER_BASE_URL}/v1/embeddings"
+OPENROUTER_CHAT_COMPLETION_URL = f"{OPENROUTER_BASE_URL}/v1/chat/completions"
 
 def get_embedding_via_openrouter(text):
     """
