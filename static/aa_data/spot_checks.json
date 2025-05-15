@@ -1,0 +1,277 @@
+{
+  "questions": [
+    {
+      "key": "resentment",
+      "question": "Resentment Scan: Rate 0–5. Who or what sparked it?",
+      "prompt": "Take a moment to scan for any resentment you're feeling. Rate it from 0-5 and identify who or what triggered it.",
+      "follow_up": "What's one step you could take toward letting this go?",
+      "category": "emotional"
+    },
+    {
+      "key": "resentment",
+      "question": "Notice any irritation or anger? Who or what is it directed at?",
+      "prompt": "Check for any irritation or resentment you might be holding onto right now.",
+      "follow_up": "How might holding onto this affect your sobriety?",
+      "category": "emotional"
+    },
+    {
+      "key": "resentment",
+      "question": "Is there anyone you're blaming right now?",
+      "prompt": "Take a quick inventory - are you blaming anyone for how you feel?",
+      "follow_up": "How could you take responsibility for your feelings?",
+      "category": "emotional"
+    },
+    {
+      "key": "selfish",
+      "question": "Selfishness Check: Where did I put me first today?",
+      "prompt": "Reflect honestly: did you prioritize your needs over others' in a way that wasn't healthy?",
+      "follow_up": "How might you balance your needs with others' needs?",
+      "category": "behavioral"
+    },
+    {
+      "key": "selfish",
+      "question": "Have I been thinking about myself most of the day?",
+      "prompt": "Take a moment to notice if your thoughts have been mostly self-centered.",
+      "follow_up": "What's one way you could shift focus to helping someone else?",
+      "category": "behavioral"
+    },
+    {
+      "key": "selfish",
+      "question": "Did I consider others' needs or only my own today?",
+      "prompt": "Reflect on your interactions. Did you consider others' needs or focus only on your own?",
+      "follow_up": "How might considering others' perspectives improve your recovery?",
+      "category": "behavioral"
+    },
+    {
+      "key": "dishonesty",
+      "question": "Dishonesty Pulse: Did I bend the truth today? Three-word admit.",
+      "prompt": "Check if you've been completely honest in all your interactions today.",
+      "follow_up": "What might be driving this dishonesty? Fear? Pride? Convenience?",
+      "category": "behavioral"
+    },
+    {
+      "key": "dishonesty",
+      "question": "Have I exaggerated or minimized anything today?",
+      "prompt": "Did you stretch the truth, leave out important details, or downplay something significant?",
+      "follow_up": "What would it take to set the record straight?",
+      "category": "behavioral"
+    },
+    {
+      "key": "dishonesty",
+      "question": "Did I present myself authentically in all interactions today?",
+      "prompt": "Were you true to yourself in all your interactions, or did you wear a mask?",
+      "follow_up": "How does dishonesty affect your relationship with yourself?",
+      "category": "behavioral"
+    },
+    {
+      "key": "fear",
+      "question": "Fear Gauge: What's frightening me right now?",
+      "prompt": "Take a moment to identify any fear you're experiencing. What are you afraid might happen?",
+      "follow_up": "Is this fear based on facts or assumptions?",
+      "category": "emotional"
+    },
+    {
+      "key": "fear",
+      "question": "What am I worrying about that I can't control?",
+      "prompt": "Identify something you're worried about that's outside your control.",
+      "follow_up": "How might you surrender this fear?",
+      "category": "emotional"
+    },
+    {
+      "key": "fear",
+      "question": "Is fear driving any of my decisions right now?",
+      "prompt": "Check if fear is influencing your choices or behavior in this moment.",
+      "follow_up": "What would you do differently if you were acting from courage?",
+      "category": "emotional"
+    },
+    {
+      "key": "anger",
+      "question": "Anger Alert: Rate rage 0–5 and name the trigger.",
+      "prompt": "Notice if you're feeling angry. Rate it from 0-5 and identify what triggered it.",
+      "follow_up": "What need of yours isn't being met?",
+      "category": "emotional"
+    },
+    {
+      "key": "anger",
+      "question": "Am I feeling irritable, restless, or discontent right now?",
+      "prompt": "Check in with your emotions. Are you feeling annoyed or unsettled?",
+      "follow_up": "What healthy action could you take to address this feeling?",
+      "category": "emotional"
+    },
+    {
+      "key": "anger",
+      "question": "Is there tension in my body? Where is it located?",
+      "prompt": "Scan your body for tension, which often signals anger or stress.",
+      "follow_up": "How can you release this physical tension?",
+      "category": "physical"
+    },
+    {
+      "key": "guilt",
+      "question": "Guilt Gauge: What am I regretting or feeling ashamed about?",
+      "prompt": "Notice if you're experiencing guilt or shame about something.",
+      "follow_up": "What amends or actions could help address this?",
+      "category": "emotional"
+    },
+    {
+      "key": "guilt",
+      "question": "Is there something I'm avoiding thinking about?",
+      "prompt": "Check if you're pushing away thoughts about something you did or didn't do.",
+      "follow_up": "How might facing this directly support your recovery?",
+      "category": "emotional"
+    },
+    {
+      "key": "guilt",
+      "question": "Am I beating myself up over something I can't change?",
+      "prompt": "Notice if you're being harsh with yourself about past actions.",
+      "follow_up": "How can you practice self-forgiveness?",
+      "category": "emotional"
+    },
+    {
+      "key": "amends",
+      "question": "Amends Prompt: Did I harm anyone today? Who needs an apology?",
+      "prompt": "Reflect on your interactions today. Did you hurt or offend anyone?",
+      "follow_up": "When and how will you make amends?",
+      "category": "relational"
+    },
+    {
+      "key": "amends",
+      "question": "Have I been short-tempered with anyone today?",
+      "prompt": "Check if you've been impatient or irritable with someone.",
+      "follow_up": "What's a simple way to make it right?",
+      "category": "relational"
+    },
+    {
+      "key": "amends",
+      "question": "Did I dismiss or invalidate anyone's feelings or perspective?",
+      "prompt": "Reflect on whether you truly listened to others or dismissed their views.",
+      "follow_up": "How could you demonstrate more respect next time?",
+      "category": "relational"
+    },
+    {
+      "key": "service",
+      "question": "Service Reminder: Who can I help right now?",
+      "prompt": "Think of someone who might need support or assistance.",
+      "follow_up": "What specific action could you take to help them?",
+      "category": "relational"
+    },
+    {
+      "key": "service",
+      "question": "How have I contributed to others' wellbeing today?",
+      "prompt": "Reflect on how you've helped others today, even in small ways.",
+      "follow_up": "What's one additional way you could be of service?",
+      "category": "relational"
+    },
+    {
+      "key": "service",
+      "question": "Am I focused more on giving or receiving right now?",
+      "prompt": "Check your mindset. Are you thinking more about what you can give or get?",
+      "follow_up": "How might shifting to a giving mindset impact your recovery?",
+      "category": "relational"
+    },
+    {
+      "key": "gratitude",
+      "question": "Name three things you're grateful for in this moment.",
+      "prompt": "Take a moment to identify three specific things you appreciate right now.",
+      "follow_up": "How does focusing on gratitude affect your state of mind?",
+      "category": "spiritual"
+    },
+    {
+      "key": "gratitude",
+      "question": "What's one thing about recovery you're thankful for today?",
+      "prompt": "Identify something specific about your recovery journey that you appreciate.",
+      "follow_up": "How has this aspect of recovery changed your life?",
+      "category": "spiritual"
+    },
+    {
+      "key": "gratitude",
+      "question": "Who has supported your recovery that you're grateful for?",
+      "prompt": "Think of someone who has helped your recovery journey.",
+      "follow_up": "How might you express appreciation to them?",
+      "category": "spiritual"
+    },
+    {
+      "key": "physical",
+      "question": "HALT check: Are you Hungry, Angry, Lonely, or Tired right now?",
+      "prompt": "Quick check: which of these basic needs might need attention?",
+      "follow_up": "What simple action could you take to address this need?",
+      "category": "physical"
+    },
+    {
+      "key": "physical",
+      "question": "How's your energy level right now? (Low, Medium, High)",
+      "prompt": "Notice your physical energy. Are you depleted, energized, or somewhere in between?",
+      "follow_up": "How might your energy level be affecting your emotions and thinking?",
+      "category": "physical"
+    },
+    {
+      "key": "physical",
+      "question": "When did you last drink water? Are you hydrated?",
+      "prompt": "Check if you've been staying hydrated, which affects mood and cravings.",
+      "follow_up": "How can you remember to take better care of your physical needs?",
+      "category": "physical"
+    },
+    {
+      "key": "spiritual",
+      "question": "Have I connected with my Higher Power today?",
+      "prompt": "Reflect on whether you've taken time for spiritual connection today.",
+      "follow_up": "What simple practice could help you reconnect right now?",
+      "category": "spiritual"
+    },
+    {
+      "key": "spiritual",
+      "question": "Am I trying to control outcomes, or am I practicing acceptance?",
+      "prompt": "Notice if you're trying to force things to go your way versus accepting reality.",
+      "follow_up": "What situation might you need to surrender right now?",
+      "category": "spiritual"
+    },
+    {
+      "key": "spiritual",
+      "question": "What principle (honesty, hope, faith, courage, integrity, etc.) do I need to focus on right now?",
+      "prompt": "Consider which spiritual principle would be most helpful in your current situation.",
+      "follow_up": "How could you put this principle into practice today?",
+      "category": "spiritual"
+    },
+    {
+      "key": "triggers",
+      "question": "Have I encountered any triggers today? How did I respond?",
+      "prompt": "Reflect on any situations that triggered cravings or negative patterns.",
+      "follow_up": "What worked or didn't work in your response?",
+      "category": "recovery"
+    },
+    {
+      "key": "triggers",
+      "question": "What situations or emotions tend to make me vulnerable to drinking?",
+      "prompt": "Identify a pattern of when you're most at risk for relapse.",
+      "follow_up": "What's your plan for handling this trigger next time?",
+      "category": "recovery"
+    },
+    {
+      "key": "triggers",
+      "question": "Am I putting myself in risky situations unnecessarily?",
+      "prompt": "Check if you're exposing yourself to triggers that could be avoided.",
+      "follow_up": "What boundaries might you need to set to protect your sobriety?",
+      "category": "recovery"
+    },
+    {
+      "key": "program",
+      "question": "When was my last meeting? Do I need to connect with the fellowship?",
+      "prompt": "Consider how connected you feel to your recovery community right now.",
+      "follow_up": "What's your plan for your next meeting or fellowship connection?",
+      "category": "recovery"
+    },
+    {
+      "key": "program",
+      "question": "Have I called my sponsor recently? Do I need to reach out?",
+      "prompt": "Check in on your relationship with your sponsor and if you need support.",
+      "follow_up": "What would be helpful to discuss with your sponsor?",
+      "category": "recovery"
+    },
+    {
+      "key": "program",
+      "question": "Which step am I working on, and what's my next action item?",
+      "prompt": "Reflect on your step work and what specific action you need to take next.",
+      "follow_up": "When will you complete this action?",
+      "category": "recovery"
+    }
+  ]
+}
