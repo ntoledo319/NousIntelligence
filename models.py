@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import enum
+import numpy as np
 from flask_login import UserMixin
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
 from sqlalchemy import UniqueConstraint
@@ -823,4 +824,83 @@ class WeatherLocation(db.Model):
             'units': self.units,
             'added_date': self.added_date.isoformat() if self.added_date else None,
             'last_accessed': self.last_accessed.isoformat() if self.last_accessed else None
+        }
+
+# Knowledge Base Models for AI Self-Learning
+class KnowledgeBase(db.Model):
+    """
+    Stores learned information in the knowledge base.
+    Each entry contains content and its embedding for semantic search.
+    """
+    __tablename__ = 'knowledge_base'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String, db.ForeignKey(User.id), nullable=True)  # Can be null for global knowledge
+    content = db.Column(db.Text, nullable=False)
+    embedding = db.Column(db.LargeBinary, nullable=False)  # Store embedding as binary
+    source = db.Column(db.String(50), default='conversation')  # conversation, training, reflection
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_accessed = db.Column(db.DateTime, nullable=True)  # Track when this was last retrieved
+    access_count = db.Column(db.Integer, default=0)  # How many times this knowledge was accessed
+    relevance_score = db.Column(db.Float, default=1.0)  # Higher = more relevant (for pruning)
+    
+    # Relationship with user
+    user = db.relationship('User', backref=db.backref('knowledge_entries', lazy=True))
+    
+    def __repr__(self):
+        return f"<KnowledgeBase {self.id}: {self.content[:30]}...>"
+        
+    def get_embedding_array(self):
+        """Convert stored binary embedding back to numpy array"""
+        return np.frombuffer(self.embedding, dtype=np.float32)
+    
+    def set_embedding_array(self, embedding_array):
+        """Convert numpy array to binary for storage"""
+        self.embedding = embedding_array.astype(np.float32).tobytes()
+        
+    def increment_access(self):
+        """Update access metrics when this entry is retrieved"""
+        self.access_count += 1
+        self.last_accessed = datetime.utcnow()
+        
+    def to_dict(self):
+        """Convert to dictionary for API responses"""
+        return {
+            'id': self.id,
+            'content': self.content,
+            'source': self.source,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'last_accessed': self.last_accessed.isoformat() if self.last_accessed else None,
+            'access_count': self.access_count,
+            'relevance_score': self.relevance_score
+        }
+
+class ReflectionPrompt(db.Model):
+    """
+    Stores prompts used during self-reflection to identify knowledge gaps.
+    These prompts are used periodically to improve the knowledge base.
+    """
+    __tablename__ = 'reflection_prompts'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    prompt = db.Column(db.Text, nullable=False)
+    description = db.Column(db.String(255))
+    category = db.Column(db.String(50), default='general')  # general, gap-finding, consistency, etc.
+    last_used = db.Column(db.DateTime, nullable=True)
+    use_count = db.Column(db.Integer, default=0)
+    enabled = db.Column(db.Boolean, default=True)
+    
+    def __repr__(self):
+        return f"<ReflectionPrompt {self.id}: {self.prompt[:30]}...>"
+        
+    def to_dict(self):
+        """Convert to dictionary for API responses"""
+        return {
+            'id': self.id,
+            'prompt': self.prompt,
+            'description': self.description,
+            'category': self.category,
+            'last_used': self.last_used.isoformat() if self.last_used else None,
+            'use_count': self.use_count,
+            'enabled': self.enabled
         }
