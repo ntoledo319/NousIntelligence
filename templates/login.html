@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-12 mb-4 text-center">
+        <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" alt="NOUS Logo" class="hero-logo mb-3" style="max-height: 150px;">
+        <h2 class="mb-3" style="color: var(--nous-primary);">Your Personal Assistant</h2>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header text-white">
+                <h3 class="mb-0">Login Required</h3>
+            </div>
+            <div class="card-body text-center py-5">
+                <p class="mb-4">Please login with your Replit account to access this application.</p>
+                <a href="{{ url_for('replit_auth.login') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-sign-in-alt me-2"></i> Login with Replit
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

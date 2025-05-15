@@ -4,6 +4,8 @@ import datetime
 import logging
 from flask import Flask, request, redirect, session, url_for, render_template, jsonify, flash
 from dotenv import load_dotenv
+from flask_login import LoginManager, current_user
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Import custom utility modules
 from utils.google_helper import get_google_flow, build_google_services
@@ -63,6 +65,10 @@ load_dotenv()
 # Flask config
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET") or os.environ.get("FLASK_SECRET") or "change_this_in_production!"
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # needed for url_for to generate with https
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
 
 # Configure database
 database_url = os.environ.get("DATABASE_URL")
@@ -70,6 +76,10 @@ if database_url:
     print(f"Using database URL: {database_url}")
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        'pool_pre_ping': True,
+        "pool_recycle": 300,
+    }
     db.init_app(app)
     
     # Create tables if they don't exist
@@ -78,6 +88,17 @@ if database_url:
         logging.info("Database tables created (if they didn't exist already)")
 else:
     print("No DATABASE_URL found in environment variables")
+    
+# Initialize LoginManager
+login_manager = LoginManager(app)
+login_manager.login_view = "replit_auth.login"
+login_manager.login_message = "Please log in to access this page."
+login_manager.login_message_category = "info"
+
+@login_manager.user_loader
+def load_user(user_id):
+    from models import User
+    return User.query.get(user_id)
 
 # OAuth config
 GOOGLE_CLIENT_SECRETS = os.environ.get("GOOGLE_CLIENT_SECRETS_FILE", "client_secret.json")

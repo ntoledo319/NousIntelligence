@@ -1,5 +1,6 @@
 from app import app
 import logging
+import routes  # Import routes to register authentication routes
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
