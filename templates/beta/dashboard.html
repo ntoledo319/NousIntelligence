@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}Beta Tester Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Beta Tester Dashboard</h1>
+
+    <div class="alert alert-info">
+        <i class="fas fa-flask"></i> You're a beta tester! Thank you for helping us improve.
+    </div>
+
+    {% if current_user.is_administrator() %}
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Admin: Beta Test Overview</h5>
+        </div>
+        <div class="card-body">
+            {% if stats %}
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ stats.active }}</h5>
+                            <p class="card-text">Active Testers</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ stats.inactive }}</h5>
+                            <p class="card-text">Inactive Testers</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ stats.total }}</h5>
+                            <p class="card-text">Total Testers</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ stats.available_slots }}</h5>
+                            <p class="card-text">Available Slots</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a href="{{ url_for('beta.manage_testers') }}" class="btn btn-primary">
+                    <i class="fas fa-users"></i> Manage Testers
+                </a>
+                <a href="{{ url_for('beta.feedback_report') }}" class="btn btn-info">
+                    <i class="fas fa-chart-bar"></i> Feedback Report
+                </a>
+            </div>
+            {% endif %}
+            
+            {% if recent_feedback %}
+            <h5 class="mt-4">Recent Feedback</h5>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Severity</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in recent_feedback %}
+                        <tr>
+                            <td>{{ item.title }}</td>
+                            <td>{{ item.category }}</td>
+                            <td>
+                                {% if item.severity == 1 %}
+                                <span class="badge bg-danger">Critical</span>
+                                {% elif item.severity == 2 %}
+                                <span class="badge bg-warning">High</span>
+                                {% elif item.severity == 3 %}
+                                <span class="badge bg-primary">Medium</span>
+                                {% elif item.severity == 4 %}
+                                <span class="badge bg-info">Low</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Trivial</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.status == 'new' %}
+                                <span class="badge bg-secondary">New</span>
+                                {% elif item.status == 'in_progress' %}
+                                <span class="badge bg-primary">In Progress</span>
+                                {% elif item.status == 'resolved' %}
+                                <span class="badge bg-success">Resolved</span>
+                                {% else %}
+                                <span class="badge bg-danger">Won't Fix</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <a href="{{ url_for('beta.view_feedback', feedback_id=item.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tester's feedback -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Your Beta Status</h5>
+                </div>
+                <div class="card-body">
+                    {% if tester %}
+                    <p><strong>Status:</strong> 
+                        {% if tester.status == 'active' %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Feedback Provided:</strong> {{ tester.feedback_count }}</p>
+                    <p><strong>Beta Access Since:</strong> {{ tester.activated_at.strftime('%Y-%m-%d') }}</p>
+                    <p><strong>Last Activity:</strong> 
+                        {% if tester.last_activity %}
+                        {{ tester.last_activity.strftime('%Y-%m-%d %H:%M') }}
+                        {% else %}
+                        No activity recorded
+                        {% endif %}
+                    </p>
+                    {% else %}
+                    <p>No beta tester status information available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Beta Test Guidelines</h5>
+                </div>
+                <div class="card-body">
+                    <h6>What We Need From You:</h6>
+                    <ul>
+                        <li>Test all features thoroughly and report any issues</li>
+                        <li>Provide detailed feedback about your experience</li>
+                        <li>Suggest improvements or new features</li>
+                        <li>Report bugs with clear steps to reproduce</li>
+                    </ul>
+                    
+                    <h6>Current Test Focus Areas:</h6>
+                    <ul>
+                        <li>User interface and experience</li>
+                        <li>Voice recognition accuracy</li>
+                        <li>AI response quality and helpfulness</li>
+                        <li>Third-party integrations (Google, Spotify)</li>
+                        <li>Database storage and retrieval of personal information</li>
+                    </ul>
+                    
+                    <a href="{{ url_for('beta.submit_feedback') }}" class="btn btn-primary mt-3">
+                        <i class="fas fa-comment-alt"></i> Submit Feedback
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Your submitted feedback -->
+    {% if feedback %}
+    <div class="card mt-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Your Submitted Feedback</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Severity</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in feedback %}
+                        <tr>
+                            <td>{{ item.title }}</td>
+                            <td>{{ item.category }}</td>
+                            <td>
+                                {% if item.severity == 1 %}
+                                <span class="badge bg-danger">Critical</span>
+                                {% elif item.severity == 2 %}
+                                <span class="badge bg-warning">High</span>
+                                {% elif item.severity == 3 %}
+                                <span class="badge bg-primary">Medium</span>
+                                {% elif item.severity == 4 %}
+                                <span class="badge bg-info">Low</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Trivial</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.status == 'new' %}
+                                <span class="badge bg-secondary">New</span>
+                                {% elif item.status == 'in_progress' %}
+                                <span class="badge bg-primary">In Progress</span>
+                                {% elif item.status == 'resolved' %}
+                                <span class="badge bg-success">Resolved</span>
+                                {% else %}
+                                <span class="badge bg-danger">Won't Fix</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <a href="{{ url_for('beta.view_feedback', feedback_id=item.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

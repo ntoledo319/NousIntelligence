@@ -70,6 +70,11 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # needed for url_for
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
+# Beta Testing Mode
+app.config['ENABLE_BETA_MODE'] = os.environ.get('ENABLE_BETA_MODE', 'true').lower() == 'true'
+app.config['BETA_ACCESS_CODE'] = os.environ.get('BETA_ACCESS_CODE', 'BETANOUS2025')
+app.config['MAX_BETA_TESTERS'] = int(os.environ.get('MAX_BETA_TESTERS', '30'))
+
 # Configure database
 database_url = os.environ.get("DATABASE_URL")
 # Make sure DATABASE_URL is in the correct format for SQLAlchemy

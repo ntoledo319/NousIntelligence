@@ -100,6 +100,76 @@ class OAuth(OAuthConsumerMixin, db.Model):
         'provider',
         name='uq_user_browser_session_key_provider',
     ),)
+    
+# Beta tester model
+class BetaTester(db.Model):
+    """Model for managing beta testers"""
+    __tablename__ = 'beta_testers'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String, db.ForeignKey(User.id), nullable=False, unique=True)
+    status = db.Column(db.String(20), default='active')  # 'active', 'inactive'
+    notes = db.Column(db.Text, nullable=True)
+    feedback_count = db.Column(db.Integer, default=0)  # Count of feedback submissions
+    last_activity = db.Column(db.DateTime, nullable=True)
+    activated_at = db.Column(db.DateTime, default=datetime.utcnow)
+    deactivated_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship with User
+    user = db.relationship('User', backref=db.backref('beta_tester', uselist=False))
+    
+    # Relationship with feedback
+    feedback = db.relationship('BetaFeedback', backref='tester', lazy='dynamic', cascade="all, delete-orphan")
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'status': self.status,
+            'feedback_count': self.feedback_count,
+            'last_activity': self.last_activity.isoformat() if self.last_activity else None,
+            'activated_at': self.activated_at.isoformat() if self.activated_at else None,
+            'deactivated_at': self.deactivated_at.isoformat() if self.deactivated_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+# Beta feedback model
+class BetaFeedback(db.Model):
+    """Model for feedback from beta testers"""
+    __tablename__ = 'beta_feedback'
+    id = db.Column(db.Integer, primary_key=True)
+    tester_id = db.Column(db.Integer, db.ForeignKey('beta_testers.id'), nullable=False)
+    category = db.Column(db.String(50), nullable=False)  # 'bug', 'feature', 'suggestion', 'general'
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    severity = db.Column(db.Integer, default=3)  # 1-5 scale (1:critical, 5:trivial)
+    status = db.Column(db.String(20), default='new')  # 'new', 'in_progress', 'resolved', 'wont_fix'
+    resolution_notes = db.Column(db.Text, nullable=True)
+    screenshots = db.Column(db.Text, nullable=True)  # JSON array of screenshot URLs or base64 data
+    browser = db.Column(db.String(100), nullable=True)  # Browser info
+    device = db.Column(db.String(100), nullable=True)  # Device info
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'tester_id': self.tester_id,
+            'category': self.category,
+            'title': self.title,
+            'description': self.description,
+            'severity': self.severity,
+            'status': self.status,
+            'resolution_notes': self.resolution_notes,
+            'screenshots': self.screenshots,
+            'browser': self.browser,
+            'device': self.device,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
 
 # Enhanced Memory Models for Personalized Conversation
 
