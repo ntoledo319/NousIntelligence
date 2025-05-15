@@ -1,145 +1,161 @@
 """
-Caching utility to improve performance and reduce API/DB calls.
+Cache helper for storing and retrieving frequently accessed data.
+Helps reduce API calls and database queries for better performance.
 """
 
 import time
+import functools
 import logging
 import threading
-import functools
-from datetime import datetime, timedelta
+import hashlib
+import json
+import pickle
+from typing import Any, Callable, Dict, Optional, Tuple, TypeVar, Union, cast
 
-# Simple in-memory cache
-_cache = {}
+# Type variable for generic return type
+T = TypeVar('T')
+
+# Cache storage - using dictionaries for simplicity, could be replaced with Redis in production
+_result_cache: Dict[str, Tuple[Any, float]] = {}
+_embedding_cache: Dict[str, Tuple[Any, float]] = {}
+
+# Lock for thread safety
 _cache_lock = threading.RLock()
 
-def cache_result(ttl_seconds=3600):
+# Maximum cache sizes to prevent memory issues
+MAX_RESULT_CACHE_SIZE = 1000  # Entries
+MAX_EMBEDDING_CACHE_SIZE = 500  # Entries
+
+def cache_result(ttl_seconds: int = 600):
     """
-    Cache function results for a specified time period.
+    Decorator to cache function results for a specified time.
     
     Args:
-        ttl_seconds (int): Time to live in seconds. Default is 1 hour.
+        ttl_seconds: Time to live in seconds for cache entries
         
     Returns:
-        function: Decorated function with caching
+        Decorated function with caching
     """
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            # Create a cache key from function name and arguments
-            cache_key = f"{func.__name__}:{str(args)}:{str(sorted(kwargs.items()))}"
+            # Generate cache key based on function name and arguments
+            cache_key = _generate_cache_key(func.__name__, args, kwargs)
             
-            with _cache_lock:
-                # Check if result is in cache and not expired
-                if cache_key in _cache:
-                    result, timestamp = _cache[cache_key]
-                    if timestamp + ttl_seconds > time.time():
-                        return result
+            # Check if result is in cache and not expired
+            cached_result = _get_from_cache(cache_key, _result_cache)
+            if cached_result is not None:
+                logging.debug(f"Cache hit for {func.__name__}")
+                return cached_result
                 
-                # Call the function and cache the result
-                result = func(*args, **kwargs)
-                _cache[cache_key] = (result, time.time())
-                
-                # Clean up old cache entries (optional)
-                if len(_cache) > 1000:  # Prevent unbounded growth
-                    cleanup_cache()
-                    
-                return result
+            # Execute function and cache result
+            result = func(*args, **kwargs)
+            _store_in_cache(cache_key, result, ttl_seconds, _result_cache, MAX_RESULT_CACHE_SIZE)
+            
+            return result
         return wrapper
     return decorator
 
-def cleanup_cache(max_age_seconds=86400):
-    """
-    Remove old entries from cache.
-    
-    Args:
-        max_age_seconds (int): Maximum age in seconds. Default is 24 hours.
-    """
-    now = time.time()
-    with _cache_lock:
-        expired_keys = [
-            key for key, (_, timestamp) in _cache.items() 
-            if timestamp + max_age_seconds < now
-        ]
-        for key in expired_keys:
-            del _cache[key]
-        
-        logging.debug(f"Cache cleanup: removed {len(expired_keys)} expired entries. Current size: {len(_cache)}")
-
-def clear_cache():
-    """Clear the entire cache."""
-    with _cache_lock:
-        _cache.clear()
-        logging.debug("Cache cleared")
-
-def get_cache_stats():
-    """Get statistics about the cache."""
-    with _cache_lock:
-        total_entries = len(_cache)
-        now = time.time()
-        expired_entries = sum(1 for _, timestamp in _cache.values() if timestamp + 3600 < now)
-        
-        return {
-            "total_entries": total_entries,
-            "expired_entries": expired_entries,
-            "cache_size_bytes": sum(len(str(item)) for item in _cache.values())
-        }
-
-# Specialized caching for embedding vectors
-_embedding_cache = {}
-_embedding_cache_lock = threading.RLock()
-
-def cache_embedding(text, embedding, ttl_hours=24):
+def cache_embedding(text: str, embedding: Any, ttl_seconds: int = 86400):
     """
     Cache an embedding vector for a text string.
     
     Args:
-        text (str): The text that was embedded
-        embedding (np.ndarray): The embedding vector
-        ttl_hours (int): Time to live in hours
+        text: The original text
+        embedding: The embedding vector to cache
+        ttl_seconds: Time to live in seconds
     """
-    # Use a hash of the text as the key to save memory
-    import hashlib
-    key = hashlib.md5(text.encode()).hexdigest()
+    cache_key = _hash_text(text)
+    _store_in_cache(cache_key, embedding, ttl_seconds, _embedding_cache, MAX_EMBEDDING_CACHE_SIZE)
     
-    with _embedding_cache_lock:
-        _embedding_cache[key] = {
-            'embedding': embedding,
-            'expires': datetime.now() + timedelta(hours=ttl_hours)
-        }
-
-def get_cached_embedding(text):
+def get_cached_embedding(text: str) -> Optional[Any]:
     """
-    Retrieve a cached embedding vector if available.
+    Get a cached embedding for text if available.
     
     Args:
-        text (str): The text to check for cached embedding
+        text: The text to get embedding for
         
     Returns:
-        np.ndarray or None: The cached embedding or None if not found/expired
+        The cached embedding or None if not found
     """
-    import hashlib
-    key = hashlib.md5(text.encode()).hexdigest()
-    
-    with _embedding_cache_lock:
-        if key in _embedding_cache:
-            cache_item = _embedding_cache[key]
-            if cache_item['expires'] > datetime.now():
-                return cache_item['embedding']
+    cache_key = _hash_text(text)
+    return _get_from_cache(cache_key, _embedding_cache)
+
+def clear_caches():
+    """Clear all caches."""
+    with _cache_lock:
+        _result_cache.clear()
+        _embedding_cache.clear()
+    logging.info("All caches cleared")
+
+def _generate_cache_key(func_name: str, args: Tuple, kwargs: Dict) -> str:
+    """Generate a deterministic cache key for function call."""
+    try:
+        # Convert args and kwargs to JSON-serializable format
+        serializable_args = _make_serializable(args)
+        serializable_kwargs = _make_serializable(kwargs)
+        
+        # Combine into a string
+        key_parts = [func_name, str(serializable_args), str(serializable_kwargs)]
+        combined = json.dumps(key_parts, sort_keys=True)
+        
+        # Hash the string to get a fixed-length key
+        return hashlib.md5(combined.encode('utf-8')).hexdigest()
+    except Exception as e:
+        logging.warning(f"Error generating cache key: {e}. Using fallback method.")
+        # Fallback: Use function name and object IDs
+        return f"{func_name}_{hash(args)}_{hash(frozenset(kwargs.items() if kwargs else []))}"
+
+def _hash_text(text: str) -> str:
+    """Create a hash for text content."""
+    return hashlib.md5(text.encode('utf-8')).hexdigest()
+
+def _make_serializable(obj: Any) -> Any:
+    """Attempt to make an object JSON-serializable."""
+    if isinstance(obj, (str, int, float, bool, type(None))):
+        return obj
+    elif isinstance(obj, (list, tuple)):
+        return [_make_serializable(item) for item in obj]
+    elif isinstance(obj, dict):
+        return {str(k): _make_serializable(v) for k, v in obj.items()}
+    elif hasattr(obj, '__dict__'):
+        # For custom objects, use a string representation or specific attributes
+        return str(obj)
+    else:
+        # Just convert to string for non-serializable types
+        return str(obj)
+
+def _get_from_cache(key: str, cache: Dict[str, Tuple[Any, float]]) -> Optional[Any]:
+    """Get an item from cache if it exists and is not expired."""
+    with _cache_lock:
+        if key in cache:
+            value, expiry = cache[key]
+            if expiry > time.time():
+                return value
             else:
                 # Remove expired entry
-                del _embedding_cache[key]
-    
+                del cache[key]
     return None
 
-def cleanup_embedding_cache():
-    """Remove expired embedding vectors from cache."""
-    now = datetime.now()
-    with _embedding_cache_lock:
-        expired_keys = [
-            key for key, item in _embedding_cache.items() 
-            if item['expires'] < now
-        ]
-        for key in expired_keys:
-            del _embedding_cache[key]
+def _store_in_cache(key: str, value: Any, ttl_seconds: int, 
+                   cache: Dict[str, Tuple[Any, float]], max_size: int):
+    """Store an item in cache with expiry time."""
+    with _cache_lock:
+        # Check if cache is full and remove oldest entry if needed
+        if len(cache) >= max_size:
+            # Find and remove oldest entry (lowest expiry time)
+            oldest_key = min(cache.keys(), key=lambda k: cache[k][1])
+            del cache[oldest_key]
+            
+        # Calculate expiry time and store
+        expiry = time.time() + ttl_seconds
         
-        logging.debug(f"Embedding cache cleanup: removed {len(expired_keys)} expired entries. Current size: {len(_embedding_cache)}")
+        # Use pickle to store more complex objects
+        try:
+            # Attempt to pickle to verify serializability
+            pickle.dumps(value)
+            cache[key] = (value, expiry)
+        except (pickle.PickleError, TypeError) as e:
+            logging.warning(f"Value not cache-able: {str(e)}")
+            # For non-serializable objects, don't cache
+            return
