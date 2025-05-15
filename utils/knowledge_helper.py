@@ -10,6 +10,7 @@ import numpy as np
 from datetime import datetime
 from openai import OpenAI
 from sqlalchemy import desc
+from utils.cache_helper import cache_result, get_cached_embedding, cache_embedding
 
 # Import db and models within functions to avoid circular imports
 # These will be imported when needed
@@ -40,6 +41,7 @@ _embedding_dimension = 1536  # Default for text-embedding-ada-002
 def get_embedding_for_text(text):
     """
     Generate an embedding for the given text using OpenAI's embedding model.
+    With caching to reduce API calls.
     
     Args:
         text (str): The text to embed
@@ -47,6 +49,12 @@ def get_embedding_for_text(text):
     Returns:
         numpy.ndarray: The embedding vector
     """
+    # Check if we have a cached embedding for this text
+    cached_embedding = get_cached_embedding(text)
+    if cached_embedding is not None:
+        logging.info("Using cached embedding")
+        return cached_embedding
+    
     try:
         logging.info(f"Generating embedding using OpenAI API (API key starts with: {openai_api_key[:8]}...)")
         
@@ -59,7 +67,12 @@ def get_embedding_for_text(text):
             )
             embedding = response.data[0].embedding
             logging.info(f"Successfully generated embedding of size {len(embedding)}")
-            return np.array(embedding, dtype=np.float32)
+            embedding_array = np.array(embedding, dtype=np.float32)
+            
+            # Cache the embedding for future use
+            cache_embedding(text, embedding_array)
+            
+            return embedding_array
         else:
             # Due to API quota limits, using fallback approach for demo purposes
             logging.warning("Using fallback embedding due to API quota limits")
@@ -75,6 +88,10 @@ def get_embedding_for_text(text):
             pseudo_embedding = np.array([random.uniform(-1, 1) for _ in range(1536)], dtype=np.float32)
             # Normalize to unit length like real embeddings
             pseudo_embedding = pseudo_embedding / np.linalg.norm(pseudo_embedding)
+            
+            # Cache the embedding for future use
+            cache_embedding(text, pseudo_embedding)
+            
             return pseudo_embedding
     except Exception as e:
         logging.error(f"Error generating embedding: {str(e)}")
@@ -98,7 +115,13 @@ def add_to_knowledge_base(content, user_id=None, source="conversation"):
     from models import KnowledgeBase
     
     try:
-        # Generate embedding
+        # Check for duplicates before generating embedding (to save resources)
+        existing = KnowledgeBase.query.filter_by(content=content).first()
+        if existing:
+            logging.info("Duplicate content found, skipping addition to knowledge base")
+            return existing
+        
+        # Generate embedding (will use cached embedding if available)
         embedding = get_embedding_for_text(content)
         
         # Create new knowledge entry
@@ -120,9 +143,12 @@ def add_to_knowledge_base(content, user_id=None, source="conversation"):
         logging.error(f"Error adding to knowledge base: {str(e)}")
         return None
 
+# Cache knowledge base queries for 15 minutes
+@cache_result(ttl_seconds=900)
 def query_knowledge_base(question, user_id=None, top_k=3, similarity_threshold=0.75):
     """
     Search the knowledge base for entries similar to the question.
+    Uses caching to reduce repeated computations.
     
     Args:
         question (str): The query
@@ -134,19 +160,26 @@ def query_knowledge_base(question, user_id=None, top_k=3, similarity_threshold=0
         list: List of (entry, similarity) tuples for matching entries
     """
     try:
-        # Generate query embedding
+        # Import here to avoid circular imports
+        from app import db
+        from models import KnowledgeBase
+        
+        # Generate query embedding (will use cached embedding if available)
         query_embedding = get_embedding_for_text(question)
         
-        # Get all knowledge entries (could be optimized with an index)
-        query = KnowledgeBase.query
+        # Optimize database query: get only IDs first to reduce data transfer
+        query = KnowledgeBase.query.with_entities(KnowledgeBase.id)
         if user_id:
             # Include both user-specific and global knowledge
             query = query.filter((KnowledgeBase.user_id == user_id) | (KnowledgeBase.user_id == None))
         
-        entries = query.all()
-        if not entries:
+        entry_ids = [id for (id,) in query.all()]
+        if not entry_ids:
             return []
             
+        # Batch fetch entries to reduce database load
+        entries = KnowledgeBase.query.filter(KnowledgeBase.id.in_(entry_ids)).all()
+        
         # Compute similarity for each entry
         results = []
         for entry in entries:
@@ -180,21 +213,27 @@ def query_knowledge_base(question, user_id=None, top_k=3, similarity_threshold=0
                 effective_threshold = 0.1  # Lower threshold for pseudo-embeddings
                 if similarity >= effective_threshold:
                     results.append((entry, float(similarity)))
-                    # Update access metrics
-                    entry.increment_access()
                     
             except Exception as e:
                 logging.error(f"Error computing similarity for entry {entry.id}: {str(e)}")
                 continue
         
-        # Sort by similarity and return top_k
+        # Sort by similarity and get top_k
         results.sort(key=lambda x: x[1], reverse=True)
+        top_results = results[:top_k]
         
-        # Commit the access metric updates
-        db.session.commit()
+        # Update access metrics outside the cache (we don't want to cache this part)
+        try:
+            for entry, _ in top_results:
+                entry.increment_access()
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f"Error updating access metrics: {str(e)}")
         
-        return results[:top_k]
+        return top_results
     except Exception as e:
+        from app import db
         db.session.rollback()
         logging.error(f"Error querying knowledge base: {str(e)}")
         return []
