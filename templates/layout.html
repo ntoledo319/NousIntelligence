@@ -124,45 +124,71 @@
                         </a>
                     </li>
                     
-                    {% if 'google_creds' not in session %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('authorize_google') }}" data-bs-toggle="tooltip" title="Connect Google services">
-                            <i class="fab fa-google me-1"></i>
-                            <span class="d-none d-lg-inline">Connect Google</span>
-                        </a>
-                    </li>
+                    {% if current_user.is_authenticated %}
+                        {% if 'google_creds' not in session %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('authorize_google') }}" data-bs-toggle="tooltip" title="Connect Google services">
+                                <i class="fab fa-google me-1"></i>
+                                <span class="d-none d-lg-inline">Connect Google</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% if 'spotify_user' not in session %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('authorize_spotify') }}" data-bs-toggle="tooltip" title="Connect Spotify">
+                                <i class="fab fa-spotify me-1"></i>
+                                <span class="d-none d-lg-inline">Connect Spotify</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                {% if current_user.profile_image_url %}
+                                    <img src="{{ current_user.profile_image_url }}" alt="Profile" class="rounded-circle me-1" style="width: 24px; height: 24px; object-fit: cover;">
+                                {% else %}
+                                    <i class="fas fa-user-circle me-1"></i>
+                                {% endif %}
+                                <span class="d-none d-lg-inline">{{ current_user.first_name or 'Account' }}</span>
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="userDropdown">
+                                <li>
+                                    <span class="dropdown-item-text text-muted">
+                                        <small>{{ current_user.email }}</small>
+                                    </span>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('clear_log') }}">
+                                    <i class="fas fa-broom me-2"></i>Clear Log</a>
+                                </li>
+                                <li><a class="dropdown-item" href="{{ url_for('replit_auth.logout') }}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout</a>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item" id="themeToggle">
+                                        <i class="fas fa-moon me-2 theme-icon-dark"></i>
+                                        <i class="fas fa-sun me-2 theme-icon-light d-none"></i>
+                                        Toggle Theme
+                                    </button>
+                                </li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('replit_auth.login') }}" data-bs-toggle="tooltip" title="Log in">
+                                <i class="fas fa-sign-in-alt me-1"></i>
+                                <span class="d-none d-lg-inline">Login</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" id="themeToggle">
+                                <i class="fas fa-moon me-1 theme-icon-dark"></i>
+                                <i class="fas fa-sun me-1 theme-icon-light d-none"></i>
+                                <span class="d-none d-lg-inline">Theme</span>
+                            </button>
+                        </li>
                     {% endif %}
-                    
-                    {% if 'spotify_user' not in session %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('authorize_spotify') }}" data-bs-toggle="tooltip" title="Connect Spotify">
-                            <i class="fab fa-spotify me-1"></i>
-                            <span class="d-none d-lg-inline">Connect Spotify</span>
-                        </a>
-                    </li>
-                    {% endif %}
-                    
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user-circle me-1"></i>
-                            <span class="d-none d-lg-inline">Account</span>
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('clear_log') }}">
-                                <i class="fas fa-broom me-2"></i>Clear Log</a>
-                            </li>
-                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">
-                                <i class="fas fa-sign-out-alt me-2"></i>Logout</a>
-                            </li>
-                            <li>
-                                <button class="dropdown-item" id="themeToggle">
-                                    <i class="fas fa-moon me-2 theme-icon-dark"></i>
-                                    <i class="fas fa-sun me-2 theme-icon-light d-none"></i>
-                                    Toggle Theme
-                                </button>
-                            </li>
-                        </ul>
-                    </li>
                 </ul>
             </div>
         </div>
@@ -214,9 +240,15 @@
                         <a href="{{ url_for('clear_log') }}" class="text-muted me-3">
                             <i class="fas fa-broom"></i>
                         </a>
-                        <a href="{{ url_for('logout') }}" class="text-muted">
+                        {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('replit_auth.logout') }}" class="text-muted">
                             <i class="fas fa-sign-out-alt"></i>
                         </a>
+                        {% else %}
+                        <a href="{{ url_for('replit_auth.login') }}" class="text-muted">
+                            <i class="fas fa-sign-in-alt"></i>
+                        </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>

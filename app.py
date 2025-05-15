@@ -114,6 +114,11 @@ OPENROUTER_KEY = os.environ.get("OPENROUTER_API_KEY")
 @app.route("/", methods=["GET", "POST"])
 def index():
     """Main entry point and command UI"""
+    # Check if user is authenticated
+    if not current_user.is_authenticated:
+        # Show a special landing page for non-authenticated users
+        return render_template("login.html")
+        
     if request.method == "GET":
         # Check if there's a command in the query parameters (from dashboard links)
         cmd_from_query = request.args.get("cmd")
