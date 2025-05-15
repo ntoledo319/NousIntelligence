@@ -8,7 +8,8 @@ from utils.ai_helper import parse_natural_language
 from utils.google_helper import create_calendar_event
 from utils.weather_helper import (
     get_current_weather, get_weather_forecast, get_location_coordinates,
-    format_weather_output, format_forecast_output
+    format_weather_output, format_forecast_output, get_pressure_trend,
+    calculate_pain_flare_risk, get_storm_severity, format_pain_forecast_output
 )
 
 # Import doctor appointment helpers
