@@ -282,28 +282,288 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
                 
     # Spotify commands
     elif cmd.startswith("play ") and spotify:
-        query = cmd[5:].strip()
-        if not query:
-            log.append("❌ Please specify what to play.")
-        else:
-            try:
-                # Check if devices are available
-                devices = spotify.devices()
-                if not devices or not devices.get('devices'):
-                    log.append("⚠️ No active Spotify devices found. Please open Spotify on a device first.")
-                else:
-                    # Search for the track
-                    results = spotify.search(q=query, type='track', limit=1)
-                    if not results['tracks']['items']:
-                        log.append(f"❌ No tracks found for '{query}'")
-                    else:
-                        track = results['tracks']['items'][0]
-                        spotify.start_playback(uris=[track['uri']])
-                        log.append(f"▶️ Playing '{track['name']}' by {track['artists'][0]['name']}")
-            except Exception as e:
-                logging.error(f"Error playing music: {str(e)}")
-                log.append(f"❌ Error playing music: {str(e)}")
+        # Check for specific types of playback commands
+        if cmd.startswith("play artist "):
+            # Play an artist's top tracks
+            artist_name = cmd[12:].strip()
+            if not artist_name:
+                log.append("❌ Please specify an artist to play.")
+            else:
+                from utils.spotify_helper import play_artist
+                log.append(play_artist(spotify, artist_name))
                 
+        elif cmd.startswith("play album "):
+            # Play an album
+            album_name = cmd[11:].strip()
+            if not album_name:
+                log.append("❌ Please specify an album to play.")
+            else:
+                from utils.spotify_helper import play_album
+                log.append(play_album(spotify, album_name))
+                
+        elif cmd.startswith("play playlist "):
+            # Play a playlist
+            playlist_name = cmd[14:].strip()
+            if not playlist_name:
+                log.append("❌ Please specify a playlist to play.")
+            else:
+                from utils.spotify_helper import play_playlist
+                log.append(play_playlist(spotify, playlist_name))
+                
+        else:
+            # Default: play a track
+            query = cmd[5:].strip()
+            if not query:
+                log.append("❌ Please specify what to play.")
+            else:
+                from utils.spotify_helper import play_track
+                log.append(play_track(spotify, query))
+    
+    # Spotify playback control commands
+    elif cmd == "pause" and spotify:
+        from utils.spotify_helper import pause_playback
+        log.append(pause_playback(spotify))
+        
+    elif cmd in ["resume", "continue"] and spotify:
+        from utils.spotify_helper import resume_playback
+        log.append(resume_playback(spotify))
+        
+    elif cmd in ["next", "skip"] and spotify:
+        from utils.spotify_helper import skip_track
+        log.append(skip_track(spotify))
+        
+    elif cmd in ["previous", "prev", "back"] and spotify:
+        from utils.spotify_helper import previous_track
+        log.append(previous_track(spotify))
+        
+    elif cmd.startswith("volume ") and spotify:
+        try:
+            vol = int(cmd[7:].strip())
+            from utils.spotify_helper import set_volume
+            log.append(set_volume(spotify, vol))
+        except ValueError:
+            log.append("❌ Please specify a volume level between 0 and 100.")
+            
+    elif cmd == "shuffle" and spotify:
+        from utils.spotify_helper import toggle_shuffle
+        log.append(toggle_shuffle(spotify))
+        
+    elif cmd == "repeat" and spotify:
+        from utils.spotify_helper import toggle_repeat
+        log.append(toggle_repeat(spotify))
+        
+    elif cmd in ["now playing", "current song", "what's playing"] and spotify:
+        from utils.spotify_helper import get_currently_playing
+        log.append(get_currently_playing(spotify))
+    
+    # Spotify playlist management
+    elif cmd.startswith("create playlist ") and spotify:
+        parts = cmd[16:].strip().split(" - ", 1)
+        playlist_name = parts[0].strip()
+        description = parts[1].strip() if len(parts) > 1 else None
+        
+        if not playlist_name:
+            log.append("❌ Please specify a name for the playlist.")
+        else:
+            from utils.spotify_helper import create_playlist
+            log.append(create_playlist(spotify, playlist_name, description=description))
+            
+    elif cmd.startswith("add to playlist ") and spotify:
+        # Format: add to playlist <playlist_name> - <track_name>
+        parts = cmd[16:].strip().split(" - ", 1)
+        if len(parts) < 2:
+            log.append("❌ Please use format: add to playlist <playlist_name> - <track_name>")
+        else:
+            playlist_name = parts[0].strip()
+            track_query = parts[1].strip()
+            
+            if not playlist_name or not track_query:
+                log.append("❌ Please specify both playlist name and track to add.")
+            else:
+                from utils.spotify_helper import search_and_add_to_playlist
+                log.append(search_and_add_to_playlist(spotify, playlist_name, track_query))
+                
+    elif cmd.startswith("recommend ") and spotify:
+        query = cmd[10:].strip()
+        if not query:
+            log.append("❌ Please specify what kind of music you'd like recommended.")
+        else:
+            from utils.spotify_helper import get_recommendations
+            # Use the search term as a seed track
+            results = spotify.search(q=query, type='track,artist', limit=1)
+            seed_tracks = []
+            seed_artists = []
+            
+            if results['tracks']['items']:
+                seed_tracks.append(results['tracks']['items'][0]['id'])
+            if results['artists']['items']:
+                seed_artists.append(results['artists']['items'][0]['id'])
+                
+            if not seed_tracks and not seed_artists:
+                log.append(f"❌ No tracks or artists found for '{query}'")
+            else:
+                log.append(get_recommendations(spotify, seed_artists=seed_artists, seed_tracks=seed_tracks))
+    
+    elif cmd.startswith("create recommendations playlist ") and spotify:
+        parts = cmd[31:].strip().split(" - ", 1)
+        if len(parts) < 2:
+            log.append("❌ Please use format: create recommendations playlist <name> - <based on...>")
+        else:
+            playlist_name = parts[0].strip()
+            seed_description = parts[1].strip()
+            
+            if not playlist_name or not seed_description:
+                log.append("❌ Please specify both playlist name and what it should be based on.")
+            else:
+                from utils.spotify_helper import create_recommendations_playlist
+                log.append(create_recommendations_playlist(spotify, playlist_name, seed_description))
+    
+    elif cmd.startswith("mood playlist ") and spotify:
+        parts = cmd[14:].strip().split(" - ", 1)
+        mood = parts[0].strip().lower()
+        playlist_name = parts[1].strip() if len(parts) > 1 else None
+        
+        if not mood:
+            log.append("❌ Please specify a mood (happy, sad, energetic, relaxed, workout, focus, party, sleep).")
+        else:
+            from utils.spotify_helper import create_mood_playlist
+            log.append(create_mood_playlist(spotify, mood, playlist_name))
+            
+    elif cmd == "my playlists" and spotify:
+        from utils.spotify_helper import get_user_playlists
+        log.append(get_user_playlists(spotify))
+    
+    # Spotify user profile and stats
+    elif cmd in ["my top tracks", "top tracks"] and spotify:
+        from utils.spotify_helper import get_top_tracks
+        log.append(get_top_tracks(spotify))
+        
+    elif cmd.startswith("my top tracks ") and spotify:
+        time_range = cmd[13:].strip().lower()
+        valid_ranges = {"recent": "short_term", "all time": "long_term", "overall": "medium_term"}
+        time_range = valid_ranges.get(time_range, "medium_term")
+        
+        from utils.spotify_helper import get_top_tracks
+        log.append(get_top_tracks(spotify, time_range=time_range))
+        
+    elif cmd in ["my top artists", "top artists"] and spotify:
+        from utils.spotify_helper import get_top_artists
+        log.append(get_top_artists(spotify))
+        
+    elif cmd.startswith("my top artists ") and spotify:
+        time_range = cmd[14:].strip().lower()
+        valid_ranges = {"recent": "short_term", "all time": "long_term", "overall": "medium_term"}
+        time_range = valid_ranges.get(time_range, "medium_term")
+        
+        from utils.spotify_helper import get_top_artists
+        log.append(get_top_artists(spotify, time_range=time_range))
+        
+    elif cmd in ["recently played", "my recent tracks"] and spotify:
+        from utils.spotify_helper import get_recently_played
+        log.append(get_recently_played(spotify))
+        
+    elif cmd in ["my albums", "saved albums"] and spotify:
+        from utils.spotify_helper import get_saved_albums
+        log.append(get_saved_albums(spotify))
+        
+    elif cmd in ["followed artists", "artists i follow"] and spotify:
+        from utils.spotify_helper import get_followed_artists
+        log.append(get_followed_artists(spotify))
+        
+    elif cmd in ["music stats", "my listening stats", "spotify stats"] and spotify:
+        from utils.spotify_helper import get_listening_stats
+        log.append(get_listening_stats(spotify))
+    
+    # Spotify music discovery
+    elif cmd in ["new releases", "new music"] and spotify:
+        from utils.spotify_helper import get_new_releases
+        log.append(get_new_releases(spotify))
+        
+    elif cmd.startswith("similar artists to ") and spotify:
+        artist_name = cmd[18:].strip()
+        if not artist_name:
+            log.append("❌ Please specify an artist to find similar ones.")
+        else:
+            from utils.spotify_helper import discover_similar_artists
+            log.append(discover_similar_artists(spotify, artist_name))
+            
+    elif cmd in ["featured playlists", "spotify featured"] and spotify:
+        from utils.spotify_helper import get_featured_playlists
+        log.append(get_featured_playlists(spotify))
+        
+    elif cmd.startswith("category playlists ") and spotify:
+        category = cmd[19:].strip()
+        if not category:
+            log.append("❌ Please specify a category to browse playlists.")
+        else:
+            from utils.spotify_helper import get_category_playlists
+            log.append(get_category_playlists(spotify, category))
+            
+    elif cmd.startswith("analyze track ") and spotify:
+        track_name = cmd[14:].strip()
+        if not track_name:
+            log.append("❌ Please specify a track to analyze.")
+        else:
+            from utils.spotify_helper import get_track_audio_features
+            log.append(get_track_audio_features(spotify, track_name))
+    
+    # Spotify social features
+    elif cmd.startswith("follow artist ") and spotify:
+        artist_name = cmd[14:].strip()
+        if not artist_name:
+            log.append("❌ Please specify an artist to follow.")
+        else:
+            from utils.spotify_helper import follow_artist
+            log.append(follow_artist(spotify, artist_name))
+            
+    elif cmd.startswith("unfollow artist ") and spotify:
+        artist_name = cmd[16:].strip()
+        if not artist_name:
+            log.append("❌ Please specify an artist to unfollow.")
+        else:
+            from utils.spotify_helper import unfollow_artist
+            log.append(unfollow_artist(spotify, artist_name))
+            
+    elif cmd.startswith("share track ") and spotify:
+        track_name = cmd[12:].strip()
+        if not track_name:
+            log.append("❌ Please specify a track to share.")
+        else:
+            from utils.spotify_helper import share_track
+            log.append(share_track(spotify, track_name))
+    
+    # Spotify context-specific playlists
+    elif cmd.startswith("travel playlist ") and spotify:
+        parts = cmd[16:].strip().split(" - ", 1)
+        destination = parts[0].strip()
+        playlist_name = parts[1].strip() if len(parts) > 1 else None
+        
+        if not destination:
+            log.append("❌ Please specify a travel destination.")
+        else:
+            from utils.spotify_helper import create_travel_playlist
+            log.append(create_travel_playlist(spotify, destination, playlist_name))
+            
+    elif cmd.startswith("workout playlist ") and spotify:
+        parts = cmd[17:].strip().split(" - ", 1)
+        workout_type = parts[0].strip().lower()
+        duration = 45  # Default duration
+        
+        # Check if there's a duration specified
+        if len(parts) > 1 and parts[1].strip().isdigit():
+            duration = int(parts[1].strip())
+        elif len(parts) > 1 and "min" in parts[1].lower():
+            try:
+                duration = int(parts[1].lower().replace("min", "").strip())
+            except ValueError:
+                duration = 45
+        
+        if not workout_type:
+            log.append("❌ Please specify a workout type (cardio, hiit, strength, yoga, running).")
+        else:
+            from utils.spotify_helper import create_workout_playlist
+            log.append(create_workout_playlist(spotify, workout_type, duration))
+    
     # Auth commands
     elif cmd == "connect spotify":
         result["redirect"] = url_for("authorize_spotify")
