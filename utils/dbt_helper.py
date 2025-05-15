@@ -2,6 +2,7 @@ import os
 import logging
 import requests
 import json
+import time
 from flask import session
 from datetime import datetime
 from models import (
@@ -13,26 +14,50 @@ from models import (
 
 # OpenRouter API configuration
 OPENROUTER_KEY = os.environ.get("OPENROUTER_KEY")
+
+# Fix for mismatched key format - the key may have been provided as OPENAI_API_KEY
+if not OPENROUTER_KEY:
+    openai_key = os.environ.get("OPENAI_API_KEY")
+    if openai_key and openai_key.startswith("sk-or-"):
+        OPENROUTER_KEY = openai_key
+        logging.info("Using OpenAI API key as OpenRouter key because it has the OpenRouter format")
+
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 # Model configuration for different tasks to balance quality and cost
 MODELS = {
-    # High-capability models for complex reasoning tasks
+    # High-capability models for complex reasoning tasks (therapeutic recommendations, crisis support)
     "high_capability": "gpt-4o",  # Best quality for complex tasks
     
-    # Medium-capability models for standard tasks
+    # Medium-capability models for standard tasks (diary analysis, basic recommendations)
     "medium_capability": "gpt-4o-mini",  # Good balance of quality and cost
     
-    # Lower-cost models for simpler tasks
+    # Lower-cost models for simpler tasks (skill categorization, basic responses)
     "basic_capability": "meta-llama/llama-3-8b-instruct",  # Cost-effective for simple tasks
     
     # Default model if none specified
     "default": "gpt-4o-mini"
 }
 
-# Check OpenRouter availability
+# Tracking rate limits with proper type for dict access
+class RateLimitTracker:
+    def __init__(self):
+        self.last_429 = 0  # timestamp of last 429 error
+        self.backoff_time = 5  # seconds to wait after a 429
+        self.consecutive_errors = 0  # count of consecutive errors
+
+RATE_LIMIT_TRACKING = RateLimitTracker()
+
+# Max consecutive errors before moving to a simpler model
+MAX_CONSECUTIVE_ERRORS = 3
+
+# Log configuration
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("dbt_helper")
+
+# Check API key
 if not OPENROUTER_KEY:
-    logging.warning("No OpenRouter API key found. AI features will be limited.")
+    logger.warning("No OpenRouter API key found. AI features will be limited.")
 
 # ——— DETAILED PROMPT TEMPLATES ———
 PROMPTS = {
@@ -170,28 +195,45 @@ def call_router(prompt_key, capability_level="medium_capability", **kwargs):
     if not OPENROUTER_KEY:
         return {"error": "OpenRouter API key not configured"}
         
+    # Format the prompt with the provided arguments
     try:
-        # Format the prompt with the provided arguments
         prompt = PROMPTS[prompt_key].format(**kwargs)
-        
-        # Select appropriate model based on task complexity
-        model = MODELS.get(capability_level, MODELS["default"])
-        
-        # Prepare the request
-        headers = {
-            "Authorization": f"Bearer {OPENROUTER_KEY}",
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://nous.chat",  # Identify your application
-            "X-Title": "NOUS DBT Assistant"  # Add context about your application
-        }
-        
-        data = {
-            "model": model,
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.7,
-            "max_tokens": 1000  # Adjust based on expected response length
-        }
-        
+    except KeyError:
+        logger.error(f"Prompt key '{prompt_key}' not found in PROMPTS")
+        return {"error": f"Unknown prompt type: {prompt_key}"}
+    except Exception as e:
+        logger.error(f"Error formatting prompt: {str(e)}")
+        return {"error": f"Error formatting prompt: {str(e)}"}
+    
+    # Check if we're in a backoff period
+    time_since_429 = time.time() - RATE_LIMIT_TRACKING["last_429"]
+    if time_since_429 < RATE_LIMIT_TRACKING["backoff_time"]:
+        wait_time = RATE_LIMIT_TRACKING["backoff_time"] - time_since_429
+        logger.info(f"Rate limit backoff. Waiting {wait_time:.2f}s")
+        time.sleep(wait_time)
+    
+    # Select appropriate model based on task complexity
+    model = MODELS.get(capability_level, MODELS["default"])
+    
+    # Prepare the request
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_KEY}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://nous.chat",  # Identify your application
+        "X-Title": "NOUS DBT Assistant"  # Add context about your application
+    }
+    
+    data = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.7,
+        "max_tokens": 1000  # Adjust based on expected response length
+    }
+    
+    # Log which model we're using (helps to understand costs)
+    logger.info(f"Using model: {model} for capability level: {capability_level}")
+    
+    try:
         # Call the API
         response = requests.post(
             OPENROUTER_API_URL,
@@ -203,18 +245,30 @@ def call_router(prompt_key, capability_level="medium_capability", **kwargs):
         # Check for errors and handle them appropriately
         if response.status_code != 200:
             error_message = f"OpenRouter API error: {response.status_code}"
+            
+            # Track consecutive errors
+            RATE_LIMIT_TRACKING["consecutive_errors"] += 1
+            
+            # Handle rate limits
+            if response.status_code == 429:
+                RATE_LIMIT_TRACKING["last_429"] = time.time()
+                # Increase backoff time exponentially (as integers)
+                current_backoff = RATE_LIMIT_TRACKING["backoff_time"]
+                RATE_LIMIT_TRACKING["backoff_time"] = int(current_backoff * 2)
+                error_message += " (Rate limited)"
+            
             try:
                 error_detail = response.json()
                 error_message += f" - {error_detail.get('error', {}).get('message', '')}"
             except:
                 pass
                 
-            logging.error(error_message)
+            logger.error(error_message)
             
-            # If we get a 429 or 500+ error, try with a simpler model
+            # Try with a simpler model if we're getting errors and not already using basic capability
             if response.status_code in [429] or response.status_code >= 500:
                 if capability_level != "basic_capability":
-                    logging.info(f"Rate limited or server error, trying with basic capability model")
+                    logger.info(f"Rate limited or server error, trying with basic capability model")
                     return call_router(prompt_key, "basic_capability", **kwargs)
             
             return {"error": error_message}
@@ -222,19 +276,33 @@ def call_router(prompt_key, capability_level="medium_capability", **kwargs):
         # Parse the successful response
         result = response.json()
         
+        # Reset consecutive errors counter on success
+        RATE_LIMIT_TRACKING["consecutive_errors"] = 0
+        
+        # If the backoff time has grown, reduce it gradually (as integers)
+        if RATE_LIMIT_TRACKING["backoff_time"] > 5:
+            current_backoff = RATE_LIMIT_TRACKING["backoff_time"]
+            RATE_LIMIT_TRACKING["backoff_time"] = max(5, int(current_backoff / 2))
+        
         if not result.get("choices"):
-            logging.error("No response from LLM")
+            logger.error("No response from LLM")
             return {"error": "No response received from language model"}
             
         return {"response": result["choices"][0]["message"]["content"].strip()}
         
     except Exception as e:
-        logging.error(f"Error calling OpenRouter: {str(e)}")
+        error_message = f"Error calling OpenRouter: {str(e)}"
+        logger.error(error_message)
+        
+        # Track consecutive errors
+        RATE_LIMIT_TRACKING["consecutive_errors"] += 1
+        
         # Attempt fallback to a different model if available
         if capability_level != "basic_capability":
-            logging.info(f"Attempting fallback to basic capability model")
+            logger.info(f"Attempting fallback to basic capability model")
             return call_router(prompt_key, "basic_capability", **kwargs)
-        return {"error": f"Error: {str(e)}"}
+            
+        return {"error": error_message}
 
 
 # Database interaction functions
@@ -532,69 +600,29 @@ def extract_situation_types(situations, max_types=3):
         return ["general"]
 
 
-def call_router_direct(prompt, capability_level="medium_capability"):
+def call_router_direct(prompt, capability_level="medium_capability", force_provider=None):
     """
     Simple version of call_router for internal use
     
     Args:
         prompt: The prompt to send to the model
         capability_level: Level of model capability required for task
+        force_provider: Force the use of a specific provider ("openrouter" or "openai")
         
     Returns:
         str: Model response text or None if failed
     """
-    if not OPENROUTER_KEY:
-        return None
-        
-    try:
-        # Select appropriate model based on task complexity
-        model = MODELS.get(capability_level, MODELS["default"])
-        
-        headers = {
-            "Authorization": f"Bearer {OPENROUTER_KEY}",
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://nous.chat",
-            "X-Title": "NOUS DBT Assistant"
-        }
-        
-        data = {
-            "model": model,
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.7,
-            "max_tokens": 1000
-        }
-        
-        response = requests.post(
-            OPENROUTER_API_URL,
-            headers=headers,
-            json=data,
-            timeout=30
-        )
-        
-        if response.status_code != 200:
-            logging.warning(f"OpenRouter API error: {response.status_code}")
-            
-            # Try with a simpler model if we hit rate limits or server errors
-            if (response.status_code in [429] or response.status_code >= 500) and capability_level != "basic_capability":
-                logging.info("Attempting fallback to basic capability model")
-                return call_router_direct(prompt, "basic_capability")
-                
-            return None
-            
-        result = response.json()
-        
-        if not result.get("choices"):
-            return None
-            
-        return result["choices"][0]["message"]["content"].strip()
-        
-    except Exception as e:
-        logging.error(f"Error in direct router call: {str(e)}")
-        # Try with a simpler model if we encounter an error
-        if capability_level != "basic_capability":
-            logging.info("Attempting fallback to basic capability model after exception")
-            return call_router_direct(prompt, "basic_capability")
-        return None
+    # Use our main router but with a direct prompt
+    custom_data = {"direct_prompt": prompt}
+    result = call_router("direct", capability_level, force_provider, **custom_data)
+    
+    if result and "response" in result:
+        return result["response"]
+    return None
+
+
+# Add the direct prompt handler to our PROMPTS dictionary
+PROMPTS["direct"] = "{direct_prompt}"
 
 
 def get_skill_recommendations(session_obj, situation_description=None, limit=5):
