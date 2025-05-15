@@ -204,7 +204,8 @@ def view_feedback(feedback_id):
     
     return render_template('beta/view_feedback.html', 
                          feedback=feedback, 
-                         tester=tester)
+                         tester=tester,
+                         is_admin=current_user.is_administrator())
 
 # Admin: Update feedback status
 @beta_bp.route('/feedback/<int:feedback_id>/status', methods=['POST'])
@@ -220,13 +221,13 @@ def update_feedback_status(feedback_id):
     
     # Update status
     status = request.form.get('status')
-    resolution_notes = request.form.get('resolution_notes')
+    admin_notes = request.form.get('admin_notes')
     
     if status:
         feedback.status = status
         
-    if resolution_notes:
-        feedback.resolution_notes = resolution_notes
+    if admin_notes:
+        feedback.admin_notes = admin_notes
         
     db.session.commit()
     
