@@ -11,6 +11,10 @@ from utils.spotify_helper import get_spotify_client
 from utils.scraper import scrape_aa_reflection
 from utils.command_parser import parse_command
 from utils.logger import log_workout, log_mood
+from utils.weather_helper import (
+    get_current_weather, get_weather_forecast, get_location_coordinates,
+    format_weather_output, format_forecast_output
+)
 from utils.doctor_appointment_helper import (
     get_doctors, get_doctor_by_id, get_doctor_by_name, 
     add_doctor, update_doctor, delete_doctor,

@@ -443,3 +443,30 @@ class PackingItem(db.Model):
             'is_packed': self.is_packed,
             'notes': self.notes
         }
+
+
+class WeatherLocation(db.Model):
+    """Model for storing saved weather locations"""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)  # User-provided name for this location
+    display_name = db.Column(db.String(255))  # Full formatted location name from API
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
+    is_primary = db.Column(db.Boolean, default=False)  # If this is the user's main location
+    units = db.Column(db.String(20), default="imperial")  # imperial or metric
+    user_id = db.Column(db.String(255))  # User identifier (from session)
+    added_date = db.Column(db.DateTime, default=datetime.utcnow)
+    last_accessed = db.Column(db.DateTime)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'display_name': self.display_name,
+            'latitude': self.latitude,
+            'longitude': self.longitude,
+            'is_primary': self.is_primary,
+            'units': self.units,
+            'added_date': self.added_date.isoformat() if self.added_date else None,
+            'last_accessed': self.last_accessed.isoformat() if self.last_accessed else None
+        }
