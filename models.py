@@ -22,11 +22,28 @@ class User(UserMixin, db.Model):
     first_name = db.Column(db.String, nullable=True)
     last_name = db.Column(db.String, nullable=True)
     profile_image_url = db.Column(db.String, nullable=True)
+    is_admin = db.Column(db.Boolean, default=False)
+    account_active = db.Column(db.Boolean, default=True)  # Renamed to avoid conflict with UserMixin
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationship with user settings
     settings = db.relationship('UserSettings', backref='user', uselist=False, cascade="all, delete-orphan")
+    
+    def is_administrator(self):
+        """Check if user has admin privileges"""
+        return self.is_admin
+    
+    # Override UserMixin's is_active property to use our account_active field
+    @property
+    def is_active(self):
+        """Return whether the user account is active"""
+        return self.account_active
+    
+    @is_active.setter
+    def is_active(self, value):
+        """Set whether the user account is active"""
+        self.account_active = value
 
 # UserSettings model to store user preferences
 class UserSettings(db.Model):

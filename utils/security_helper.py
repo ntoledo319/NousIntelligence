@@ -219,3 +219,35 @@ def log_security_event(event_type, details, severity="INFO"):
         getattr(logging, severity, logging.INFO),
         f"SECURITY EVENT - {event_type}: User={user_id}, IP={ip}, Details={details}"
     )
+
+def admin_required(f):
+    """Decorator to ensure a route is only accessible to admin users"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            flash("Please log in to access this page.", "warning")
+            return redirect(url_for('replit_auth.login'))
+        
+        if not current_user.is_administrator():
+            log_security_event("UNAUTHORIZED_ACCESS", 
+                              f"Non-admin user attempted to access admin page: {request.path}",
+                              severity="WARNING")
+            abort(403)
+            
+        return f(*args, **kwargs)
+    return decorated_function
+
+def set_admin_status(user_email, admin_status=True):
+    """Set a user's admin status by email"""
+    from models import User
+    from app import db
+    
+    user = User.query.filter_by(email=user_email).first()
+    if user:
+        user.is_admin = admin_status
+        db.session.commit()
+        log_security_event("ADMIN_STATUS_CHANGE", 
+                          f"Admin status for {user_email} set to {admin_status}",
+                          severity="WARNING")
+        return True
+    return False
