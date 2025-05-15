@@ -153,19 +153,24 @@ def improve_list(list_id):
     # Add suggested missing items to the list
     for item in improvement_suggestions.get('suggested_additions', []):
         # Check if item already exists
+        item_name = item.get('name', '') if isinstance(item, dict) else ''
         existing = ShoppingItem.query.filter_by(
             shopping_list_id=list_id, 
-            name=item['name']
+            name=item_name
         ).first()
         
         if not existing:
-            new_item = ShoppingItem(
-                name=item['name'],
-                category=item['category'],
-                notes="Added automatically based on shopping patterns",
-                shopping_list_id=list_id,
-                is_checked=False
-            )
+            new_item = ShoppingItem()
+            # Safely access dictionary attributes
+            if isinstance(item, dict):
+                new_item.name = item.get('name', '')
+                new_item.category = item.get('category', '')
+            else:
+                new_item.name = str(item)
+                new_item.category = "Uncategorized"
+            new_item.notes = "Added automatically based on shopping patterns"
+            new_item.shopping_list_id = list_id
+            new_item.is_checked = False
             db.session.add(new_item)
     
     db.session.commit()
@@ -215,13 +220,12 @@ def add_item(list_id):
         return redirect(url_for('smart_shopping.view_list', list_id=list_id))
         
     # Add the new item
-    new_item = ShoppingItem(
-        name=name,
-        category=category,
-        notes=notes,
-        shopping_list_id=list_id,
-        is_checked=False
-    )
+    new_item = ShoppingItem()
+    new_item.name = name
+    new_item.category = category
+    new_item.notes = notes
+    new_item.shopping_list_id = list_id
+    new_item.is_checked = False
     
     db.session.add(new_item)
     db.session.commit()

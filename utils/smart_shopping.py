@@ -215,26 +215,25 @@ def generate_medication_shopping_list(user_id):
             return {"message": "No medications need refilling", "success": False}
             
         # Create a new shopping list
-        new_list = ShoppingList(
-            name="Medication Refills",
-            description=f"Medications that need refilling ({len(medications_to_refill)} items)",
-            store="Pharmacy",
-            user_id=user_id,
-            created_at=datetime.utcnow()
-        )
+        new_list = ShoppingList()
+        new_list.name = "Medication Refills"
+        new_list.description = f"Medications that need refilling ({len(medications_to_refill)} items)"
+        new_list.store = "Pharmacy"
+        new_list.user_id = user_id
+        new_list.created_at = datetime.utcnow()
         
         db.session.add(new_list)
         db.session.flush()  # Get the new list ID without committing
         
         # Add all medications to the list
         for med_data in medications_to_refill:
-            item = ShoppingItem(
-                name=f"{med_data['name']} ({med_data['dosage']})",
-                category="Medication",
-                notes=f"Refill amount: {med_data['refill_amount']}",
-                shopping_list_id=new_list.id,
-                is_checked=False
-            )
+            item = ShoppingItem()
+            # Use dictionary access with get() method to handle potential KeyError
+            item.name = f"{med_data.get('name', '')} ({med_data.get('dosage', '')})"
+            item.category = "Medication"
+            item.notes = f"Refill amount: {med_data.get('refill_amount', '')}"
+            item.shopping_list_id = new_list.id
+            item.is_checked = False
             db.session.add(item)
             
         # Commit all changes
