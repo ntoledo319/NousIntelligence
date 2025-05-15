@@ -8,6 +8,16 @@ import dotenv
 logging.basicConfig(level=logging.INFO)
 dotenv.load_dotenv()
 
+# Manually set OpenAI API key from .env file
+env_path = '.env'
+if os.path.exists(env_path):
+    with open(env_path, 'r') as f:
+        for line in f:
+            if line.strip().startswith('OPENAI_API_KEY='):
+                key = line.strip().split('=', 1)[1]
+                logging.info(f"Found OpenAI API key in .env file, setting in environment")
+                os.environ['OPENAI_API_KEY'] = key
+
 # Print environment variables (masking sensitive parts)
 env_vars = os.environ.keys()
 for key in env_vars:

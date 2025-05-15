@@ -13,14 +13,24 @@ from app import db
 from models import KnowledgeBase, ReflectionPrompt, User
 from sqlalchemy import desc
 
-# Initialize OpenAI client
-openai_api_key = os.environ.get("OPENAI_API_KEY", "")
+# Initialize OpenAI client with key directly from .env file
+env_path = '.env'
+openai_api_key = ""
+if os.path.exists(env_path):
+    with open(env_path, 'r') as f:
+        for line in f:
+            if line.strip().startswith('OPENAI_API_KEY='):
+                openai_api_key = line.strip().split('=', 1)[1]
+                logging.info(f"Found OpenAI API key in .env file")
+                break
+
 if openai_api_key:
     logging.info(f"Using OpenAI API key (first 8 chars): {openai_api_key[:8]}")
+    # Set in environment for other modules
+    os.environ["OPENAI_API_KEY"] = openai_api_key
 else:
-    logging.warning("OpenAI API key not found")
-    
-# Make sure we're using the key from the environment
+    logging.warning("OpenAI API key not found in .env file")
+
 openai = OpenAI(api_key=openai_api_key)
 
 # Cache the model in memory
