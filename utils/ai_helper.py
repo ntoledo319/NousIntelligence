@@ -6,6 +6,23 @@ from typing import Dict, List, Any, Optional, Union, cast
 from openai import OpenAI
 from openai.types.chat import ChatCompletionMessageParam, ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam, ChatCompletionAssistantMessageParam
 
+# Import adaptive conversation utilities once here to prevent circular imports
+try:
+    from utils.adaptive_conversation import get_current_difficulty, get_difficulty_context, adapt_response
+    ADAPTIVE_CONVERSATION_ENABLED = True
+except ImportError:
+    # If adaptive_conversation module is not available, provide dummy functions
+    ADAPTIVE_CONVERSATION_ENABLED = False
+    
+    def get_current_difficulty():
+        return "intermediate"
+        
+    def get_difficulty_context():
+        return ""
+        
+    def adapt_response(response, explain_technical_terms=True):
+        return response
+
 # Initialize OpenAI client if key is present
 api_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("OPENROUTER_API_KEY")
 client = None
@@ -305,8 +322,6 @@ def handle_conversation(user_id, message, context_data=None):
     Returns:
         str: The AI assistant's response adapted to the user's preferred difficulty level
     """
-    # Import here to avoid circular imports
-    from utils.adaptive_conversation import get_difficulty_context, adapt_response
     try:
         if not client:
             return "Conversation functionality not available (missing API key)"
@@ -384,8 +399,14 @@ def handle_conversation(user_id, message, context_data=None):
             
             assistant_message = response.choices[0].message.content
             if assistant_message is not None:
-                # Add the assistant's response to conversation memory
+                # Add the original assistant's response to conversation memory
                 conversation_memory.add_message(user_id, "assistant", assistant_message)
+                
+                # Apply adaptive difficulty transformation if needed
+                if ADAPTIVE_CONVERSATION_ENABLED:
+                    adapted_message = adapt_response(assistant_message)
+                    return adapted_message
+                
                 return assistant_message
             else:
                 return "I received an empty response. Let me try to help you differently."

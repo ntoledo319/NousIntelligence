@@ -53,6 +53,12 @@
                             </a>
                         </li>
                         
+                        <li class="nav-item">
+                            <a class="nav-link py-2" href="{{ url_for('settings_page') }}">
+                                <i class="fas fa-cog me-2"></i>Settings
+                            </a>
+                        </li>
+                        
                         <li class="nav-item mb-1">
                             <div class="nav-link text-muted small py-1">FEATURES</div>
                         </li>
@@ -218,6 +224,12 @@
                         <a class="nav-link" href="{{ url_for('dashboard') }}" data-bs-toggle="tooltip" title="View dashboard">
                             <i class="fas fa-tachometer-alt me-1"></i>
                             <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('settings_page') }}" data-bs-toggle="tooltip" title="Manage settings">
+                            <i class="fas fa-cog me-1"></i>
+                            <span>Settings</span>
                         </a>
                     </li>
                     
