@@ -1,6 +1,6 @@
 from flask import session, redirect, url_for, flash
 from app import app, db
-from replit_auth import make_replit_blueprint, require_login
+from flask_login import login_required
 from flask_login import current_user, login_required
 
 # Register the Replit auth blueprint

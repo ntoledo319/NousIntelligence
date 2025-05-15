@@ -153,7 +153,7 @@ def process_command(cmd):
     if not current_user.is_authenticated:
         session["log"] = log  # Save log before redirect
         flash("Please log in to use the command interface", "info")
-        return redirect(url_for("replit_auth.login"))
+        return redirect(url_for("google_auth.login"))
     
     # Get services (try both session and database)
     try:
@@ -193,7 +193,7 @@ def dashboard():
     # Check if user is authenticated
     if not current_user.is_authenticated:
         flash("Please log in to access the dashboard", "warning")
-        return redirect(url_for("replit_auth.login"))
+        return redirect(url_for("google_auth.login"))
     
     # Check for Google services connection
     if "google_creds" not in session:
@@ -391,7 +391,7 @@ def authorize_google():
     # Require authentication
     if not current_user.is_authenticated:
         flash("Please log in first to connect your Google account", "warning")
-        return redirect(url_for("replit_auth.login"))
+        return redirect(url_for("google_auth.login"))
         
     flow = get_google_flow(GOOGLE_CLIENT_SECRETS, GOOGLE_REDIRECT)
     authorization_url, state = flow.authorization_url(
@@ -407,7 +407,7 @@ def callback_google():
     # Require authentication
     if not current_user.is_authenticated:
         flash("Please log in first to connect your Google account", "warning")
-        return redirect(url_for("replit_auth.login"))
+        return redirect(url_for("google_auth.login"))
         
     try:
         from utils.auth_helper import save_google_credentials
@@ -445,7 +445,7 @@ def authorize_spotify():
     # Require authentication
     if not current_user.is_authenticated:
         flash("Please log in first to connect your Spotify account", "warning")
-        return redirect(url_for("replit_auth.login"))
+        return redirect(url_for("google_auth.login"))
     
     _, auth = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT)
     if not auth:
@@ -461,7 +461,7 @@ def callback_spotify():
     # Require authentication
     if not current_user.is_authenticated:
         flash("Please log in first to connect your Spotify account", "warning")
-        return redirect(url_for("replit_auth.login"))
+        return redirect(url_for("google_auth.login"))
         
     try:
         from utils.auth_helper import save_spotify_token
