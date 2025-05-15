@@ -415,8 +415,8 @@ def handle_conversation(user_id, message, context_data=None):
             system_content += f"\n{difficulty_context}\n"
         
         # Add context information if available
-        if len(context_str) > 10:
-            system_content += f"\n{context_str}\n"
+        if memory_context and len(memory_context) > 10:
+            system_content += f"\n{memory_context}\n"
             system_content += "\nUse this context information to personalize your responses and show continuity with previous interactions."
             
         # Prepare the messages for the API call with proper typing
