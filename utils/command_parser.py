@@ -2291,6 +2291,66 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
             response = handle_conversation(user_id, chat_message)
             log.append(f"🤖 {response}")
     
+    # Handle knowledge base reflection command
+    elif KNOWLEDGE_BASE_ENABLED and (cmd == "reflect" or cmd.startswith("reflect ")): 
+        user_id = session.get('user_id', 'anonymous') if session else 'anonymous'
+        log.append("🧠 Starting self-reflection process to improve knowledge base...")
+        
+        try:
+            # Extract max_prompts from command if specified
+            max_prompts = 3  # Default
+            if cmd.startswith("reflect "):
+                parts = cmd.split()
+                if len(parts) > 1 and parts[1].isdigit():
+                    max_prompts = int(parts[1])
+            
+            # Run self-reflection
+            new_entries = run_self_reflection(user_id=user_id, max_prompts=max_prompts)
+            
+            if new_entries:
+                log.append(f"✅ Self-reflection complete! Added {len(new_entries)} new knowledge entries.")
+                
+                # Show a sample of what was learned
+                if len(new_entries) > 0:
+                    sample = new_entries[0].content[:150] + "..." if len(new_entries[0].content) > 150 else new_entries[0].content
+                    log.append(f"Sample new knowledge: {sample}")
+            else:
+                log.append("❌ Self-reflection completed but no new knowledge was added.")
+        except Exception as e:
+            log.append(f"❌ Error during self-reflection: {str(e)}")
+    
+    # Handle knowledge base query command
+    elif KNOWLEDGE_BASE_ENABLED and cmd.startswith("kb query:"):
+        query = cmd[9:].strip()  # Remove "kb query:" prefix
+        user_id = session.get('user_id', 'anonymous') if session else 'anonymous'
+        
+        if not query:
+            log.append("Please include a query for the knowledge base.")
+        else:
+            try:
+                results = query_knowledge_base(query, user_id=user_id)
+                
+                if results:
+                    log.append(f"🧠 Found {len(results)} relevant knowledge entries:")
+                    for i, (entry, similarity) in enumerate(results, 1):
+                        # Format the result with relevance score
+                        relevance_percent = int(similarity * 100)
+                        log.append(f"{i}. (Relevance: {relevance_percent}%) {entry.content[:200]}...")
+                else:
+                    log.append("🧠 No relevant knowledge found in memory.")
+            except Exception as e:
+                log.append(f"❌ Error querying knowledge base: {str(e)}")
+    
+    # Handle knowledge base maintenance command
+    elif KNOWLEDGE_BASE_ENABLED and cmd == "kb prune":
+        user_id = session.get('user_id', 'anonymous') if session else 'anonymous'
+        
+        try:
+            removed_count = prune_knowledge_base(user_id=user_id)
+            log.append(f"🧠 Knowledge base pruned. Removed {removed_count} low-relevance entries.")
+        except Exception as e:
+            log.append(f"❌ Error pruning knowledge base: {str(e)}")
+            
     # Handle Gmail content analysis
     elif cmd.startswith("analyze email:"):
         email_content = cmd[14:].strip()  # Remove "analyze email:" prefix
