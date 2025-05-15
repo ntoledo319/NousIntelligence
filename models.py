@@ -32,8 +32,12 @@ class User(UserMixin, db.Model):
     # Relationship with user settings
     settings = db.relationship('UserSettings', backref='user', uselist=False, cascade="all, delete-orphan")
     
-    # Relationship with assistant profile
-    assistant_profile = db.relationship('AssistantProfile', backref='user', uselist=False, cascade="all, delete-orphan")
+    # Relationship with assistant profile (must be defined after AssistantProfile class)
+    assistant = db.relationship('AssistantProfile', 
+                               foreign_keys='AssistantProfile.user_id',
+                               backref=db.backref('owner', lazy='joined'),
+                               lazy='dynamic',
+                               cascade='all, delete-orphan')
     
     def is_administrator(self):
         """Check if user has admin privileges"""
@@ -70,6 +74,9 @@ class UserSettings(db.Model):
     ai_voice_type = db.Column(db.String(20), default='neutral')  # neutral, warm, authoritative, energetic, calm
     ai_backstory = db.Column(db.Text, nullable=True)  # Custom backstory for the AI
     
+    # Setup wizard progress tracking
+    setup_progress = db.Column(db.Text)  # JSON string to track setup wizard progress
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -103,6 +110,46 @@ class OAuth(OAuthConsumerMixin, db.Model):
         'provider',
         name='uq_user_browser_session_key_provider',
     ),)
+
+# AssistantProfile model for customizing the assistant
+class AssistantProfile(db.Model):
+    __tablename__ = 'assistant_profiles'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String, db.ForeignKey('users.id'), nullable=True)  # Nullable for default profile
+    
+    # Basic information
+    name = db.Column(db.String(50), nullable=False, default="NOUS")  # Internal name
+    display_name = db.Column(db.String(50), nullable=False, default="NOUS")  # Name shown to user
+    tagline = db.Column(db.String(100))  # Short description/tagline
+    description = db.Column(db.Text)  # Longer description
+    
+    # Appearance
+    primary_color = db.Column(db.String(20), default="#6f42c1")  # Primary color in hex
+    theme = db.Column(db.String(20), default="dark")  # dark, light
+    logo_path = db.Column(db.String(255))  # Path to logo image
+    
+    # Behavior
+    personality = db.Column(db.String(50), default="friendly")  # Affects tone and style
+    
+    # Flags
+    is_default = db.Column(db.Boolean, default=False)  # Whether this is the default profile
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'display_name': self.display_name,
+            'tagline': self.tagline,
+            'description': self.description,
+            'primary_color': self.primary_color,
+            'theme': self.theme,
+            'personality': self.personality,
+            'is_default': self.is_default,
+            'logo_path': self.logo_path,
+        }
     
 # Beta tester model
 class BetaTester(db.Model):
