@@ -49,13 +49,69 @@ openai = OpenAI(api_key=openai_api_key)
 # Cache the model in memory
 _embedding_dimension = 1536  # Default for text-embedding-ada-002
 
-# OpenRouter API endpoint
+# OpenRouter API endpoints
 OPENROUTER_EMBEDDING_URL = "https://openrouter.ai/api/v1/embeddings"
+OPENROUTER_CHAT_COMPLETION_URL = "https://openrouter.ai/api/v1/chat/completions"
+
+# Correct endpoint URLs with proper routing
+# The endpoints should work as they are identical to the ones in OpenRouter documentation
+# But if there are 404 errors, it might be that the URLs have been updated
+
+def get_embedding_via_openrouter(text):
+    """
+    Generate embedding using OpenRouter as a fallback service.
+    
+    Args:
+        text (str): The text to embed
+        
+    Returns:
+        numpy.ndarray or None: The embedding vector, or None on failure
+    """
+    if not openrouter_api_key:
+        logging.error("No OpenRouter API key available for fallback")
+        return None
+    
+    try:
+        logging.info("Attempting to use OpenRouter for embeddings as fallback")
+        
+        headers = {
+            "Authorization": f"Bearer {openrouter_api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://nous.replit.app/",  # Add proper referer for OpenRouter
+            "X-Title": "Nous AI Assistant"  # Add a title for tracking in OpenRouter
+        }
+        
+        payload = {
+            "model": "openai/text-embedding-ada-002",  # Compatible model
+            "input": text
+        }
+        
+        response = requests.post(
+            OPENROUTER_EMBEDDING_URL,
+            headers=headers,
+            json=payload,
+            timeout=30  # Add a reasonable timeout
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            if "data" in result and len(result["data"]) > 0 and "embedding" in result["data"][0]:
+                embedding = result["data"][0]["embedding"]
+                logging.info(f"Successfully generated embedding via OpenRouter (size: {len(embedding)})")
+                return np.array(embedding, dtype=np.float32)
+        
+        logging.error(f"OpenRouter API error: {response.status_code} - {response.text}")
+        return None
+        
+    except Exception as e:
+        logging.error(f"Error using OpenRouter for embeddings: {str(e)}")
+        return None
+
 
 def get_embedding_for_text(text):
     """
     Generate an embedding for the given text using OpenAI's embedding model.
-    With caching to reduce API calls.
+    With caching to reduce API calls and OpenRouter fallback.
     
     Args:
         text (str): The text to embed
@@ -69,59 +125,66 @@ def get_embedding_for_text(text):
         logging.debug("Using cached embedding")
         return cached_embedding
     
+    # Clean and truncate text if needed (API has token limits)
+    cleaned_text = text.replace("\n", " ")
+    if len(cleaned_text) > 8000:
+        logging.warning(f"Truncating text from {len(cleaned_text)} to 8000 chars")
+        cleaned_text = cleaned_text[:8000]
+    
+    # First try OpenAI
     try:
-        # Check for API key presence
-        if not openai_api_key:
-            raise ValueError("OpenAI API key not found")
+        if openai_api_key:
+            logging.info("Generating embedding using OpenAI API")
             
-        # Clean and truncate text if needed (OpenAI has token limits)
-        cleaned_text = text.replace("\n", " ")
-        if len(cleaned_text) > 8000:
-            logging.warning(f"Truncating text from {len(cleaned_text)} to 8000 chars")
-            cleaned_text = cleaned_text[:8000]
-        
-        logging.info(f"Generating embedding using OpenAI API")
-        
-        # Use OpenAI API to generate the embedding
-        response = openai.embeddings.create(
-            model="text-embedding-ada-002",
-            input=cleaned_text
-        )
-        
-        # Extract and convert the embedding
-        embedding = response.data[0].embedding
-        logging.info(f"Successfully generated embedding of size {len(embedding)}")
-        embedding_array = np.array(embedding, dtype=np.float32)
-        
-        # Cache the embedding for future use (24 hour TTL)
-        cache_embedding(text, embedding_array, ttl_seconds=86400)
-        
-        return embedding_array
-        
+            # Use OpenAI API to generate the embedding
+            response = openai.embeddings.create(
+                model="text-embedding-ada-002",
+                input=cleaned_text
+            )
+            
+            # Extract and convert the embedding
+            embedding = response.data[0].embedding
+            logging.info(f"Successfully generated embedding of size {len(embedding)}")
+            embedding_array = np.array(embedding, dtype=np.float32)
+            
+            # Cache the embedding for future use (24 hour TTL)
+            cache_embedding(text, embedding_array, ttl_seconds=86400)
+            
+            return embedding_array
     except Exception as e:
-        logging.error(f"Error generating embedding: {str(e)}")
+        logging.error(f"Error generating embedding with OpenAI: {str(e)}")
         
-        # Create a deterministic fallback embedding when API fails
-        try:
-            logging.warning("Using fallback embedding due to API error")
-            import hashlib
-            hash_obj = hashlib.md5(text.encode())
-            hash_bytes = hash_obj.digest()
-            
-            # Use hash to create a deterministic embedding
-            expanded = np.resize(np.frombuffer(hash_bytes, dtype=np.uint8), (_embedding_dimension,))
-            
-            # Normalize to unit length like real embeddings
-            norm = np.linalg.norm(expanded)
-            fallback_embedding = expanded / norm if norm > 0 else expanded
-            
-            # Cache the fallback embedding (but with shorter TTL)
-            cache_embedding(text, fallback_embedding, ttl_seconds=3600)  # 1 hour TTL for fallbacks
-            
-            return fallback_embedding
-        except:
-            # Absolute last resort - zero vector
-            return np.zeros(_embedding_dimension, dtype=np.float32)
+        # If it's a quota error, try OpenRouter
+        if "quota" in str(e).lower() or "rate limit" in str(e).lower():
+            logging.warning("OpenAI quota exceeded, trying OpenRouter as fallback")
+            openrouter_embedding = get_embedding_via_openrouter(cleaned_text)
+            if openrouter_embedding is not None:
+                # Cache the OpenRouter embedding
+                cache_embedding(text, openrouter_embedding, ttl_seconds=86400)
+                return openrouter_embedding
+    
+    # If we get here, both OpenAI and OpenRouter failed (or weren't available)
+    # Create a deterministic fallback embedding as last resort
+    try:
+        logging.warning("Using local fallback embedding generation")
+        import hashlib
+        hash_obj = hashlib.md5(text.encode())
+        hash_bytes = hash_obj.digest()
+        
+        # Use hash to create a deterministic embedding
+        expanded = np.resize(np.frombuffer(hash_bytes, dtype=np.uint8), (_embedding_dimension,))
+        
+        # Normalize to unit length like real embeddings
+        norm = np.linalg.norm(expanded)
+        fallback_embedding = expanded / norm if norm > 0 else expanded
+        
+        # Cache the fallback embedding (but with shorter TTL)
+        cache_embedding(text, fallback_embedding, ttl_seconds=3600)  # 1 hour TTL for fallbacks
+        
+        return fallback_embedding
+    except:
+        # Absolute last resort - zero vector
+        return np.zeros(_embedding_dimension, dtype=np.float32)
 
 def add_to_knowledge_base(content, user_id=None, source="conversation"):
     """
@@ -295,6 +358,74 @@ def query_knowledge_base(question, user_id=None, top_k=3, similarity_threshold=0
         logging.error(f"Error querying knowledge base: {str(e)}")
         return []
 
+def get_completion_via_openrouter(messages, max_tokens=1000, temperature=0.7):
+    """
+    Get a completion from OpenRouter as a fallback when OpenAI is unavailable.
+    
+    Args:
+        messages: The messages to send
+        max_tokens: Maximum tokens in the response
+        temperature: Creativity parameter
+        
+    Returns:
+        str or None: The generated text, or None if failed
+    """
+    if not openrouter_api_key:
+        logging.error("No OpenRouter API key available for fallback")
+        return None
+    
+    try:
+        logging.info("Attempting to use OpenRouter for chat completion as fallback")
+        
+        headers = {
+            "Authorization": f"Bearer {openrouter_api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://nous.replit.app/",  # Add proper referer for OpenRouter
+            "X-Title": "Nous AI Assistant"  # Add a title for tracking in OpenRouter
+        }
+        
+        # Format messages to be compatible with OpenRouter
+        formatted_messages = []
+        for message in messages:
+            if isinstance(message, dict) and "role" in message and "content" in message:
+                formatted_messages.append({
+                    "role": message["role"],
+                    "content": message["content"]
+                })
+            else:
+                logging.error(f"Improperly formatted message: {message}")
+                return None
+        
+        payload = {
+            "model": "openai/gpt-3.5-turbo",  # More widely available model
+            "messages": formatted_messages,
+            "max_tokens": max_tokens,
+            "temperature": temperature
+        }
+        
+        response = requests.post(
+            OPENROUTER_CHAT_COMPLETION_URL,
+            headers=headers,
+            json=payload,
+            timeout=60  # Longer timeout for completions
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            if "choices" in result and len(result["choices"]) > 0:
+                if "message" in result["choices"][0] and "content" in result["choices"][0]["message"]:
+                    content = result["choices"][0]["message"]["content"]
+                    logging.info("Successfully generated completion via OpenRouter")
+                    return content
+        
+        logging.error(f"OpenRouter API error: {response.status_code} - {response.text}")
+        return None
+        
+    except Exception as e:
+        logging.error(f"Error using OpenRouter for completion: {str(e)}")
+        return None
+
+
 def run_self_reflection(user_id=None, max_prompts=3, run_async=False):
     """
     Run the self-reflection routine to improve the knowledge base.
@@ -330,7 +461,7 @@ def run_self_reflection(user_id=None, max_prompts=3, run_async=False):
                 # Track new entries
                 new_entries = []
                 
-                # Query OpenAI for each prompt
+                # Process each prompt
                 for prompt in prompts:
                     reflection_prompt = f"""You are Nous, a self-learning AI assistant. 
                     Review your knowledge base critically and respond to this prompt:
@@ -342,39 +473,55 @@ def run_self_reflection(user_id=None, max_prompts=3, run_async=False):
                     """
                     
                     try:
-                        # Create a properly-typed message list for OpenAI
-                        from typing import List, Dict, Any
-                        messages: List[Dict[str, Any]] = [
+                        # Create message list
+                        messages = [
                             {"role": "system", "content": "You are Nous, an AI personal assistant with self-learning capabilities."},
                             {"role": "user", "content": reflection_prompt}
                         ]
                         
-                        response = openai.chat.completions.create(
-                            model="gpt-4o",  # Use the latest model
-                            messages=messages,
-                            temperature=0.7,
-                            max_tokens=1000
-                        )
+                        reflection_text = None
                         
-                        if response.choices and response.choices[0].message:
-                            reflection_text = response.choices[0].message.content
-                            if reflection_text:
-                                reflection_text = reflection_text.strip()
-                                
-                                # Add reflection to knowledge base
-                                entry = add_to_knowledge_base(
-                                    content=reflection_text,
-                                    user_id=user_id,
-                                    source="reflection"
+                        # First try OpenAI
+                        if openai_api_key:
+                            try:
+                                response = openai.chat.completions.create(
+                                    model="gpt-4o",  # Use the latest model
+                                    messages=messages,
+                                    temperature=0.7,
+                                    max_tokens=1000
                                 )
                                 
-                                if entry:
-                                    new_entries.append(entry)
+                                if response.choices and response.choices[0].message:
+                                    reflection_text = response.choices[0].message.content
+                            except Exception as e:
+                                logging.error(f"OpenAI API error: {str(e)}")
+                                
+                                # If it's a quota error, try OpenRouter
+                                if "quota" in str(e).lower() or "rate limit" in str(e).lower():
+                                    logging.warning("OpenAI quota exceeded, trying OpenRouter as fallback")
+                                    reflection_text = get_completion_via_openrouter(messages)
+                        else:
+                            # If no OpenAI key, try directly with OpenRouter
+                            reflection_text = get_completion_via_openrouter(messages)
                         
-                        # Update prompt usage metrics
-                        prompt.last_used = datetime.utcnow()
-                        prompt.use_count += 1
-                        db.session.commit()
+                        # Process the response if we got one
+                        if reflection_text:
+                            reflection_text = reflection_text.strip()
+                            
+                            # Add reflection to knowledge base
+                            entry = add_to_knowledge_base(
+                                content=reflection_text,
+                                user_id=user_id,
+                                source="reflection"
+                            )
+                            
+                            if entry:
+                                new_entries.append(entry)
+                                
+                                # Update prompt usage metrics only if successful
+                                prompt.last_used = datetime.utcnow()
+                                prompt.use_count += 1
+                                db.session.commit()
                         
                     except Exception as e:
                         logging.error(f"Error during reflection for prompt {prompt.prompt[:30]}...: {str(e)}")
