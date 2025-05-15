@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Request Beta Access{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Request Beta Tester Access</h4>
+                </div>
+                <div class="card-body">
+                    {% if stats and stats.active >= stats.max %}
+                    <div class="alert alert-warning">
+                        <h5><i class="fas fa-exclamation-triangle"></i> Beta Program Full</h5>
+                        <p>We've reached our maximum capacity of {{ stats.max }} beta testers. Please check back later when spots become available.</p>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle"></i> Join Our Beta Testing Program</h5>
+                        <p>Help us improve by testing new features before they're released to everyone. 
+                        Your feedback is valuable to us!</p>
+                        {% if stats %}
+                        <p class="mb-0"><small>Currently {{ stats.active }} of {{ stats.max }} beta tester spots are filled.</small></p>
+                        {% endif %}
+                    </div>
+                
+                    <form method="post">
+                        <div class="mb-3">
+                            <label for="access_code" class="form-label">Beta Access Code</label>
+                            <input type="text" class="form-control" id="access_code" name="access_code" required>
+                            <div class="form-text">Enter the beta access code you were provided.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Additional Information (Optional)</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Tell us about your interest in beta testing our app, your technical background, etc."></textarea>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="agree_terms" required>
+                            <label class="form-check-label" for="agree_terms">
+                                I understand this is beta software that may contain bugs or incomplete features.
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Submit Request</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

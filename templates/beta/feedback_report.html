@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}Beta Feedback Report{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Beta Feedback Report</h1>
+        <div>
+            <a href="{{ url_for('beta.manage_testers') }}" class="btn btn-primary me-2">
+                <i class="fas fa-users"></i> Manage Testers
+            </a>
+            <a href="{{ url_for('beta.dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-header bg-primary text-white">
+                    Total Feedback
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ stats.total }}</h5>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    Feedback Status
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <h5>{{ stats.statuses.get('new', 0) }}</h5>
+                            <span class="badge bg-secondary">New</span>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h5>{{ stats.statuses.get('in_progress', 0) }}</h5>
+                            <span class="badge bg-primary">In Progress</span>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h5>{{ stats.statuses.get('resolved', 0) }}</h5>
+                            <span class="badge bg-success">Resolved</span>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h5>{{ stats.statuses.get('wont_fix', 0) }}</h5>
+                            <span class="badge bg-danger">Won't Fix</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    Feedback by Category
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Count</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for category, count in stats.categories.items() %}
+                                <tr>
+                                    <td>{{ category|capitalize }}</td>
+                                    <td>{{ count }}</td>
+                                    <td>{{ (count / stats.total * 100)|round|int }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    Feedback by Severity
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Severity</th>
+                                    <th>Count</th>
+                                    <th>Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="badge bg-danger">Critical</span></td>
+                                    <td>{{ stats.severity[1] }}</td>
+                                    <td>{{ (stats.severity[1] / stats.total * 100)|round|int }}%</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-warning">High</span></td>
+                                    <td>{{ stats.severity[2] }}</td>
+                                    <td>{{ (stats.severity[2] / stats.total * 100)|round|int }}%</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-primary">Medium</span></td>
+                                    <td>{{ stats.severity[3] }}</td>
+                                    <td>{{ (stats.severity[3] / stats.total * 100)|round|int }}%</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-info">Low</span></td>
+                                    <td>{{ stats.severity[4] }}</td>
+                                    <td>{{ (stats.severity[4] / stats.total * 100)|round|int }}%</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-secondary">Trivial</span></td>
+                                    <td>{{ stats.severity[5] }}</td>
+                                    <td>{{ (stats.severity[5] / stats.total * 100)|round|int }}%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">All Feedback</h5>
+        </div>
+        <div class="card-body">
+            {% if feedback %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>User</th>
+                            <th>Category</th>
+                            <th>Severity</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in feedback %}
+                        <tr>
+                            <td>{{ item.title }}</td>
+                            <td>
+                                {% if item.tester and item.tester.user %}
+                                {% if item.tester.user.profile_image_url %}
+                                <img src="{{ item.tester.user.profile_image_url }}" alt="Profile" class="rounded-circle me-2" style="width: 25px; height: 25px;">
+                                {% endif %}
+                                {{ item.tester.user.first_name }}
+                                {% else %}
+                                Unknown
+                                {% endif %}
+                            </td>
+                            <td>{{ item.category }}</td>
+                            <td>
+                                {% if item.severity == 1 %}
+                                <span class="badge bg-danger">Critical</span>
+                                {% elif item.severity == 2 %}
+                                <span class="badge bg-warning">High</span>
+                                {% elif item.severity == 3 %}
+                                <span class="badge bg-primary">Medium</span>
+                                {% elif item.severity == 4 %}
+                                <span class="badge bg-info">Low</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Trivial</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.status == 'new' %}
+                                <span class="badge bg-secondary">New</span>
+                                {% elif item.status == 'in_progress' %}
+                                <span class="badge bg-primary">In Progress</span>
+                                {% elif item.status == 'resolved' %}
+                                <span class="badge bg-success">Resolved</span>
+                                {% else %}
+                                <span class="badge bg-danger">Won't Fix</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <a href="{{ url_for('beta.view_feedback', feedback_id=item.id) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                No feedback has been submitted yet.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

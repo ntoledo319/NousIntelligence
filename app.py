@@ -125,6 +125,18 @@ app.register_blueprint(google_auth)
 from routes import register_blueprints
 register_blueprints(app)
 
+# Add custom template filters
+import json
+@app.template_filter('from_json')
+def from_json(value):
+    """Template filter to parse JSON strings"""
+    if value:
+        try:
+            return json.loads(value)
+        except:
+            return []
+    return []
+
 @login_manager.user_loader
 def load_user(user_id):
     from models import User
