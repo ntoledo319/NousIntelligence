@@ -22,6 +22,40 @@ except ImportError:
         
     def adapt_response(response, explain_technical_terms=True):
         return response
+        
+# Import character customization utilities
+try:
+    from utils.character_customization import get_character_system_prompt, apply_character_style
+    CHARACTER_CUSTOMIZATION_ENABLED = True
+except ImportError:
+    # If character_customization module is not available, provide dummy functions
+    CHARACTER_CUSTOMIZATION_ENABLED = False
+    
+    def get_character_system_prompt():
+        return "You are NOUS, a helpful and friendly AI assistant."
+        
+    def apply_character_style(response):
+        return response
+        
+# Import enhanced memory utilities
+try:
+    from utils.enhanced_memory import get_user_memory
+    ENHANCED_MEMORY_ENABLED = True
+except ImportError:
+    # If enhanced_memory module is not available, provide dummy functions
+    ENHANCED_MEMORY_ENABLED = False
+    
+    def get_user_memory(user_id):
+        class DummyMemory:
+            def add_message(self, role, content):
+                pass
+                
+            def get_recent_messages(self, count=None):
+                return []
+                
+            def get_memory_context(self):
+                return ""
+        return DummyMemory()
 
 # Initialize OpenAI client if key is present
 api_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("OPENROUTER_API_KEY")
@@ -326,34 +360,54 @@ def handle_conversation(user_id, message, context_data=None):
         if not client:
             return "Conversation functionality not available (missing API key)"
             
-        # Add current message to conversation memory
-        conversation_memory.add_message(user_id, "user", message)
-        
-        # Add any provided context data
-        if context_data:
-            for context_type, data in context_data.items():
-                conversation_memory.add_context(user_id, context_type, data)
-        
-        # Get recent conversation history
-        recent_messages = conversation_memory.get_recent_messages(user_id)
-        
-        # Get user context summary
-        context_str = conversation_memory.get_formatted_context(user_id)
+        # Use enhanced memory if enabled, otherwise fall back to regular conversation memory
+        if ENHANCED_MEMORY_ENABLED:
+            # Get the user's memory object
+            user_memory = get_user_memory(user_id)
             
-        # Prepare the system message with context and appropriate difficulty level
-        system_content = """You are NOUS, a helpful, friendly, and intelligent personal assistant. 
-        Respond conversationally and helpfully to the user. Keep responses concise but informative.
-        You're running within a larger personal assistant application that has specialized functions 
-        for many tasks, so focus on being helpful with general knowledge, advice, and friendly conversation.
+            # Add current message to memory
+            user_memory.add_message("user", message)
+            
+            # Get recent conversation history
+            recent_messages = user_memory.get_recent_messages(15)  # Last 15 messages
+            
+            # Get user memory context (including topics, entities, etc.)
+            memory_context = user_memory.get_memory_context()
+        else:
+            # Fall back to old conversation memory system
+            conversation_memory.add_message(user_id, "user", message)
+            
+            # Add any provided context data
+            if context_data:
+                for context_type, data in context_data.items():
+                    conversation_memory.add_context(user_id, context_type, data)
+            
+            # Get recent conversation history
+            recent_messages = conversation_memory.get_recent_messages(user_id)
+            
+            # Get user context summary
+            memory_context = conversation_memory.get_formatted_context(user_id)
+            
+        # Get the personalized character system prompt
+        if CHARACTER_CUSTOMIZATION_ENABLED:
+            system_content = get_character_system_prompt()
+        else:
+            # Fallback to default system prompt
+            system_content = """You are NOUS, a helpful, friendly, and intelligent personal assistant. 
+            Respond conversationally and helpfully to the user. Keep responses concise but informative.
+            You're running within a larger personal assistant application that has specialized functions 
+            for many tasks, so focus on being helpful with general knowledge, advice, and friendly conversation.
+            
+            When responding:
+            - Be personable and engaging
+            - Remember prior conversations and show continuity
+            - Acknowledge the user's emotions and needs
+            - Provide helpful and accurate information
+            - Keep responses under 150 words unless detailed information is requested
+            """
         
-        When responding:
-        - Be personable and engaging
-        - Remember prior conversations and show continuity
-        - Acknowledge the user's emotions and needs
-        - Provide helpful and accurate information
-        - Keep responses under 150 words unless detailed information is requested
-        
-        The current date and time is: """ + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n"
+        # Add current date/time
+        system_content += "\nThe current date and time is: " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n"
         
         # Add difficulty-specific instructions
         difficulty_context = get_difficulty_context()
@@ -399,13 +453,16 @@ def handle_conversation(user_id, message, context_data=None):
             
             assistant_message = response.choices[0].message.content
             if assistant_message is not None:
-                # Add the original assistant's response to conversation memory
+                # Save the original response in conversation memory
                 conversation_memory.add_message(user_id, "assistant", assistant_message)
                 
-                # Apply adaptive difficulty transformation if needed
+                # Apply character customization first
+                if CHARACTER_CUSTOMIZATION_ENABLED:
+                    assistant_message = apply_character_style(assistant_message)
+                
+                # Then apply adaptive difficulty transformation if needed
                 if ADAPTIVE_CONVERSATION_ENABLED:
-                    adapted_message = adapt_response(assistant_message)
-                    return adapted_message
+                    assistant_message = adapt_response(assistant_message)
                 
                 return assistant_message
             else:

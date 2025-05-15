@@ -37,6 +37,16 @@ class UserSettings(db.Model):
     enable_voice_responses = db.Column(db.Boolean, default=False)
     preferred_language = db.Column(db.String(10), default='en-US')
     theme = db.Column(db.String(20), default='light')
+    
+    # AI Character customization
+    ai_name = db.Column(db.String(30), default='NOUS')
+    ai_personality = db.Column(db.String(20), default='helpful')
+    ai_voice_type = db.Column(db.String(20), default='neutral')
+    ai_humor_level = db.Column(db.Integer, default=5)  # Scale 1-10
+    ai_formality_level = db.Column(db.Integer, default=5)  # Scale 1-10
+    ai_emoji_usage = db.Column(db.String(10), default='moderate')  # none, minimal, moderate, frequent
+    ai_backstory = db.Column(db.Text, nullable=True)  # Custom backstory for the AI
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -47,7 +57,14 @@ class UserSettings(db.Model):
             'conversation_difficulty': self.conversation_difficulty,
             'enable_voice_responses': self.enable_voice_responses,
             'preferred_language': self.preferred_language,
-            'theme': self.theme
+            'theme': self.theme,
+            'ai_name': self.ai_name,
+            'ai_personality': self.ai_personality,
+            'ai_voice_type': self.ai_voice_type,
+            'ai_humor_level': self.ai_humor_level,
+            'ai_formality_level': self.ai_formality_level,
+            'ai_emoji_usage': self.ai_emoji_usage,
+            'ai_backstory': self.ai_backstory
         }
 
 # OAuth model for token storage
@@ -62,6 +79,81 @@ class OAuth(OAuthConsumerMixin, db.Model):
         'provider',
         name='uq_user_browser_session_key_provider',
     ),)
+
+# Enhanced Memory Models for Personalized Conversation
+
+class UserMemoryEntry(db.Model):
+    """Stores conversation message history"""
+    __tablename__ = 'user_memory_entries'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String, db.ForeignKey(User.id), nullable=False)
+    role = db.Column(db.String(20), nullable=False)  # 'user' or 'assistant'
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship(User, backref='memory_entries')
+    
+    def __repr__(self):
+        return f"<UserMemoryEntry {self.id}: {self.role} at {self.timestamp}>"
+
+class UserTopicInterest(db.Model):
+    """Tracks user interests in topics based on conversation history"""
+    __tablename__ = 'user_topic_interests'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String, db.ForeignKey(User.id), nullable=False)
+    topic_name = db.Column(db.String(50), nullable=False)
+    interest_level = db.Column(db.Integer, default=1)  # Higher = more interested
+    last_discussed = db.Column(db.DateTime, default=datetime.utcnow)
+    engagement_count = db.Column(db.Integer, default=1)  # How many times mentioned
+    
+    user = db.relationship(User, backref='topic_interests')
+    
+    __table_args__ = (UniqueConstraint(
+        'user_id', 
+        'topic_name',
+        name='uq_user_topic'
+    ),)
+    
+    def __repr__(self):
+        return f"<UserTopicInterest {self.topic_name}: level {self.interest_level}>"
+
+class UserEntityMemory(db.Model):
+    """Stores information about entities (people, places, things) mentioned by the user"""
+    __tablename__ = 'user_entity_memories'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String, db.ForeignKey(User.id), nullable=False)
+    entity_name = db.Column(db.String(100), nullable=False)
+    entity_type = db.Column(db.String(50), nullable=False)  # person, place, thing, etc.
+    attributes = db.Column(db.Text, default='{}')  # JSON string of attributes
+    last_mentioned = db.Column(db.DateTime, default=datetime.utcnow)
+    mention_count = db.Column(db.Integer, default=1)
+    
+    user = db.relationship(User, backref='entity_memories')
+    
+    __table_args__ = (UniqueConstraint(
+        'user_id', 
+        'entity_name',
+        name='uq_user_entity'
+    ),)
+    
+    def __repr__(self):
+        return f"<UserEntityMemory {self.entity_name} ({self.entity_type})>"
+
+class UserEmotionLog(db.Model):
+    """Logs detected user emotions from interactions"""
+    __tablename__ = 'user_emotion_logs'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String, db.ForeignKey(User.id), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    emotion = db.Column(db.String(30), nullable=False)  # happiness, sadness, anger, etc.
+    confidence = db.Column(db.Float, default=0.0)  # 0-1 scale of detection confidence
+    source = db.Column(db.String(20), nullable=False)  # 'text', 'voice', 'image'
+    details = db.Column(db.Text, nullable=True)  # Optional details about the emotion
+    
+    user = db.relationship(User, backref='emotion_logs')
+    
+    def __repr__(self):
+        return f"<UserEmotionLog {self.emotion} ({self.confidence:.2f}) at {self.timestamp}>"
     
 # Third-party service connections for users
 class UserConnection(db.Model):
