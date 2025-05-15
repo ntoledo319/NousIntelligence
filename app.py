@@ -3,6 +3,7 @@ import json
 import datetime
 import logging
 from flask import Flask, request, redirect, session, url_for, render_template, jsonify, flash
+from markupsafe import Markup
 from dotenv import load_dotenv
 from flask_login import LoginManager, current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -127,6 +128,9 @@ register_blueprints(app)
 
 # Add custom template filters
 import json
+import re
+import jinja2
+
 @app.template_filter('from_json')
 def from_json(value):
     """Template filter to parse JSON strings"""
@@ -136,6 +140,17 @@ def from_json(value):
         except:
             return []
     return []
+
+@app.template_filter('nl2br')
+def nl2br(value):
+    """Template filter to convert newlines to HTML line breaks"""
+    if value:
+        # Ensure value is a string and escape HTML characters
+        value = str(value)
+        value = value.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+        value = value.replace('\n', Markup('<br>'))
+        return Markup(value)
+    return ""
 
 @login_manager.user_loader
 def load_user(user_id):

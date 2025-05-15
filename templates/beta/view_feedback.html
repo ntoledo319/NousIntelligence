@@ -1,146 +1,164 @@
-{% extends "base.html" %}
+{% extends "beta/layout.html" %}
 
-{% block title %}Feedback Details{% endblock %}
+{% block title %}View Feedback - {{ feedback.title }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <div class="card shadow">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Feedback Details</h1>
+        <div>
+            <a href="{{ url_for('beta.feedback_report') }}" class="btn btn-primary">
+                <i class="fas fa-chart-bar"></i> Back to Report
+            </a>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0">Feedback Details</h4>
-            <span class="badge {% if feedback.status == 'new' %}bg-secondary{% elif feedback.status == 'in_progress' %}bg-primary{% elif feedback.status == 'resolved' %}bg-success{% else %}bg-danger{% endif %} fs-6">
-                {{ feedback.status|capitalize|replace('_', ' ') }}
-            </span>
+            <h5 class="mb-0">{{ feedback.title }}</h5>
+            <div>
+                {% if feedback.severity == 1 %}
+                <span class="badge bg-danger">Critical</span>
+                {% elif feedback.severity == 2 %}
+                <span class="badge bg-warning">High</span>
+                {% elif feedback.severity == 3 %}
+                <span class="badge bg-primary">Medium</span>
+                {% elif feedback.severity == 4 %}
+                <span class="badge bg-info">Low</span>
+                {% else %}
+                <span class="badge bg-secondary">Trivial</span>
+                {% endif %}
+                
+                {% if feedback.status == 'new' %}
+                <span class="badge bg-secondary">New</span>
+                {% elif feedback.status == 'in_progress' %}
+                <span class="badge bg-primary">In Progress</span>
+                {% elif feedback.status == 'resolved' %}
+                <span class="badge bg-success">Resolved</span>
+                {% else %}
+                <span class="badge bg-danger">Won't Fix</span>
+                {% endif %}
+            </div>
         </div>
         <div class="card-body">
-            <div class="row mb-4">
+            <div class="row">
                 <div class="col-md-8">
-                    <h5>{{ feedback.title }}</h5>
-                    <div class="mt-2">
-                        <span class="badge bg-info">{{ feedback.category|capitalize }}</span>
-                        <span class="badge {% if feedback.severity == 1 %}bg-danger{% elif feedback.severity == 2 %}bg-warning{% elif feedback.severity == 3 %}bg-primary{% elif feedback.severity == 4 %}bg-info{% else %}bg-secondary{% endif %}">
-                            {% if feedback.severity == 1 %}
-                                Critical
-                            {% elif feedback.severity == 2 %}
-                                High
-                            {% elif feedback.severity == 3 %}
-                                Medium
-                            {% elif feedback.severity == 4 %}
-                                Low
-                            {% else %}
-                                Trivial
-                            {% endif %}
-                        </span>
+                    <h6 class="card-subtitle mb-3 text-muted">
+                        Category: <span class="fw-bold">{{ feedback.category }}</span>
+                    </h6>
+                    
+                    <div class="mb-3">
+                        <h6>Description:</h6>
+                        <div class="p-3 bg-dark rounded">{{ feedback.description|nl2br }}</div>
                     </div>
-                </div>
-                <div class="col-md-4 text-md-end">
-                    <p class="mb-1"><small>Submitted: {{ feedback.created_at.strftime('%Y-%m-%d %H:%M') }}</small></p>
-                    {% if feedback.updated_at and feedback.updated_at != feedback.created_at %}
-                    <p class="mb-0"><small>Updated: {{ feedback.updated_at.strftime('%Y-%m-%d %H:%M') }}</small></p>
+                    
+                    {% if feedback.steps_to_reproduce %}
+                    <div class="mb-3">
+                        <h6>Steps to Reproduce:</h6>
+                        <div class="p-3 bg-dark rounded">{{ feedback.steps_to_reproduce|nl2br }}</div>
+                    </div>
                     {% endif %}
-                </div>
-            </div>
-            
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="mb-0">Description</h6>
-                        </div>
-                        <div class="card-body">
-                            <p class="card-text" style="white-space: pre-wrap;">{{ feedback.description }}</p>
-                        </div>
+                    
+                    {% if feedback.expected_behavior %}
+                    <div class="mb-3">
+                        <h6>Expected Behavior:</h6>
+                        <div class="p-3 bg-dark rounded">{{ feedback.expected_behavior|nl2br }}</div>
                     </div>
-                </div>
-            </div>
-            
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    {% if feedback.browser or feedback.device %}
-                    <div class="card h-100">
-                        <div class="card-header">
-                            <h6 class="mb-0">Environment Details</h6>
-                        </div>
-                        <div class="card-body">
-                            {% if feedback.browser %}
-                            <p class="mb-2"><strong>Browser:</strong> {{ feedback.browser }}</p>
-                            {% endif %}
-                            {% if feedback.device %}
-                            <p class="mb-0"><strong>Device/OS:</strong> {{ feedback.device }}</p>
-                            {% endif %}
+                    {% endif %}
+                    
+                    {% if feedback.actual_behavior %}
+                    <div class="mb-3">
+                        <h6>Actual Behavior:</h6>
+                        <div class="p-3 bg-dark rounded">{{ feedback.actual_behavior|nl2br }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if feedback.additional_notes %}
+                    <div class="mb-3">
+                        <h6>Additional Notes:</h6>
+                        <div class="p-3 bg-dark rounded">{{ feedback.additional_notes|nl2br }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if feedback.screenshots_json %}
+                    <div class="mb-3">
+                        <h6>Screenshots:</h6>
+                        <div class="row">
+                            {% for screenshot in feedback.screenshots_json|from_json %}
+                            <div class="col-md-6 mb-3">
+                                <a href="{{ screenshot }}" target="_blank">
+                                    <img src="{{ screenshot }}" class="img-fluid rounded" alt="Screenshot">
+                                </a>
+                            </div>
+                            {% endfor %}
                         </div>
                     </div>
                     {% endif %}
                 </div>
                 
-                <div class="col-md-6">
-                    {% if feedback.resolution_notes %}
-                    <div class="card h-100">
-                        <div class="card-header bg-success text-white">
-                            <h6 class="mb-0">Resolution Notes</h6>
+                <div class="col-md-4">
+                    <div class="card mb-3">
+                        <div class="card-header bg-secondary">
+                            Submitted By
                         </div>
                         <div class="card-body">
-                            <p class="card-text" style="white-space: pre-wrap;">{{ feedback.resolution_notes }}</p>
+                            {% if feedback.tester and feedback.tester.user %}
+                            <div class="d-flex align-items-center mb-2">
+                                {% if feedback.tester.user.profile_image_url %}
+                                <img src="{{ feedback.tester.user.profile_image_url }}" alt="Profile" 
+                                     class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                {% endif %}
+                                <div>
+                                    <div>{{ feedback.tester.user.first_name }} {{ feedback.tester.user.last_name }}</div>
+                                    <div class="text-muted small">{{ feedback.tester.user.email }}</div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="text-muted">Unknown User</div>
+                            {% endif %}
+                            <div class="text-muted small">Submitted on {{ feedback.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
                         </div>
                     </div>
-                    {% endif %}
-                </div>
-            </div>
-            
-            {% if feedback.screenshots %}
-            <div class="row mb-4">
-                <div class="col-12">
-                    <h6>Screenshots</h6>
-                    <div class="row">
-                        {% for screenshot in feedback.screenshots|from_json %}
-                        <div class="col-md-4 mb-3">
-                            <img src="{{ screenshot }}" class="img-fluid img-thumbnail" alt="Screenshot">
+                    
+                    {% if is_admin %}
+                    <div class="card">
+                        <div class="card-header bg-secondary">
+                            Admin Actions
                         </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-            
-            {% if current_user.is_administrator() %}
-            <hr>
-            <div class="row">
-                <div class="col-12">
-                    <h5>Admin Actions</h5>
-                    <form method="post" action="{{ url_for('beta.update_feedback_status', feedback_id=feedback.id) }}" class="mt-3">
-                        <div class="row">
-                            <div class="col-md-4">
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('beta.update_feedback_status', feedback_id=feedback.id) }}">
                                 <div class="mb-3">
                                     <label for="status" class="form-label">Update Status</label>
-                                    <select class="form-select" id="status" name="status">
+                                    <select class="form-select" name="status" id="status">
                                         <option value="new" {% if feedback.status == 'new' %}selected{% endif %}>New</option>
                                         <option value="in_progress" {% if feedback.status == 'in_progress' %}selected{% endif %}>In Progress</option>
                                         <option value="resolved" {% if feedback.status == 'resolved' %}selected{% endif %}>Resolved</option>
                                         <option value="wont_fix" {% if feedback.status == 'wont_fix' %}selected{% endif %}>Won't Fix</option>
                                     </select>
                                 </div>
-                            </div>
-                            <div class="col-md-8">
                                 <div class="mb-3">
-                                    <label for="resolution_notes" class="form-label">Resolution Notes</label>
-                                    <textarea class="form-control" id="resolution_notes" name="resolution_notes" rows="3">{{ feedback.resolution_notes }}</textarea>
+                                    <label for="admin_notes" class="form-label">Admin Notes</label>
+                                    <textarea class="form-control" name="admin_notes" id="admin_notes" rows="4">{{ feedback.admin_notes }}</textarea>
                                 </div>
-                            </div>
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </form>
                         </div>
-                        <div class="d-flex justify-content-end">
-                            <button type="submit" class="btn btn-primary">Update Feedback</button>
-                        </div>
-                    </form>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
-            {% endif %}
-            
-            <div class="d-flex justify-content-between mt-4">
-                <a href="{{ url_for('beta.dashboard') }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Back to Dashboard
-                </a>
-            </div>
-            
         </div>
     </div>
+    
+    {% if feedback.admin_notes and not is_admin %}
+    <div class="card">
+        <div class="card-header bg-secondary">
+            <h5 class="mb-0">Admin Response</h5>
+        </div>
+        <div class="card-body">
+            {{ feedback.admin_notes|nl2br }}
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

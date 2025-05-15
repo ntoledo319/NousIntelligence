@@ -173,6 +173,13 @@
                             <div class="nav-link text-muted small py-1">ACCOUNT</div>
                         </li>
                         
+                        <!-- Beta Testing -->
+                        <li class="nav-item">
+                            <a class="nav-link py-2" href="{{ url_for('beta.dashboard') }}">
+                                <i class="fas fa-flask me-2"></i>Beta Test Portal
+                            </a>
+                        </li>
+                        
                         <!-- User Actions -->
                         <li class="nav-item">
                             <a class="nav-link py-2" href="{{ url_for('help_page') }}">
@@ -230,6 +237,13 @@
                         <a class="nav-link" href="{{ url_for('settings_page') }}" data-bs-toggle="tooltip" title="Manage settings">
                             <i class="fas fa-cog me-1"></i>
                             <span>Settings</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('beta.dashboard') }}" data-bs-toggle="tooltip" title="Beta testing portal">
+                            <i class="fas fa-flask me-1"></i>
+                            <span>Beta Portal</span>
                         </a>
                     </li>
                     
