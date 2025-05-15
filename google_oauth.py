@@ -16,7 +16,10 @@ with open('client_secret.json', 'r') as f:
 GOOGLE_CLIENT_ID = client_config['client_id']
 GOOGLE_CLIENT_SECRET = client_config['client_secret']
 GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
-REDIRECT_URI = client_config['redirect_uris'][0]  # Use the one registered in Google Cloud
+# Get current domain dynamically
+import os
+CURRENT_DOMAIN = os.environ.get('REPLIT_DEV_DOMAIN', 'toledonick981.repl.co')
+REDIRECT_URI = f"https://{CURRENT_DOMAIN}/callback/google"  # Construct based on current domain
 
 # Initialize OAuth client
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
@@ -33,14 +36,20 @@ def login():
         authorization_endpoint = google_provider_cfg["authorization_endpoint"]
         
         # Use the exact redirect URI from client_secret.json
+        print(f"Using redirect URI: {REDIRECT_URI}")
         request_uri = client.prepare_request_uri(
             authorization_endpoint,
             redirect_uri=REDIRECT_URI,
             scope=["openid", "email", "profile"],
         )
         
+        # Print the full authorization URI for debugging
+        print(f"Authorization URI: {request_uri}")
+        
         return redirect(request_uri)
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         flash(f"Error starting Google login: {str(e)}", "danger")
         return redirect(url_for('login_page'))
 
@@ -48,6 +57,9 @@ def login():
 def callback():
     """Handle Google OAuth callback"""
     try:
+        print(f"Received callback at URL: {request.url}")
+        print(f"Expected redirect URI: {REDIRECT_URI}")
+        
         # Get auth code
         code = request.args.get("code")
         if not code:
