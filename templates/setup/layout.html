@@ -222,7 +222,7 @@
             </div>
             
             <div class="setup-steps">
-                {% for step, name in zip(steps, step_names) %}
+                {% for step in steps %}
                 <div class="setup-step {% if step == current_step %}active{% elif current_step in steps and steps.index(step) < steps.index(current_step) %}completed{% endif %}">
                     <div class="setup-step-number">
                         {% if current_step in steps and steps.index(step) < steps.index(current_step) %}
@@ -231,7 +231,7 @@
                         {{ loop.index }}
                         {% endif %}
                     </div>
-                    <div class="setup-step-label">{{ name }}</div>
+                    <div class="setup-step-label">{{ step_names[loop.index0] }}</div>
                 </div>
                 {% endfor %}
             </div>
@@ -243,7 +243,7 @@
     </div>
     
     <div class="setup-footer">
-        <p>&copy; {{ now.year }} NOUS Assistant - All rights reserved</p>
+        <p>&copy; 2025 NOUS Assistant - All rights reserved</p>
     </div>
     
     <!-- Bootstrap JS -->
