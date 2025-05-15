@@ -138,8 +138,8 @@ def preferences():
     # Get current setup progress
     progress = get_setup_progress(user_id)
     
-    # Get current user settings
-    settings = UserSettings.query.filter_by(user_id=user_id).first()
+    # Get or initialize user settings
+    settings = initialize_user_settings(user_id)
     
     return render_template(
         'setup/preferences.html',
@@ -157,6 +157,11 @@ def preferences_save():
     
     # Get or initialize user settings
     settings = initialize_user_settings(user_id)
+    
+    # Check if settings were successfully created/retrieved
+    if not settings:
+        flash("Error retrieving user settings. Please try again.", "error")
+        return redirect(url_for('setup.preferences'))
     
     # Update settings from form
     settings.theme = request.form.get('theme', 'dark')
@@ -189,9 +194,13 @@ def features():
     # Get current setup progress
     progress = get_setup_progress(user_id)
     
+    # Get or initialize user settings
+    settings = initialize_user_settings(user_id)
+    
     return render_template(
         'setup/features.html',
         progress=progress,
+        settings=settings,
         user=current_user
     )
 
@@ -204,6 +213,11 @@ def features_save():
     
     # Get or initialize user settings
     settings = initialize_user_settings(user_id)
+    
+    # Check if settings were successfully created/retrieved
+    if not settings:
+        flash("Error retrieving user settings. Please try again.", "error")
+        return redirect(url_for('setup.features'))
     
     # Update notification settings
     settings.email_notifications = request.form.get('email_notifications') == 'on'
@@ -229,6 +243,9 @@ def complete():
     # Get current setup progress
     progress = get_setup_progress(user_id)
     
+    # Get or initialize user settings
+    settings = initialize_user_settings(user_id)
+    
     # Get assistant profile
     profile = get_assistant_profile(user_id)
     
@@ -236,6 +253,7 @@ def complete():
         'setup/complete.html',
         progress=progress,
         profile=profile,
+        settings=settings, 
         user=current_user
     )
 
