@@ -284,8 +284,105 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Pain Flare Forecast Widget -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100 border-0">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cloud-rain me-2"></i>Pain Flare Forecast
+                    </h5>
+                    <button class="btn btn-sm btn-outline-secondary" 
+                            onclick="submitCommand('pain forecast')">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if pain_forecast %}
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                {% if pain_forecast.risk_level == 'low' %}
+                                    <div class="circle-indicator bg-success">🟢</div>
+                                {% elif pain_forecast.risk_level == 'moderate' %}
+                                    <div class="circle-indicator bg-warning">🟡</div>
+                                {% elif pain_forecast.risk_level == 'high' %}
+                                    <div class="circle-indicator bg-warning">🟠</div>
+                                {% elif pain_forecast.risk_level == 'very high' %}
+                                    <div class="circle-indicator bg-danger">🔴</div>
+                                {% else %}
+                                    <div class="circle-indicator bg-secondary">❓</div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h4 class="h5 mb-0">{{ pain_forecast.risk_level|title }} Risk</h4>
+                                <small class="text-muted">{{ pain_forecast.location }}</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Barometric Pressure:</span>
+                                <span>{{ pain_forecast.current_pressure }} hPa</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Trend:</span>
+                                <span>
+                                    {{ pain_forecast.trend_direction|title }}
+                                    {% if pain_forecast.pressure_change > 0 %}
+                                        <i class="fas fa-arrow-up text-danger"></i>
+                                    {% elif pain_forecast.pressure_change < 0 %}
+                                        <i class="fas fa-arrow-down text-success"></i>
+                                    {% else %}
+                                        <i class="fas fa-arrows-alt-h text-muted"></i>
+                                    {% endif %}
+                                    {{ pain_forecast.pressure_change|abs|round(1) }} hPa
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Risk Factors:</strong>
+                            <ul class="mb-0 ps-3 small">
+                                {% for factor in pain_forecast.factors %}
+                                <li>{{ factor }}</li>
+                                {% endfor %}
+                                {% if not pain_forecast.factors %}
+                                <li>No significant risk factors</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        
+                        <button class="btn btn-sm btn-primary w-100"
+                                onclick="submitCommand('pain forecast in {{ pain_forecast.location }}')">
+                            View Detailed Forecast
+                        </button>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-cloud-rain fa-3x mb-3 text-muted"></i>
+                            <p>No pain forecast data available.</p>
+                            <button class="btn btn-sm btn-primary"
+                                    onclick="submitCommand('pain forecast')">
+                                Get Pain Forecast
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+    .circle-indicator {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+</style>
 {% endblock %}
 
 {% block scripts %}

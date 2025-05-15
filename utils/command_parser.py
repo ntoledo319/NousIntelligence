@@ -346,6 +346,15 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
         log.append("- show products - List all your tracked products")
         log.append("- show products to order - Show products due for ordering")
         log.append("")
+        log.append("🌦️ Weather & Pain Management:")
+        log.append("- weather [location] - Get current weather for a location")
+        log.append("- forecast [days] in [location] - Get weather forecast")
+        log.append("- save location [name] - Save a location for weather tracking")
+        log.append("- my locations - List your saved weather locations")
+        log.append("- set primary location [name] - Set your default weather location")
+        log.append("- pain forecast in [location] - Get pain flare risk prediction")
+        log.append("- pain forecast next [hours] hours - Check extended pain forecast")
+        log.append("")
         log.append("- connect spotify - Connect Spotify account")
         log.append("- connect google - Connect Google account")
         log.append("- help - Show this help menu")
@@ -1753,6 +1762,64 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
     elif cmd == "logout":
         log.append("🔄 Logging out and clearing credentials...")
         result["redirect"] = url_for("logout")
+        
+    elif cmd.startswith("pain forecast") or cmd.startswith("pain flare") or cmd == "pain":
+        # Get pain flare forecast based on weather conditions
+        location_match = re.search(r'(?:for|in|at) (.+)$', cmd)
+        hours_match = re.search(r'next (\d+) hours', cmd)
+        
+        location = location_match.group(1) if location_match else None
+        hours = int(hours_match.group(1)) if hours_match else 24
+        
+        try:
+            # If no location provided, use primary or default
+            if not location:
+                # Try to get user's primary location
+                from models import WeatherLocation
+                user_id = session.get("user_id")
+                primary_location = WeatherLocation.query.filter_by(user_id=user_id, is_primary=True).first()
+                
+                if primary_location:
+                    location = primary_location.name
+                    log.append(f"Using your primary location: {primary_location.display_name}")
+                else:
+                    log.append("❓ No location specified and no primary location set.")
+                    log.append("Try 'pain forecast in [city name]' or 'save location [city name]' first.")
+                    return result
+            
+            # Get current weather for the location (needed for storm data)
+            weather_data = get_current_weather(location)
+            if not weather_data:
+                log.append(f"❓ Location '{location}' not found. Try a different location name.")
+                return result
+                
+            # Get pressure trend data
+            pressure_trend = get_pressure_trend(location, hours)
+            if not pressure_trend:
+                log.append(f"❌ Error retrieving pressure data for '{location}'")
+                return result
+                
+            # Extract storm severity data
+            storm_data = get_storm_severity(weather_data)
+            
+            # Calculate pain flare risk
+            pain_risk = calculate_pain_flare_risk(pressure_trend, storm_data)
+            
+            # Format for display
+            formatted_output = format_pain_forecast_output(pressure_trend, pain_risk)
+            log.append(formatted_output)
+            
+            # Add tracking data to the response
+            result["pain_forecast"] = {
+                "location": pressure_trend["location"],
+                "risk_level": pain_risk["risk_level"],
+                "pressure_change": pressure_trend["overall_change"],
+                "factors": pain_risk["factors"]
+            }
+        except Exception as e:
+            log.append(f"❌ Error generating pain flare forecast: {str(e)}")
+        
+        return result
     
     else:
         # Try to use AI to parse the command as a last resort
