@@ -852,12 +852,42 @@ class KnowledgeBase(db.Model):
         return f"<KnowledgeBase {self.id}: {self.content[:30]}...>"
         
     def get_embedding_array(self):
-        """Convert stored binary embedding back to numpy array"""
-        return np.frombuffer(self.embedding, dtype=np.float32)
+        """
+        Convert stored binary embedding back to numpy array.
+        Handles both compressed and uncompressed formats.
+        """
+        try:
+            # First try to decompress (for newer compressed embeddings)
+            import zlib
+            decompressed = zlib.decompress(self.embedding)
+            return np.frombuffer(decompressed, dtype=np.float16).astype(np.float32)
+        except:
+            # Fall back to legacy uncompressed format
+            try:
+                return np.frombuffer(self.embedding, dtype=np.float32)
+            except:
+                # Last resort fallback
+                import logging
+                logging.warning(f"Failed to decode embedding for knowledge entry {self.id}")
+                return np.zeros(1536, dtype=np.float32)
     
     def set_embedding_array(self, embedding_array):
-        """Convert numpy array to binary for storage"""
-        self.embedding = embedding_array.astype(np.float32).tobytes()
+        """
+        Convert numpy array to compressed binary for storage.
+        Uses float16 precision and zlib compression to reduce size.
+        """
+        try:
+            # Convert to float16 and compress with zlib
+            import zlib
+            # Use moderate compression level (6) for good balance of speed/size
+            compressed = zlib.compress(
+                embedding_array.astype(np.float16).tobytes(), 
+                level=6
+            )
+            self.embedding = compressed
+        except:
+            # Fall back to uncompressed if compression fails
+            self.embedding = embedding_array.astype(np.float32).tobytes()
         
     def increment_access(self):
         """Update access metrics when this entry is retrieved"""

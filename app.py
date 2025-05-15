@@ -77,8 +77,16 @@ if database_url:
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-        'pool_pre_ping': True,
-        "pool_recycle": 300,
+        'pool_pre_ping': True,  # Verify connections before using from pool
+        'pool_recycle': 300,    # Recycle connections every 5 minutes
+        'pool_size': 15,        # Maximum number of connections to keep in pool
+        'max_overflow': 5,      # Maximum number of connections to create beyond pool_size
+        'pool_timeout': 30,     # Timeout for getting a connection from pool (seconds)
+        'echo_pool': False,     # Don't log all pool checkouts/checkins
+        'pool_use_lifo': True,  # Use last-in-first-out to reduce number of open connections
+        'execution_options': {
+            'timeout': 10       # Statement execution timeout (seconds)
+        }
     }
     db.init_app(app)
     
@@ -86,6 +94,11 @@ if database_url:
     with app.app_context():
         db.create_all()
         logging.info("Database tables created (if they didn't exist already)")
+        
+        # Start the maintenance scheduler
+        from utils.maintenance_helper import start_maintenance_scheduler
+        start_maintenance_scheduler()
+        logging.info("Maintenance scheduler started")
 else:
     print("No DATABASE_URL found in environment variables")
     
