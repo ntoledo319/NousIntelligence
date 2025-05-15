@@ -41,10 +41,11 @@ class UserSettings(db.Model):
     # AI Character customization
     ai_name = db.Column(db.String(30), default='NOUS')
     ai_personality = db.Column(db.String(20), default='helpful')
-    ai_voice_type = db.Column(db.String(20), default='neutral')
-    ai_humor_level = db.Column(db.Integer, default=5)  # Scale 1-10
-    ai_formality_level = db.Column(db.Integer, default=5)  # Scale 1-10
-    ai_emoji_usage = db.Column(db.String(10), default='moderate')  # none, minimal, moderate, frequent
+    ai_formality = db.Column(db.String(20), default='casual')  # casual, neutral, formal
+    ai_verbosity = db.Column(db.String(20), default='balanced')  # concise, balanced, detailed  
+    ai_enthusiasm = db.Column(db.String(20), default='moderate')  # low, moderate, high
+    ai_emoji_usage = db.Column(db.String(20), default='occasional')  # none, occasional, frequent
+    ai_voice_type = db.Column(db.String(20), default='neutral')  # neutral, warm, authoritative, energetic, calm
     ai_backstory = db.Column(db.Text, nullable=True)  # Custom backstory for the AI
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -60,10 +61,11 @@ class UserSettings(db.Model):
             'theme': self.theme,
             'ai_name': self.ai_name,
             'ai_personality': self.ai_personality,
-            'ai_voice_type': self.ai_voice_type,
-            'ai_humor_level': self.ai_humor_level,
-            'ai_formality_level': self.ai_formality_level,
+            'ai_formality': self.ai_formality,
+            'ai_verbosity': self.ai_verbosity,
+            'ai_enthusiasm': self.ai_enthusiasm,
             'ai_emoji_usage': self.ai_emoji_usage,
+            'ai_voice_type': self.ai_voice_type,
             'ai_backstory': self.ai_backstory
         }
 
