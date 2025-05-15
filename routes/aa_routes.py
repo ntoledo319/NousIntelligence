@@ -16,14 +16,14 @@ from app import db
 # Import AA recovery models from helper
 from utils.aa_helper import (
     AASettings, AARecoveryLog, AAMeetingLog, AANightlyInventory,
-    AASpotCheck, AASponsorCall, AAMindfulnessLog, AAAchievement, AAForumPost
+    AASpotCheck, AASponsorCall, AAMindfulnessLog, AAAchievement
 )
 from utils.aa_helper import (
     find_meetings, log_meeting_attendance, get_daily_reflection, log_reflection_response,
     register_sponsor, log_sponsor_call, get_recovery_stats, set_sober_date, update_aa_settings,
     get_nightly_inventory_template, start_nightly_inventory, update_nightly_inventory, complete_nightly_inventory,
     get_random_spot_check, log_spot_check_response, get_crisis_resources, get_mindfulness_exercises,
-    log_mindfulness_exercise, add_achievement, get_forum_posts, create_forum_post
+    log_mindfulness_exercise, add_achievement
 )
 
 aa_bp = Blueprint('aa', __name__, url_prefix='/aa')

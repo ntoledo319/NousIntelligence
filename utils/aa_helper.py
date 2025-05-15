@@ -250,35 +250,7 @@ class AAAchievement:
             'earned_date': self.earned_date.isoformat() if self.earned_date else None
         }
 
-class AAForumPost:
-    """Forum posts for peer support"""
-    def __init__(self, **kwargs):
-        self.id = kwargs.get('id')
-        self.user_id = kwargs.get('user_id')
-        self.display_name = kwargs.get('display_name')
-        self.topic = kwargs.get('topic')
-        self.content = kwargs.get('content')
-        self.parent_id = kwargs.get('parent_id')
-        self.created_at = kwargs.get('created_at')
-        self.updated_at = kwargs.get('updated_at')
-        self.replies = []
-    
-    def to_dict(self, include_replies=False):
-        """Convert to dictionary"""
-        result = {
-            'id': self.id,
-            'display_name': self.display_name,
-            'topic': self.topic,
-            'content': self.content,
-            'parent_id': self.parent_id,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
-        }
-        
-        if include_replies:
-            result['replies'] = [reply.to_dict(False) for reply in self.replies]
-            
-        return result
+
 
 # Load static data
 def load_json_file(filename):
@@ -1321,74 +1293,3 @@ def add_achievement(user_id, badge_id, badge_name, badge_description) -> Optiona
         return None
 
 # Forum
-def get_forum_posts(include_replies=True) -> Dict[str, Any]:
-    """
-    Get forum posts
-    
-    Args:
-        include_replies: Whether to include replies
-        
-    Returns:
-        Dict with forum posts
-    """
-    try:
-        # Get top-level posts
-        posts = AAForumPost.query.filter_by(parent_id=None) \
-            .order_by(AAForumPost.created_at.desc()) \
-            .all()
-            
-        result = []
-        for post in posts:
-            post_dict = post.to_dict(include_replies)
-            result.append(post_dict)
-            
-        return {"posts": result}
-        
-    except Exception as e:
-        logging.error(f"Error getting forum posts: {str(e)}")
-        return {"error": str(e), "posts": []}
-
-def create_forum_post(user_id, display_name, topic, content, parent_id=None) -> Dict[str, Any]:
-    """
-    Create a new forum post
-    
-    Args:
-        user_id: User ID (for tracking, but anonymous to others)
-        display_name: Anonymous display name
-        topic: Post topic
-        content: Post content
-        parent_id: Optional parent post ID for replies
-        
-    Returns:
-        Dict with result status
-    """
-    try:
-        post = AAForumPost(
-            user_id=user_id,
-            display_name=display_name,
-            topic=topic,
-            content=content,
-            parent_id=parent_id
-        )
-        
-        db.session.add(post)
-        db.session.commit()
-        
-        # Check for badges
-        post_count = AAForumPost.query.filter_by(user_id=user_id).count()
-        
-        badges = []
-        if post_count == 1:
-            badges.append(add_achievement(user_id, "first_post", "Community Connection", "Made your first forum post"))
-        elif post_count == 5:
-            badges.append(add_achievement(user_id, "five_posts", "Active Participant", "Contributed 5 posts to the forum"))
-            
-        return {
-            "success": True, 
-            "post_id": post.id,
-            "new_badges": badges
-        }
-        
-    except Exception as e:
-        logging.error(f"Error creating forum post: {str(e)}")
-        return {"success": False, "error": str(e)}
