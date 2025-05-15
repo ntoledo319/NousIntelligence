@@ -649,6 +649,20 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
         log.append("- weekly summary - Get an AI summary of your week")
         log.append("- motivate me - Get a motivational quote")
         log.append("- add doctor [name] - Add a new doctor to your list")
+        
+        # AI Assistant section
+        log.append("")
+        log.append("🤖 AI Assistant Commands:")
+        log.append("- chat: [message] - Have a conversation with the AI assistant")
+        
+        # Gmail section
+        log.append("")
+        log.append("📧 Gmail Analysis Commands:")
+        log.append("- analyze email: [content] - Analyze email content for key points and action items")
+        
+        # Medical commands
+        log.append("")
+        log.append("🩺 Medical Commands:")
         log.append("- list doctors - Show your saved doctors")
         log.append("- set appointment with [doctor] on [date/time] - Schedule an appointment")
         log.append("- show appointments - List your upcoming appointments")
@@ -2221,7 +2235,74 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
     elif cmd == "logout":
         log.append("🔄 Logging out and clearing credentials...")
         result["redirect"] = url_for("logout")
+    
+    # Handle chat with AI assistant
+    elif cmd.startswith("chat:"):
+        chat_message = cmd[5:].strip()  # Remove "chat:" prefix
+        if not chat_message:
+            log.append("Please include a message to chat with the assistant.")
+        else:
+            # Get user_id from session
+            user_id = session.get('user_id', 'anonymous') if session else 'anonymous'
+            response = handle_conversation(user_id, chat_message)
+            log.append(f"🤖 {response}")
+    
+    # Handle Gmail content analysis
+    elif cmd.startswith("analyze email:"):
+        email_content = cmd[14:].strip()  # Remove "analyze email:" prefix
         
+        if not email_content:
+            log.append("Please include email content to analyze.")
+        else:
+            # Get user_id from session
+            user_id = session.get('user_id', 'anonymous') if session else 'anonymous'
+            
+            # Analyze the email content
+            analysis = analyze_gmail_content(user_id, email_content)
+            
+            if "error" in analysis:
+                log.append(f"⚠️ Error analyzing email: {analysis['error']}")
+            else:
+                # Format the analysis results
+                log.append("📧 Email Analysis:")
+                log.append(f"📌 Summary: {analysis.get('summary', 'No summary available')}")
+                
+                # Priority
+                priority = analysis.get('priority', 'Unknown')
+                priority_emoji = "🔴" if priority.lower() == "high" else "🟡" if priority.lower() == "medium" else "🟢"
+                log.append(f"{priority_emoji} Priority: {priority}")
+                
+                # Tone
+                log.append(f"🎭 Tone: {analysis.get('tone', 'Unknown')}")
+                
+                # Key points
+                key_points = analysis.get('key_points', [])
+                if key_points:
+                    log.append("📋 Key points:")
+                    for point in key_points:
+                        log.append(f"  • {point}")
+                
+                # Action items
+                action_items = analysis.get('action_items', [])
+                if action_items:
+                    log.append("✅ Action items:")
+                    for item in action_items:
+                        log.append(f"  • {item}")
+                
+                # Deadlines
+                deadlines = analysis.get('deadlines', [])
+                if deadlines:
+                    log.append("⏰ Deadlines:")
+                    for deadline in deadlines:
+                        log.append(f"  • {deadline}")
+                
+                # People mentioned
+                people = analysis.get('people', [])
+                if people:
+                    log.append("👥 People mentioned:")
+                    for person in people:
+                        log.append(f"  • {person}")
+                        
     elif cmd.startswith("pain forecast") or cmd.startswith("pain flare") or cmd == "pain":
         # Get pain flare forecast based on weather conditions
         location_match = re.search(r'(?:for|in|at) (.+)$', cmd)
