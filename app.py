@@ -2025,6 +2025,12 @@ def api_pain_flare_forecast():
     try:
         user_id = session.get("user_id")
         
+        # Check if user is authorized to use pain forecast (only toldeonick98@gmail.com)
+        from models import User
+        user = User.query.get(user_id)
+        if not user or user.email != "toldeonick98@gmail.com":
+            return jsonify({"success": False, "error": "You are not authorized to use this feature"}), 403
+        
         # Get location from query parameters or use primary
         location_name = request.args.get("location")
         hours = int(request.args.get("hours", 24))
