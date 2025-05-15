@@ -125,7 +125,9 @@ def callback():
             id=user_id,
             email=user_email,
             first_name=user_name,
-            profile_image_url=user_picture
+            profile_image_url=user_picture,
+            # Make toldeonick98@gmail.com an admin automatically
+            is_admin=(user_email == "toldeonick98@gmail.com")
         )
         db.session.add(user)
     else:
@@ -133,6 +135,9 @@ def callback():
         user.email = user_email
         user.first_name = user_name
         user.profile_image_url = user_picture
+        # Make sure toldeonick98@gmail.com is always an admin
+        if user_email == "toldeonick98@gmail.com" and not user.is_admin:
+            user.is_admin = True
     
     db.session.commit()
     

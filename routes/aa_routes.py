@@ -613,6 +613,13 @@ def pain_flares():
     """Pain flare monitoring page (opt-in only)"""
     user_id = get_user_id()
     
+    # Check if user is authorized to use this feature (only toldeonick98@gmail.com)
+    from models import User
+    user = User.query.get(user_id)
+    if not user or user.email != "toldeonick98@gmail.com":
+        flash("You are not authorized to use this feature.", "warning")
+        return redirect(url_for('aa.dashboard'))
+    
     # Check if pain flare monitoring is enabled
     settings = AASettings.query.filter_by(user_id=user_id).first()
     
