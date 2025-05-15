@@ -403,3 +403,220 @@ def get_pressure_trend(location: str, hours: int = 24) -> Dict[str, Any]:
         "current_pressure": pressure_data[0] if pressure_data else None,
         "trend_direction": "rising" if overall_change > 0 else "falling" if overall_change < 0 else "stable"
     }
+
+def calculate_pain_flare_risk(pressure_trend: Dict[str, Any], storm_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """
+    Calculate risk of pain flare based on pressure trends and storm data
+    
+    Parameters:
+    - pressure_trend: Pressure trend data from get_pressure_trend
+    - storm_data: Optional storm data
+    
+    Returns dictionary with pain flare risk assessment
+    """
+    if not pressure_trend:
+        return {"risk_level": "unknown", "confidence": 0, "message": "No pressure data available"}
+    
+    # Initialize risk factors
+    risk_score = 0
+    confidence = 0.7  # Base confidence level
+    factors = []
+    
+    # 1. Overall pressure change factor
+    overall_change = abs(pressure_trend.get("overall_change", 0))
+    
+    # Significant pressure changes often trigger pain (>6 hPa in 24h is significant)
+    if overall_change > 10:
+        risk_score += 5
+        factors.append(f"Very significant pressure change ({overall_change:.1f} hPa)")
+        confidence += 0.1
+    elif overall_change > 6:
+        risk_score += 3
+        factors.append(f"Significant pressure change ({overall_change:.1f} hPa)")
+    elif overall_change > 3:
+        risk_score += 1
+        factors.append(f"Moderate pressure change ({overall_change:.1f} hPa)")
+    
+    # 2. Rate of change factor (how quickly pressure is changing)
+    max_change = abs(pressure_trend.get("max_change", 0))
+    if max_change > 3:  # More than 3 hPa in 3 hours is rapid
+        risk_score += 3
+        factors.append(f"Rapid pressure change rate ({max_change:.1f} hPa)")
+        confidence += 0.05
+    elif max_change > 1:
+        risk_score += 1
+        factors.append(f"Moderate pressure change rate ({max_change:.1f} hPa)")
+    
+    # 3. Storm presence factor
+    if storm_data:
+        # Storm conditions increase risk
+        if "thunderstorm" in storm_data.get("conditions", "").lower():
+            risk_score += 4
+            factors.append("Thunderstorm conditions")
+            confidence += 0.1
+        elif "storm" in storm_data.get("conditions", "").lower():
+            risk_score += 3
+            factors.append("Storm conditions")
+            confidence += 0.05
+        
+        # Wind factor
+        wind_speed = storm_data.get("wind_speed", 0)
+        if wind_speed > 30:
+            risk_score += 2
+            factors.append(f"High winds ({wind_speed} mph)")
+        
+        # Precipitation factor
+        precipitation = storm_data.get("precipitation", 0)
+        if precipitation > 10:
+            risk_score += 1
+            factors.append(f"Heavy precipitation ({precipitation} mm)")
+    
+    # 4. Current pressure factor (very low or very high pressure)
+    current_pressure = pressure_trend.get("current_pressure", 0)
+    avg_pressure = 1013.25  # Average sea level pressure (hPa)
+    
+    if abs(current_pressure - avg_pressure) > 15:
+        risk_score += 1
+        factors.append(f"Extreme pressure ({current_pressure} hPa)")
+    
+    # Calculate risk level based on score
+    risk_level = "low"
+    if risk_score >= 8:
+        risk_level = "very high"
+    elif risk_score >= 5:
+        risk_level = "high"
+    elif risk_score >= 3:
+        risk_level = "moderate"
+    
+    # Cap confidence at 0.95
+    confidence = min(0.95, confidence)
+    
+    # Create recommendation based on risk
+    if risk_level == "very high":
+        recommendation = "Consider taking preventive pain medication and limiting physical activity. Stay hydrated and keep warm."
+    elif risk_level == "high":
+        recommendation = "Be prepared for potential pain flare. Have medication ready and consider reducing strenuous activities."
+    elif risk_level == "moderate":
+        recommendation = "Monitor your symptoms. Consider gentle exercise and stay hydrated."
+    else:
+        recommendation = "Low risk of weather-related pain flare. Maintain normal activities."
+    
+    return {
+        "risk_level": risk_level,
+        "risk_score": risk_score,
+        "confidence": confidence,
+        "factors": factors,
+        "trend_direction": pressure_trend.get("trend_direction"),
+        "recommendation": recommendation
+    }
+
+def get_storm_severity(weather_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Extract storm severity data from weather data"""
+    if not weather_data:
+        return None
+        
+    # Get relevant storm indicators
+    conditions = weather_data["weather"]["main"]
+    description = weather_data["weather"]["description"]
+    
+    wind_speed = weather_data["wind"]["speed"]
+    wind_direction = weather_data.get("wind", {}).get("direction", 0)
+    
+    # Get precipitation if available (not always present in API response)
+    precipitation = 0
+    if "rain" in weather_data and "1h" in weather_data["rain"]:
+        precipitation = weather_data["rain"]["1h"]
+    elif "rain" in weather_data and "3h" in weather_data["rain"]:
+        precipitation = weather_data["rain"]["3h"] / 3
+        
+    # Calculate storm severity score (0-10)
+    severity = 0
+    
+    # Weather conditions factor
+    if "thunderstorm" in conditions.lower() or "thunderstorm" in description.lower():
+        severity += 5
+    elif "storm" in conditions.lower() or "storm" in description.lower():
+        severity += 3
+    elif "rain" in conditions.lower() or "rain" in description.lower():
+        severity += 2
+    elif "drizzle" in conditions.lower() or "drizzle" in description.lower():
+        severity += 1
+        
+    # Wind factor (wind over 25mph is significant)
+    if wind_speed > 40:
+        severity += 3
+    elif wind_speed > 25:
+        severity += 2
+    elif wind_speed > 15:
+        severity += 1
+        
+    # Precipitation factor
+    if precipitation > 10:  # Heavy rain
+        severity += 2
+    elif precipitation > 5:  # Moderate rain
+        severity += 1
+        
+    # Cap at 10
+    severity = min(10, severity)
+    
+    # Determine severity category
+    if severity >= 8:
+        category = "severe"
+    elif severity >= 5:
+        category = "moderate"
+    elif severity >= 2:
+        category = "mild"
+    else:
+        category = "none"
+        
+    return {
+        "conditions": f"{conditions} - {description}",
+        "wind_speed": wind_speed,
+        "wind_direction": wind_direction,
+        "precipitation": precipitation,
+        "severity_score": severity,
+        "category": category
+    }
+
+def format_pain_forecast_output(pressure_trend: Dict[str, Any], pain_risk: Dict[str, Any]) -> str:
+    """Format pain flare risk assessment for display in terminal"""
+    if not pressure_trend or not pain_risk:
+        return "Unable to generate pain flare forecast. Try again with a different location."
+    
+    risk_level = pain_risk["risk_level"].upper()
+    
+    # Choose emoji based on risk level
+    risk_emoji = "🟢"  # Low risk
+    if risk_level == "MODERATE":
+        risk_emoji = "🟡"
+    elif risk_level == "HIGH":
+        risk_emoji = "🟠"
+    elif risk_level == "VERY HIGH":
+        risk_emoji = "🔴"
+    
+    # Format output
+    output = [
+        f"📍 {pressure_trend['location']} - Pain Flare Forecast",
+        f"",
+        f"{risk_emoji} Risk Level: {risk_level} (Confidence: {pain_risk['confidence']*100:.0f}%)",
+        f"🌡️ Barometric Pressure: {pressure_trend['current_pressure']} hPa ({pressure_trend['trend_direction']})",
+        f"📊 Pressure Change: {pressure_trend['overall_change']:.1f} hPa over {len(pressure_trend['pressure_data'])} hours",
+        f"",
+        f"🔍 Risk Factors:"
+    ]
+    
+    # Add factors
+    for factor in pain_risk["factors"]:
+        output.append(f"  • {factor}")
+    
+    if not pain_risk["factors"]:
+        output.append("  • No significant risk factors")
+    
+    # Add recommendation
+    output.extend([
+        f"",
+        f"💡 Recommendation:",
+        f"  {pain_risk['recommendation']}"
+    ])
+    
+    return "\n".join(output)

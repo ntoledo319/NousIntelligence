@@ -13,7 +13,8 @@ from utils.command_parser import parse_command
 from utils.logger import log_workout, log_mood
 from utils.weather_helper import (
     get_current_weather, get_weather_forecast, get_location_coordinates,
-    format_weather_output, format_forecast_output
+    format_weather_output, format_forecast_output, get_pressure_trend,
+    calculate_pain_flare_risk, get_storm_severity, format_pain_forecast_output
 )
 from utils.doctor_appointment_helper import (
     get_doctors, get_doctor_by_id, get_doctor_by_name, 
@@ -1792,5 +1793,64 @@ def api_set_primary_weather_location(location_id):
         db.session.commit()
         
         return jsonify({"success": True, "location": location.to_dict()})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 400
+        
+        
+@app.route("/api/weather/pain-forecast", methods=["GET"])
+def api_pain_flare_forecast():
+    """Get pain flare forecast based on barometric pressure changes"""
+    try:
+        user_id = session.get("user_id")
+        
+        # Get location from query parameters or use primary
+        location_name = request.args.get("location")
+        hours = int(request.args.get("hours", 24))
+        
+        # If no location provided, try to use the user's primary location
+        if not location_name:
+            primary_location = WeatherLocation.query.filter_by(user_id=user_id, is_primary=True).first()
+            if primary_location:
+                location_name = primary_location.name
+            else:
+                return jsonify({"success": False, "error": "No location specified and no primary location set"}), 400
+        
+        # Get current weather for the location - needed for storm severity
+        weather_data = get_current_weather(location_name)
+        if not weather_data:
+            return jsonify({"success": False, "error": f"Location '{location_name}' not found"}), 404
+            
+        # Get pressure trend data
+        pressure_trend = get_pressure_trend(location_name, hours)
+        if not pressure_trend:
+            return jsonify({"success": False, "error": f"Could not retrieve pressure data for '{location_name}'"}), 500
+            
+        # Extract storm severity from weather data
+        storm_data = get_storm_severity(weather_data)
+        
+        # Calculate pain flare risk
+        pain_risk = calculate_pain_flare_risk(pressure_trend, storm_data)
+        
+        # Format for display
+        formatted_output = format_pain_forecast_output(pressure_trend, pain_risk)
+        
+        # Create response with both raw data and formatted output
+        response = {
+            "success": True,
+            "location": pressure_trend["location"],
+            "current_pressure": pressure_trend["current_pressure"],
+            "trend_direction": pressure_trend["trend_direction"],
+            "pressure_change": pressure_trend["overall_change"],
+            "risk_level": pain_risk["risk_level"],
+            "risk_score": pain_risk["risk_score"],
+            "confidence": pain_risk["confidence"],
+            "factors": pain_risk["factors"],
+            "recommendation": pain_risk["recommendation"],
+            "storm_severity": storm_data["category"] if storm_data else "none",
+            "formatted_output": formatted_output,
+            "pressure_data": pressure_trend["pressure_data"]
+        }
+        
+        return jsonify(response)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 400
