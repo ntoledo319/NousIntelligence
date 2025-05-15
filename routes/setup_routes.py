@@ -16,7 +16,8 @@ from models import AssistantProfile, UserSettings
 from utils.setup_wizard import (
     get_assistant_profile, customize_assistant, 
     get_setup_progress, update_setup_progress,
-    get_personality_options, delete_customization
+    get_personality_options, delete_customization,
+    initialize_user_settings
 )
 
 setup_bp = Blueprint('setup', __name__, url_prefix='/setup')
@@ -154,12 +155,8 @@ def preferences_save():
     """Save user preferences"""
     user_id = get_user_id()
     
-    # Get current user settings
-    settings = UserSettings.query.filter_by(user_id=user_id).first()
-    
-    if not settings:
-        settings = UserSettings(user_id=user_id)
-        db.session.add(settings)
+    # Get or initialize user settings
+    settings = initialize_user_settings(user_id)
     
     # Update settings from form
     settings.theme = request.form.get('theme', 'dark')
@@ -205,12 +202,8 @@ def features_save():
     """Save features preferences"""
     user_id = get_user_id()
     
-    # Get current user settings
-    settings = UserSettings.query.filter_by(user_id=user_id).first()
-    
-    if not settings:
-        settings = UserSettings(user_id=user_id)
-        db.session.add(settings)
+    # Get or initialize user settings
+    settings = initialize_user_settings(user_id)
     
     # Update notification settings
     settings.email_notifications = request.form.get('email_notifications') == 'on'

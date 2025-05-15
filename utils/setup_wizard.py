@@ -145,6 +145,44 @@ def customize_assistant(user_id, data):
         db.session.rollback()
         return None
 
+def initialize_user_settings(user_id):
+    """
+    Initialize user settings with default values
+    
+    Args:
+        user_id: User identifier
+        
+    Returns:
+        UserSettings object
+    """
+    if not user_id:
+        logger.error("Cannot initialize user settings: No user ID provided")
+        return None
+    
+    try:
+        # Check if user already has settings
+        settings = UserSettings.query.filter_by(user_id=user_id).first()
+        
+        if settings:
+            return settings
+            
+        # Create new settings with default values
+        settings = UserSettings()
+        settings.user_id = user_id
+        
+        db.session.add(settings)
+        db.session.commit()
+        
+        # Reload the settings to ensure all fields are populated
+        settings = UserSettings.query.filter_by(user_id=user_id).first()
+        
+        logger.info(f"Initialized settings for user {user_id}")
+        return settings
+    except Exception as e:
+        logger.error(f"Error initializing user settings: {str(e)}")
+        db.session.rollback()
+        return None
+
 def delete_customization(user_id):
     """
     Delete user's custom profile and revert to default
