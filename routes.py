@@ -7,6 +7,7 @@ from utils.security_helper import (
     csrf_protect, generate_csrf_token, session_timeout_check, 
     sanitize_input, require_https, log_security_event
 )
+from utils.setup_wizard import get_setup_progress
 import logging
 
 # Import Google auth blueprint
@@ -57,6 +58,30 @@ def request_processor():
 def inject_csrf_token():
     return dict(csrf_token=generate_csrf_token())
     
+# Main index route - directs to setup wizard if needed
+@app.route('/')
+@app.route('/index')
+def index():
+    """Main landing page with setup wizard redirection if needed"""
+    # Check if user is authenticated and needs to complete setup
+    if current_user.is_authenticated:
+        user_id = str(current_user.id)
+        # Get current setup progress
+        progress = get_setup_progress(user_id)
+        
+        # If setup is not yet complete, redirect to setup wizard
+        if not progress.get('has_completed_setup', False):
+            return redirect(url_for('setup.wizard'))
+    
+    # Render the main dashboard/index page
+    return render_template('index.html', user=current_user)
+
+# Help page
+@app.route('/help')
+def help_page():
+    """Display help page"""
+    return render_template('help.html', user=current_user)
+
 # Settings routes
 @app.route('/settings')
 def settings_page():
@@ -236,6 +261,15 @@ def save_settings():
 @session_timeout_check
 @require_https
 def protected_dashboard():
+    # Check if user has completed setup wizard
+    user_id = str(current_user.id)
+    progress = get_setup_progress(user_id)
+    
+    # If setup is not yet complete, redirect to setup wizard
+    if not progress.get('has_completed_setup', False):
+        return redirect(url_for('setup.wizard'))
+        
+    # Continue to dashboard if setup is complete
     from app import dashboard
     log_security_event("PAGE_ACCESS", "User accessed dashboard")
     return dashboard()
