@@ -6,6 +6,20 @@ from typing import Dict, List, Any, Optional, Union, cast
 from openai import OpenAI
 from openai.types.chat import ChatCompletionMessageParam, ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam, ChatCompletionAssistantMessageParam
 
+# Import knowledge base utilities
+try:
+    from utils.knowledge_helper import query_knowledge_base, add_to_knowledge_base
+    KNOWLEDGE_BASE_ENABLED = True
+except ImportError:
+    # If knowledge_helper module is not available, provide dummy functions
+    KNOWLEDGE_BASE_ENABLED = False
+    
+    def query_knowledge_base(question, user_id=None, top_k=3, similarity_threshold=0.75):
+        return []
+        
+    def add_to_knowledge_base(content, user_id=None, source="conversation"):
+        pass
+
 # Import adaptive conversation utilities once here to prevent circular imports
 try:
     from utils.adaptive_conversation import get_current_difficulty, get_difficulty_context, adapt_response
@@ -346,7 +360,7 @@ def get_motivation_quote(theme=None):
 def handle_conversation(user_id, message, context_data=None):
     """
     Handle a free-form conversation with the AI assistant, with improved context awareness
-    and adaptive difficulty levels
+    and adaptive difficulty levels. Enhanced with self-learning knowledge base.
     
     Args:
         user_id: The unique identifier for the user
@@ -359,6 +373,21 @@ def handle_conversation(user_id, message, context_data=None):
     try:
         if not client:
             return "Conversation functionality not available (missing API key)"
+            
+        # Check knowledge base first if enabled
+        kb_results = []
+        kb_context = ""
+        
+        if KNOWLEDGE_BASE_ENABLED:
+            # Query the knowledge base for similar knowledge
+            kb_results = query_knowledge_base(message, user_id=user_id)
+            
+            # Format knowledge base results as context
+            if kb_results:
+                kb_context = "\nRELEVANT KNOWLEDGE FROM MEMORY:\n"
+                for i, (entry, similarity) in enumerate(kb_results, 1):
+                    kb_context += f"{i}. {entry.content}\n"
+                kb_context += "\nUse this knowledge when relevant to answer the user's question.\n"
             
         # Use enhanced memory if enabled, otherwise fall back to regular conversation memory
         if ENHANCED_MEMORY_ENABLED:
