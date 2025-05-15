@@ -1,8 +1,13 @@
-from flask import session, redirect, url_for, flash, render_template, request
+from flask import session, redirect, url_for, flash, render_template, request, abort
 from app import app, db
 from flask_login import current_user, login_required
 from models import UserSettings, ConversationDifficulty
 from utils.adaptive_conversation import set_difficulty
+from utils.security_helper import (
+    csrf_protect, generate_csrf_token, session_timeout_check, 
+    sanitize_input, require_https, log_security_event
+)
+import logging
 
 # Import Google auth blueprint
 from google_auth import google_auth as google_auth_bp
@@ -10,10 +15,37 @@ from google_auth import google_auth as google_auth_bp
 # Register the Google auth blueprint
 app.register_blueprint(google_auth_bp, url_prefix="/auth")
 
-# Make session permanent
+# Make session permanent, add security headers, and check session timeout
 @app.before_request
-def make_session_permanent():
+def request_processor():
     session.permanent = True
+    
+    # Update session activity timestamp
+    if current_user.is_authenticated:
+        from datetime import datetime
+        session['last_activity'] = datetime.utcnow().timestamp()
+    
+    # Add security-related headers to all responses
+    @app.after_request
+    def apply_security_headers(response):
+        # Content Security Policy
+        response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' https://cdn.jsdelivr.net;"
+        # Prevent clickjacking
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        # XSS Protection
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        # Prevent MIME type sniffing
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        # Referrer Policy
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        # Permissions Policy
+        response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
+        return response
+
+# Make CSRF token available to all templates
+@app.context_processor
+def inject_csrf_token():
+    return dict(csrf_token=generate_csrf_token())
     
 # Settings routes
 @app.route('/settings')
@@ -101,6 +133,8 @@ def settings_page():
     )
 
 @app.route('/settings', methods=['POST'])
+@csrf_protect
+@session_timeout_check
 def save_settings():
     """Save user settings"""
     # Get basic form data
@@ -109,15 +143,15 @@ def save_settings():
     language = request.form.get('preferred_language', 'en-US')
     theme = request.form.get('theme', 'light')
     
-    # Get AI character customization data
-    ai_name = request.form.get('ai_name', 'NOUS')
+    # Get AI character customization data (with sanitization for security)
+    ai_name = sanitize_input(request.form.get('ai_name', 'NOUS'))
     ai_personality = request.form.get('ai_personality', 'helpful')
     ai_formality = request.form.get('ai_formality', 'casual')
     ai_verbosity = request.form.get('ai_verbosity', 'balanced')
     ai_enthusiasm = request.form.get('ai_enthusiasm', 'moderate')
     ai_emoji_usage = request.form.get('ai_emoji_usage', 'occasional')
     ai_voice_type = request.form.get('ai_voice_type', 'neutral')
-    ai_backstory = request.form.get('ai_backstory', '')
+    ai_backstory = sanitize_input(request.form.get('ai_backstory', ''))
     
     # For logged-in users, save to database
     if current_user.is_authenticated:
@@ -189,38 +223,54 @@ def save_settings():
 # Add protection to routes that require login
 @app.route('/dashboard')
 @login_required
+@session_timeout_check
+@require_https
 def protected_dashboard():
     from app import dashboard
+    log_security_event("PAGE_ACCESS", "User accessed dashboard")
     return dashboard()
 
 @app.route('/api/doctors', methods=["GET"])
 @login_required
+@session_timeout_check
 def protected_api_get_doctors():
     from app import api_get_doctors
+    log_security_event("API_ACCESS", "User retrieved doctor list")
     return api_get_doctors()
 
 @app.route('/api/doctors', methods=["POST"])
 @login_required
+@session_timeout_check
+@csrf_protect
 def protected_api_add_doctor():
     from app import api_add_doctor
+    log_security_event("DATA_MODIFICATION", "User added a new doctor")
     return api_add_doctor()
 
 @app.route('/api/doctors/<int:doctor_id>', methods=["GET"])
 @login_required
+@session_timeout_check
 def protected_api_get_doctor(doctor_id):
     from app import api_get_doctor
+    log_security_event("API_ACCESS", f"User retrieved doctor id={doctor_id}")
     return api_get_doctor(doctor_id)
 
 @app.route('/api/doctors/<int:doctor_id>', methods=["PUT"])
 @login_required
+@session_timeout_check
+@csrf_protect
 def protected_api_update_doctor(doctor_id):
     from app import api_update_doctor
+    log_security_event("DATA_MODIFICATION", f"User updated doctor id={doctor_id}")
     return api_update_doctor(doctor_id)
 
 @app.route('/api/doctors/<int:doctor_id>', methods=["DELETE"])
 @login_required
+@session_timeout_check
+@csrf_protect
 def protected_api_delete_doctor(doctor_id):
     from app import api_delete_doctor
+    log_security_event("DATA_DELETION", f"User deleted doctor id={doctor_id}", severity="WARNING")
     return api_delete_doctor(doctor_id)
 
 # We'll add protection to just a few of the API routes for demonstration
@@ -229,12 +279,19 @@ def protected_api_delete_doctor(doctor_id):
 # Create a welcome page
 @app.route('/welcome')
 @login_required
+@session_timeout_check
+@require_https
 def welcome():
-    return f"""
-    <h1>Welcome, {current_user.first_name if current_user.first_name else 'User'}!</h1>
-    <p>You have successfully logged in via Replit Auth.</p>
-    <p>Your email: {current_user.email if current_user.email else 'Not provided'}</p>
-    <p><a href="{url_for('index')}">Go to Command Interface</a></p>
-    <p><a href="{url_for('protected_dashboard')}">Go to Dashboard</a></p>
-    <p><a href="{url_for('google_auth.logout')}">Logout</a></p>
-    """
+    # Sanitize user data for display
+    first_name = sanitize_input(current_user.first_name) if current_user.first_name else 'User'
+    email = sanitize_input(current_user.email) if current_user.email else 'Not provided'
+    
+    # Log access
+    log_security_event("PAGE_ACCESS", "User accessed welcome page")
+    
+    # Use render_template instead of direct HTML for better security and maintainability
+    return render_template(
+        'welcome.html',
+        user_name=first_name,
+        user_email=email
+    )
