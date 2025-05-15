@@ -102,6 +102,99 @@
                             </select>
                         </div>
                         
+                        <!-- AI Character Customization -->
+                        <h4 class="mb-3 mt-5">AI Character Customization</h4>
+                        <p class="text-muted">Personalize your AI assistant to match your preferences</p>
+                        
+                        <!-- AI Name -->
+                        <div class="mb-3">
+                            <label for="ai_name" class="form-label fw-bold">Assistant Name</label>
+                            <input type="text" class="form-control" id="ai_name" name="ai_name" 
+                                value="{{ settings.ai_name if settings and settings.ai_name else 'NOUS' }}" maxlength="30">
+                            <p class="text-muted small">The name your assistant will use to identify itself</p>
+                        </div>
+                        
+                        <!-- AI Personality -->
+                        <div class="mb-3">
+                            <label for="ai_personality" class="form-label fw-bold">Personality</label>
+                            <select class="form-select" id="ai_personality" name="ai_personality">
+                                {% for option in personality_options %}
+                                <option value="{{ option.value }}" {% if settings and settings.ai_personality == option.value %}selected{% endif %}>
+                                    {{ option.label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Formality Level -->
+                        <div class="mb-3">
+                            <label for="ai_formality" class="form-label fw-bold">Formality Level</label>
+                            <select class="form-select" id="ai_formality" name="ai_formality">
+                                {% for option in formality_options %}
+                                <option value="{{ option.value }}" {% if settings and settings.ai_formality == option.value %}selected{% endif %}>
+                                    {{ option.label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Verbosity -->
+                        <div class="mb-3">
+                            <label for="ai_verbosity" class="form-label fw-bold">Response Detail</label>
+                            <select class="form-select" id="ai_verbosity" name="ai_verbosity">
+                                {% for option in verbosity_options %}
+                                <option value="{{ option.value }}" {% if settings and settings.ai_verbosity == option.value %}selected{% endif %}>
+                                    {{ option.label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Enthusiasm Level -->
+                        <div class="mb-3">
+                            <label for="ai_enthusiasm" class="form-label fw-bold">Enthusiasm Level</label>
+                            <select class="form-select" id="ai_enthusiasm" name="ai_enthusiasm">
+                                {% for option in enthusiasm_options %}
+                                <option value="{{ option.value }}" {% if settings and settings.ai_enthusiasm == option.value %}selected{% endif %}>
+                                    {{ option.label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Emoji Usage -->
+                        <div class="mb-3">
+                            <label for="ai_emoji_usage" class="form-label fw-bold">Emoji Usage</label>
+                            <select class="form-select" id="ai_emoji_usage" name="ai_emoji_usage">
+                                {% for option in emoji_options %}
+                                <option value="{{ option.value }}" {% if settings and settings.ai_emoji_usage == option.value %}selected{% endif %}>
+                                    {{ option.label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Voice Type -->
+                        <div class="mb-3">
+                            <label for="ai_voice_type" class="form-label fw-bold">Voice Type</label>
+                            <select class="form-select" id="ai_voice_type" name="ai_voice_type">
+                                {% for option in voice_options %}
+                                <option value="{{ option.value }}" {% if settings and settings.ai_voice_type == option.value %}selected{% endif %}>
+                                    {{ option.label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <p class="text-muted small">Applies when voice responses are enabled</p>
+                        </div>
+                        
+                        <!-- AI Backstory -->
+                        <div class="mb-4">
+                            <label for="ai_backstory" class="form-label fw-bold">Custom Backstory (Optional)</label>
+                            <textarea class="form-control" id="ai_backstory" name="ai_backstory" rows="3" 
+                                placeholder="Add a custom backstory for your AI assistant...">{{ settings.ai_backstory if settings and settings.ai_backstory else '' }}</textarea>
+                            <p class="text-muted small">Add an optional backstory or specific details about your assistant's character</p>
+                        </div>
+                        
                         <!-- Submit button -->
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                             <a href="{{ url_for('index') }}" class="btn btn-secondary me-md-2">Cancel</a>

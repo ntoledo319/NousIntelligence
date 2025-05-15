@@ -26,6 +26,24 @@ try:
 except ImportError:
     EMOTION_DETECTION_AVAILABLE = False
     logging.warning("Emotion detection not available for voice processing")
+    
+    # Define dummy functions when emotion detection is not available
+    def process_user_message(user_id, message, is_voice=False):
+        """Fallback function when emotion detection is not available"""
+        return {
+            "emotion": "neutral",
+            "confidence": 0.5,
+            "source": "fallback"
+        }
+        
+    def analyze_voice_audio(audio_data, user_id):
+        """Fallback function when emotion detection is not available"""
+        return {
+            "emotion": "neutral",
+            "confidence": 0.5,
+            "energy": 0.5,
+            "pitch_variation": 0.5
+        }
 
 # Try to import character customization for voice style
 try:
@@ -34,6 +52,20 @@ try:
 except ImportError:
     CHARACTER_CUSTOMIZATION_AVAILABLE = False
     logging.warning("Character customization not available for voice processing")
+    
+    # Define a dummy function if the import fails
+    def get_character_settings():
+        """Fallback function when character customization is not available"""
+        return {
+            "ai_name": "NOUS",
+            "ai_personality": "helpful",
+            "ai_voice_type": "neutral",
+            "ai_formality": "casual",
+            "ai_verbosity": "balanced",
+            "ai_enthusiasm": "moderate",
+            "ai_emoji_usage": "occasional",
+            "ai_backstory": ""
+        }
 
 def transcribe_audio(audio_data: bytes, user_id: str) -> Dict[str, Any]:
     """
