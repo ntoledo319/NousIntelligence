@@ -199,6 +199,17 @@
                 {% endif %}
                 
                 <div class="terminal-output">
+                    <div id="voiceFeedback" class="voice-feedback d-none">
+                        <div class="voice-animation">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <div class="voice-message">Listening...</div>
+                    </div>
+                    
                     {% if log and log|length > 0 %}
                         {% for entry in log %}
                             <div class="terminal-line {% if entry.startswith('>>>') %}user-cmd{% endif %}">
@@ -584,6 +595,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Set up text-to-speech if available
+    if ('speechSynthesis' in window) {
+        setupTextToSpeech();
+    }
+    
     // Set up AI Features UI interaction
     setupAIFeaturesUI();
 });
@@ -735,6 +751,147 @@ function setupAIFeaturesUI() {
     }
 }
 
+// Global text-to-speech state
+let isSpeechEnabled = localStorage.getItem('isSpeechEnabled') === 'true';
+let currentlySpeaking = false;
+let speechSynthesis = window.speechSynthesis;
+let speechVoice = null;
+
+// Setup text-to-speech functionality
+function setupTextToSpeech() {
+    // Add the voice response toggle button to the interface
+    const commandForm = document.getElementById('commandForm');
+    if (commandForm) {
+        const inputGroup = commandForm.querySelector('.input-group');
+        if (inputGroup) {
+            const speechToggle = document.createElement('button');
+            speechToggle.id = 'speechToggle';
+            speechToggle.type = 'button';
+            speechToggle.className = 'btn btn-outline-secondary';
+            speechToggle.title = 'Toggle voice responses';
+            speechToggle.innerHTML = `<i class="fas fa-${isSpeechEnabled ? 'volume-up' : 'volume-mute'}"></i>`;
+            
+            // Insert before the voice button
+            const voiceButton = document.getElementById('voiceButton');
+            if (voiceButton) {
+                inputGroup.insertBefore(speechToggle, voiceButton);
+            } else {
+                inputGroup.appendChild(speechToggle);
+            }
+            
+            // Event listener for toggling speech
+            speechToggle.addEventListener('click', function() {
+                isSpeechEnabled = !isSpeechEnabled;
+                localStorage.setItem('isSpeechEnabled', isSpeechEnabled);
+                speechToggle.innerHTML = `<i class="fas fa-${isSpeechEnabled ? 'volume-up' : 'volume-mute'}"></i>`;
+                
+                if (isSpeechEnabled) {
+                    speak("Voice responses are now enabled");
+                } else if (currentlySpeaking) {
+                    speechSynthesis.cancel();
+                    currentlySpeaking = false;
+                }
+            });
+        }
+    }
+    
+    // Initialize speech synthesis
+    if (speechSynthesis) {
+        // Try to load voices right away
+        let voices = speechSynthesis.getVoices();
+        
+        // Select a good default voice (preferably English)
+        if (voices.length > 0) {
+            selectVoice(voices);
+        } else {
+            // If voices aren't loaded yet, wait for them
+            speechSynthesis.onvoiceschanged = function() {
+                voices = speechSynthesis.getVoices();
+                selectVoice(voices);
+            };
+        }
+    }
+    
+    // Look for new terminal messages to potentially speak
+    setupTerminalObserver();
+}
+
+// Select an appropriate voice for speech
+function selectVoice(voices) {
+    // Try to find an English voice
+    for (let i = 0; i < voices.length; i++) {
+        if (voices[i].lang.startsWith('en-')) {
+            speechVoice = voices[i];
+            break;
+        }
+    }
+    
+    // If no English voice found, just use the first one
+    if (!speechVoice && voices.length > 0) {
+        speechVoice = voices[0];
+    }
+}
+
+// Speak the given text
+function speak(text) {
+    if (!isSpeechEnabled || !speechSynthesis || !speechVoice) return;
+    
+    // Cancel any ongoing speech
+    if (currentlySpeaking) {
+        speechSynthesis.cancel();
+    }
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.voice = speechVoice;
+    utterance.rate = 1.0;  // Speech rate
+    utterance.pitch = 1.0; // Speech pitch
+    utterance.volume = 1.0; // Speech volume
+    
+    utterance.onstart = function() {
+        currentlySpeaking = true;
+    };
+    
+    utterance.onend = function() {
+        currentlySpeaking = false;
+    };
+    
+    utterance.onerror = function(event) {
+        console.error('Speech synthesis error:', event);
+        currentlySpeaking = false;
+    };
+    
+    speechSynthesis.speak(utterance);
+}
+
+// Setup MutationObserver to detect new terminal lines and speak them
+function setupTerminalObserver() {
+    const terminal = document.querySelector('.terminal-output');
+    if (!terminal) return;
+    
+    // Create a MutationObserver to watch for new terminal messages
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                // Process only new terminal lines
+                mutation.addedNodes.forEach(function(node) {
+                    if (node.classList && node.classList.contains('terminal-line') && 
+                        !node.classList.contains('user-cmd')) {
+                        
+                        // Extract the text content to speak
+                        const text = node.textContent.trim();
+                        if (text && text.length > 0) {
+                            speak(text);
+                        }
+                    }
+                });
+            }
+        });
+    });
+    
+    // Start observing the terminal output
+    observer.observe(terminal, { childList: true });
+}
+
 function setupVoiceRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
@@ -749,14 +906,38 @@ function setupVoiceRecognition() {
     const commandInput = document.getElementById('commandInput');
     const commandForm = document.getElementById('commandForm');
     
+    // Get voice feedback UI elements
+    const voiceFeedback = document.getElementById('voiceFeedback');
+    const voiceMessage = voiceFeedback ? voiceFeedback.querySelector('.voice-message') : null;
+    
     // Handle voice button click
     voiceButton.addEventListener('click', function() {
         try {
+            // If currently speaking, stop it before listening
+            if (currentlySpeaking && speechSynthesis) {
+                speechSynthesis.cancel();
+                currentlySpeaking = false;
+            }
+            
+            // Start recognition
             recognition.start();
+            
+            // Show visual feedback
             voiceStatus.classList.remove('d-none');
+            if (voiceFeedback) {
+                voiceFeedback.classList.remove('d-none');
+                if (voiceMessage) voiceMessage.textContent = "Listening...";
+            }
+            
+            // Update voice button
             voiceButton.classList.add('active');
             voiceButton.querySelector('i').classList.remove('fa-microphone');
             voiceButton.querySelector('i').classList.add('fa-stop');
+            
+            // Provide audible feedback if speech is enabled
+            if (isSpeechEnabled) {
+                setTimeout(() => speak("I'm listening..."), 300);
+            }
         } catch (e) {
             console.error('Speech recognition error:', e);
         }
@@ -767,7 +948,17 @@ function setupVoiceRecognition() {
         const transcript = event.results[0][0].transcript;
         commandInput.value = transcript;
         
-        // Visual feedback
+        // Update visual feedback
+        if (voiceFeedback && voiceMessage) {
+            voiceMessage.textContent = "Processing: " + transcript;
+        }
+        
+        // Provide audible feedback if speech is enabled
+        if (isSpeechEnabled) {
+            speak("Processing your command");
+        }
+        
+        // Visual feedback for button
         voiceButton.classList.remove('active');
         voiceButton.querySelector('i').classList.add('fa-microphone');
         voiceButton.querySelector('i').classList.remove('fa-stop');
@@ -775,23 +966,55 @@ function setupVoiceRecognition() {
         
         // Submit after a short delay to allow the user to see what was recognized
         setTimeout(() => {
+            // Hide voice feedback UI
+            if (voiceFeedback) {
+                voiceFeedback.classList.add('d-none');
+            }
+            
+            // Submit the form
             commandForm.submit();
-        }, 500);
+        }, 1200);
     };
     
     recognition.onend = function() {
+        // Update button appearance
         voiceButton.classList.remove('active');
         voiceButton.querySelector('i').classList.add('fa-microphone');
         voiceButton.querySelector('i').classList.remove('fa-stop');
         voiceStatus.classList.add('d-none');
+        
+        // Hide feedback message after a delay if no result was detected
+        if (voiceFeedback && voiceFeedback.classList.contains('d-none') === false) {
+            setTimeout(() => {
+                voiceFeedback.classList.add('d-none');
+            }, 2000);
+        }
     };
     
     recognition.onerror = function(event) {
+        // Show error message
+        if (voiceFeedback && voiceMessage) {
+            voiceMessage.textContent = "Error: " + event.error;
+            voiceMessage.classList.add('text-danger');
+            
+            // Hide after a delay
+            setTimeout(() => {
+                voiceFeedback.classList.add('d-none');
+                voiceMessage.classList.remove('text-danger');
+            }, 3000);
+        }
+        
         voiceStatus.textContent = 'Error: ' + event.error;
         setTimeout(() => {
             voiceStatus.classList.add('d-none');
         }, 3000);
         
+        // If speech is enabled, speak the error message
+        if (isSpeechEnabled) {
+            speak("Sorry, I couldn't understand that. Please try again.");
+        }
+        
+        // Reset button appearance
         voiceButton.classList.remove('active');
         voiceButton.querySelector('i').classList.add('fa-microphone');
         voiceButton.querySelector('i').classList.remove('fa-stop');
