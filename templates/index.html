@@ -171,35 +171,193 @@
         <!-- Quick Actions Section -->
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-bolt me-2 text-warning"></i>Quick Actions
-                </h5>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2 text-warning"></i>Quick Actions
+                    </h5>
+                    <a href="{{ url_for('help_page') }}" class="btn btn-sm btn-outline-info">
+                        <i class="fas fa-question-circle me-1"></i>Help
+                    </a>
+                </div>
             </div>
             <div class="card-body py-3">
-                <div class="row g-3">
-                    <div class="col-6 col-md-3">
-                        <a href="#" onclick="submitCommand('show calendar');return false;" class="btn btn-outline-primary w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
-                            <i class="fas fa-calendar-alt mb-2"></i>
-                            <span>Calendar</span>
-                        </a>
+                <ul class="nav nav-tabs mb-3" id="actionTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="health-tab" data-bs-toggle="tab" data-bs-target="#health-panel" type="button" role="tab" aria-controls="health-panel" aria-selected="true">
+                            <i class="fas fa-heartbeat me-1 text-danger"></i>Health
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="shopping-tab" data-bs-toggle="tab" data-bs-target="#shopping-panel" type="button" role="tab" aria-controls="shopping-panel" aria-selected="false">
+                            <i class="fas fa-shopping-cart me-1 text-success"></i>Shopping
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="finance-tab" data-bs-toggle="tab" data-bs-target="#finance-panel" type="button" role="tab" aria-controls="finance-panel" aria-selected="false">
+                            <i class="fas fa-chart-line me-1 text-primary"></i>Finance
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="travel-tab" data-bs-toggle="tab" data-bs-target="#travel-panel" type="button" role="tab" aria-controls="travel-panel" aria-selected="false">
+                            <i class="fas fa-plane-departure me-1 text-info"></i>Travel
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="calendar-tab" data-bs-toggle="tab" data-bs-target="#calendar-panel" type="button" role="tab" aria-controls="calendar-panel" aria-selected="false">
+                            <i class="fas fa-calendar-alt me-1 text-warning"></i>Calendar
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="actionTabContent">
+                    <!-- Health Panel -->
+                    <div class="tab-pane fade show active" id="health-panel" role="tabpanel" aria-labelledby="health-tab">
+                        <div class="row g-3">
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('show doctors');return false;" class="btn btn-outline-danger w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-user-md mb-2"></i>
+                                    <span>Doctors</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('show appointments');return false;" class="btn btn-outline-danger w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-calendar-check mb-2"></i>
+                                    <span>Appointments</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('show medications');return false;" class="btn btn-outline-danger w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-pills mb-2"></i>
+                                    <span>Medications</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('pain forecast');return false;" class="btn btn-outline-danger w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-cloud-sun-rain mb-2"></i>
+                                    <span>Pain Forecast</span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-6 col-md-3">
-                        <a href="#" onclick="submitCommand('budget summary');return false;" class="btn btn-outline-success w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
-                            <i class="fas fa-chart-pie mb-2"></i>
-                            <span>Budget</span>
-                        </a>
+                    
+                    <!-- Shopping Panel -->
+                    <div class="tab-pane fade" id="shopping-panel" role="tabpanel" aria-labelledby="shopping-tab">
+                        <div class="row g-3">
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('show shopping lists');return false;" class="btn btn-outline-success w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-list mb-2"></i>
+                                    <span>Lists</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('show products');return false;" class="btn btn-outline-success w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-box mb-2"></i>
+                                    <span>Products</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('show due orders');return false;" class="btn btn-outline-success w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-truck mb-2"></i>
+                                    <span>Due Orders</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('create list');return false;" class="btn btn-outline-success w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-plus-circle mb-2"></i>
+                                    <span>New List</span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-6 col-md-3">
-                        <a href="#" onclick="submitCommand('show trips');return false;" class="btn btn-outline-info w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
-                            <i class="fas fa-plane-departure mb-2"></i>
-                            <span>Trips</span>
-                        </a>
+                    
+                    <!-- Finance Panel -->
+                    <div class="tab-pane fade" id="finance-panel" role="tabpanel" aria-labelledby="finance-tab">
+                        <div class="row g-3">
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('budget summary');return false;" class="btn btn-outline-primary w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-chart-pie mb-2"></i>
+                                    <span>Budget</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('show expenses');return false;" class="btn btn-outline-primary w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-receipt mb-2"></i>
+                                    <span>Expenses</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('show recurring payments');return false;" class="btn btn-outline-primary w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-money-bill-wave mb-2"></i>
+                                    <span>Payments</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('add expense');return false;" class="btn btn-outline-primary w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-plus-circle mb-2"></i>
+                                    <span>Add Expense</span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-6 col-md-3">
-                        <a href="#" onclick="submitCommand('show medications');return false;" class="btn btn-outline-danger w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
-                            <i class="fas fa-pills mb-2"></i>
-                            <span>Medications</span>
-                        </a>
+                    
+                    <!-- Travel Panel -->
+                    <div class="tab-pane fade" id="travel-panel" role="tabpanel" aria-labelledby="travel-tab">
+                        <div class="row g-3">
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('show trips');return false;" class="btn btn-outline-info w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-suitcase mb-2"></i>
+                                    <span>All Trips</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('show active trip');return false;" class="btn btn-outline-info w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-map-marked-alt mb-2"></i>
+                                    <span>Active Trip</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('show upcoming trips');return false;" class="btn btn-outline-info w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-plane-departure mb-2"></i>
+                                    <span>Upcoming</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('create trip');return false;" class="btn btn-outline-info w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-plus-circle mb-2"></i>
+                                    <span>New Trip</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Calendar Panel -->
+                    <div class="tab-pane fade" id="calendar-panel" role="tabpanel" aria-labelledby="calendar-tab">
+                        <div class="row g-3">
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('show calendar');return false;" class="btn btn-outline-warning w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-calendar-alt mb-2"></i>
+                                    <span>Calendar</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('what\'s my day');return false;" class="btn btn-outline-warning w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-sun mb-2"></i>
+                                    <span>Today</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('show tasks');return false;" class="btn btn-outline-warning w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-tasks mb-2"></i>
+                                    <span>Tasks</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('add event');return false;" class="btn btn-outline-warning w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-plus-circle mb-2"></i>
+                                    <span>Add Event</span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

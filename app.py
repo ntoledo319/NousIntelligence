@@ -417,18 +417,7 @@ def callback_spotify():
 @app.route("/help")
 def help_page():
     """Show available commands and help"""
-    commands = [
-        {"command": "add [event] at [time]", "description": "Create a calendar event"},
-        {"command": "what's my day", "description": "Show today's calendar events"},
-        {"command": "log workout: [details]", "description": "Log workout details"},
-        {"command": "log mood: [mood] [details]", "description": "Log your mood"},
-        {"command": "show aa reflection", "description": "Display AA daily reflection"},
-        {"command": "play [song/artist]", "description": "Play music on Spotify"},
-        {"command": "add task: [task]", "description": "Add a task to Google Tasks"},
-        {"command": "add note: [note]", "description": "Add a note to Google Keep"},
-        {"command": "help", "description": "Show this help menu"}
-    ]
-    return render_template("index.html", commands=commands)
+    return render_template("help.html")
 
 @app.route("/clear")
 def clear_log():
