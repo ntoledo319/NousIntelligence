@@ -27,11 +27,43 @@ def login():
     # Create the redirect URI to Google's OAuth 2.0 server
     redirect_uri = request.base_url.replace("http://", "https://") + "/callback"
     
-    # Use the library to create an authorization URL
+    # Use the library to create an authorization URL with expanded scopes
     request_uri = client.prepare_request_uri(
         authorization_endpoint,
         redirect_uri=redirect_uri,
-        scope=["openid", "email", "profile"],
+        scope=[
+            # Basic identity scopes
+            "openid", "email", "profile",
+            
+            # Google Calendar scopes
+            "https://www.googleapis.com/auth/calendar",
+            "https://www.googleapis.com/auth/calendar.events",
+            
+            # Google Tasks and Keep scopes
+            "https://www.googleapis.com/auth/tasks",
+            "https://www.googleapis.com/auth/keep",
+            
+            # Gmail scopes
+            "https://www.googleapis.com/auth/gmail.readonly",
+            "https://www.googleapis.com/auth/gmail.labels",
+            
+            # Google Drive scopes
+            "https://www.googleapis.com/auth/drive.readonly",
+            "https://www.googleapis.com/auth/drive.file",
+            
+            # Google Maps scopes
+            "https://www.googleapis.com/auth/maps",
+            
+            # Google Photos scopes
+            "https://www.googleapis.com/auth/photoslibrary.readonly",
+            
+            # Google Docs/Sheets scopes
+            "https://www.googleapis.com/auth/documents",
+            "https://www.googleapis.com/auth/spreadsheets",
+            
+            # YouTube scopes
+            "https://www.googleapis.com/auth/youtube.readonly"
+        ],
     )
     
     # Redirect to Google's OAuth 2.0 server
@@ -122,9 +154,36 @@ def callback():
                 client_id=GOOGLE_CLIENT_ID,
                 client_secret=GOOGLE_CLIENT_SECRET,
                 token_uri="https://oauth2.googleapis.com/token",
-                scopes=["https://www.googleapis.com/auth/calendar.events",
-                        "https://www.googleapis.com/auth/tasks",
-                        "https://www.googleapis.com/auth/keep"]
+                scopes=[
+                    # Google Calendar scopes
+                    "https://www.googleapis.com/auth/calendar",
+                    "https://www.googleapis.com/auth/calendar.events",
+                    
+                    # Google Tasks and Keep scopes
+                    "https://www.googleapis.com/auth/tasks",
+                    "https://www.googleapis.com/auth/keep",
+                    
+                    # Gmail scopes
+                    "https://www.googleapis.com/auth/gmail.readonly",
+                    "https://www.googleapis.com/auth/gmail.labels",
+                    
+                    # Google Drive scopes
+                    "https://www.googleapis.com/auth/drive.readonly",
+                    "https://www.googleapis.com/auth/drive.file",
+                    
+                    # Google Maps scopes
+                    "https://www.googleapis.com/auth/maps",
+                    
+                    # Google Photos scopes
+                    "https://www.googleapis.com/auth/photoslibrary.readonly",
+                    
+                    # Google Docs/Sheets scopes
+                    "https://www.googleapis.com/auth/documents",
+                    "https://www.googleapis.com/auth/spreadsheets",
+                    
+                    # YouTube scopes
+                    "https://www.googleapis.com/auth/youtube.readonly"
+                ]
             )
             
             # Save to database
