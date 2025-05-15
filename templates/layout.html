@@ -196,14 +196,14 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link py-2" href="{{ url_for('replit_auth.logout') }}">
+                            <a class="nav-link py-2" href="{{ url_for('google_auth.logout') }}">
                                 <i class="fas fa-sign-out-alt me-2"></i>Logout
                             </a>
                         </li>
                         {% else %}
                         <li class="nav-item mt-3">
-                            <a class="nav-link py-2" href="{{ url_for('replit_auth.login') }}">
-                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            <a class="nav-link py-2" href="{{ url_for('google_auth.login') }}">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login with Google
                             </a>
                         </li>
                         {% endif %}
@@ -344,7 +344,7 @@
                                 <li><a class="dropdown-item" href="{{ url_for('clear_log') }}">
                                     <i class="fas fa-broom me-2"></i>Clear Log</a>
                                 </li>
-                                <li><a class="dropdown-item" href="{{ url_for('replit_auth.logout') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('google_auth.logout') }}">
                                     <i class="fas fa-sign-out-alt me-2"></i>Logout</a>
                                 </li>
                                 <li>
@@ -358,9 +358,9 @@
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('replit_auth.login') }}" data-bs-toggle="tooltip" title="Log in">
+                            <a class="nav-link" href="{{ url_for('google_auth.login') }}" data-bs-toggle="tooltip" title="Log in with Google">
                                 <i class="fas fa-sign-in-alt me-1"></i>
-                                <span class="d-none d-lg-inline">Login</span>
+                                <span class="d-none d-lg-inline">Login with Google</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -423,11 +423,11 @@
                             <i class="fas fa-broom"></i>
                         </a>
                         {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('replit_auth.logout') }}" class="text-muted">
+                        <a href="{{ url_for('google_auth.logout') }}" class="text-muted">
                             <i class="fas fa-sign-out-alt"></i>
                         </a>
                         {% else %}
-                        <a href="{{ url_for('replit_auth.login') }}" class="text-muted">
+                        <a href="{{ url_for('google_auth.login') }}" class="text-muted">
                             <i class="fas fa-sign-in-alt"></i>
                         </a>
                         {% endif %}

@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+
+{% block title %}AA Recovery{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .aa-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .aa-card {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .aa-card-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #2c3e50;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+    
+    .aa-sidebar {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+    }
+    
+    .aa-nav-link {
+        display: block;
+        padding: 8px 12px;
+        border-radius: 5px;
+        margin-bottom: 5px;
+        color: #495057;
+        text-decoration: none;
+        transition: background-color 0.2s;
+    }
+    
+    .aa-nav-link:hover, .aa-nav-link.active {
+        background-color: #e9ecef;
+        color: #212529;
+    }
+    
+    .aa-badge {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-right: 5px;
+        margin-bottom: 5px;
+    }
+    
+    .aa-badge-success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .aa-badge-primary {
+        background-color: #cce5ff;
+        color: #004085;
+    }
+    
+    .aa-stats {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    
+    .aa-quote {
+        font-style: italic;
+        color: #6c757d;
+        border-left: 4px solid #e9ecef;
+        padding-left: 15px;
+    }
+    
+    .aa-sos-button {
+        background-color: #dc3545;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 5px;
+        display: inline-block;
+        text-decoration: none;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+    
+    .inventory-form .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .inventory-form label {
+        font-weight: 600;
+        display: block;
+        margin-bottom: 5px;
+    }
+    
+    .spot-check-card {
+        border-left: 4px solid #17a2b8;
+    }
+    
+    .dashboard-widget {
+        height: 100%;
+    }
+    
+    .sponsor-card {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .sponsor-number {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .forum-post {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .forum-post-meta {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .forum-post-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .reflection-card {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .reflection-content {
+        font-size: 1.1rem;
+        font-style: italic;
+        margin-bottom: 15px;
+    }
+    
+    .reflection-source {
+        font-size: 0.9rem;
+        color: #6c757d;
+        text-align: right;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block sidebar collapse" id="sidebarMenu">
+            <div class="aa-sidebar mt-4">
+                <h5 class="mb-3">AA Recovery</h5>
+                <div class="nav flex-column">
+                    <a href="{{ url_for('aa_routes.dashboard') }}" class="aa-nav-link {% if request.endpoint == 'aa_routes.dashboard' %}active{% endif %}">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('aa_routes.meetings') }}" class="aa-nav-link {% if request.endpoint == 'aa_routes.meetings' %}active{% endif %}">
+                        <i class="fas fa-users"></i> Find Meetings
+                    </a>
+                    <a href="{{ url_for('aa_routes.reflections', reflection_type='morning') }}" class="aa-nav-link {% if request.endpoint == 'aa_routes.reflections' %}active{% endif %}">
+                        <i class="fas fa-book-open"></i> Daily Reflections
+                    </a>
+                    <a href="{{ url_for('aa_routes.nightly_inventory') }}" class="aa-nav-link {% if request.endpoint == 'aa_routes.nightly_inventory' %}active{% endif %}">
+                        <i class="fas fa-clipboard-list"></i> Nightly Inventory
+                    </a>
+                    <a href="{{ url_for('aa_routes.spot_check') }}" class="aa-nav-link {% if request.endpoint == 'aa_routes.spot_check' %}active{% endif %}">
+                        <i class="fas fa-check-circle"></i> Spot-Check
+                    </a>
+                    <a href="{{ url_for('aa_routes.sponsor') }}" class="aa-nav-link {% if request.endpoint == 'aa_routes.sponsor' %}active{% endif %}">
+                        <i class="fas fa-phone"></i> Sponsor Contact
+                    </a>
+                    <a href="{{ url_for('aa_routes.stats') }}" class="aa-nav-link {% if request.endpoint == 'aa_routes.stats' %}active{% endif %}">
+                        <i class="fas fa-chart-line"></i> Recovery Stats
+                    </a>
+                    <a href="{{ url_for('aa_routes.mindfulness') }}" class="aa-nav-link {% if request.endpoint == 'aa_routes.mindfulness' %}active{% endif %}">
+                        <i class="fas fa-brain"></i> Mindfulness Tools
+                    </a>
+                    <a href="{{ url_for('aa_routes.forum') }}" class="aa-nav-link {% if request.endpoint == 'aa_routes.forum' %}active{% endif %}">
+                        <i class="fas fa-comments"></i> Peer Support
+                    </a>
+                    {% if pain_flare_enabled %}
+                    <a href="{{ url_for('aa_routes.pain_flares') }}" class="aa-nav-link {% if request.endpoint == 'aa_routes.pain_flares' %}active{% endif %}">
+                        <i class="fas fa-bolt"></i> Pain Flare Monitor
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('aa_routes.settings') }}" class="aa-nav-link {% if request.endpoint == 'aa_routes.settings' %}active{% endif %}">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                    <div class="mt-3">
+                        <a href="{{ url_for('aa_routes.crisis') }}" class="aa-sos-button w-100 text-center">
+                            <i class="fas fa-exclamation-triangle"></i> SOS Help
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="aa-container my-4">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                {% block aa_content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}

@@ -5,7 +5,6 @@ import requests
 from flask import Blueprint, redirect, request, url_for, flash, session
 from flask_login import login_required, login_user, logout_user, current_user
 from oauthlib.oauth2 import WebApplicationClient
-from models import User, db
 
 # Configure Google OAuth
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID") or "1015094007473-337qm1ofr5htlodjmsf2p6r3fcht6pg2.apps.googleusercontent.com"
@@ -82,6 +81,9 @@ def callback():
         flash("Email not verified by Google", "danger")
         return redirect(url_for("index"))
     
+    # Import here to avoid circular imports
+    from models import User, db
+    
     # Create or update the user in the database
     user = User.query.filter_by(id=user_id).first()
     
@@ -109,23 +111,28 @@ def callback():
     # (this is separate from user login)
     access_token = token_response.json().get('access_token')
     if access_token:
-        from utils.auth_helper import save_google_credentials
-        from google.oauth2.credentials import Credentials
-        
-        # Create credentials object for Google APIs
-        creds = Credentials(
-            token=access_token,
-            refresh_token=token_response.json().get('refresh_token'),
-            client_id=GOOGLE_CLIENT_ID,
-            client_secret=GOOGLE_CLIENT_SECRET,
-            token_uri="https://oauth2.googleapis.com/token",
-            scopes=["https://www.googleapis.com/auth/calendar.events",
-                    "https://www.googleapis.com/auth/tasks",
-                    "https://www.googleapis.com/auth/keep"]
-        )
-        
-        # Save to database
-        save_google_credentials(user.id, creds)
+        try:
+            from utils.auth_helper import save_google_credentials
+            from google.oauth2.credentials import Credentials
+            
+            # Create credentials object for Google APIs
+            creds = Credentials(
+                token=access_token,
+                refresh_token=token_response.json().get('refresh_token'),
+                client_id=GOOGLE_CLIENT_ID,
+                client_secret=GOOGLE_CLIENT_SECRET,
+                token_uri="https://oauth2.googleapis.com/token",
+                scopes=["https://www.googleapis.com/auth/calendar.events",
+                        "https://www.googleapis.com/auth/tasks",
+                        "https://www.googleapis.com/auth/keep"]
+            )
+            
+            # Save to database
+            save_google_credentials(user.id, creds)
+        except ImportError:
+            # If auth_helper isn't available, log a warning
+            import logging
+            logging.warning("utils.auth_helper not available, skipping credential storage")
         
         # Also save to session for current browser session
         creds_dict = {

@@ -23,10 +23,262 @@ from flask import session
 from sqlalchemy import func, desc
 
 from app import db
-from models.aa_recovery import (
-    AASettings, AARecoveryLog, AAMeetingLog, AANightlyInventory,
-    AASpotCheck, AASponsorCall, AAMindfulnessLog, AAAchievement, AAForumPost
-)
+
+# Import or create AA recovery models
+# This approach avoids circular imports 
+class AASettings:
+    """User settings for AA recovery features"""
+    def __init__(self, **kwargs):
+        self.id = kwargs.get('id')
+        self.user_id = kwargs.get('user_id')
+        self.sponsor_name = kwargs.get('sponsor_name')
+        self.sponsor_phone = kwargs.get('sponsor_phone')
+        self.backup_contact_name = kwargs.get('backup_contact_name')
+        self.backup_contact_phone = kwargs.get('backup_contact_phone')
+        self.home_group = kwargs.get('home_group')
+        self.sober_date = kwargs.get('sober_date')
+        self.show_sober_days = kwargs.get('show_sober_days', True)
+        self.track_honesty_streaks = kwargs.get('track_honesty_streaks', True)
+        self.track_pain_flares = kwargs.get('track_pain_flares', False)  # Opt-in feature
+        self.daily_reflection_time = kwargs.get('daily_reflection_time', "07:00")
+        self.nightly_inventory_time = kwargs.get('nightly_inventory_time', "21:00")
+        self.spot_checks_per_day = kwargs.get('spot_checks_per_day', 3)
+        self.created_at = kwargs.get('created_at')
+        self.updated_at = kwargs.get('updated_at')
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'sponsor_name': self.sponsor_name,
+            'sponsor_phone': self.sponsor_phone,
+            'backup_contact_name': self.backup_contact_name,
+            'backup_contact_phone': self.backup_contact_phone,
+            'home_group': self.home_group,
+            'sober_date': self.sober_date.isoformat() if self.sober_date else None,
+            'show_sober_days': self.show_sober_days,
+            'track_honesty_streaks': self.track_honesty_streaks,
+            'track_pain_flares': self.track_pain_flares,
+            'daily_reflection_time': self.daily_reflection_time,
+            'nightly_inventory_time': self.nightly_inventory_time,
+            'spot_checks_per_day': self.spot_checks_per_day,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class AARecoveryLog:
+    """Log of recovery activities and entries"""
+    def __init__(self, **kwargs):
+        self.id = kwargs.get('id')
+        self.user_id = kwargs.get('user_id')
+        self.log_type = kwargs.get('log_type')
+        self.content = kwargs.get('content')
+        self.category = kwargs.get('category')
+        self.is_honest_admit = kwargs.get('is_honest_admit', False)
+        self.timestamp = kwargs.get('timestamp')
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'log_type': self.log_type,
+            'content': self.content,
+            'category': self.category,
+            'is_honest_admit': self.is_honest_admit,
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None
+        }
+
+class AAMeetingLog:
+    """Log of AA meetings attended"""
+    def __init__(self, **kwargs):
+        self.id = kwargs.get('id')
+        self.user_id = kwargs.get('user_id')
+        self.meeting_name = kwargs.get('meeting_name')
+        self.meeting_type = kwargs.get('meeting_type')
+        self.meeting_id = kwargs.get('meeting_id')
+        self.date_attended = kwargs.get('date_attended')
+        self.pre_meeting_reflection = kwargs.get('pre_meeting_reflection')
+        self.post_meeting_reflection = kwargs.get('post_meeting_reflection')
+        self.post_meeting_honest_admit = kwargs.get('post_meeting_honest_admit')
+        self.created_at = kwargs.get('created_at')
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'meeting_name': self.meeting_name,
+            'meeting_type': self.meeting_type,
+            'meeting_id': self.meeting_id,
+            'date_attended': self.date_attended.isoformat() if self.date_attended else None,
+            'pre_meeting_reflection': self.pre_meeting_reflection,
+            'post_meeting_reflection': self.post_meeting_reflection,
+            'post_meeting_honest_admit': self.post_meeting_honest_admit,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class AANightlyInventory:
+    """Nightly 10th Step inventory entries"""
+    def __init__(self, **kwargs):
+        self.id = kwargs.get('id')
+        self.user_id = kwargs.get('user_id')
+        self.date = kwargs.get('date')
+        self.resentful = kwargs.get('resentful')
+        self.selfish = kwargs.get('selfish')
+        self.dishonest = kwargs.get('dishonest')
+        self.afraid = kwargs.get('afraid')
+        self.secrets = kwargs.get('secrets')
+        self.apologies_needed = kwargs.get('apologies_needed')
+        self.gratitude = kwargs.get('gratitude')
+        self.surrender = kwargs.get('surrender')
+        self.wrong_actions = kwargs.get('wrong_actions')
+        self.amends_owed = kwargs.get('amends_owed')
+        self.help_plan = kwargs.get('help_plan')
+        self.completed = kwargs.get('completed', False)
+        self.created_at = kwargs.get('created_at')
+        self.updated_at = kwargs.get('updated_at')
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'date': self.date.isoformat() if self.date else None,
+            'resentful': self.resentful,
+            'selfish': self.selfish,
+            'dishonest': self.dishonest,
+            'afraid': self.afraid,
+            'secrets': self.secrets,
+            'apologies_needed': self.apologies_needed,
+            'gratitude': self.gratitude,
+            'surrender': self.surrender,
+            'wrong_actions': self.wrong_actions,
+            'amends_owed': self.amends_owed,
+            'help_plan': self.help_plan,
+            'completed': self.completed,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class AASpotCheck:
+    """Spot-check inventory responses"""
+    def __init__(self, **kwargs):
+        self.id = kwargs.get('id') 
+        self.user_id = kwargs.get('user_id')
+        self.check_type = kwargs.get('check_type')
+        self.question = kwargs.get('question')
+        self.response = kwargs.get('response')
+        self.rating = kwargs.get('rating')
+        self.trigger = kwargs.get('trigger')
+        self.timestamp = kwargs.get('timestamp')
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'check_type': self.check_type,
+            'question': self.question,
+            'response': self.response,
+            'rating': self.rating,
+            'trigger': self.trigger,
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None
+        }
+
+class AASponsorCall:
+    """Log of calls to sponsor or backup contact"""
+    def __init__(self, **kwargs):
+        self.id = kwargs.get('id')
+        self.user_id = kwargs.get('user_id')
+        self.contact_type = kwargs.get('contact_type')
+        self.pre_call_admission = kwargs.get('pre_call_admission')
+        self.post_call_admission = kwargs.get('post_call_admission')
+        self.timestamp = kwargs.get('timestamp')
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'contact_type': self.contact_type,
+            'pre_call_admission': self.pre_call_admission,
+            'post_call_admission': self.post_call_admission,
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None
+        }
+
+class AAMindfulnessLog:
+    """Log of mindfulness and CBT exercises used"""
+    def __init__(self, **kwargs):
+        self.id = kwargs.get('id')
+        self.user_id = kwargs.get('user_id')
+        self.exercise_type = kwargs.get('exercise_type')
+        self.exercise_name = kwargs.get('exercise_name')
+        self.notes = kwargs.get('notes')
+        self.timestamp = kwargs.get('timestamp')
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'exercise_type': self.exercise_type,
+            'exercise_name': self.exercise_name,
+            'notes': self.notes,
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None
+        }
+
+class AAAchievement:
+    """Achievements and badges earned by users"""
+    def __init__(self, **kwargs):
+        self.id = kwargs.get('id')
+        self.user_id = kwargs.get('user_id')
+        self.badge_id = kwargs.get('badge_id')
+        self.badge_name = kwargs.get('badge_name')
+        self.badge_description = kwargs.get('badge_description')
+        self.earned_date = kwargs.get('earned_date')
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'badge_id': self.badge_id,
+            'badge_name': self.badge_name,
+            'badge_description': self.badge_description,
+            'earned_date': self.earned_date.isoformat() if self.earned_date else None
+        }
+
+class AAForumPost:
+    """Forum posts for peer support"""
+    def __init__(self, **kwargs):
+        self.id = kwargs.get('id')
+        self.user_id = kwargs.get('user_id')
+        self.display_name = kwargs.get('display_name')
+        self.topic = kwargs.get('topic')
+        self.content = kwargs.get('content')
+        self.parent_id = kwargs.get('parent_id')
+        self.created_at = kwargs.get('created_at')
+        self.updated_at = kwargs.get('updated_at')
+        self.replies = []
+    
+    def to_dict(self, include_replies=False):
+        """Convert to dictionary"""
+        result = {
+            'id': self.id,
+            'display_name': self.display_name,
+            'topic': self.topic,
+            'content': self.content,
+            'parent_id': self.parent_id,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+        
+        if include_replies:
+            result['replies'] = [reply.to_dict(False) for reply in self.replies]
+            
+        return result
 
 # Load static data
 def load_json_file(filename):

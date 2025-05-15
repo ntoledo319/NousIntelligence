@@ -1,0 +1,252 @@
+{% extends 'aa/layout.html' %}
+
+{% block aa_content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h1>Pain Flare Monitor</h1>
+        <p class="text-muted">Weather-based pain management insights (Opt-in Feature)</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="aa-card">
+            <div class="aa-card-title">Current Pain Flare Risk</div>
+            
+            {% if health_insights and 'pain_flare_risk' in health_insights %}
+                {% set risk = health_insights.pain_flare_risk %}
+                
+                <div class="d-flex align-items-center mb-4">
+                    <div class="me-3">
+                        {% if risk.risk_level == 'high' %}
+                            <div class="p-3 bg-danger text-white rounded-circle">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            </div>
+                        {% elif risk.risk_level == 'moderate' %}
+                            <div class="p-3 bg-warning text-dark rounded-circle">
+                                <i class="fas fa-exclamation fa-2x"></i>
+                            </div>
+                        {% else %}
+                            <div class="p-3 bg-success text-white rounded-circle">
+                                <i class="fas fa-check fa-2x"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <h4>{{ risk.risk_level|title }} Risk</h4>
+                        <div class="text-muted">{{ location }} Weather Conditions</div>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-sm-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Confidence Level</h5>
+                                <p class="card-text">{{ (risk.confidence * 100)|int }}% confidence in this prediction</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Risk Score</h5>
+                                <p class="card-text">{{ risk.risk_score }}/10</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h5>Risk Factors</h5>
+                {% if risk.factors %}
+                    <ul class="list-group mb-4">
+                        {% for factor in risk.factors %}
+                            <li class="list-group-item">{{ factor }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No specific risk factors identified.</p>
+                {% endif %}
+                
+                {% if risk.recommendation %}
+                    <h5>Recommendations</h5>
+                    <div class="alert alert-info">
+                        {{ risk.recommendation }}
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-warning">
+                    <p><strong>Pain flare prediction not available.</strong></p>
+                    <p>This could be due to one of these reasons:</p>
+                    <ul>
+                        <li>Weather data is not available for your location</li>
+                        <li>There was an error processing the weather data</li>
+                        <li>The pain flare prediction model is currently unavailable</li>
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+        
+        {% if health_insights and 'weather_impacts' in health_insights %}
+            <div class="aa-card mt-4">
+                <div class="aa-card-title">Weather Health Insights</div>
+                
+                {% for impact in health_insights.weather_impacts %}
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            {{ impact.condition }}
+                            {% if impact.severity %}
+                                <span class="badge {% if impact.severity == 'high' %}bg-danger{% elif impact.severity == 'moderate' %}bg-warning text-dark{% else %}bg-success{% endif %} float-end">
+                                    {{ impact.severity|title }} Impact
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">{{ impact.impact }}</p>
+                            
+                            {% if impact.recommendations %}
+                                <h6>Recommendations:</h6>
+                                <ul>
+                                    {% for rec in impact.recommendations %}
+                                        <li>{{ rec }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+                
+                {% if health_insights.general_recommendations %}
+                    <h5>General Recommendations</h5>
+                    <ul class="list-group mb-4">
+                        {% for rec in health_insights.general_recommendations %}
+                            <li class="list-group-item">{{ rec }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                
+                {% if health_insights.warnings %}
+                    <h5>Warnings</h5>
+                    <div class="alert alert-warning">
+                        <ul class="mb-0">
+                            {% for warning in health_insights.warnings %}
+                                <li>{{ warning }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Weather Data -->
+        <div class="aa-card">
+            <div class="aa-card-title">Current Weather</div>
+            
+            {% if health_insights and 'weather_data' in health_insights %}
+                {% set weather = health_insights.weather_data %}
+                
+                <div class="text-center mb-3">
+                    <h5>{{ location }}</h5>
+                    <div class="display-4">{{ weather.current_temp }}°F</div>
+                    <div>{{ weather.current_conditions }}</div>
+                </div>
+                
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Humidity
+                        <span>{{ weather.current_humidity }}%</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Pressure
+                        <span>{{ weather.current_pressure }} hPa</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        UV Index
+                        <span>{{ weather.current_uv }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Today's High
+                        <span>{{ weather.forecast_high }}°F</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Today's Low
+                        <span>{{ weather.forecast_low }}°F</span>
+                    </li>
+                </ul>
+                
+                {% if weather.alerts %}
+                    <div class="alert alert-danger mt-3">
+                        <h6>Weather Alerts:</h6>
+                        <ul class="mb-0">
+                            {% for alert in weather.alerts %}
+                                <li>{{ alert }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-info">
+                    Weather data not available.
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Pain Management -->
+        <div class="aa-card mt-4">
+            <div class="aa-card-title">Pain Management Resources</div>
+            
+            <h6>Mindfulness Techniques</h6>
+            <ul>
+                <li><a href="{{ url_for('aa_routes.mindfulness_category', category='breathing_exercises') }}">Breathing Exercises</a></li>
+                <li><a href="{{ url_for('aa_routes.mindfulness_category', category='progressive_muscle_relaxation') }}">Progressive Muscle Relaxation</a></li>
+                <li><a href="{{ url_for('aa_routes.mindfulness_category', category='body_scan') }}">Body Scan Meditation</a></li>
+            </ul>
+            
+            <h6>TIPP Skills</h6>
+            <ul class="list-group list-group-flush mb-3">
+                <li class="list-group-item"><strong>T</strong>emperature Change (cold water on face)</li>
+                <li class="list-group-item"><strong>I</strong>ntense Exercise (brief burst of activity)</li>
+                <li class="list-group-item"><strong>P</strong>aced Breathing (slow diaphragmatic breathing)</li>
+                <li class="list-group-item"><strong>P</strong>rogressive Muscle Relaxation</li>
+            </ul>
+            
+            <a href="{{ url_for('aa_routes.mindfulness') }}" class="btn btn-primary btn-sm">
+                View All Coping Techniques
+            </a>
+        </div>
+        
+        <!-- Settings -->
+        <div class="aa-card mt-4">
+            <div class="aa-card-title">Monitoring Preferences</div>
+            
+            <p>This feature is entirely optional and only available if you choose to enable it.</p>
+            
+            <form action="{{ url_for('aa_routes.toggle_pain_monitoring') }}" method="post">
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="enable" name="enable" checked>
+                    <label class="form-check-label" for="enable">
+                        Keep pain flare monitoring enabled
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn btn-outline-primary btn-sm">
+                    Update Preference
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h5>About This Feature</h5>
+            <p>The Pain Flare Monitor is an <strong>optional feature</strong> that provides insights on how current weather conditions might affect pain levels. It combines weather data with research on how barometric pressure changes, humidity, and temperature can influence various pain conditions.</p>
+            <p><strong>Note:</strong> This tool does not provide medical advice. Always consult with healthcare providers for medical questions or concerns.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

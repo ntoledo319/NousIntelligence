@@ -6,7 +6,6 @@ from flask import Flask, request, redirect, session, url_for, render_template, j
 from dotenv import load_dotenv
 from flask_login import LoginManager, current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
-from google_auth import google_auth
 
 # Import custom utility modules
 from utils.google_helper import get_google_flow, build_google_services
@@ -92,11 +91,12 @@ else:
     
 # Initialize LoginManager
 login_manager = LoginManager(app)
-login_manager.login_view = "replit_auth.login"
+login_manager.login_view = "google_auth.login"
 login_manager.login_message = "Please log in to access this page."
 login_manager.login_message_category = "info"
 
-# Register the Google auth blueprint
+# Import and register the Google auth blueprint
+from google_auth import google_auth
 app.register_blueprint(google_auth)
 
 @login_manager.user_loader
