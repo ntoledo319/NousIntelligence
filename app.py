@@ -249,6 +249,44 @@ def dashboard():
                 data['products_to_order'] = products_to_order
     except Exception as e:
         logging.error(f"Error fetching shopping data: {str(e)}")
+    
+    # Get pain forecast data
+    try:
+        from models import WeatherLocation
+        user_id = session.get("user_id")
+        
+        # Try to get user's primary location
+        primary_location = WeatherLocation.query.filter_by(user_id=user_id, is_primary=True).first()
+        
+        if primary_location:
+            # Get weather data for pain forecast
+            weather_data = get_current_weather(primary_location.name)
+            
+            if weather_data:
+                # Get pressure trend data
+                pressure_trend = get_pressure_trend(primary_location.name, 24)
+                
+                if pressure_trend:
+                    # Get storm severity data
+                    storm_data = get_storm_severity(weather_data)
+                    
+                    # Calculate pain flare risk
+                    pain_risk = calculate_pain_flare_risk(pressure_trend, storm_data)
+                    
+                    # Prepare data for the dashboard
+                    data['pain_forecast'] = {
+                        'location': pressure_trend['location'],
+                        'current_pressure': pressure_trend['current_pressure'],
+                        'trend_direction': pressure_trend['trend_direction'],
+                        'pressure_change': pressure_trend['overall_change'],
+                        'risk_level': pain_risk['risk_level'],
+                        'risk_score': pain_risk['risk_score'],
+                        'confidence': pain_risk['confidence'],
+                        'factors': pain_risk['factors'],
+                        'recommendation': pain_risk['recommendation']
+                    }
+    except Exception as e:
+        logging.error(f"Error generating pain forecast: {str(e)}")
         
     # Create some recent activity (could be replaced with actual activity log)
     data['recent_activity'] = [
