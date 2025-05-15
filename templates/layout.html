@@ -22,15 +22,197 @@
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
-                <img src="{{ url_for('static', filename='img/IMG_4875.jpeg') }}" alt="NOUS Logo" class="navbar-logo me-2" height="36">
+                <img src="{{ url_for('static', filename='img/IMG_4875.jpeg') }}" alt="NOUS Logo" class="navbar-logo me-2" height="30">
                 <span>NOUS</span>
                 <span class="badge bg-info ms-2 fw-normal" style="font-size: 0.6rem;">v1.0</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#navbarOffcanvas"
+                    aria-controls="navbarOffcanvas" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
+            
+            <!-- Mobile Offcanvas Menu -->
+            <div class="offcanvas offcanvas-end bg-dark text-white d-lg-none" tabindex="-1" id="navbarOffcanvas" aria-labelledby="offcanvasNavbarLabel">
+                <div class="offcanvas-header border-bottom border-secondary">
+                    <h5 class="offcanvas-title" id="offcanvasNavbarLabel">
+                        <img src="{{ url_for('static', filename='img/IMG_4875.jpeg') }}" alt="NOUS Logo" class="navbar-logo me-2" height="30">
+                        NOUS Menu
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link py-2" href="{{ url_for('index') }}">
+                                <i class="fas fa-home me-2"></i>Home
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link py-2" href="{{ url_for('dashboard') }}">
+                                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                            </a>
+                        </li>
+                        
+                        <li class="nav-item mb-1">
+                            <div class="nav-link text-muted small py-1">FEATURES</div>
+                        </li>
+                        
+                        <!-- Health -->
+                        <li class="nav-item">
+                            <div class="d-flex align-items-center px-3 py-2 text-light">
+                                <i class="fas fa-heartbeat me-2 text-danger"></i>
+                                <span class="fw-medium">Health</span>
+                            </div>
+                            <ul class="list-unstyled ms-3 mb-2">
+                                <li>
+                                    <a class="nav-link py-1" href="{{ url_for('index') }}?cmd=show%20doctors">
+                                        <i class="fas fa-user-md me-2"></i>Doctors
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="nav-link py-1" href="{{ url_for('index') }}?cmd=show%20appointments">
+                                        <i class="fas fa-calendar-check me-2"></i>Appointments
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="nav-link py-1" href="{{ url_for('index') }}?cmd=show%20medications">
+                                        <i class="fas fa-pills me-2"></i>Medications
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="nav-link py-1" href="{{ url_for('index') }}?cmd=pain%20forecast">
+                                        <i class="fas fa-cloud-sun-rain me-2"></i>Pain Forecast
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Shopping -->
+                        <li class="nav-item">
+                            <div class="d-flex align-items-center px-3 py-2 text-light">
+                                <i class="fas fa-shopping-cart me-2 text-success"></i>
+                                <span class="fw-medium">Shopping</span>
+                            </div>
+                            <ul class="list-unstyled ms-3 mb-2">
+                                <li>
+                                    <a class="nav-link py-1" href="{{ url_for('index') }}?cmd=show%20shopping%20lists">
+                                        <i class="fas fa-list me-2"></i>Shopping Lists
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="nav-link py-1" href="{{ url_for('index') }}?cmd=show%20products">
+                                        <i class="fas fa-box me-2"></i>Products
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="nav-link py-1" href="{{ url_for('index') }}?cmd=show%20due%20orders">
+                                        <i class="fas fa-truck me-2"></i>Due Orders
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Finance -->
+                        <li class="nav-item">
+                            <div class="d-flex align-items-center px-3 py-2 text-light">
+                                <i class="fas fa-chart-line me-2 text-warning"></i>
+                                <span class="fw-medium">Finance</span>
+                            </div>
+                            <ul class="list-unstyled ms-3 mb-2">
+                                <li>
+                                    <a class="nav-link py-1" href="{{ url_for('index') }}?cmd=budget%20summary">
+                                        <i class="fas fa-chart-pie me-2"></i>Budget Summary
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="nav-link py-1" href="{{ url_for('index') }}?cmd=show%20expenses">
+                                        <i class="fas fa-receipt me-2"></i>Expenses
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="nav-link py-1" href="{{ url_for('index') }}?cmd=show%20recurring%20payments">
+                                        <i class="fas fa-calendar-alt me-2"></i>Recurring Payments
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Travel -->
+                        <li class="nav-item">
+                            <div class="d-flex align-items-center px-3 py-2 text-light">
+                                <i class="fas fa-plane-departure me-2 text-info"></i>
+                                <span class="fw-medium">Travel</span>
+                            </div>
+                            <ul class="list-unstyled ms-3 mb-2">
+                                <li>
+                                    <a class="nav-link py-1" href="{{ url_for('index') }}?cmd=show%20trips">
+                                        <i class="fas fa-suitcase me-2"></i>All Trips
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="nav-link py-1" href="{{ url_for('index') }}?cmd=show%20active%20trip">
+                                        <i class="fas fa-map-marked-alt me-2"></i>Active Trip
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="nav-link py-1" href="{{ url_for('index') }}?cmd=show%20upcoming%20trips">
+                                        <i class="fas fa-calendar-alt me-2"></i>Upcoming Trips
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        {% if current_user.is_authenticated %}
+                        <li class="nav-item mt-3 mb-1">
+                            <div class="nav-link text-muted small py-1">ACCOUNT</div>
+                        </li>
+                        
+                        <!-- User Actions -->
+                        <li class="nav-item">
+                            <a class="nav-link py-2" href="{{ url_for('help_page') }}">
+                                <i class="fas fa-question-circle me-2"></i>Help
+                            </a>
+                        </li>
+                        
+                        {% if 'google_creds' not in session %}
+                        <li class="nav-item">
+                            <a class="nav-link py-2" href="{{ url_for('authorize_google') }}">
+                                <i class="fab fa-google me-2"></i>Connect Google
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% if 'spotify_user' not in session %}
+                        <li class="nav-item">
+                            <a class="nav-link py-2" href="{{ url_for('authorize_spotify') }}">
+                                <i class="fab fa-spotify me-2"></i>Connect Spotify
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        <li class="nav-item">
+                            <a class="nav-link py-2" href="{{ url_for('clear_log') }}">
+                                <i class="fas fa-broom me-2"></i>Clear Log
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link py-2" href="{{ url_for('replit_auth.logout') }}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="nav-item mt-3">
+                            <a class="nav-link py-2" href="{{ url_for('replit_auth.login') }}">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Desktop navbar -->
+            <div class="collapse navbar-collapse d-none d-lg-block" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('dashboard') }}" data-bs-toggle="tooltip" title="View dashboard">

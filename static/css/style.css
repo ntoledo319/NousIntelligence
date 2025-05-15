@@ -424,25 +424,147 @@ code {
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .terminal-output {
-        min-height: 250px;
-        max-height: 400px;
+        min-height: 200px;
+        max-height: 350px;
+        padding: 12px;
+        font-size: 0.9rem;
     }
     
     .card-header h3 {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
     }
     
     .container {
-        padding-left: 15px;
-        padding-right: 15px;
+        padding-left: 10px;
+        padding-right: 10px;
+        max-width: 100%;
+    }
+    
+    .row {
+        margin-left: -10px;
+        margin-right: -10px;
+    }
+    
+    .col, .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12, 
+    .col-sm, .col-sm-1, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-sm-10, .col-sm-11, .col-sm-12,
+    .col-md, .col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12 {
+        padding-right: 10px;
+        padding-left: 10px;
     }
     
     .table {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+    }
+    
+    .table td, .table th {
+        padding: 8px 10px;
     }
 
     .dashboard .card {
         margin-bottom: 1rem;
+    }
+    
+    /* Smaller buttons on mobile */
+    .btn {
+        padding: .375rem .75rem;
+        font-size: 0.9rem;
+    }
+    
+    .btn-lg {
+        padding: .5rem 1rem;
+        font-size: 1rem;
+    }
+    
+    /* Improved command input on mobile */
+    .input-group .form-control {
+        font-size: 0.9rem;
+        padding: 10px 12px;
+    }
+    
+    /* Smaller navbar elements */
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+    
+    .nav-link {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Improve dropdown menus on mobile */
+    .dropdown-menu {
+        font-size: 0.9rem;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    
+    .dropdown-item {
+        padding: 0.4rem 1rem;
+    }
+    
+    /* Make cards less animated on mobile to reduce performance issues */
+    .card:hover {
+        transform: translateY(-2px);
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 576px) {
+    .container {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+    
+    .terminal-output {
+        min-height: 180px;
+        max-height: 300px;
+        padding: 10px;
+        font-size: 0.85rem;
+    }
+    
+    /* Stack buttons on welcome page */
+    .welcome-buttons .btn {
+        display: block;
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Adjust logo sizes */
+    .navbar-logo {
+        height: 30px;
+    }
+    
+    .hero-logo {
+        max-width: 80%;
+    }
+    
+    /* Simplified card animations for better performance */
+    .card {
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card:hover {
+        transform: none;
+        box-shadow: 0 3px 7px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Reduce page margins and paddings */
+    .my-4 {
+        margin-top: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    .py-4 {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+    }
+    
+    h1, .h1 {
+        font-size: 1.75rem;
+    }
+    
+    h2, .h2 {
+        font-size: 1.5rem;
     }
 }
 

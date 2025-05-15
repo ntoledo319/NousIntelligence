@@ -62,20 +62,20 @@
         </div>
     </div>
 
-    <div class="row justify-content-center mb-5">
-        <div class="col-md-8 text-center">
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-8 col-sm-12 text-center">
             <div class="card">
-                <div class="card-body py-5">
-                    <h2 class="mb-4">Get Started Now</h2>
+                <div class="card-body py-4">
+                    <h2 class="mb-3">Get Started Now</h2>
                     <p class="mb-4">Sign in to access all features.</p>
                     
-                    <div class="d-grid gap-3 col-md-8 mx-auto">
+                    <div class="d-grid gap-3 col-md-8 col-sm-10 welcome-buttons mx-auto">
                         <a href="{{ url_for('google_auth.login') }}" class="btn btn-light btn-lg border">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" height="20" class="me-2">
                             Sign In with Google
                         </a>
                         
-                        <div class="text-muted">- or -</div>
+                        <div class="text-muted my-2">- or -</div>
                         
                         <a href="{{ url_for('replit_auth.login') }}" class="btn btn-primary btn-lg">
                             <i class="fas fa-sign-in-alt me-2"></i>Sign In with Replit

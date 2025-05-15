@@ -2,17 +2,40 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-lg-12 mb-4 text-center">
-        <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" alt="NOUS Logo" class="hero-logo mb-3" style="max-height: 150px;">
-        <h2 class="mb-3" style="color: var(--nous-primary);">Your Personal Assistant</h2>
+    <div class="col-lg-12 mb-3 text-center">
+        <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" alt="NOUS Logo" class="hero-logo mb-2" style="max-height: 130px;">
+        <h2 class="mb-2" style="color: var(--nous-primary);">Your Personal Assistant</h2>
     </div>
-    <div class="col-lg-9">
-        <div class="card mb-4">
+    <div class="col-lg-9 col-md-11 col-sm-12">
+        <div class="card mb-3">
             <div class="card-header text-white">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h3 class="mb-0">
-                        <i class="fas fa-terminal me-2"></i>NOUS Command Interface
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <h3 class="mb-0 me-2">
+                        <i class="fas fa-terminal me-1"></i>NOUS Interface
                     </h3>
+                    <!-- Mobile connection status -->
+                    <div class="d-flex d-md-none my-1 connection-status-mobile">
+                        {% if 'google_creds' in session %}
+                        <span class="badge bg-success me-2">
+                            <i class="fab fa-google"></i>
+                        </span>
+                        {% else %}
+                        <span class="badge bg-secondary me-2">
+                            <i class="fab fa-google"></i>
+                        </span>
+                        {% endif %}
+                        
+                        {% if 'spotify_user' in session %}
+                        <span class="badge bg-success">
+                            <i class="fab fa-spotify"></i>
+                        </span>
+                        {% else %}
+                        <span class="badge bg-secondary">
+                            <i class="fab fa-spotify"></i>
+                        </span>
+                        {% endif %}
+                    </div>
+                    <!-- Desktop connection status -->
                     <div class="connection-status d-none d-md-flex">
                         {% if 'google_creds' in session %}
                         <span class="badge bg-success me-2" data-bs-toggle="tooltip" title="Google services connected">
@@ -40,7 +63,7 @@
                 <form method="post" class="command-form" id="commandForm">
                     <div class="input-group">
                         <input type="text" name="cmd" id="commandInput" class="form-control" 
-                               placeholder='Type a command or ask a question...' autocomplete="off" 
+                               placeholder='Command or question...' autocomplete="off" 
                                autofocus>
                         <button type="button" id="voiceButton" class="btn btn-outline-info" title="Speak a command">
                             <i class="fas fa-microphone"></i>
