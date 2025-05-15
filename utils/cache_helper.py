@@ -22,20 +22,37 @@ _embedding_cache: Dict[str, Tuple[Any, float]] = {}
 # Lock for thread safety
 _cache_lock = threading.RLock()
 
-# Maximum cache sizes to prevent memory issues
-MAX_RESULT_CACHE_SIZE = 1000  # Entries
-MAX_EMBEDDING_CACHE_SIZE = 500  # Entries
+# Cache settings - tuned for optimal performance
+MAX_RESULT_CACHE_SIZE = 2000  # Regular function results 
+MAX_EMBEDDING_CACHE_SIZE = 750  # Embeddings cache (more expensive to regenerate)
 
-def cache_result(ttl_seconds: int = 600):
+# Cache time-to-live defaults
+DEFAULT_RESULT_TTL = 1800  # 30 minutes for regular results
+DEFAULT_EMBEDDING_TTL = 86400  # 24 hours for embeddings
+DEFAULT_API_RESULT_TTL = 3600  # 1 hour for API results
+HIGH_VALUE_RESULT_TTL = 7200  # 2 hours for complex computations
+
+def cache_result(ttl_seconds: int = None, cache_type: str = "default"):
     """
     Decorator to cache function results for a specified time.
     
     Args:
-        ttl_seconds: Time to live in seconds for cache entries
+        ttl_seconds: Time to live in seconds for cache entries (optional)
+        cache_type: Type of cache to use ("default", "api", "embedding", "high_value")
         
     Returns:
         Decorated function with caching
     """
+    # Determine TTL based on cache type if not explicitly provided
+    if ttl_seconds is None:
+        if cache_type == "api":
+            ttl_seconds = DEFAULT_API_RESULT_TTL
+        elif cache_type == "embedding":
+            ttl_seconds = DEFAULT_EMBEDDING_TTL
+        elif cache_type == "high_value":
+            ttl_seconds = HIGH_VALUE_RESULT_TTL
+        else:
+            ttl_seconds = DEFAULT_RESULT_TTL
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
