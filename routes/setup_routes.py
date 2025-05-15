@@ -27,31 +27,29 @@ def get_user_id():
 
 # Setup wizard main page
 @setup_bp.route('/')
-@login_required
 def wizard():
     """Setup wizard main page - redirects to appropriate step"""
-    user_id = get_user_id()
+    user_id = get_user_id() if current_user.is_authenticated else None
     
     # Get current setup progress
-    progress = get_setup_progress(user_id)
+    progress = get_setup_progress(user_id) if user_id else {'has_completed_setup': False, 'next_step': 'welcome'}
     
     # If setup is complete, redirect to dashboard
-    if progress['has_completed_setup'] and not request.args.get('restart'):
+    if progress.get('has_completed_setup', False) and not request.args.get('restart'):
         return redirect(url_for('index'))
     
     # Otherwise redirect to next step
-    next_step = progress['next_step'] or 'welcome'
+    next_step = progress.get('next_step', 'welcome') or 'welcome'
     return redirect(url_for(f'setup.{next_step}'))
 
 # Welcome step
 @setup_bp.route('/welcome')
-@login_required
 def welcome():
     """Welcome step of setup wizard"""
-    user_id = get_user_id()
+    user_id = get_user_id() if current_user.is_authenticated else None
     
     # Get current setup progress
-    progress = get_setup_progress(user_id)
+    progress = get_setup_progress(user_id) if user_id else {}
     
     return render_template(
         'setup/welcome.html',

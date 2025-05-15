@@ -210,11 +210,10 @@
             <p class="lead text-muted">Customize your assistant in a few easy steps</p>
         </div>
         
-        {% if progress %}
         <div class="setup-progress">
             {% set steps = ['welcome', 'personalize', 'preferences', 'features', 'complete'] %}
             {% set step_names = ['Welcome', 'Personalize', 'Preferences', 'Features', 'Complete'] %}
-            {% set current_step = progress.current_step %}
+            {% set current_step = progress.current_step if progress and 'current_step' in progress else 'welcome' %}
             
             <div class="progress">
                 {% set percent = ((steps.index(current_step) + 1) / steps|length) * 100 if current_step in steps else 0 %}
@@ -224,9 +223,9 @@
             
             <div class="setup-steps">
                 {% for step, name in zip(steps, step_names) %}
-                <div class="setup-step {% if step == current_step %}active{% elif steps.index(step) < steps.index(current_step) %}completed{% endif %}">
+                <div class="setup-step {% if step == current_step %}active{% elif current_step in steps and steps.index(step) < steps.index(current_step) %}completed{% endif %}">
                     <div class="setup-step-number">
-                        {% if steps.index(step) < steps.index(current_step) %}
+                        {% if current_step in steps and steps.index(step) < steps.index(current_step) %}
                         <i class="fas fa-check"></i>
                         {% else %}
                         {{ loop.index }}
@@ -237,7 +236,6 @@
                 {% endfor %}
             </div>
         </div>
-        {% endif %}
         
         <main class="setup-main">
             {% block setup_content %}{% endblock %}

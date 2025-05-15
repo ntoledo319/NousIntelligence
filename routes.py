@@ -1,7 +1,7 @@
 from flask import session, redirect, url_for, flash, render_template, request, abort
 from app import app, db
 from flask_login import current_user, login_required
-from models import UserSettings, ConversationDifficulty
+from models import UserSettings, ConversationDifficulty, User
 from utils.adaptive_conversation import set_difficulty
 from utils.security_helper import (
     csrf_protect, generate_csrf_token, session_timeout_check, 
@@ -12,8 +12,18 @@ import logging
 # Import Google auth blueprint
 from google_auth import google_auth as google_auth_bp
 
-# Register the Google auth blueprint
+# Import other blueprints
+from routes.beta_routes import beta_bp
+from routes.aa_routes import aa_bp
+from routes.amazon_routes import amazon_bp
+from routes.setup_routes import setup_bp
+
+# Register the blueprints
 app.register_blueprint(google_auth_bp, url_prefix="/auth")
+app.register_blueprint(beta_bp, url_prefix="/beta")
+app.register_blueprint(aa_bp, url_prefix="/aa") 
+app.register_blueprint(amazon_bp, url_prefix="/amazon")
+app.register_blueprint(setup_bp, url_prefix="/setup")
 
 # Make session permanent, add security headers, and check session timeout
 @app.before_request

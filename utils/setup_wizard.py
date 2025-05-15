@@ -302,6 +302,7 @@ def get_setup_progress(user_id):
         }
     except Exception as e:
         logger.error(f"Error getting setup progress: {str(e)}")
+        all_steps = ['welcome', 'personalize', 'preferences', 'features', 'complete']
         return {
             'has_started_setup': False,
             'has_completed_setup': False,
