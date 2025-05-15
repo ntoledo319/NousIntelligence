@@ -1,0 +1,195 @@
+{% extends 'layout.html' %}
+
+{% block title %}Smart Shopping{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="display-5 mb-3">
+            <i class="fas fa-shopping-cart text-primary me-2"></i> Smart Shopping
+        </h1>
+        <p class="lead">Generate AI-powered shopping lists based on your preferences and needs.</p>
+    </div>
+    <div class="col-md-4 text-md-end">
+        <a href="{{ url_for('smart_shopping.generate_list') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-magic me-2"></i> Generate New List
+        </a>
+        <div class="mt-2">
+            <a href="{{ url_for('smart_shopping.medication_list') }}" class="btn btn-outline-success">
+                <i class="fas fa-pills me-2"></i> Medication Refills
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile optimized quick action buttons -->
+<div class="d-md-none mb-4">
+    <div class="d-grid gap-2">
+        <a href="{{ url_for('smart_shopping.generate_list') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-magic me-2"></i> Generate New List
+        </a>
+        <a href="{{ url_for('smart_shopping.medication_list') }}" class="btn btn-outline-success">
+            <i class="fas fa-pills me-2"></i> Medication Refills
+        </a>
+    </div>
+</div>
+
+<!-- Your Shopping Lists -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-list text-primary me-2"></i> Your Shopping Lists</h5>
+    </div>
+    <div class="card-body p-0">
+        {% if shopping_lists %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>List Name</th>
+                            <th>Items</th>
+                            <th>Store</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for list in shopping_lists %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('smart_shopping.view_list', list_id=list.id) }}" class="fw-bold text-decoration-none">
+                                    {{ list.name }}
+                                </a>
+                            </td>
+                            <td>{{ list.items|length }} items</td>
+                            <td>{{ list.store or 'Not specified' }}</td>
+                            <td>{{ list.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <a href="{{ url_for('smart_shopping.view_list', list_id=list.id) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('smart_shopping.improve_list', list_id=list.id) }}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-wand-magic-sparkles"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="p-4 text-center">
+                <p class="mb-3 text-muted">You don't have any shopping lists yet.</p>
+                <a href="{{ url_for('smart_shopping.generate_list') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i> Create Your First List
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Shopping Patterns -->
+{% if shopping_patterns and shopping_patterns.success %}
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-line text-primary me-2"></i> Shopping Patterns</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <p class="text-muted mb-1">Based on your shopping history:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Average list size
+                            <span class="badge bg-primary rounded-pill">{{ shopping_patterns.average_list_size }} items</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Total lists created
+                            <span class="badge bg-primary rounded-pill">{{ shopping_patterns.total_lists }}</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                {% if shopping_patterns.top_categories %}
+                <div class="mb-3">
+                    <h6 class="card-subtitle mb-2">Most Common Categories</h6>
+                    <div class="d-flex flex-wrap">
+                        {% for category in shopping_patterns.top_categories %}
+                        <span class="badge bg-light text-dark me-2 mb-2 p-2">
+                            {{ category.name }} ({{ category.count }})
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-star text-primary me-2"></i> Frequently Purchased Items</h5>
+            </div>
+            <div class="card-body">
+                {% if shopping_patterns.frequent_items %}
+                    <ul class="list-group list-group-flush">
+                        {% for item in shopping_patterns.frequent_items %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ item.name }}
+                            <span class="badge bg-success rounded-pill">{{ item.count }} times</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted text-center">Not enough shopping history to identify patterns.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Tips for Better Shopping -->
+<div class="card bg-light">
+    <div class="card-body">
+        <h5 class="card-title"><i class="fas fa-lightbulb text-warning me-2"></i> Smart Shopping Tips</h5>
+        <div class="row">
+            <div class="col-md-6">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item bg-transparent">
+                        <i class="fas fa-calendar-check text-success me-2"></i> Plan your shopping around sales days
+                    </li>
+                    <li class="list-group-item bg-transparent">
+                        <i class="fas fa-clock text-success me-2"></i> Shop during off-peak hours to avoid crowds
+                    </li>
+                    <li class="list-group-item bg-transparent">
+                        <i class="fas fa-sort-alpha-down text-success me-2"></i> Organize your list by store layout
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item bg-transparent">
+                        <i class="fas fa-users text-success me-2"></i> Consider group buying for bulk discounts
+                    </li>
+                    <li class="list-group-item bg-transparent">
+                        <i class="fas fa-clipboard-list text-success me-2"></i> Keep a running list throughout the week
+                    </li>
+                    <li class="list-group-item bg-transparent">
+                        <i class="fas fa-store text-success me-2"></i> Compare prices across different stores
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Any page-specific JavaScript can go here
+    });
+</script>
+{% endblock %}

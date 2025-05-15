@@ -1,0 +1,461 @@
+{% extends 'layout.html' %}
+
+{% block title %}Crisis Help{% endblock %}
+
+{% block content %}
+<!-- Mobile-optimized crisis interface -->
+<div class="mobile-crisis-interface">
+    <!-- Header with pulsing help indicator -->
+    <div class="text-center mb-4">
+        <div class="crisis-pulse-indicator mb-2"></div>
+        <h1 class="display-5">Crisis Help</h1>
+        <p class="lead">Take a deep breath. Help is available.</p>
+    </div>
+    
+    <!-- Crisis Options - Large, touch-friendly buttons -->
+    <div class="d-grid gap-3 mb-4">
+        <a href="tel:988" class="btn btn-danger btn-lg crisis-button py-3">
+            <div class="d-flex align-items-center">
+                <div class="crisis-icon-container me-3">
+                    <i class="fas fa-phone-alt fa-2x"></i>
+                </div>
+                <div class="crisis-button-text">
+                    <strong>988 Crisis Lifeline</strong>
+                    <div class="small">Talk to someone now</div>
+                </div>
+            </div>
+        </a>
+        
+        <a href="#grounding-exercises" class="btn btn-primary btn-lg crisis-button py-3" data-bs-toggle="collapse">
+            <div class="d-flex align-items-center">
+                <div class="crisis-icon-container me-3">
+                    <i class="fas fa-hand-sparkles fa-2x"></i>
+                </div>
+                <div class="crisis-button-text">
+                    <strong>Grounding Exercises</strong>
+                    <div class="small">Focus on the present moment</div>
+                </div>
+            </div>
+        </a>
+        
+        <a href="#breathing-exercise" class="btn btn-info btn-lg crisis-button py-3" data-bs-toggle="collapse">
+            <div class="d-flex align-items-center">
+                <div class="crisis-icon-container me-3">
+                    <i class="fas fa-wind fa-2x"></i>
+                </div>
+                <div class="crisis-button-text">
+                    <strong>Breathing Exercise</strong>
+                    <div class="small">Calm your nervous system</div>
+                </div>
+            </div>
+        </a>
+        
+        <a href="#de-escalation" class="btn btn-success btn-lg crisis-button py-3" data-bs-toggle="collapse">
+            <div class="d-flex align-items-center">
+                <div class="crisis-icon-container me-3">
+                    <i class="fas fa-arrow-down fa-2x"></i>
+                </div>
+                <div class="crisis-button-text">
+                    <strong>De-escalation Techniques</strong>
+                    <div class="small">Reduce distress</div>
+                </div>
+            </div>
+        </a>
+        
+        <a href="#my-resources" class="btn btn-warning btn-lg crisis-button py-3" data-bs-toggle="collapse">
+            <div class="d-flex align-items-center">
+                <div class="crisis-icon-container me-3">
+                    <i class="fas fa-user-friends fa-2x"></i>
+                </div>
+                <div class="crisis-button-text">
+                    <strong>My Support Contacts</strong>
+                    <div class="small">People who can help</div>
+                </div>
+            </div>
+        </a>
+    </div>
+    
+    <!-- Collapsible Sections -->
+    
+    <!-- Grounding Exercises -->
+    <div class="collapse mb-4" id="grounding-exercises">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">5-4-3-2-1 Grounding Technique</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">Use your senses to ground yourself in the present moment:</p>
+                <ul class="list-group list-group-flush mb-3">
+                    <li class="list-group-item d-flex align-items-center">
+                        <span class="badge bg-primary rounded-pill me-3">5</span>
+                        <strong>See:</strong> Name 5 things you can see right now
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <span class="badge bg-primary rounded-pill me-3">4</span>
+                        <strong>Touch:</strong> Notice 4 things you can feel/touch
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <span class="badge bg-primary rounded-pill me-3">3</span>
+                        <strong>Hear:</strong> Identify 3 things you can hear
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <span class="badge bg-primary rounded-pill me-3">2</span>
+                        <strong>Smell:</strong> Find 2 things you can smell
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <span class="badge bg-primary rounded-pill me-3">1</span>
+                        <strong>Taste:</strong> Notice 1 thing you can taste
+                    </li>
+                </ul>
+                <p>Take your time with each step. This helps bring your attention to the present moment.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Breathing Exercise -->
+    <div class="collapse mb-4" id="breathing-exercise">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Guided Breathing</h5>
+            </div>
+            <div class="card-body text-center">
+                <div id="breathing-circle" class="breathing-circle mx-auto mb-3">
+                    <div class="breathing-text">Breathe</div>
+                </div>
+                <div id="breathing-instruction" class="mb-3 fs-5">Inhale slowly...</div>
+                <button id="start-breathing" class="btn btn-info btn-lg">
+                    <i class="fas fa-play me-2"></i> Start
+                </button>
+                <button id="stop-breathing" class="btn btn-secondary btn-lg d-none">
+                    <i class="fas fa-stop me-2"></i> Stop
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- De-escalation Techniques -->
+    <div class="collapse mb-4" id="de-escalation">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">De-escalation Techniques</h5>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="deEscalationAccordion">
+                    <!-- Temperature Change -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTemperature">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTemperature" aria-expanded="true" aria-controls="collapseTemperature">
+                                <i class="fas fa-snowflake me-2 text-primary"></i> Temperature Change
+                            </button>
+                        </h2>
+                        <div id="collapseTemperature" class="accordion-collapse collapse show" aria-labelledby="headingTemperature" data-bs-parent="#deEscalationAccordion">
+                            <div class="accordion-body">
+                                <p>Cold temperature can help reduce intense emotions:</p>
+                                <ul>
+                                    <li>Hold ice in your hands</li>
+                                    <li>Splash cold water on your face</li>
+                                    <li>Place a cold pack on your forehead</li>
+                                    <li>Take a cool shower</li>
+                                </ul>
+                                <p class="small text-muted">This activates the parasympathetic nervous system and helps calm your body's stress response.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Intense Exercise -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingExercise">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExercise" aria-expanded="false" aria-controls="collapseExercise">
+                                <i class="fas fa-running me-2 text-success"></i> Intense Exercise
+                            </button>
+                        </h2>
+                        <div id="collapseExercise" class="accordion-collapse collapse" aria-labelledby="headingExercise" data-bs-parent="#deEscalationAccordion">
+                            <div class="accordion-body">
+                                <p>Physical activity can help release tension:</p>
+                                <ul>
+                                    <li>Do jumping jacks for 1 minute</li>
+                                    <li>Run in place</li>
+                                    <li>Do wall push-ups</li>
+                                    <li>Squeeze a stress ball repeatedly</li>
+                                </ul>
+                                <p class="small text-muted">Exercise helps your body process stress hormones and can reduce emotional intensity.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Paced Breathing -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingBreathing">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBreathing" aria-expanded="false" aria-controls="collapseBreathing">
+                                <i class="fas fa-lungs me-2 text-info"></i> Paced Breathing
+                            </button>
+                        </h2>
+                        <div id="collapseBreathing" class="accordion-collapse collapse" aria-labelledby="headingBreathing" data-bs-parent="#deEscalationAccordion">
+                            <div class="accordion-body">
+                                <p>Slow your breathing to activate your parasympathetic nervous system:</p>
+                                <ol>
+                                    <li>Inhale slowly through your nose for 4 counts</li>
+                                    <li>Hold your breath for 2 counts</li>
+                                    <li>Exhale slowly through your mouth for 6 counts</li>
+                                    <li>Repeat for at least 2 minutes</li>
+                                </ol>
+                                <p class="small text-muted">Making your exhale longer than your inhale helps activate your body's relaxation response.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- My Resources -->
+    <div class="collapse mb-4" id="my-resources">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">My Support Contacts</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% if resources %}
+                        {% for resource in resources %}
+                            <a href="tel:{{ resource.phone }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ resource.name }}</h5>
+                                    <small>{{ resource.type }}</small>
+                                </div>
+                                <p class="mb-1">{{ resource.phone }}</p>
+                                {% if resource.description %}
+                                <small>{{ resource.description }}</small>
+                                {% endif %}
+                            </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="list-group-item text-center py-4">
+                            <p class="mb-2">No support contacts added yet.</p>
+                            <a href="{{ url_for('crisis.resources') }}" class="btn btn-outline-primary btn-sm">
+                                Add Contacts
+                            </a>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Always show national resources -->
+                    <a href="tel:988" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">988 Suicide & Crisis Lifeline</h5>
+                            <small>National</small>
+                        </div>
+                        <p class="mb-1">988</p>
+                        <small>24/7 support for anyone in distress</small>
+                    </a>
+                    
+                    <a href="tel:18002738255" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Veterans Crisis Line</h5>
+                            <small>National</small>
+                        </div>
+                        <p class="mb-1">1-800-273-8255 (Press 1)</p>
+                        <small>Support for veterans and their loved ones</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Safety Notice -->
+    <div class="alert alert-danger mb-4">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+            <div>
+                <strong>In an emergency:</strong> Call 911 or go to your nearest emergency room if you're in immediate danger.
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation Back -->
+    <div class="d-grid gap-2 mb-4">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Breathing exercise functionality
+        const startBreathingBtn = document.getElementById('start-breathing');
+        const stopBreathingBtn = document.getElementById('stop-breathing');
+        const breathingCircle = document.getElementById('breathing-circle');
+        const breathingInstruction = document.getElementById('breathing-instruction');
+        
+        let breathingInterval;
+        let breathingPhase = 'inhale';
+        let breathingCount = 0;
+        
+        startBreathingBtn.addEventListener('click', function() {
+            startBreathingBtn.classList.add('d-none');
+            stopBreathingBtn.classList.remove('d-none');
+            
+            // Start the breathing animation
+            startBreathingAnimation();
+        });
+        
+        stopBreathingBtn.addEventListener('click', function() {
+            stopBreathingBtn.classList.add('d-none');
+            startBreathingBtn.classList.remove('d-none');
+            
+            // Stop the breathing animation
+            stopBreathingAnimation();
+        });
+        
+        function startBreathingAnimation() {
+            breathingPhase = 'inhale';
+            breathingCount = 0;
+            
+            // Reset circle
+            breathingCircle.classList.remove('exhale', 'hold');
+            breathingCircle.classList.add('inhale');
+            breathingInstruction.textContent = 'Inhale slowly...';
+            
+            // Start the interval
+            breathingInterval = setInterval(function() {
+                breathingCount++;
+                
+                if (breathingPhase === 'inhale' && breathingCount >= 4) {
+                    // Switch to hold
+                    breathingPhase = 'hold';
+                    breathingCount = 0;
+                    breathingCircle.classList.remove('inhale');
+                    breathingCircle.classList.add('hold');
+                    breathingInstruction.textContent = 'Hold...';
+                    
+                } else if (breathingPhase === 'hold' && breathingCount >= 2) {
+                    // Switch to exhale
+                    breathingPhase = 'exhale';
+                    breathingCount = 0;
+                    breathingCircle.classList.remove('hold');
+                    breathingCircle.classList.add('exhale');
+                    breathingInstruction.textContent = 'Exhale slowly...';
+                    
+                } else if (breathingPhase === 'exhale' && breathingCount >= 6) {
+                    // Back to inhale
+                    breathingPhase = 'inhale';
+                    breathingCount = 0;
+                    breathingCircle.classList.remove('exhale');
+                    breathingCircle.classList.add('inhale');
+                    breathingInstruction.textContent = 'Inhale slowly...';
+                }
+            }, 1000);
+        }
+        
+        function stopBreathingAnimation() {
+            clearInterval(breathingInterval);
+            breathingCircle.classList.remove('inhale', 'hold', 'exhale');
+            breathingInstruction.textContent = 'Click Start to begin';
+        }
+    });
+</script>
+
+<style>
+    /* Mobile Crisis Interface Styles */
+    .mobile-crisis-interface {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px 0;
+    }
+    
+    /* Pulsing indicator */
+    .crisis-pulse-indicator {
+        width: 20px;
+        height: 20px;
+        background-color: #dc3545;
+        border-radius: 50%;
+        margin: 0 auto;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+        }
+        
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 15px rgba(220, 53, 69, 0);
+        }
+        
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+        }
+    }
+    
+    /* Crisis buttons */
+    .crisis-button {
+        text-align: left;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+    }
+    
+    .crisis-button:active {
+        transform: scale(0.98);
+    }
+    
+    .crisis-icon-container {
+        width: 60px;
+        height: 60px;
+        background-color: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Breathing exercise */
+    .breathing-circle {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background-color: #17a2b8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        transition: transform 1s ease, background-color 1s ease;
+    }
+    
+    .breathing-circle.inhale {
+        animation: inhale 4s ease-in-out;
+        background-color: #17a2b8;
+    }
+    
+    .breathing-circle.hold {
+        animation: hold 2s ease-in-out;
+        background-color: #28a745;
+    }
+    
+    .breathing-circle.exhale {
+        animation: exhale 6s ease-in-out;
+        background-color: #6610f2;
+    }
+    
+    @keyframes inhale {
+        from { transform: scale(1); }
+        to { transform: scale(1.5); }
+    }
+    
+    @keyframes hold {
+        from { transform: scale(1.5); }
+        to { transform: scale(1.5); }
+    }
+    
+    @keyframes exhale {
+        from { transform: scale(1.5); }
+        to { transform: scale(1); }
+    }
+</style>
+{% endblock %}

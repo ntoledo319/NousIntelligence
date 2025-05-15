@@ -1,0 +1,184 @@
+{% extends 'layout.html' %}
+
+{% block title %}Generate Smart Shopping List{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <a href="{{ url_for('smart_shopping.index') }}" class="btn btn-outline-secondary mb-3">
+            <i class="fas fa-arrow-left me-2"></i> Back to Lists
+        </a>
+        <h1 class="display-5 mb-3">
+            <i class="fas fa-magic text-primary me-2"></i> Generate Smart Shopping List
+        </h1>
+        <p class="lead">Customize your preferences to create a personalized shopping list with AI.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form action="{{ url_for('smart_shopping.generate_list') }}" method="post">
+                    <!-- Dietary Restrictions -->
+                    <div class="mb-4">
+                        <label class="form-label">Do you have any dietary restrictions?</label>
+                        <div class="d-flex flex-wrap">
+                            {% for restriction in ['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'keto', 'paleo', 'low-carb', 'low-sodium', 'nut-free', 'pescatarian'] %}
+                            <div class="form-check me-3 mb-2">
+                                <input class="form-check-input" type="checkbox" name="dietary_restrictions" value="{{ restriction }}" id="diet-{{ restriction }}">
+                                <label class="form-check-label" for="diet-{{ restriction }}">
+                                    {{ restriction|capitalize }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Favorite Stores -->
+                    <div class="mb-4">
+                        <label for="favorite_stores" class="form-label">Preferred Stores <small class="text-muted">(comma-separated)</small></label>
+                        <input type="text" class="form-control" id="favorite_stores" name="favorite_stores" placeholder="e.g., Walmart, Target, Kroger">
+                        <div class="form-text">List stores you prefer to shop at</div>
+                    </div>
+
+                    <!-- Meal Type -->
+                    <div class="mb-4">
+                        <label for="meal_type" class="form-label">What meals are you planning for?</label>
+                        <select class="form-select" id="meal_type" name="meal_type">
+                            <option value="all" selected>All meals (breakfast, lunch, dinner)</option>
+                            <option value="breakfast">Breakfast only</option>
+                            <option value="lunch">Lunch only</option>
+                            <option value="dinner">Dinner only</option>
+                            <option value="breakfast,dinner">Breakfast and dinner</option>
+                            <option value="snacks">Snacks only</option>
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <!-- Days to Plan For -->
+                        <div class="col-md-6 mb-4">
+                            <label for="days" class="form-label">How many days are you planning for?</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="days" name="days" min="1" max="14" value="7">
+                                <span class="input-group-text">days</span>
+                            </div>
+                        </div>
+
+                        <!-- Budget Level -->
+                        <div class="col-md-6 mb-4">
+                            <label for="budget_level" class="form-label">Budget Level</label>
+                            <select class="form-select" id="budget_level" name="budget_level">
+                                <option value="low">Economic (lowest cost)</option>
+                                <option value="medium" selected>Moderate (balanced cost)</option>
+                                <option value="high">Premium (higher quality, higher cost)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Mobile-friendly Submit Button -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-magic me-2"></i> Generate List
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tips for better lists -->
+    <div class="col-lg-4">
+        <div class="card bg-light mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Tips for Better Results</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item bg-transparent">
+                        <i class="fas fa-check-circle text-success me-2"></i> Be specific about dietary restrictions
+                    </li>
+                    <li class="list-group-item bg-transparent">
+                        <i class="fas fa-check-circle text-success me-2"></i> Include your preferred stores for better suggestions
+                    </li>
+                    <li class="list-group-item bg-transparent">
+                        <i class="fas fa-check-circle text-success me-2"></i> Consider planning for a full week for efficiency
+                    </li>
+                    <li class="list-group-item bg-transparent">
+                        <i class="fas fa-check-circle text-success me-2"></i> The AI will consider items you frequently purchase
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Quick Presets for Mobile -->
+        <div class="card d-block d-lg-none mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Presets</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-primary quick-preset" 
+                            data-restrictions="vegetarian" 
+                            data-meals="all" 
+                            data-days="7" 
+                            data-budget="medium">
+                        Vegetarian Week
+                    </button>
+                    <button type="button" class="btn btn-outline-primary quick-preset" 
+                            data-restrictions="low-carb" 
+                            data-meals="all" 
+                            data-days="7" 
+                            data-budget="medium">
+                        Low-Carb Week
+                    </button>
+                    <button type="button" class="btn btn-outline-primary quick-preset" 
+                            data-restrictions="" 
+                            data-meals="dinner" 
+                            data-days="5" 
+                            data-budget="medium">
+                        Weekday Dinners
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Quick presets functionality
+        const quickPresets = document.querySelectorAll('.quick-preset');
+        const dietaryCheckboxes = document.querySelectorAll('input[name="dietary_restrictions"]');
+        const mealTypeSelect = document.getElementById('meal_type');
+        const daysInput = document.getElementById('days');
+        const budgetSelect = document.getElementById('budget_level');
+        
+        quickPresets.forEach(preset => {
+            preset.addEventListener('click', function() {
+                // Set dietary restrictions
+                const restrictions = this.getAttribute('data-restrictions').split(',');
+                dietaryCheckboxes.forEach(checkbox => {
+                    checkbox.checked = restrictions.includes(checkbox.value);
+                });
+                
+                // Set meal type
+                mealTypeSelect.value = this.getAttribute('data-meals');
+                
+                // Set days
+                daysInput.value = this.getAttribute('data-days');
+                
+                // Set budget
+                budgetSelect.value = this.getAttribute('data-budget');
+                
+                // Scroll to submit button
+                document.querySelector('button[type="submit"]').scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}
