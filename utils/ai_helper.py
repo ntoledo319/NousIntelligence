@@ -40,12 +40,18 @@ def parse_natural_language(user_input):
         10. Doctor List: "list doctors"
         11. Appointment: "set appointment with [doctor] on [date/time]"
         12. Appointments List: "show appointments"
+        13. Chat: "chat: [message]" - For free-form conversation with the AI assistant
+        14. Analyze Email: "analyze email: [email content or ID]"
         
         If the user is asking about a doctor appointment or mentions a doctor visit, use the appropriate doctor or appointment command format.
         
+        If the user seems to be having a conversation or asking a general question that doesn't fit other commands, use the "chat" command type.
+        
+        If the user wants to analyze an email or get insights from their email, use the "analyze_email" command type.
+        
         Respond with JSON in this exact format:
         {
-            "command_type": "calendar|task|note|mood|workout|music|query|reflection|doctor|doctor_list|appointment|appointments_list",
+            "command_type": "calendar|task|note|mood|workout|music|query|reflection|doctor|doctor_list|appointment|appointments_list|chat|analyze_email",
             "structured_command": "the exact command in the proper format",
             "confidence": 0.0 to 1.0
         }
@@ -155,3 +161,211 @@ def get_motivation_quote(theme=None):
     except Exception as e:
         logging.error(f"Error generating motivational quote: {str(e)}")
         return f"Error generating quote: {str(e)}"
+        
+# User conversation history cache (user_id -> list of message objects)
+conversation_history = {}
+# Conversation history max length per user
+MAX_HISTORY_LENGTH = 10
+
+def handle_conversation(user_id, message):
+    """
+    Handle a free-form conversation with the AI assistant
+    
+    Args:
+        user_id: The unique identifier for the user
+        message: The user's message
+        
+    Returns:
+        str: The AI assistant's response
+    """
+    try:
+        if not client:
+            return "Conversation functionality not available (missing API key)"
+            
+        # Initialize conversation history for this user if it doesn't exist
+        if user_id not in conversation_history:
+            conversation_history[user_id] = []
+            
+        # Add this message to the history
+        conversation_history[user_id].append({"role": "user", "content": message})
+        
+        # Limit the conversation history length
+        if len(conversation_history[user_id]) > MAX_HISTORY_LENGTH:
+            conversation_history[user_id] = conversation_history[user_id][-MAX_HISTORY_LENGTH:]
+            
+        # Prepare the messages for the API call
+        system_message = {
+            "role": "system", 
+            "content": """You are NOUS, a helpful, friendly, and conversational personal assistant. 
+            Respond conversationally and helpfully to the user. Keep responses concise but informative.
+            You're running within a larger personal assistant application that has specialized functions 
+            for many tasks, so focus on being helpful with general knowledge, advice, and friendly conversation."""
+        }
+        
+        messages = [system_message] + conversation_history[user_id]
+        
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+                messages=messages,
+                max_tokens=500
+            )
+            
+            assistant_message = response.choices[0].message.content
+            
+            # Add the assistant's response to the conversation history
+            conversation_history[user_id].append({"role": "assistant", "content": assistant_message})
+            
+            return assistant_message
+            
+        except Exception as e:
+            logging.error(f"OpenAI API error in conversation: {str(e)}")
+            return f"I'm having trouble responding right now. Technical details: {str(e)}"
+            
+    except Exception as e:
+        logging.error(f"Error in conversation handler: {str(e)}")
+        return f"Something went wrong with our conversation. Technical details: {str(e)}"
+        
+def analyze_gmail_content(user_id, email_content):
+    """
+    Analyze Gmail content for insights
+    
+    Args:
+        user_id: The unique identifier for the user
+        email_content: The email content to analyze
+        
+    Returns:
+        dict: A dictionary containing the analysis results
+    """
+    try:
+        if not client:
+            return {"error": "Email analysis not available (missing API key)"}
+            
+        system_prompt = """
+        You are an expert email analyst. Analyze the provided email content and extract the following insights:
+        
+        1. Key points and main message
+        2. Any action items or requests
+        3. Priority level (High, Medium, Low)
+        4. Tone (Formal, Casual, Urgent, etc.)
+        5. Any deadlines or important dates mentioned
+        6. People mentioned and their roles
+        
+        Format your response as JSON with these keys:
+        - key_points: list of the most important points
+        - action_items: list of things the user needs to do
+        - priority: string indicating priority level
+        - tone: string describing the email tone
+        - deadlines: list of dates and associated events
+        - people: list of people mentioned and their context
+        - summary: a short (50 words max) plain-text summary
+        """
+        
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": email_content}
+                ],
+                response_format={"type": "json_object"}
+            )
+            
+            result = response.choices[0].message.content
+            
+            try:
+                if result:
+                    parsed = json.loads(result)
+                    return parsed
+                else:
+                    return {"error": "Empty response from analysis"}
+            except json.JSONDecodeError as e:
+                logging.error(f"Error parsing JSON response from email analysis: {str(e)}")
+                return {"error": f"Invalid analysis result: {str(e)}", "original": result}
+                
+        except Exception as e:
+            logging.error(f"API error in email analysis: {str(e)}")
+            return {"error": f"Error analyzing email: {str(e)}"}
+            
+    except Exception as e:
+        logging.error(f"Error in email analysis handler: {str(e)}")
+        return {"error": f"Email analysis failed: {str(e)}"}
+
+def analyze_gmail_threads(user_id, threads, max_threads=5):
+    """
+    Analyze multiple Gmail threads for insights and summaries
+    
+    Args:
+        user_id: The unique identifier for the user
+        threads: List of Gmail thread objects with message content
+        max_threads: Maximum number of threads to analyze
+        
+    Returns:
+        list: List of thread summaries with insights
+    """
+    try:
+        if not client:
+            return {"error": "Email analysis not available (missing API key)"}
+            
+        results = []
+        threads_to_analyze = threads[:max_threads]  # Limit number of threads to analyze
+        
+        system_prompt = """
+        You are an expert email thread analyzer. For each email thread, provide:
+        
+        1. A concise subject line summary (max 10 words)
+        2. The overall thread importance (High, Medium, Low)
+        3. Main participants in the conversation
+        4. Key points from the entire thread (max 3)
+        5. Required actions from the user, if any
+        6. A very brief thread summary (max 30 words)
+        
+        Format your response as JSON with these keys:
+        - subject: string for the thread subject summary
+        - importance: string indicating importance level
+        - participants: list of main participants
+        - key_points: list of the most important points from the thread
+        - actions: list of required actions or null if none
+        - summary: brief plain-text summary of the thread
+        """
+        
+        for thread in threads_to_analyze:
+            try:
+                # Prepare thread content for analysis
+                thread_content = "\n\n".join([msg.get("content", "") for msg in thread.get("messages", [])])
+                thread_subject = thread.get("subject", "No subject")
+                
+                prompt = f"Subject: {thread_subject}\n\nThread content:\n{thread_content}"
+                
+                response = client.chat.completions.create(
+                    model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt}
+                    ],
+                    response_format={"type": "json_object"}
+                )
+                
+                result = response.choices[0].message.content
+                
+                try:
+                    if result:
+                        parsed = json.loads(result)
+                        # Add thread ID to the result
+                        parsed["thread_id"] = thread.get("id")
+                        results.append(parsed)
+                    else:
+                        results.append({"thread_id": thread.get("id"), "error": "Empty analysis"})
+                except json.JSONDecodeError as e:
+                    logging.error(f"Error parsing thread analysis JSON: {str(e)}")
+                    results.append({"thread_id": thread.get("id"), "error": f"Invalid analysis result: {str(e)}"})
+                    
+            except Exception as e:
+                logging.error(f"Error analyzing thread {thread.get('id')}: {str(e)}")
+                results.append({"thread_id": thread.get("id"), "error": f"Analysis failed: {str(e)}"})
+                
+        return results
+                
+    except Exception as e:
+        logging.error(f"Error in Gmail threads analysis: {str(e)}")
+        return {"error": f"Threads analysis failed: {str(e)}"}
