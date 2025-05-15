@@ -1,10 +1,12 @@
 from flask import session, redirect, url_for, flash
 from app import app, db
-from flask_login import login_required
 from flask_login import current_user, login_required
 
-# Register the Replit auth blueprint
-app.register_blueprint(make_replit_blueprint(), url_prefix="/auth")
+# Import Google auth blueprint
+from google_auth import google_auth as google_auth_bp
+
+# Register the Google auth blueprint
+app.register_blueprint(google_auth_bp, url_prefix="/auth")
 
 # Make session permanent
 @app.before_request
@@ -13,37 +15,37 @@ def make_session_permanent():
 
 # Add protection to routes that require login
 @app.route('/dashboard')
-@require_login
+@login_required
 def protected_dashboard():
     from app import dashboard
     return dashboard()
 
 @app.route('/api/doctors', methods=["GET"])
-@require_login
+@login_required
 def protected_api_get_doctors():
     from app import api_get_doctors
     return api_get_doctors()
 
 @app.route('/api/doctors', methods=["POST"])
-@require_login
+@login_required
 def protected_api_add_doctor():
     from app import api_add_doctor
     return api_add_doctor()
 
 @app.route('/api/doctors/<int:doctor_id>', methods=["GET"])
-@require_login
+@login_required
 def protected_api_get_doctor(doctor_id):
     from app import api_get_doctor
     return api_get_doctor(doctor_id)
 
 @app.route('/api/doctors/<int:doctor_id>', methods=["PUT"])
-@require_login
+@login_required
 def protected_api_update_doctor(doctor_id):
     from app import api_update_doctor
     return api_update_doctor(doctor_id)
 
 @app.route('/api/doctors/<int:doctor_id>', methods=["DELETE"])
-@require_login
+@login_required
 def protected_api_delete_doctor(doctor_id):
     from app import api_delete_doctor
     return api_delete_doctor(doctor_id)
@@ -53,7 +55,7 @@ def protected_api_delete_doctor(doctor_id):
 
 # Create a welcome page
 @app.route('/welcome')
-@require_login
+@login_required
 def welcome():
     return f"""
     <h1>Welcome, {current_user.first_name if current_user.first_name else 'User'}!</h1>
