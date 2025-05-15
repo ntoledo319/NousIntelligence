@@ -352,6 +352,49 @@ code {
     box-shadow: 0 12px 20px rgba(0, 0, 0, 0.25);
 }
 
+/* AI Features styling */
+#ai-panel .btn-outline-primary {
+    border-width: 2px;
+    transition: all 0.3s ease;
+    background-color: rgba(90, 146, 255, 0.05);
+}
+
+#ai-panel .btn-outline-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(90, 146, 255, 0.3);
+    background-color: rgba(90, 146, 255, 0.1);
+}
+
+#ai-panel .btn-outline-primary i {
+    font-size: 1.5rem;
+    color: var(--nous-secondary);
+    transition: all 0.3s ease;
+}
+
+#ai-panel .btn-outline-primary:hover i {
+    transform: scale(1.1);
+}
+
+#ai-panel .btn-outline-primary span {
+    font-weight: 500;
+    margin-top: 5px;
+}
+
+/* Animation for new features highlight */
+@keyframes pulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+
+.text-primary.fw-bold {
+    animation: pulse 2s infinite;
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background-color: rgba(90, 146, 255, 0.1);
+}
+
 .icon-circle {
     display: flex;
     align-items: center;

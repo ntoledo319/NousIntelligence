@@ -136,9 +136,24 @@
                             <span class="text-info"><i class="fas fa-info-circle me-2"></i>Welcome to NOUS!</span>
                         </div>
                         <div class="terminal-line">
-                            This is your personal assistant that helps you manage:
+                            This is your AI-powered personal assistant that helps you manage:
                         </div>
                         <div class="terminal-line">
+                            <span class="text-primary fw-bold">✨ NEW AI FEATURES ✨</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="text-primary">✓ Image analysis and generation</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="text-primary">✓ AI-powered music recommendations</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="text-primary">✓ Smart home voice control</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="text-primary">✓ Context-aware conversations</span>
+                        </div>
+                        <div class="terminal-line mt-2">
                             <span class="text-success">✓ Calendar and tasks</span>
                         </div>
                         <div class="terminal-line">
@@ -157,7 +172,7 @@
                             <span class="text-success">✓ Music playback and control</span>
                         </div>
                         <div class="terminal-line mt-3">
-                            Type <code>help</code> to see available commands, or just ask a question in natural language.
+                            Type <code>help</code> to see available commands, check out our <code>AI Features</code> tab, or just ask a question in natural language.
                         </div>
                     {% endif %}
                 </div>
@@ -210,7 +225,12 @@
             <div class="card-body py-3">
                 <ul class="nav nav-tabs mb-3" id="actionTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="health-tab" data-bs-toggle="tab" data-bs-target="#health-panel" type="button" role="tab" aria-controls="health-panel" aria-selected="true">
+                        <button class="nav-link active" id="ai-tab" data-bs-toggle="tab" data-bs-target="#ai-panel" type="button" role="tab" aria-controls="ai-panel" aria-selected="true">
+                            <i class="fas fa-robot me-1 text-primary"></i>AI Features
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="health-tab" data-bs-toggle="tab" data-bs-target="#health-panel" type="button" role="tab" aria-controls="health-panel" aria-selected="false">
                             <i class="fas fa-heartbeat me-1 text-danger"></i>Health
                         </button>
                     </li>
@@ -237,8 +257,62 @@
                 </ul>
                 
                 <div class="tab-content" id="actionTabContent">
+                    <!-- AI Features Panel -->
+                    <div class="tab-pane fade show active" id="ai-panel" role="tabpanel" aria-labelledby="ai-tab">
+                        <div class="row g-3">
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('analyze image');return false;" class="btn btn-outline-primary w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-image mb-2"></i>
+                                    <span>Image Analysis</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('generate image');return false;" class="btn btn-outline-primary w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-paint-brush mb-2"></i>
+                                    <span>Generate Image</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('create spotify playlist');return false;" class="btn btn-outline-primary w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fab fa-spotify mb-2"></i>
+                                    <span>AI Playlist</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('smart home automation');return false;" class="btn btn-outline-primary w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-home mb-2"></i>
+                                    <span>Smart Home</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('analyze song mood');return false;" class="btn btn-outline-primary w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-music mb-2"></i>
+                                    <span>Song Analysis</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('summarize text');return false;" class="btn btn-outline-primary w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-file-alt mb-2"></i>
+                                    <span>Text Summary</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('voice command setup');return false;" class="btn btn-outline-primary w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-microphone mb-2"></i>
+                                    <span>Voice Control</span>
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="#" onclick="submitCommand('suggest activities');return false;" class="btn btn-outline-primary w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-lightbulb mb-2"></i>
+                                    <span>Suggestions</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Health Panel -->
-                    <div class="tab-pane fade show active" id="health-panel" role="tabpanel" aria-labelledby="health-tab">
+                    <div class="tab-pane fade" id="health-panel" role="tabpanel" aria-labelledby="health-tab">
                         <div class="row g-3">
                             <div class="col-6 col-md-3">
                                 <a href="#" onclick="submitCommand('show doctors');return false;" class="btn btn-outline-danger w-100 p-3 h-100 d-flex flex-column align-items-center justify-content-center">
