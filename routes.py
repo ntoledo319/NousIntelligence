@@ -22,7 +22,7 @@ from routes.amazon_routes import amazon_bp
 from routes.setup_routes import setup_bp
 
 # Register the blueprints
-app.register_blueprint(google_auth_bp, url_prefix="/auth")
+app.register_blueprint(google_auth_bp)
 app.register_blueprint(beta_bp, url_prefix="/beta")
 app.register_blueprint(aa_bp, url_prefix="/aa") 
 app.register_blueprint(amazon_bp, url_prefix="/amazon")

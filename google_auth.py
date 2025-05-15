@@ -25,7 +25,10 @@ def login():
     authorization_endpoint = google_provider_cfg["authorization_endpoint"]
 
     # Create the redirect URI to Google's OAuth 2.0 server
-    redirect_uri = request.base_url.replace("http://", "https://") + "/callback"
+    # Use the exact redirect URI registered in Google Cloud Console
+    # Extract the base app URL from the request
+    base_url = request.url_root.rstrip('/').replace("http://", "https://")
+    redirect_uri = f"{base_url}/callback/google"
     
     # Use the library to create an authorization URL with expanded scopes
     request_uri = client.prepare_request_uri(
@@ -69,7 +72,7 @@ def login():
     # Redirect to Google's OAuth 2.0 server
     return redirect(request_uri)
 
-@google_auth.route("/login/google/callback")
+@google_auth.route("/callback/google")
 def callback():
     """Handle Google OAuth callback"""
     # Get the authorization code from the callback
@@ -80,10 +83,14 @@ def callback():
     token_endpoint = google_provider_cfg["token_endpoint"]
     
     # Use the authorization code to request an access token
+    # Make sure we use the same redirect URI as registered with Google
+    base_url = request.url_root.rstrip('/').replace("http://", "https://")
+    redirect_uri = f"{base_url}/callback/google"
+    
     token_url, headers, body = client.prepare_token_request(
         token_endpoint,
         authorization_response=request.url.replace("http://", "https://"),
-        redirect_url=request.base_url.replace("http://", "https://"),
+        redirect_url=redirect_uri,
         code=code
     )
     
