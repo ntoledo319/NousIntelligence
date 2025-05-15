@@ -2161,6 +2161,672 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
             log.append(f"❌ Error retrieving skill logs: {str(e)}")
         return result
         
+    # DBT skill recommendation command
+    elif cmd == "recommend skills" or cmd == "skill recommendations":
+        try:
+            # Get general recommendations
+            recommendations = get_skill_recommendations(session)
+            
+            if not recommendations:
+                log.append("I don't have enough data to make personalized recommendations yet. Try logging some skills first with 'log skill:'.")
+                return result
+                
+            log.append("🔍 Your Top DBT Skill Recommendations:")
+            for i, rec in enumerate(recommendations[:5]):
+                log.append(f"{i+1}. **{rec['skill_name']}** ({rec['category']})")
+                log.append(f"   Effectiveness: {rec['avg_effectiveness']:.1f}/5")
+                log.append(f"   Best for: {rec['situation_type']}")
+                log.append("")
+            
+            log.append("Use 'recommend for [situation]' to get recommendations for a specific situation.")
+                
+        except Exception as e:
+            logging.error(f"Error getting skill recommendations: {str(e)}")
+            log.append(f"❌ Error getting recommendations: {str(e)}")
+        return result
+    
+    # Situation-specific recommendations
+    elif cmd.startswith("recommend for "):
+        try:
+            # Get recommendations for a specific situation
+            situation = cmd.replace("recommend for", "").strip()
+            recommendations = get_skill_recommendations(session, situation_description=situation)
+            
+            if not recommendations:
+                log.append("I couldn't find any personalized recommendations for this situation. Try logging more skills first.")
+                return result
+                
+            log.append(f"🔍 Recommended Skills for '{situation}':")
+            for i, rec in enumerate(recommendations[:5]):
+                log.append(f"{i+1}. **{rec['skill_name']}** ({rec['category']})")
+                log.append(f"   Effectiveness: {rec['avg_effectiveness']:.1f}/5")
+                log.append("")
+                
+        except Exception as e:
+            logging.error(f"Error getting situation recommendations: {str(e)}")
+            log.append(f"❌ Error getting recommendations: {str(e)}")
+        return result
+    
+    # Analyze skill effectiveness
+    elif cmd == "analyze skills" or cmd == "update recommendations":
+        try:
+            # Analyze effectiveness and update recommendations
+            result_data = analyze_skill_effectiveness(session)
+            
+            if result_data.get("status") == "success":
+                log.append(f"✅ Your skill effectiveness has been analyzed! {result_data.get('message', '')}")
+            elif result_data.get("status") == "info":
+                log.append(f"ℹ️ Information: {result_data.get('message', '')}")
+            else:
+                log.append(f"❌ Error analyzing skills: {result_data.get('message', 'Unknown error')}")
+                
+        except Exception as e:
+            logging.error(f"Error analyzing skill effectiveness: {str(e)}")
+            log.append(f"❌ Error analyzing skills: {str(e)}")
+        return result
+    
+    # DBT skill challenges
+    elif cmd == "my challenges" or cmd == "show challenges":
+        try:
+            # List available challenges
+            challenges = get_available_challenges(session)
+            
+            if not challenges:
+                log.append("You don't have any active DBT skill challenges. Use 'new challenge' to create one.")
+                return result
+                
+            # Separate completed and active challenges
+            active = [c for c in challenges if not c['is_completed']]
+            completed = [c for c in challenges if c['is_completed']]
+            
+            if active:
+                log.append("🎯 Your Active DBT Skill Challenges:")
+                for i, c in enumerate(active[:5]):
+                    log.append(f"{i+1}. **{c['challenge_name']}** (ID: {c['id']})")
+                    log.append(f"   Difficulty: {'⭐' * c['difficulty']}")
+                    log.append(f"   Progress: {c['progress']}%")
+                    log.append(f"   Category: {c['skill_category']}")
+                    log.append("")
+                    
+                if len(active) > 5:
+                    log.append(f"...and {len(active) - 5} more active challenges.")
+            else:
+                log.append("You don't have any active challenges.")
+                
+            if completed:
+                log.append(f"Completed challenges: {len(completed)}")
+                
+            log.append("Use 'challenge details [id]' to see details, 'complete challenge [id]' to mark as completed.")
+                
+        except Exception as e:
+            logging.error(f"Error getting challenges: {str(e)}")
+            log.append(f"❌ Error getting challenges: {str(e)}")
+        return result
+    
+    # New challenge
+    elif cmd == "new challenge":
+        try:
+            # Create new challenge with any category
+            result_data = generate_personalized_challenge(session)
+            
+            if result_data.get("status") == "success":
+                challenge = result_data.get("challenge", {})
+                log.append("✅ New challenge created!")
+                log.append(f"**{challenge.get('name')}** (Difficulty: {'⭐' * challenge.get('difficulty', 1)})")
+                log.append(f"{challenge.get('description')}")
+                log.append(f"Category: {challenge.get('category')}")
+                log.append("")
+                log.append(f"Use 'update challenge {result_data.get('id')} [0-100]' to update your progress.")
+            else:
+                log.append(f"❌ Error creating challenge: {result_data.get('message', 'Unknown error')}")
+                
+        except Exception as e:
+            logging.error(f"Error creating challenge: {str(e)}")
+            log.append(f"❌ Error creating challenge: {str(e)}")
+        return result
+    
+    # New category-specific challenge
+    elif cmd.startswith("new challenge "):
+        try:
+            # Create new challenge with specified category
+            category = cmd.replace("new challenge", "").strip().capitalize()
+            result_data = generate_personalized_challenge(session, category)
+            
+            if result_data.get("status") == "success":
+                challenge = result_data.get("challenge", {})
+                log.append("✅ New challenge created!")
+                log.append(f"**{challenge.get('name')}** (Difficulty: {'⭐' * challenge.get('difficulty', 1)})")
+                log.append(f"{challenge.get('description')}")
+                log.append(f"Category: {challenge.get('category')}")
+                log.append("")
+                log.append(f"Use 'update challenge {result_data.get('id')} [0-100]' to update your progress.")
+            else:
+                log.append(f"❌ Error creating challenge: {result_data.get('message', 'Unknown error')}")
+                
+        except Exception as e:
+            logging.error(f"Error creating category challenge: {str(e)}")
+            log.append(f"❌ Error creating challenge: {str(e)}")
+        return result
+    
+    # Challenge details
+    elif cmd.startswith("challenge details "):
+        try:
+            # View challenge details by ID
+            challenge_id = int(cmd.replace("challenge details", "").strip())
+            challenges = get_available_challenges(session)
+            
+            found = False
+            for c in challenges:
+                if c["id"] == challenge_id:
+                    found = True
+                    log.append(f"🎯 **{c['challenge_name']}**")
+                    log.append(f"Description: {c['description']}")
+                    log.append(f"Category: {c['skill_category']}")
+                    log.append(f"Difficulty: {'⭐' * c['difficulty']}")
+                    log.append(f"Progress: {c['progress']}%")
+                    log.append(f"Status: {'Completed ✅' if c['is_completed'] else 'In progress'}")
+                    log.append(f"Started: {c['start_date']}")
+                    break
+                           
+            if not found:
+                log.append(f"❌ Challenge with ID {challenge_id} not found.")
+                
+        except ValueError:
+            log.append("❌ Please provide a valid challenge ID. Use 'my challenges' to see your challenges.")
+        except Exception as e:
+            logging.error(f"Error getting challenge details: {str(e)}")
+            log.append(f"❌ Error getting challenge details: {str(e)}")
+        return result
+    
+    # Update challenge progress
+    elif cmd.startswith("update challenge "):
+        try:
+            # Parse command
+            parts = cmd.replace("update challenge", "").strip().split()
+            if len(parts) < 2:
+                log.append("❌ Please provide both challenge ID and progress percentage.")
+                return result
+                
+            challenge_id = int(parts[0])
+            progress = int(parts[1])
+            
+            result_data = update_challenge_progress(session, challenge_id, progress)
+            
+            if result_data.get("status") == "success":
+                if result_data.get("completed"):
+                    log.append(f"🎉 Great job! Challenge progress updated to {progress}% and marked as completed!")
+                else:
+                    log.append(f"✅ Challenge progress updated to {progress}%")
+            else:
+                log.append(f"❌ Error updating progress: {result_data.get('message', 'Unknown error')}")
+                
+        except ValueError:
+            log.append("❌ Please provide a valid challenge ID and progress percentage (0-100).")
+        except Exception as e:
+            logging.error(f"Error updating challenge progress: {str(e)}")
+            log.append(f"❌ Error updating progress: {str(e)}")
+        return result
+    
+    # Complete challenge
+    elif cmd.startswith("complete challenge "):
+        try:
+            # Mark challenge as completed
+            challenge_id = int(cmd.replace("complete challenge", "").strip())
+            
+            result_data = mark_challenge_completed(session, challenge_id)
+            
+            if result_data.get("status") == "success":
+                log.append(f"🎉 Congratulations! {result_data.get('message', 'Challenge completed!')}")
+            else:
+                log.append(f"❌ Error completing challenge: {result_data.get('message', 'Unknown error')}")
+                
+        except ValueError:
+            log.append("❌ Please provide a valid challenge ID. Use 'my challenges' to see your challenges.")
+        except Exception as e:
+            logging.error(f"Error completing challenge: {str(e)}")
+            log.append(f"❌ Error completing challenge: {str(e)}")
+        return result
+    
+    # Reset challenge
+    elif cmd.startswith("reset challenge "):
+        try:
+            # Reset challenge progress
+            challenge_id = int(cmd.replace("reset challenge", "").strip())
+            
+            result_data = reset_challenge(session, challenge_id)
+            
+            if result_data.get("status") == "success":
+                log.append(f"✅ {result_data.get('message', 'Challenge has been reset.')}")
+            else:
+                log.append(f"❌ Error resetting challenge: {result_data.get('message', 'Unknown error')}")
+                
+        except ValueError:
+            log.append("❌ Please provide a valid challenge ID. Use 'my challenges' to see your challenges.")
+        except Exception as e:
+            logging.error(f"Error resetting challenge: {str(e)}")
+            log.append(f"❌ Error resetting challenge: {str(e)}")
+        return result
+    
+    # Crisis management
+    elif cmd == "crisis help" or cmd == "crisis resources":
+        try:
+            # Get crisis resources and provide basic help
+            resources = get_crisis_resources(session, is_emergency_only=True)
+            
+            if resources:
+                log.append("🚨 Emergency Resources:")
+                for i, r in enumerate(resources):
+                    log.append(f"{i+1}. **{r['name']}**: {r['contact_info']}")
+                log.append("")
+            
+            log.append("If you're in immediate danger, please call emergency services immediately.")
+            log.append("")
+            log.append("Crisis Management Commands:")
+            log.append("- 'crisis plan' - Generate a personalized crisis plan")
+            log.append("- 'ground me' - Get a grounding exercise")
+            log.append("- 'crisis steps [1-10]' - Get crisis de-escalation steps")
+            log.append("- 'all crisis resources' - List all your crisis resources")
+            log.append("- 'add crisis resource' - Add a new crisis resource")
+                
+        except Exception as e:
+            logging.error(f"Error getting crisis resources: {str(e)}")
+            log.append(f"❌ Error accessing crisis resources: {str(e)}")
+        return result
+    
+    # Generate crisis plan
+    elif cmd == "crisis plan" or cmd.startswith("crisis plan for "):
+        try:
+            # Generate a crisis plan
+            crisis_type = cmd.replace("crisis plan for", "").strip() if cmd.startswith("crisis plan for") else None
+            result_data = generate_crisis_plan(session, crisis_type)
+            
+            if result_data.get("status") == "success":
+                log.append(result_data.get('plan', 'Crisis plan could not be generated.'))
+            else:
+                log.append(f"❌ Error generating crisis plan: {result_data.get('message', 'Unknown error')}")
+                
+        except Exception as e:
+            logging.error(f"Error generating crisis plan: {str(e)}")
+            log.append(f"❌ Error generating crisis plan: {str(e)}")
+        return result
+    
+    # Grounding exercise
+    elif cmd == "ground me" or cmd.startswith("ground me for "):
+        try:
+            # Get a grounding exercise
+            trigger = cmd.replace("ground me for", "").strip() if cmd.startswith("ground me for") else None
+            result_data = get_grounding_exercise(trigger)
+            
+            if result_data.get("status") == "success":
+                log.append(result_data.get('exercise', 'Grounding exercise could not be generated.'))
+            else:
+                log.append(f"❌ Error generating grounding exercise: {result_data.get('message', 'Unknown error')}")
+                
+        except Exception as e:
+            logging.error(f"Error generating grounding exercise: {str(e)}")
+            log.append(f"❌ Error generating grounding exercise: {str(e)}")
+        return result
+    
+    # Crisis de-escalation steps
+    elif cmd.startswith("crisis steps "):
+        try:
+            parts = cmd.replace("crisis steps", "").strip().split()
+            intensity = int(parts[0]) if parts and parts[0].isdigit() else 5
+            emotion = " ".join(parts[1:]) if len(parts) > 1 else None
+            
+            result_data = get_crisis_de_escalation(intensity, emotion)
+            
+            if result_data.get("status") == "success":
+                log.append(result_data.get('steps', 'De-escalation steps could not be generated.'))
+            else:
+                log.append(f"❌ Error generating de-escalation steps: {result_data.get('message', 'Unknown error')}")
+                
+        except Exception as e:
+            logging.error(f"Error generating de-escalation steps: {str(e)}")
+            log.append(f"❌ Error generating de-escalation steps: {str(e)}")
+        return result
+    
+    # List all crisis resources
+    elif cmd == "all crisis resources":
+        try:
+            # List all crisis resources
+            resources = get_crisis_resources(session)
+            
+            if not resources:
+                log.append("You don't have any crisis resources yet. Use 'add crisis resource' to add some.")
+                return result
+                
+            log.append("Your Crisis Resources:")
+            for i, r in enumerate(resources):
+                log.append(f"{i+1}. {'🚨 ' if r['is_emergency'] else ''}**{r['name']}** (ID: {r['id']})")
+                log.append(f"   Contact: {r['contact_info']}")
+                log.append(f"   Type: {r['resource_type']}")
+                if r.get('notes'):
+                    log.append(f"   Notes: {r['notes']}")
+                log.append("")
+                
+        except Exception as e:
+            logging.error(f"Error listing crisis resources: {str(e)}")
+            log.append(f"❌ Error listing resources: {str(e)}")
+        return result
+    
+    # Add crisis resource
+    elif cmd == "add crisis resource":
+        log.append("To add a crisis resource, use this format:")
+        log.append("add resource [name] [contact_info] [type] [emergency:yes/no]")
+        log.append("Example: add resource 'My Therapist' '555-123-4567' therapist no")
+        return result
+    
+    # Add resource with details
+    elif cmd.startswith("add resource "):
+        try:
+            # Parse resource details - this is simplified and might need improvements for real-world use
+            details = cmd.replace("add resource", "").strip().split()
+            if len(details) < 4:
+                log.append("❌ Please provide all required information: name, contact info, type, and emergency status (yes/no).")
+                return result
+                
+            name = details[0]
+            contact_info = details[1]
+            resource_type = details[2]
+            is_emergency = details[3].lower() in ("yes", "true", "1")
+            notes = " ".join(details[4:]) if len(details) > 4 else None
+            
+            result_data = add_crisis_resource(session, name, contact_info, resource_type, notes, is_emergency)
+            
+            if result_data.get("status") == "success":
+                log.append(f"✅ Crisis resource '{name}' added successfully!")
+            else:
+                log.append(f"❌ Error adding resource: {result_data.get('message', 'Unknown error')}")
+                
+        except Exception as e:
+            logging.error(f"Error adding crisis resource: {str(e)}")
+            log.append(f"❌ Error adding resource: {str(e)}")
+        return result
+    
+    # Emotion tracking
+    elif cmd == "emotion help":
+        log.append("Emotion Regulation Commands:")
+        log.append("- 'track emotion [name] [intensity 1-10] [optional: trigger]' - Log an emotion")
+        log.append("- 'my emotions' - View emotion history")
+        log.append("- 'emotion stats' - Get emotion statistics")
+        log.append("- 'emotion insights' - Get personalized insights")
+        log.append("- 'opposite action for [emotion] [situation]' - Get opposite action suggestions")
+        log.append("- 'identify emotion from [sensations/thoughts]' - Help identify emotions")
+        log.append("- 'emotion vulnerability check' - Check emotional vulnerability factors")
+        return result
+    
+    # Track emotion
+    elif cmd.startswith("track emotion "):
+        try:
+            # Parse emotion information
+            parts = cmd.replace("track emotion", "").strip().split()
+            if len(parts) < 2:
+                log.append("❌ Please provide emotion name and intensity level.")
+                return result
+                
+            emotion_name = parts[0]
+            try:
+                intensity = int(parts[1])
+                if intensity < 1 or intensity > 10:
+                    log.append("❌ Intensity must be between 1-10.")
+                    return result
+            except ValueError:
+                log.append("❌ Please provide a valid intensity level between 1-10.")
+                return result
+                
+            trigger = " ".join(parts[2:]) if len(parts) > 2 else None
+            
+            # Store in session for further details
+            session["emotion_log_temp"] = {
+                "emotion_name": emotion_name,
+                "intensity": intensity,
+                "trigger": trigger
+            }
+            
+            log.append(f"I'll track that you're feeling {emotion_name} at intensity level {intensity}.")
+            log.append("")
+            if trigger:
+                log.append(f"Trigger: {trigger}")
+            
+            log.append("To complete the emotion log, you can add more details with these commands:")
+            log.append("- 'emotion body [sensations]' - Add physical sensations")
+            log.append("- 'emotion thoughts [thoughts]' - Add associated thoughts")
+            log.append("- 'emotion urges [urges]' - Add action urges")
+            log.append("- 'emotion action [actions]' - Add opposite actions taken")
+            log.append("- 'save emotion' - Save the emotion log as is")
+                
+        except Exception as e:
+            logging.error(f"Error tracking emotion: {str(e)}")
+            log.append(f"❌ Error tracking emotion: {str(e)}")
+        return result
+    
+    # Add emotion details
+    elif cmd.startswith("emotion body ") or cmd.startswith("emotion thoughts ") or \
+         cmd.startswith("emotion urges ") or cmd.startswith("emotion action "):
+        try:
+            # Store data in session for later saving
+            if "emotion_log_temp" not in session:
+                log.append("❌ Please start with 'track emotion [name] [intensity]' first.")
+                return result
+                
+            temp_data = session["emotion_log_temp"]
+            
+            if cmd.startswith("emotion body "):
+                temp_data["body_sensations"] = cmd.replace("emotion body", "").strip()
+                field_name = "body sensations"
+            elif cmd.startswith("emotion thoughts "):
+                temp_data["thoughts"] = cmd.replace("emotion thoughts", "").strip()
+                field_name = "thoughts"
+            elif cmd.startswith("emotion urges "):
+                temp_data["urges"] = cmd.replace("emotion urges", "").strip()
+                field_name = "urges"
+            elif cmd.startswith("emotion action "):
+                temp_data["opposite_action"] = cmd.replace("emotion action", "").strip()
+                field_name = "opposite action"
+                
+            session["emotion_log_temp"] = temp_data
+            
+            # Count how many fields are filled
+            filled_count = sum(1 for key in ["body_sensations", "thoughts", "urges", "opposite_action"] 
+                              if key in temp_data and temp_data[key])
+            total_fields = 4
+            
+            log.append(f"Added {field_name} information. {filled_count}/{total_fields} optional fields completed.")
+            log.append("Use 'save emotion' when you're ready to save this entry.")
+                
+        except Exception as e:
+            logging.error(f"Error adding emotion details: {str(e)}")
+            log.append(f"❌ Error adding emotion details: {str(e)}")
+        return result
+    
+    # Save emotion log
+    elif cmd == "save emotion":
+        try:
+            # Save the emotion log from session data
+            if "emotion_log_temp" not in session:
+                log.append("❌ No emotion data to save. Please start with 'track emotion [name] [intensity]' first.")
+                return result
+                
+            temp_data = session["emotion_log_temp"]
+            
+            if "emotion_name" not in temp_data or "intensity" not in temp_data:
+                log.append("❌ Missing required emotion information. Please start with 'track emotion [name] [intensity]'.")
+                return result
+                
+            # Save to database
+            result_data = log_emotion(
+                session,
+                temp_data["emotion_name"],
+                temp_data["intensity"],
+                temp_data.get("trigger"),
+                temp_data.get("body_sensations"),
+                temp_data.get("thoughts"),
+                temp_data.get("urges"),
+                temp_data.get("opposite_action")
+            )
+            
+            # Clear temp data
+            session.pop("emotion_log_temp", None)
+            
+            if result_data.get("status") == "success":
+                log.append("✅ Emotion log saved successfully!")
+                log.append("Use 'emotion insights' to get personalized recommendations.")
+            else:
+                log.append(f"❌ Error saving emotion log: {result_data.get('message', 'Unknown error')}")
+                
+        except Exception as e:
+            logging.error(f"Error saving emotion log: {str(e)}")
+            log.append(f"❌ Error saving emotion log: {str(e)}")
+        return result
+    
+    # View emotion history
+    elif cmd == "my emotions" or cmd.startswith("my emotions "):
+        try:
+            # Get emotion history
+            emotion_name = cmd.replace("my emotions", "").strip() if cmd.startswith("my emotions ") else None
+            
+            emotions = get_emotion_history(session, emotion_name=emotion_name)
+            
+            if not emotions:
+                log.append("You don't have any emotion logs yet. Use 'track emotion' to start tracking.")
+                return result
+                
+            filter_text = f" for '{emotion_name}'" if emotion_name else ""
+            log.append(f"Your Emotion History{filter_text}:")
+            
+            for i, e in enumerate(emotions[:5]):
+                log.append(f"{i+1}. **{e['emotion_name']}** (Intensity: {e['intensity']}/10) - {e['date_recorded']}")
+                if e.get('trigger'):
+                    log.append(f"   Trigger: {e['trigger']}")
+                log.append("")
+            
+            count_text = f"Showing 5 of {len(emotions)} emotion logs" if len(emotions) > 5 else f"Showing all {len(emotions)} emotion logs"
+            log.append(count_text)
+                
+        except Exception as e:
+            logging.error(f"Error getting emotion history: {str(e)}")
+            log.append(f"❌ Error getting emotion history: {str(e)}")
+        return result
+    
+    # Emotion statistics
+    elif cmd == "emotion stats" or cmd.startswith("emotion stats "):
+        try:
+            # Get emotion statistics
+            days = 30  # Default
+            if cmd.startswith("emotion stats "):
+                try:
+                    days = int(cmd.replace("emotion stats", "").strip())
+                except ValueError:
+                    pass
+            
+            stats = get_emotion_stats(session, days=days)
+            
+            if stats.get("status") == "info":
+                log.append(f"ℹ️ Information: {stats.get('message', 'No emotion data available.')}")
+                return result
+            elif stats.get("status") == "error":
+                log.append(f"❌ Error: {stats.get('message', 'Could not generate statistics.')}")
+                return result
+                
+            log.append(f"Emotion Statistics (Last {days} Days):")
+            log.append(f"Most common emotion: {stats.get('most_common_emotion', 'N/A')}")
+            log.append(f"Average intensity: {stats.get('average_intensity', 0):.1f}/10")
+            log.append(f"Highest intensity: {stats.get('highest_intensity', 0)}/10 ({stats.get('highest_intensity_emotion', 'N/A')})")
+            if stats.get('most_common_trigger'):
+                log.append(f"Most common trigger: {stats.get('most_common_trigger', 'N/A')}")
+            log.append(f"Opposite action usage: {stats.get('opposite_action_percentage', 0):.1f}% of the time")
+            log.append(f"Total entries: {stats.get('total_entries', 0)}")
+                
+        except Exception as e:
+            logging.error(f"Error calculating emotion stats: {str(e)}")
+            log.append(f"❌ Error calculating emotion statistics: {str(e)}")
+        return result
+    
+    # Emotion insights
+    elif cmd == "emotion insights" or cmd.startswith("emotion insights for "):
+        try:
+            # Get personalized insights
+            emotion_name = cmd.replace("emotion insights for", "").strip() if cmd.startswith("emotion insights for") else None
+            
+            result_data = generate_emotion_insights(session, emotion_name)
+            
+            if result_data.get("status") == "info":
+                log.append(f"ℹ️ Information: {result_data.get('message', 'Not enough data for insights yet.')}")
+                return result
+            elif result_data.get("status") == "error":
+                log.append(f"❌ Error: {result_data.get('message', 'Could not generate insights.')}")
+                return result
+                
+            log.append(result_data.get('insights', 'Could not generate insights.'))
+                
+        except Exception as e:
+            logging.error(f"Error generating emotion insights: {str(e)}")
+            log.append(f"❌ Error generating insights: {str(e)}")
+        return result
+    
+    # Opposite action suggestions
+    elif cmd.startswith("opposite action for "):
+        try:
+            # Get opposite action suggestions
+            parts = cmd.replace("opposite action for", "").strip().split()
+            if not parts:
+                log.append("❌ Please specify an emotion.")
+                return result
+                
+            emotion = parts[0]
+            situation = " ".join(parts[1:]) if len(parts) > 1 else None
+            
+            result_data = get_opposite_action_suggestion(session, emotion, situation)
+            
+            if result_data.get("status") == "success":
+                log.append(result_data.get('suggestions', 'Could not generate opposite action suggestions.'))
+            else:
+                log.append(f"❌ Error: {result_data.get('message', 'Could not generate suggestions.')}")
+                
+        except Exception as e:
+            logging.error(f"Error generating opposite action suggestions: {str(e)}")
+            log.append(f"❌ Error generating opposite action suggestions: {str(e)}")
+        return result
+    
+    # Identify emotion
+    elif cmd.startswith("identify emotion from "):
+        try:
+            # Help identify emotions based on provided information
+            description = cmd.replace("identify emotion from", "").strip()
+            
+            result_data = identify_emotion(session, body_sensations=description, thoughts=description, situation=description)
+            
+            if result_data.get("status") == "success":
+                log.append(result_data.get('analysis', 'Could not identify emotions.'))
+            else:
+                log.append(f"❌ Error: {result_data.get('message', 'Could not identify emotions.')}")
+                
+        except Exception as e:
+            logging.error(f"Error identifying emotions: {str(e)}")
+            log.append(f"❌ Error identifying emotions: {str(e)}")
+        return result
+    
+    # Emotion vulnerability check
+    elif cmd == "emotion vulnerability check":
+        try:
+            # Check emotional vulnerability
+            result_data = check_emotion_vulnerability(session)
+            
+            if result_data.get("status") == "info":
+                log.append(f"ℹ️ Information: {result_data.get('message', 'Not enough data for vulnerability check.')}")
+                return result
+            elif result_data.get("status") == "error":
+                log.append(f"❌ Error: {result_data.get('message', 'Could not check vulnerability.')}")
+                return result
+                
+            log.append(result_data.get('assessment', 'Could not generate vulnerability assessment.'))
+                
+        except Exception as e:
+            logging.error(f"Error checking emotional vulnerability: {str(e)}")
+            log.append(f"❌ Error checking emotional vulnerability: {str(e)}")
+        return result
+        
     # Handle logging a DBT skill
     elif cmd.startswith("log skill "):
         # Expected format: "log skill [skill_name] category [category] effectiveness [1-5]: [situation]"
