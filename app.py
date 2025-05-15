@@ -145,22 +145,30 @@ def process_command(cmd):
     """Process a command and return the appropriate response"""
     log = session.get("log", [])
     
-    # Check for auth
-    if "google_creds" not in session and not cmd.startswith("help"):
+    # Check for authentication
+    if not current_user.is_authenticated:
         session["log"] = log  # Save log before redirect
-        flash("Please authorize Google services first", "info")
-        return redirect(url_for("authorize_google"))
-
-    # Handle commands
+        flash("Please log in to use the command interface", "info")
+        return redirect(url_for("replit_auth.login"))
+    
+    # Get services (try both session and database)
     try:
-        if "google_creds" in session:
-            cal, tasks, keep = build_google_services(session)
-        else:
+        user_id = current_user.id
+        
+        # Google services
+        try:
+            cal, tasks, keep = build_google_services(session, user_id)
+        except Exception as e:
+            if not cmd.startswith("help"):
+                session["log"] = log  # Save log before redirect
+                flash("Please connect your Google account to use most commands", "info")
+                return redirect(url_for("authorize_google"))
             cal, tasks, keep = None, None, None
             
-        if "spotify_user" in session:
-            sp, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT)
-        else:
+        # Spotify
+        try:
+            sp, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT, user_id)
+        except Exception:
             sp = None
             
         result = parse_command(cmd, cal, tasks, keep, sp, log, session)
@@ -430,6 +438,11 @@ def callback_google():
 @app.route("/authorize/spotify")
 def authorize_spotify():
     """Start Spotify OAuth flow"""
+    # Require authentication
+    if not current_user.is_authenticated:
+        flash("Please log in first to connect your Spotify account", "warning")
+        return redirect(url_for("replit_auth.login"))
+    
     _, auth = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT)
     if not auth:
         flash("Error: Missing Spotify credentials", "danger")
@@ -441,7 +454,14 @@ def authorize_spotify():
 @app.route("/callback/spotify")
 def callback_spotify():
     """Handle Spotify OAuth callback"""
+    # Require authentication
+    if not current_user.is_authenticated:
+        flash("Please log in first to connect your Spotify account", "warning")
+        return redirect(url_for("replit_auth.login"))
+        
     try:
+        from utils.auth_helper import save_spotify_token
+        
         _, auth = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT)
         if not auth:
             flash("Error: Missing Spotify credentials", "danger")
@@ -449,7 +469,12 @@ def callback_spotify():
             
         code = request.args.get("code")
         token_info = auth.get_access_token(code)
+        
         if token_info and 'scope' in token_info:
+            # Save token to database for this user
+            save_spotify_token(current_user.id, token_info)
+            
+            # Also store in session for current browser session
             session['spotify_user'] = token_info['scope']
             flash("Spotify connected successfully!", "success")
         else:

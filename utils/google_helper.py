@@ -3,6 +3,7 @@ from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 import gkeepapi
 import logging
+import datetime
 
 def get_google_flow(client_secrets_file, redirect_uri):
     """Create and return a Google OAuth flow"""
@@ -22,16 +23,32 @@ def get_google_flow(client_secrets_file, redirect_uri):
         logging.error(f"Error creating Google flow: {str(e)}")
         raise Exception(f"Could not create Google auth flow: {str(e)}")
 
-def build_google_services(session):
-    """Build Google API service clients"""
+def build_google_services(session, user_id=None):
+    """Build Google API service clients
+    
+    Tries first to get credentials from the session, then from the database if user_id is provided.
+    """
+    from utils.auth_helper import get_google_credentials
+    
     try:
-        creds = Credentials(**session['google_creds'])
+        # First try to get credentials from session
+        if 'google_creds' in session:
+            creds = Credentials(**session['google_creds'])
+        # If not in session, try to get from database if user_id is provided
+        elif user_id:
+            creds = get_google_credentials(user_id)
+            if not creds:
+                raise Exception("No Google credentials found for this user")
+        else:
+            raise Exception("No Google credentials found in session or database")
+            
         calendar = build("calendar", "v3", credentials=creds)
         tasks = build("tasks", "v1", credentials=creds)
         
         # For Google Keep
         keep = gkeepapi.Keep()
-        keep.login(session['google_creds']['client_id'], session['google_creds']['token'])
+        client_id = creds.client_id if creds.client_id else "client_id"
+        keep.login(client_id, creds.token)
         
         return calendar, tasks, keep
     except Exception as e:
