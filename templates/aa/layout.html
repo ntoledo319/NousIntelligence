@@ -124,22 +124,7 @@
         color: #2c3e50;
     }
     
-    .forum-post {
-        border-bottom: 1px solid #eee;
-        padding-bottom: 15px;
-        margin-bottom: 15px;
-    }
-    
-    .forum-post-meta {
-        font-size: 0.9rem;
-        color: #6c757d;
-    }
-    
-    .forum-post-title {
-        font-size: 1.2rem;
-        font-weight: 600;
-        margin-bottom: 5px;
-    }
+
     
     .reflection-card {
         background-color: #f8f9fa;
@@ -194,9 +179,7 @@
                     <a href="{{ url_for('aa_routes.mindfulness') }}" class="aa-nav-link {% if request.endpoint == 'aa_routes.mindfulness' %}active{% endif %}">
                         <i class="fas fa-brain"></i> Mindfulness Tools
                     </a>
-                    <a href="{{ url_for('aa_routes.forum') }}" class="aa-nav-link {% if request.endpoint == 'aa_routes.forum' %}active{% endif %}">
-                        <i class="fas fa-comments"></i> Peer Support
-                    </a>
+
                     {% if pain_flare_enabled %}
                     <a href="{{ url_for('aa_routes.pain_flares') }}" class="aa-nav-link {% if request.endpoint == 'aa_routes.pain_flares' %}active{% endif %}">
                         <i class="fas fa-bolt"></i> Pain Flare Monitor

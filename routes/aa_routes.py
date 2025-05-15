@@ -529,56 +529,7 @@ def log_mindfulness():
         
     return redirect(url_for('aa_bp.mindfulness'))
 
-# Forum routes
-@aa_bp.route('/forum')
-@login_required
-def forum():
-    """Forum main page"""
-    # Get forum posts
-    posts = get_forum_posts()
-    
-    return render_template('aa/forum.html', posts=posts.get('posts', []))
 
-@aa_bp.route('/forum/post', methods=['GET', 'POST'])
-@login_required
-def forum_post():
-    """Create or view a forum post"""
-    user_id = get_user_id()
-    
-    if request.method == 'POST':
-        # Create new post
-        display_name = request.form.get('display_name')
-        topic = request.form.get('topic')
-        content = request.form.get('content')
-        parent_id = request.form.get('parent_id')
-        
-        if parent_id:
-            try:
-                parent_id = int(parent_id)
-            except (ValueError, TypeError):
-                parent_id = None
-                
-        result = create_forum_post(
-            user_id, display_name, topic, content, parent_id
-        )
-        
-        if result.get('success'):
-            flash('Post created successfully', 'success')
-            
-            # Check for new badges
-            badges = result.get('new_badges', [])
-            for badge in badges:
-                if badge:
-                    flash(f'Achievement unlocked: {badge.get("badge_name")}!', 'success')
-        else:
-            flash(f'Error creating post: {result.get("error")}', 'error')
-            
-        return redirect(url_for('aa_bp.forum'))
-    
-    # GET - show post form
-    parent_id = request.args.get('reply_to')
-    
-    return render_template('aa/forum_post.html', parent_id=parent_id)
 
 # API for AJAX requests
 @aa_bp.route('/api/spot-check/random')
