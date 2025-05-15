@@ -1,0 +1,148 @@
+{% extends "setup/layout.html" %}
+
+{% block title %}Setup Complete{% endblock %}
+
+{% block setup_content %}
+<div class="setup-complete text-center">
+    <div class="complete-container">
+        <div class="complete-icon mb-4">
+            <i class="fas fa-check-circle display-1 text-success"></i>
+        </div>
+        
+        <h1 class="display-4 mb-3">Setup Complete!</h1>
+        <p class="lead mb-5">Your personalized assistant is ready to help you.</p>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="setup-card">
+                    <div class="setup-card-body">
+                        <div class="assistant-preview">
+                            <div class="assistant-header d-flex align-items-center mb-4">
+                                {% if profile and profile.logo_path %}
+                                <img src="{{ profile.logo_path }}" alt="{{ profile.display_name }}" 
+                                     class="assistant-logo me-3" style="width: 60px; height: 60px; border-radius: 50%;">
+                                {% else %}
+                                <div class="assistant-logo-placeholder me-3" 
+                                     style="width: 60px; height: 60px; border-radius: 50%; background-color: {{ profile.primary_color if profile else '#6f42c1' }}; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 24px;">
+                                    {{ profile.display_name[0] if profile and profile.display_name else 'N' }}
+                                </div>
+                                {% endif %}
+                                
+                                <div>
+                                    <h2 class="mb-0" style="color: {{ profile.primary_color if profile else '#6f42c1' }};">
+                                        {{ profile.display_name if profile else 'NOUS Assistant' }}
+                                    </h2>
+                                    {% if profile and profile.tagline %}
+                                    <p class="mb-0 text-muted">{{ profile.tagline }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="conversation-preview">
+                                <div class="message-bubble user-message">
+                                    <p>Hello! Can you help me with something today?</p>
+                                </div>
+                                
+                                <div class="message-bubble assistant-message" 
+                                     style="background-color: {{ profile.primary_color if profile else '#6f42c1' }}20;">
+                                    <p>Hi there! I'm {{ profile.display_name if profile else 'NOUS' }}, your personal assistant. I'd be happy to help you with whatever you need today. Just let me know what you're looking for!</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="summary-section mt-5">
+                            <h3 class="mb-3">Your Personalized Settings</h3>
+                            
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="summary-card">
+                                        <h5><i class="fas fa-palette me-2"></i> Appearance</h5>
+                                        <ul class="list-unstyled">
+                                            <li><strong>Theme:</strong> {{ profile.theme|capitalize if profile else 'Dark' }}</li>
+                                            <li><strong>Primary Color:</strong> <span class="color-dot" style="background-color: {{ profile.primary_color if profile else '#6f42c1' }};"></span> {{ profile.primary_color if profile else '#6f42c1' }}</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="summary-card">
+                                        <h5><i class="fas fa-robot me-2"></i> Personality</h5>
+                                        <ul class="list-unstyled">
+                                            <li><strong>Personality Type:</strong> {{ profile.personality|capitalize if profile else 'Friendly' }}</li>
+                                            {% if settings %}
+                                            <li><strong>Formality:</strong> {{ settings.ai_formality|capitalize }}</li>
+                                            <li><strong>Verbosity:</strong> {{ settings.ai_verbosity|capitalize }}</li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <form action="{{ url_for('setup.finalize') }}" method="post" class="mt-5">
+                    <button type="submit" class="btn btn-success btn-lg px-5">
+                        <i class="fas fa-rocket me-2"></i> Get Started
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .complete-icon {
+        color: #28a745;
+    }
+    
+    .assistant-preview {
+        margin-bottom: 2rem;
+    }
+    
+    .conversation-preview {
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 1.5rem;
+        background-color: #f8f9fa;
+    }
+    
+    .message-bubble {
+        max-width: 80%;
+        padding: 12px 15px;
+        border-radius: 18px;
+        margin-bottom: 15px;
+    }
+    
+    .message-bubble p {
+        margin-bottom: 0;
+    }
+    
+    .user-message {
+        background-color: #e9ecef;
+        margin-left: auto;
+        border-bottom-right-radius: 4px;
+    }
+    
+    .assistant-message {
+        margin-right: auto;
+        border-bottom-left-radius: 4px;
+    }
+    
+    .summary-card {
+        border: 1px solid #e9ecef;
+        padding: 1rem;
+        border-radius: 8px;
+        height: 100%;
+    }
+    
+    .color-dot {
+        display: inline-block;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        margin-right: 5px;
+        vertical-align: middle;
+    }
+</style>
+{% endblock %}

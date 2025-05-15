@@ -7,10 +7,12 @@ import os
 import json
 import logging
 from datetime import datetime
-import base64
+from flask import current_app
 
-# Import models and database
-from models import db, AssistantProfile, UserSettings
+from app import db
+from models import AssistantProfile, UserSettings, User
+
+logger = logging.getLogger(__name__)
 
 def get_assistant_profile(user_id=None):
     """
@@ -23,31 +25,27 @@ def get_assistant_profile(user_id=None):
     Returns:
         AssistantProfile object
     """
-    try:
-        # If user_id is None, get the default assistant profile
-        if user_id is None:
-            profile = AssistantProfile.query.filter_by(is_default=True).first()
-            if profile:
-                return profile
-                
-        # Otherwise get the user's customized profile
+    if not user_id:
+        # Return default profile if no user ID provided
+        default_profile = AssistantProfile.query.filter_by(is_default=True).first()
+        if default_profile:
+            return default_profile
         else:
-            profile = AssistantProfile.query.filter_by(user_id=user_id).first()
-            if profile:
-                return profile
-            
-            # If user doesn't have a profile, check for default
-            profile = AssistantProfile.query.filter_by(is_default=True).first()
-            if profile:
-                return profile
-        
-        # If no profile exists at all, create the default
+            return create_default_assistant_profile()
+    
+    # Try to get user's custom profile
+    user_profile = AssistantProfile.query.filter_by(user_id=user_id).first()
+    
+    if user_profile:
+        return user_profile
+    
+    # If user has no profile, return default
+    default_profile = AssistantProfile.query.filter_by(is_default=True).first()
+    if default_profile:
+        return default_profile
+    else:
         return create_default_assistant_profile()
-        
-    except Exception as e:
-        logging.error(f"Error getting assistant profile: {str(e)}")
-        return create_default_assistant_profile()
-        
+
 def create_default_assistant_profile():
     """
     Create and return the default assistant profile
@@ -56,40 +54,33 @@ def create_default_assistant_profile():
         AssistantProfile object
     """
     try:
-        # Check if default profile already exists
-        default_profile = AssistantProfile.query.filter_by(is_default=True).first()
-        if default_profile:
-            return default_profile
-            
-        # Create a new default profile
-        profile = AssistantProfile(
-            name="NOUS",
-            display_name="NOUS",
-            tagline="Your Personal Assistant",
-            description="NOUS is a comprehensive personal assistant designed to help you with a variety of tasks.",
-            primary_color="#6f42c1",
-            is_default=True,
-            theme="dark",
-            personality="friendly",
-            logo_path="img/IMG_4875.jpeg"
-        )
+        default_profile = AssistantProfile()
+        default_profile.name = "NOUS"
+        default_profile.display_name = "NOUS Assistant"
+        default_profile.tagline = "Your personal AI assistant"
+        default_profile.description = "NOUS is a personal AI assistant designed to help you with a variety of tasks including weather forecasting, shopping, health tracking, and more."
+        default_profile.primary_color = "#6f42c1"  # Purple
+        default_profile.theme = "dark"
+        default_profile.personality = "friendly"
+        default_profile.is_default = True
         
-        db.session.add(profile)
+        db.session.add(default_profile)
         db.session.commit()
         
-        return profile
+        logger.info("Created default assistant profile")
+        return default_profile
     except Exception as e:
-        logging.error(f"Error creating default profile: {str(e)}")
-        # If we can't create one in the database, return a temporary object
-        return AssistantProfile(
-            name="NOUS",
-            display_name="NOUS",
-            tagline="Your Personal Assistant",
-            primary_color="#6f42c1",
-            theme="dark",
-            personality="friendly",
-            logo_path="img/IMG_4875.jpeg"
-        )
+        logger.error(f"Error creating default profile: {str(e)}")
+        db.session.rollback()
+        # Return a non-persisted default profile
+        profile = AssistantProfile()
+        profile.name = "NOUS"
+        profile.display_name = "NOUS Assistant"
+        profile.primary_color = "#6f42c1"
+        profile.theme = "dark"
+        profile.personality = "friendly"
+        profile.is_default = True
+        return profile
 
 def customize_assistant(user_id, data):
     """
@@ -102,82 +93,57 @@ def customize_assistant(user_id, data):
     Returns:
         AssistantProfile object
     """
+    if not user_id:
+        logger.error("Cannot customize assistant: No user ID provided")
+        return None
+    
     try:
         # Check if user already has a profile
         profile = AssistantProfile.query.filter_by(user_id=user_id).first()
         
         if not profile:
-            # Create a new profile based on the default
-            default_profile = get_assistant_profile()
-            
-            profile = AssistantProfile(
-                user_id=user_id,
-                name=default_profile.name,
-                display_name=default_profile.display_name,
-                tagline=default_profile.tagline,
-                description=default_profile.description,
-                primary_color=default_profile.primary_color,
-                theme=default_profile.theme,
-                personality=default_profile.personality,
-                logo_path=default_profile.logo_path,
-                is_default=False
-            )
-            
-            db.session.add(profile)
+            # Create new profile
+            profile = AssistantProfile()
+            profile.user_id = user_id
+            profile.is_default = False
         
-        # Update with new data
+        # Update profile with data
         if 'name' in data and data['name']:
             profile.name = data['name']
             
         if 'display_name' in data and data['display_name']:
             profile.display_name = data['display_name']
             
-        if 'tagline' in data and data['tagline']:
+        if 'tagline' in data:
             profile.tagline = data['tagline']
             
-        if 'description' in data and data['description']:
+        if 'description' in data:
             profile.description = data['description']
             
         if 'primary_color' in data and data['primary_color']:
             profile.primary_color = data['primary_color']
             
-        if 'theme' in data and data['theme']:
+        if 'theme' in data:
             profile.theme = data['theme']
             
-        if 'personality' in data and data['personality']:
+        if 'personality' in data:
             profile.personality = data['personality']
         
         # Handle logo upload if present
         if 'logo_data' in data and data['logo_data']:
-            # Save logo to static folder
-            try:
-                # Get data after base64 prefix
-                img_data = data['logo_data'].split('base64,')[1]
-                img_bytes = base64.b64decode(img_data)
-                
-                # Create a unique filename using timestamp
-                timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-                filename = f"logo_{user_id}_{timestamp}.png"
-                filepath = os.path.join('static', 'img', 'profiles', filename)
-                
-                # Ensure directory exists
-                os.makedirs(os.path.dirname(filepath), exist_ok=True)
-                
-                # Save the file
-                with open(filepath, 'wb') as f:
-                    f.write(img_bytes)
-                
-                # Update logo path
-                profile.logo_path = f"img/profiles/{filename}"
-            except Exception as e:
-                logging.error(f"Error saving logo: {str(e)}")
+            # In a real app you'd save this to a file and store the path
+            # For simplicity, we'll just store the base64 data in this example
+            profile.logo_path = data['logo_data']
         
+        db.session.add(profile)
         db.session.commit()
+        
+        logger.info(f"Customized assistant profile for user {user_id}")
         return profile
     except Exception as e:
+        logger.error(f"Error customizing assistant profile: {str(e)}")
         db.session.rollback()
-        logging.error(f"Error customizing assistant: {str(e)}")
-        return get_assistant_profile(user_id)
+        return None
 
 def delete_customization(user_id):
     """
@@ -189,27 +155,25 @@ def delete_customization(user_id):
     Returns:
         True if successful, False otherwise
     """
+    if not user_id:
+        logger.error("Cannot delete customization: No user ID provided")
+        return False
+    
     try:
+        # Delete user's custom profile
         profile = AssistantProfile.query.filter_by(user_id=user_id).first()
         
         if profile:
-            # If profile has a custom logo, delete the file
-            if profile.logo_path and 'profiles/' in profile.logo_path:
-                try:
-                    filepath = os.path.join('static', profile.logo_path)
-                    if os.path.exists(filepath):
-                        os.remove(filepath)
-                except Exception as e:
-                    logging.error(f"Error removing logo file: {str(e)}")
-            
-            # Delete the profile
             db.session.delete(profile)
             db.session.commit()
-            
-        return True
+            logger.info(f"Deleted custom profile for user {user_id}")
+            return True
+        else:
+            logger.info(f"No custom profile found for user {user_id}")
+            return False
     except Exception as e:
+        logger.error(f"Error deleting custom profile: {str(e)}")
         db.session.rollback()
-        logging.error(f"Error deleting customization: {str(e)}")
         return False
 
 def get_personality_options():
@@ -221,29 +185,34 @@ def get_personality_options():
     """
     return [
         {
-            "id": "friendly",
-            "name": "Friendly & Casual",
-            "description": "Warm, approachable, and conversational. Uses casual language and adds a touch of humor."
+            'id': 'friendly',
+            'name': 'Friendly & Approachable',
+            'description': 'Warm, personable, and conversational. Uses casual language and focuses on building rapport.'
         },
         {
-            "id": "professional",
-            "name": "Professional & Efficient",
-            "description": "Formal, focused on efficiency and clarity. Direct and concise responses."
+            'id': 'professional',
+            'name': 'Professional & Efficient',
+            'description': 'Formal, direct, and business-like. Focuses on clear information and efficient responses.'
         },
         {
-            "id": "encouraging",
-            "name": "Encouraging & Supportive",
-            "description": "Positive, motivational tone. Offers encouragement and celebrates achievements."
+            'id': 'supportive',
+            'name': 'Supportive & Encouraging',
+            'description': 'Empathetic, positive, and motivational. Provides emotional support and encouragement.'
         },
         {
-            "id": "knowledgeable",
-            "name": "Knowledgeable & Informative",
-            "description": "Educational focus, provides context and background information. Detail-oriented."
+            'id': 'technical',
+            'name': 'Technical & Precise',
+            'description': 'Detailed, analytical, and fact-focused. Uses technical terminology and provides in-depth information.'
         },
         {
-            "id": "empathetic",
-            "name": "Empathetic & Understanding",
-            "description": "Compassionate and emotionally aware. Shows understanding of challenges and concerns."
+            'id': 'creative',
+            'name': 'Creative & Imaginative',
+            'description': 'Expressive, artistic, and original. Offers unique perspectives and creative solutions.'
+        },
+        {
+            'id': 'witty',
+            'name': 'Witty & Humorous',
+            'description': 'Light-hearted, clever, and amusing. Brings appropriate humor to interactions.'
         }
     ]
 
@@ -257,57 +226,90 @@ def get_setup_progress(user_id):
     Returns:
         Dictionary with setup progress information
     """
+    if not user_id:
+        logger.error("Cannot get setup progress: No user ID provided")
+        return {
+            'has_started_setup': False,
+            'has_completed_setup': False,
+            'current_step': 'welcome',
+            'next_step': 'welcome',
+            'completed_steps': [],
+            'remaining_steps': ['welcome', 'personalize', 'preferences', 'features', 'complete']
+        }
+    
     try:
-        # Check if user has settings
+        # Get user settings
         settings = UserSettings.query.filter_by(user_id=user_id).first()
         
         if not settings:
+            # Create user settings
+            settings = UserSettings()
+            settings.user_id = user_id
+            db.session.add(settings)
+            db.session.commit()
+        
+        # Initialize progress data
+        all_steps = ['welcome', 'personalize', 'preferences', 'features', 'complete']
+        
+        if not settings.setup_progress:
+            # No progress yet
             return {
-                "has_completed_setup": False,
-                "steps_completed": [],
-                "next_step": "welcome"
+                'has_started_setup': False,
+                'has_completed_setup': False,
+                'current_step': 'welcome',
+                'next_step': 'welcome',
+                'completed_steps': [],
+                'remaining_steps': all_steps,
+                'percent_complete': 0
             }
-            
-        # Parse setup progress
-        setup_progress = {}
         
-        if settings.setup_progress:
-            try:
-                setup_progress = json.loads(settings.setup_progress)
-            except:
-                setup_progress = {}
+        # Parse progress data
+        progress_data = json.loads(settings.setup_progress)
+        completed_steps = progress_data.get('completed_steps', [])
+        setup_completed = progress_data.get('setup_completed', False)
         
-        # Check if setup is complete
-        has_completed_setup = setup_progress.get("setup_completed", False)
+        # Determine current step and next step
+        if setup_completed:
+            current_step = 'complete'
+            next_step = None
+        elif not completed_steps:
+            current_step = 'welcome'
+            next_step = 'welcome'
+        else:
+            current_step = completed_steps[-1]
+            next_index = all_steps.index(current_step) + 1
+            next_step = all_steps[next_index] if next_index < len(all_steps) else 'complete'
         
-        # Get completed steps
-        steps_completed = setup_progress.get("steps_completed", [])
+        # Calculate remaining steps
+        remaining_steps = [step for step in all_steps if step not in completed_steps]
+        if setup_completed:
+            remaining_steps = []
         
-        # Determine next step
-        all_steps = ["welcome", "personalize", "preferences", "features", "complete"]
-        next_step = None
+        # Calculate percent complete
+        if setup_completed:
+            percent_complete = 100
+        else:
+            percent_complete = (len(completed_steps) / len(all_steps)) * 100
         
-        for step in all_steps:
-            if step not in steps_completed:
-                next_step = step
-                break
-                
-        if not next_step and not has_completed_setup:
-            next_step = "complete"
-            
         return {
-            "has_completed_setup": has_completed_setup,
-            "steps_completed": steps_completed,
-            "next_step": next_step,
-            "progress_percentage": min(100, int(len(steps_completed) / len(all_steps) * 100))
+            'has_started_setup': len(completed_steps) > 0,
+            'has_completed_setup': setup_completed,
+            'current_step': current_step,
+            'next_step': next_step,
+            'completed_steps': completed_steps,
+            'remaining_steps': remaining_steps,
+            'percent_complete': percent_complete
         }
     except Exception as e:
-        logging.error(f"Error getting setup progress: {str(e)}")
+        logger.error(f"Error getting setup progress: {str(e)}")
         return {
-            "has_completed_setup": False, 
-            "steps_completed": [],
-            "next_step": "welcome",
-            "progress_percentage": 0
+            'has_started_setup': False,
+            'has_completed_setup': False,
+            'current_step': 'welcome',
+            'next_step': 'welcome',
+            'completed_steps': [],
+            'remaining_steps': all_steps,
+            'percent_complete': 0
         }
 
 def update_setup_progress(user_id, step_completed, setup_completed=False):
@@ -322,47 +324,50 @@ def update_setup_progress(user_id, step_completed, setup_completed=False):
     Returns:
         Dictionary with updated setup progress
     """
+    if not user_id:
+        logger.error("Cannot update setup progress: No user ID provided")
+        return None
+    
     try:
-        # Get or create user settings
+        # Get user settings
         settings = UserSettings.query.filter_by(user_id=user_id).first()
         
         if not settings:
-            from models import User
-            user = User.query.get(user_id)
-            if not user:
-                return {"error": "User not found"}
-                
-            settings = UserSettings(user_id=user_id)
+            # Create user settings
+            settings = UserSettings()
+            settings.user_id = user_id
             db.session.add(settings)
         
-        # Parse existing setup progress
-        setup_progress = {}
+        # Initialize or parse progress data
+        if not settings.setup_progress:
+            progress_data = {
+                'completed_steps': [],
+                'setup_completed': False,
+                'started_at': datetime.utcnow().isoformat(),
+                'updated_at': datetime.utcnow().isoformat()
+            }
+        else:
+            progress_data = json.loads(settings.setup_progress)
+            progress_data['updated_at'] = datetime.utcnow().isoformat()
         
-        if settings.setup_progress:
-            try:
-                setup_progress = json.loads(settings.setup_progress)
-            except:
-                setup_progress = {}
+        # Update completed steps
+        if step_completed and step_completed not in progress_data['completed_steps']:
+            progress_data['completed_steps'].append(step_completed)
         
-        # Update steps completed
-        steps_completed = setup_progress.get("steps_completed", [])
-        
-        if step_completed and step_completed not in steps_completed:
-            steps_completed.append(step_completed)
-            
-        setup_progress["steps_completed"] = steps_completed
-        
-        # Update setup completed flag if specified
+        # Update setup completed flag
         if setup_completed:
-            setup_progress["setup_completed"] = True
+            progress_data['setup_completed'] = True
+            progress_data['completed_at'] = datetime.utcnow().isoformat()
         
-        # Save back to settings
-        settings.setup_progress = json.dumps(setup_progress)
+        # Save progress data
+        settings.setup_progress = json.dumps(progress_data)
         db.session.commit()
         
-        # Return updated progress
+        logger.info(f"Updated setup progress for user {user_id}")
+        
+        # Get updated progress info
         return get_setup_progress(user_id)
     except Exception as e:
+        logger.error(f"Error updating setup progress: {str(e)}")
         db.session.rollback()
-        logging.error(f"Error updating setup progress: {str(e)}")
-        return {"error": str(e)}
+        return None

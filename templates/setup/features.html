@@ -1,0 +1,129 @@
+{% extends "setup/layout.html" %}
+
+{% block title %}Choose Features{% endblock %}
+
+{% block setup_content %}
+<div class="setup-features">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="setup-card">
+                <div class="setup-card-body">
+                    <h2 class="setup-card-title">Choose Your Features</h2>
+                    <p class="text-center mb-4">Enable the features you'd like to use with your assistant.</p>
+                    
+                    <form action="{{ url_for('setup.features_save') }}" method="post">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="feature-section mb-4">
+                                    <h4 class="feature-section-title">
+                                        <i class="fas fa-bell me-2 text-primary"></i> Notifications
+                                    </h4>
+                                    
+                                    <div class="form-check form-switch ms-4 mt-3">
+                                        <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications" 
+                                               {% if settings and settings.email_notifications %}checked{% endif %}>
+                                        <label class="form-check-label" for="email_notifications">Email Notifications</label>
+                                        <div class="form-text">Receive important updates and reminders via email.</div>
+                                    </div>
+                                    
+                                    <div class="form-check form-switch ms-4 mt-3">
+                                        <input class="form-check-input" type="checkbox" id="push_notifications" name="push_notifications" 
+                                               {% if settings and settings.push_notifications %}checked{% endif %}>
+                                        <label class="form-check-label" for="push_notifications">Browser Notifications</label>
+                                        <div class="form-text">Get notifications in your browser when important events occur.</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="feature-section mb-4">
+                                    <h4 class="feature-section-title">
+                                        <i class="fas fa-hand-holding-medical me-2 text-danger"></i> Health & Wellness
+                                    </h4>
+                                    
+                                    <div class="form-check form-switch ms-4 mt-3">
+                                        <input class="form-check-input" type="checkbox" id="medication_reminders" name="medication_reminders" 
+                                               {% if settings and settings.medication_reminders %}checked{% endif %}>
+                                        <label class="form-check-label" for="medication_reminders">Medication Reminders</label>
+                                        <div class="form-text">Get reminders to take your medications on time.</div>
+                                    </div>
+                                    
+                                    <div class="form-check form-switch ms-4 mt-3">
+                                        <input class="form-check-input" type="checkbox" id="pain_tracking" name="pain_tracking" 
+                                               {% if settings and settings.pain_tracking %}checked{% endif %}>
+                                        <label class="form-check-label" for="pain_tracking">Pain Tracking</label>
+                                        <div class="form-text">Track and analyze pain patterns over time.</div>
+                                    </div>
+                                    
+                                    <div class="form-check form-switch ms-4 mt-3">
+                                        <input class="form-check-input" type="checkbox" id="mindfulness_features" name="mindfulness_features" 
+                                               {% if settings and settings.mindfulness_features %}checked{% endif %}>
+                                        <label class="form-check-label" for="mindfulness_features">Mindfulness & Meditation</label>
+                                        <div class="form-text">Access guided mindfulness exercises and meditation sessions.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-6">
+                                <div class="feature-section mb-4">
+                                    <h4 class="feature-section-title">
+                                        <i class="fas fa-shopping-cart me-2 text-success"></i> Shopping & Budget
+                                    </h4>
+                                    
+                                    <div class="form-check form-switch ms-4 mt-3">
+                                        <input class="form-check-input" type="checkbox" id="shopping_lists" name="shopping_lists" 
+                                               {% if settings and settings.shopping_lists %}checked{% endif %}>
+                                        <label class="form-check-label" for="shopping_lists">Shopping Lists</label>
+                                        <div class="form-text">Create and manage shopping lists for different purposes.</div>
+                                    </div>
+                                    
+                                    <div class="form-check form-switch ms-4 mt-3">
+                                        <input class="form-check-input" type="checkbox" id="product_tracking" name="product_tracking" 
+                                               {% if settings and settings.product_tracking %}checked{% endif %}>
+                                        <label class="form-check-label" for="product_tracking">Amazon Product Tracking</label>
+                                        <div class="form-text">Track prices and availability of Amazon products.</div>
+                                    </div>
+                                    
+                                    <div class="form-check form-switch ms-4 mt-3">
+                                        <input class="form-check-input" type="checkbox" id="budget_reminders" name="budget_reminders" 
+                                               {% if settings and settings.budget_reminder_enabled %}checked{% endif %}>
+                                        <label class="form-check-label" for="budget_reminders">Budget Reminders</label>
+                                        <div class="form-text">Get reminders to stay within your budget goals.</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="feature-section mb-4">
+                                    <h4 class="feature-section-title">
+                                        <i class="fas fa-cloud-sun me-2 text-warning"></i> Weather & Planning
+                                    </h4>
+                                    
+                                    <div class="form-check form-switch ms-4 mt-3">
+                                        <input class="form-check-input" type="checkbox" id="weather_alerts" name="weather_alerts" 
+                                               {% if settings and settings.weather_alerts %}checked{% endif %}>
+                                        <label class="form-check-label" for="weather_alerts">Weather Alerts</label>
+                                        <div class="form-text">Receive alerts about important weather changes.</div>
+                                    </div>
+                                    
+                                    <div class="form-check form-switch ms-4 mt-3">
+                                        <input class="form-check-input" type="checkbox" id="travel_planning" name="travel_planning" 
+                                               {% if settings and settings.travel_planning %}checked{% endif %}>
+                                        <label class="form-check-label" for="travel_planning">Travel Planning</label>
+                                        <div class="form-text">Get help planning and organizing your trips.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setup-nav">
+                            <a href="{{ url_for('setup.preferences') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i> Back
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                Continue <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
