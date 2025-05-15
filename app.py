@@ -99,6 +99,10 @@ login_manager.login_message_category = "info"
 from google_auth import google_auth
 app.register_blueprint(google_auth)
 
+# Import and register the routes from routes package
+from routes import register_blueprints
+register_blueprints(app)
+
 @login_manager.user_loader
 def load_user(user_id):
     from models import User
