@@ -363,31 +363,46 @@ def get_recommendations(spotify, seed_artists=None, seed_tracks=None, seed_genre
         # Prepare seed parameters
         params = {'limit': limit}
         
+        # Handle seed_artists
+        artist_seeds = []
         if seed_artists:
             # Convert artist names to IDs if needed
-            if isinstance(seed_artists[0], str) and not seed_artists[0].startswith('spotify:artist:'):
-                artist_ids = []
-                for artist_name in seed_artists:
-                    results = spotify.search(q=artist_name, type='artist', limit=1)
-                    if results['artists']['items']:
-                        artist_ids.append(results['artists']['items'][0]['id'])
-                seed_artists = artist_ids
-                
-            params['seed_artists'] = seed_artists[:5]  # Spotify allows max 5 seed values total
+            if isinstance(seed_artists, list) and len(seed_artists) > 0:
+                if isinstance(seed_artists[0], str) and not seed_artists[0].startswith('spotify:artist:'):
+                    # Convert names to IDs
+                    for artist_name in seed_artists:
+                        results = spotify.search(q=artist_name, type='artist', limit=1)
+                        if results['artists']['items']:
+                            artist_seeds.append(results['artists']['items'][0]['id'])
+                else:
+                    # Already IDs
+                    artist_seeds = seed_artists
+            
+            # Limit to 5 seeds (Spotify API requirement)
+            if artist_seeds:
+                params['seed_artists'] = artist_seeds[:5]
         
+        # Handle seed_tracks
+        track_seeds = []
         if seed_tracks:
             # Convert track names to IDs if needed
-            if isinstance(seed_tracks[0], str) and not seed_tracks[0].startswith('spotify:track:'):
-                track_ids = []
-                for track_name in seed_tracks:
-                    results = spotify.search(q=track_name, type='track', limit=1)
-                    if results['tracks']['items']:
-                        track_ids.append(results['tracks']['items'][0]['id'])
-                seed_tracks = track_ids
-                
-            params['seed_tracks'] = seed_tracks[:5]
+            if isinstance(seed_tracks, list) and len(seed_tracks) > 0:
+                if isinstance(seed_tracks[0], str) and not seed_tracks[0].startswith('spotify:track:'):
+                    # Convert names to IDs
+                    for track_name in seed_tracks:
+                        results = spotify.search(q=track_name, type='track', limit=1)
+                        if results['tracks']['items']:
+                            track_seeds.append(results['tracks']['items'][0]['id'])
+                else:
+                    # Already IDs
+                    track_seeds = seed_tracks
+            
+            # Limit to 5 seeds
+            if track_seeds:
+                params['seed_tracks'] = track_seeds[:5]
         
-        if seed_genres:
+        # Handle seed_genres
+        if seed_genres and isinstance(seed_genres, list):
             params['seed_genres'] = seed_genres[:5]
             
         # Get recommendations
@@ -445,13 +460,21 @@ def create_recommendations_playlist(spotify, playlist_name, seed_description, li
             except:
                 pass
                 
+        # Prepare recommendation parameters
+        rec_params = {'limit': limit}
+        
+        # Add seeds carefully
+        if seed_artists and isinstance(seed_artists, list) and len(seed_artists) > 0:
+            rec_params['seed_artists'] = seed_artists[:2]
+            
+        if seed_tracks and isinstance(seed_tracks, list) and len(seed_tracks) > 0:
+            rec_params['seed_tracks'] = seed_tracks[:3]
+            
+        if seed_genres and isinstance(seed_genres, list) and len(seed_genres) > 0:
+            rec_params['seed_genres'] = seed_genres
+            
         # Get recommendations
-        recommendations = spotify.recommendations(
-            seed_artists=seed_artists[:2],
-            seed_tracks=seed_tracks[:3],
-            seed_genres=seed_genres,
-            limit=limit
-        )
+        recommendations = spotify.recommendations(**rec_params)
         
         if not recommendations['tracks']:
             return "Unable to generate recommendations with those seeds"
