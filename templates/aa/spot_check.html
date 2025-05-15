@@ -12,7 +12,18 @@
     <div class="col-md-8">
         <div class="aa-card spot-check-card">
             {% if spot_check and spot_check.question %}
-                <div class="aa-card-title">{{ spot_check.key|capitalize if spot_check.key else "Spot Check" }}</div>
+                <div class="aa-card-title d-flex justify-content-between align-items-center">
+                    <span>{{ spot_check.key|capitalize if spot_check.key else "Spot Check" }}</span>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
+                            <li><a class="dropdown-item" href="#" id="copyToClipboard"><i class="fas fa-copy"></i> Copy to clipboard</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('aa_routes.export_spot_check', check_type=spot_check.key, format='txt') }}" target="_blank"><i class="fas fa-file-alt"></i> Download as TXT</a></li>
+                        </ul>
+                    </div>
+                </div>
                 
                 <div class="mb-4">
                     <div class="h5 mb-3">{{ spot_check.question }}</div>
@@ -115,4 +126,72 @@
         </div>
     </div>
 </div>
+
+<div id="spot-check-text-content" style="display: none;">
+{% if spot_check and spot_check.question %}
+==========================
+SPOT CHECK INVENTORY
+{{ spot_check.key|capitalize if spot_check.key else "Spot Check" }}
+==========================
+
+Question: {{ spot_check.question }}
+{% if spot_check.prompt %}
+Prompt: {{ spot_check.prompt }}
+{% endif %}
+
+{% if spot_check.follow_up %}
+Follow-up question to consider: {{ spot_check.follow_up }}
+{% endif %}
+{% endif %}
+</div>
+
+{% block scripts %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const copyButton = document.getElementById('copyToClipboard');
+        if (copyButton) {
+            copyButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                const textContent = document.getElementById('spot-check-text-content').innerText;
+                const responseText = document.getElementById('response').value;
+                const ratingEl = document.getElementById('rating');
+                const triggerEl = document.getElementById('trigger');
+                
+                let fullText = textContent + "\n\nYour Response:\n";
+                
+                if (responseText) {
+                    fullText += responseText + "\n";
+                } else {
+                    fullText += "(Not yet provided)\n";
+                }
+                
+                if (ratingEl && ratingEl.value) {
+                    fullText += "\nIntensity Rating: " + ratingEl.options[ratingEl.selectedIndex].text + "\n";
+                }
+                
+                if (triggerEl && triggerEl.value) {
+                    fullText += "Trigger: " + triggerEl.value + "\n";
+                }
+                
+                // Use the clipboard API to copy the text
+                navigator.clipboard.writeText(fullText).then(() => {
+                    // Show success message
+                    const originalText = copyButton.innerHTML;
+                    copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    
+                    // Reset button text after a delay
+                    setTimeout(() => {
+                        copyButton.innerHTML = originalText;
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                    alert('Failed to copy to clipboard. Please try again.');
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}
 {% endblock %}

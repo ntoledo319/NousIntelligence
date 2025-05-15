@@ -1,0 +1,113 @@
+{% extends 'aa/layout.html' %}
+
+{% block aa_content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h1>Nightly Inventory</h1>
+        <p class="text-muted">Daily 10th Step inventory for recovery</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        {% if inventory %}
+            <div class="aa-card">
+                <div class="aa-card-title d-flex justify-content-between align-items-center">
+                    <span>{{ inventory.date.strftime('%A, %B %d, %Y') if inventory.date else 'Today' }}</span>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportDropdown">
+                            <li><a class="dropdown-item" href="#" id="copyToClipboard"><i class="fas fa-copy"></i> Copy to clipboard</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('aa_routes.export_inventory', inventory_id=inventory.id, format='txt') }}" target="_blank"><i class="fas fa-file-alt"></i> Download as TXT</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <form class="inventory-form" method="post" action="{{ url_for('aa_routes.nightly_inventory') }}">
+                    <input type="hidden" name="inventory_id" value="{{ inventory.id }}">
+                    
+                    {% for section, prompt in template.items() %}
+                        <div class="form-group mb-4">
+                            <label for="{{ section }}">{{ prompt }}</label>
+                            <textarea class="form-control" id="{{ section }}" name="{{ section }}" rows="3" placeholder="Your honest answer...">{{ getattr(inventory, section, '') }}</textarea>
+                        </div>
+                    {% endfor %}
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="submit" class="btn btn-primary">Save Progress</button>
+                        <button type="submit" name="complete" value="true" class="btn btn-success">Complete Inventory</button>
+                    </div>
+                </form>
+            </div>
+        {% else %}
+            <div class="aa-card">
+                <div class="aa-card-title">Nightly Inventory</div>
+                <p>No inventory data available. Please try again.</p>
+                <a href="{{ url_for('aa_routes.nightly_inventory') }}" class="btn btn-primary">Start New Inventory</a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="aa-card">
+            <div class="aa-card-title">About 10th Step</div>
+            <p class="mb-3">Step 10: "Continued to take personal inventory and when we were wrong promptly admitted it."</p>
+            <p>The nightly inventory helps maintain emotional sobriety by keeping resentments, fears, and harms in check. Regular self-examination helps identify patterns that could lead to relapse.</p>
+            <p class="mb-0 font-italic">"The spiritual life is not a theory. We have to live it." - Big Book, page 83</p>
+        </div>
+        
+        <div class="aa-card mt-4">
+            <div class="aa-card-title">Past Inventories</div>
+            <a href="{{ url_for('aa_routes.inventory_history') }}" class="btn btn-outline-primary w-100">View History</a>
+        </div>
+    </div>
+</div>
+
+<div id="inventory-text-content" style="display: none;">
+{% if inventory %}
+==========================
+NIGHTLY INVENTORY
+{{ inventory.date.strftime('%A, %B %d, %Y') if inventory.date else 'Today' }}
+==========================
+
+{% for section, prompt in template.items() %}
+{{ prompt }}
+{{ getattr(inventory, section, '') or 'No response' }}
+
+{% endfor %}
+{% endif %}
+</div>
+
+{% block scripts %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const copyButton = document.getElementById('copyToClipboard');
+        if (copyButton) {
+            copyButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                const textContent = document.getElementById('inventory-text-content').innerText;
+                
+                // Use the clipboard API to copy the text
+                navigator.clipboard.writeText(textContent).then(() => {
+                    // Show success message
+                    const originalText = copyButton.innerHTML;
+                    copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    
+                    // Reset button text after a delay
+                    setTimeout(() => {
+                        copyButton.innerHTML = originalText;
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                    alert('Failed to copy to clipboard. Please try again.');
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

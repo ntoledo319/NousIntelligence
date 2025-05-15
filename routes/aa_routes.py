@@ -7,7 +7,7 @@ import os
 import json
 import datetime
 from datetime import datetime, timedelta
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, session, current_app, abort
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, session, current_app, abort, Response
 from flask_login import login_required, current_user
 
 # Import database from the app
