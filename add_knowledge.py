@@ -24,6 +24,9 @@ if openai_api_key:
     logging.info(f"Using OpenAI API key (first 8 chars): {openai_api_key[:8]}")
 else:
     logging.warning("OpenAI API key not found")
+    
+# Force a reload of the environment variable to make sure we get the latest value
+os.environ["OPENAI_API_KEY"] = openai_api_key
 openai = OpenAI(api_key=openai_api_key)
 
 def get_embedding_for_text(text):
@@ -52,16 +55,15 @@ def add_knowledge_entry_direct(content, user_id=None, source="manual"):
             embedding = get_embedding_for_text(content)
             
             # Create new knowledge entry
-            entry = KnowledgeBase(
-                user_id=user_id,
-                content=content,
-                source=source,
-                relevance_score=1.0
-            )
+            entry = KnowledgeBase()
+            entry.user_id = user_id
+            entry.content = content
+            entry.source = source
+            entry.relevance_score = 1.0
             
             # Set embedding
             logging.info("Setting embedding array...")
-            entry.embedding = embedding.astype(np.float32).tobytes()
+            entry.set_embedding_array(embedding)
             
             # Save to database
             logging.info("Adding entry to database...")

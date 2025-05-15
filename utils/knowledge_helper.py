@@ -14,7 +14,14 @@ from models import KnowledgeBase, ReflectionPrompt, User
 from sqlalchemy import desc
 
 # Initialize OpenAI client
-openai = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+openai_api_key = os.environ.get("OPENAI_API_KEY", "")
+if openai_api_key:
+    logging.info(f"Using OpenAI API key (first 8 chars): {openai_api_key[:8]}")
+else:
+    logging.warning("OpenAI API key not found")
+    
+# Make sure we're using the key from the environment
+openai = OpenAI(api_key=openai_api_key)
 
 # Cache the model in memory
 _embedding_dimension = 1536  # Default for text-embedding-ada-002
