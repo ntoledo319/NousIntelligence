@@ -4,8 +4,9 @@ import re
 from flask import url_for
 from utils.logger import log_workout, log_mood
 from utils.scraper import scrape_aa_reflection
-from utils.ai_helper import parse_natural_language
+from utils.ai_helper import parse_natural_language, handle_conversation, analyze_gmail_content, analyze_gmail_threads
 from utils.google_helper import create_calendar_event
+from utils.gmail_helper import get_gmail_service, get_gmail_messages, get_message_content, get_gmail_threads, search_gmail
 from utils.weather_helper import (
     get_current_weather, get_weather_forecast, get_location_coordinates,
     format_weather_output, format_forecast_output, get_pressure_trend,
@@ -102,7 +103,8 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
            "aa reflection" in cmd or "daily reflection" in cmd or \
            cmd.startswith("log workout") or cmd.startswith("log mood") or \
            cmd.startswith("add task") or cmd.startswith("add note") or \
-           cmd.startswith("play "):
+           cmd.startswith("play ") or cmd.startswith("chat:") or \
+           cmd.startswith("analyze email:"):
             # Use the standard parsing logic for recognized command formats
             pass
         else:
