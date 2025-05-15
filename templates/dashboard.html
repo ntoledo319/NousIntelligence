@@ -2,26 +2,87 @@
 
 {% block content %}
 <div class="dashboard">
-    <h1 class="mb-4">
-        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-    </h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">
+            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+        </h1>
+        <div>
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                <i class="fas fa-terminal me-1"></i> Command Interface
+            </a>
+        </div>
+    </div>
+    
+    <!-- Quick Access Tiles -->
+    <div class="row mb-4">
+        <div class="col-6 col-md-3 mb-3">
+            <div class="quick-access-tile health-tile">
+                <a href="#health-section" class="text-decoration-none">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-3">
+                            <i class="fas fa-heartbeat fa-2x mb-2 text-danger"></i>
+                            <h5 class="mb-0">Health</h5>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 mb-3">
+            <div class="quick-access-tile shopping-tile">
+                <a href="#shopping-section" class="text-decoration-none">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-3">
+                            <i class="fas fa-shopping-cart fa-2x mb-2 text-success"></i>
+                            <h5 class="mb-0">Shopping</h5>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 mb-3">
+            <div class="quick-access-tile finance-tile">
+                <a href="#finance-section" class="text-decoration-none">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-3">
+                            <i class="fas fa-chart-line fa-2x mb-2 text-primary"></i>
+                            <h5 class="mb-0">Finance</h5>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 mb-3">
+            <div class="quick-access-tile travel-tile">
+                <a href="#travel-section" class="text-decoration-none">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-3">
+                            <i class="fas fa-plane-departure fa-2x mb-2 text-info"></i>
+                            <h5 class="mb-0">Travel</h5>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
     
     <div class="row">
         <!-- Welcome Card -->
         <div class="col-lg-12 mb-4">
             <div class="card border-0 bg-primary bg-opacity-10">
                 <div class="card-body">
-                    <h2 class="card-title h5">
-                        <i class="fas fa-user-circle me-2"></i>
-                        Welcome back!
-                    </h2>
-                    <p class="card-text">
-                        This dashboard provides a quick overview of your data across various categories. 
-                        Use the command interface to interact with NOUS for detailed management.
-                    </p>
-                    <a href="{{ url_for('index') }}" class="btn btn-sm btn-primary">
-                        <i class="fas fa-terminal me-1"></i> Go to Command Interface
-                    </a>
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-user-circle fa-2x me-3 text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h2 class="card-title h5 mb-1">
+                                Welcome back!
+                            </h2>
+                            <p class="card-text mb-0">
+                                This dashboard provides a quick overview of your data across various categories.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -48,324 +109,439 @@
                     </p>
                     
                     <div class="progress mb-3" style="height: 8px;">
-                        {% set progress = ((active_trip.duration - active_trip.days_left) / active_trip.duration * 100)|round|int %}
-                        <div class="progress-bar bg-success" role="progressbar" 
-                             style="width: {{ progress }}%;" 
-                             aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between mb-3">
-                        <span class="badge bg-secondary">
-                            <i class="fas fa-calendar-alt me-1"></i>
-                            {{ active_trip.start_date.strftime('%b %d') }} - {{ active_trip.end_date.strftime('%b %d, %Y') }}
-                        </span>
+                        {% set total_days = active_trip.duration %}
+                        {% set days_passed = total_days - active_trip.days_left %}
+                        {% set percentage = (days_passed / total_days * 100)|int %}
                         
-                        {% if active_trip.has_itinerary %}
-                        <span class="badge bg-info">
-                            <i class="fas fa-list me-1"></i>
-                            {{ active_trip.itinerary_count }} itinerary items
-                        </span>
-                        {% endif %}
+                        <div class="progress-bar bg-info" role="progressbar" 
+                            style="width: {{ percentage }}%" 
+                            aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                     
-                    <a href="#" class="btn btn-sm btn-outline-primary" 
-                       onclick="submitCommand('show trip {{ active_trip.id }}')">
-                        <i class="fas fa-info-circle me-1"></i> View Details
-                    </a>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-sm btn-outline-primary" 
+                           href="#" onclick="submitCommand('view trip {{ active_trip.id }}');return false;">
+                            Details
+                        </a>
+                        <a class="btn btn-sm btn-outline-info" 
+                           href="#" onclick="submitCommand('view trip itinerary {{ active_trip.id }}');return false;">
+                            Itinerary
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
         {% endif %}
         
-        <!-- Budget Summary Card -->
-        {% if budget_summary %}
+        <!-- Pain Forecast Card -->
+        {% if pain_forecast %}
         <div class="col-lg-6 mb-4">
             <div class="card h-100 border-0">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="fas fa-chart-pie me-2"></i>Monthly Budget
+                        <i class="fas fa-cloud-sun-rain me-2"></i>Pain Forecast
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="card-title">{{ budget_summary.month_name }} {{ budget_summary.year }}</h4>
-                        <span class="badge 
-                            {% if budget_summary.total_spent <= budget_summary.total_budget * 0.7 %}
-                                bg-success
-                            {% elif budget_summary.total_spent <= budget_summary.total_budget %}
-                                bg-warning
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="circle-indicator me-3
+                            {% if pain_forecast.risk_level == 'High' %} bg-danger text-white
+                            {% elif pain_forecast.risk_level == 'Moderate' %} bg-warning
+                            {% else %} bg-success text-white{% endif %}">
+                            {% if pain_forecast.risk_level == 'High' %}
+                                <i class="fas fa-exclamation"></i>
+                            {% elif pain_forecast.risk_level == 'Moderate' %}
+                                <i class="fas fa-exclamation-triangle"></i>
                             {% else %}
-                                bg-danger
-                            {% endif %}">
-                            ${{ budget_summary.total_spent|round|int }} / ${{ budget_summary.total_budget|round|int }}
-                        </span>
-                    </div>
-                    
-                    <div class="progress mb-3" style="height: 10px;">
-                        {% set progress = (budget_summary.total_spent / budget_summary.total_budget * 100)|round|int %}
-                        <div class="progress-bar 
-                            {% if progress <= 70 %}
-                                bg-success
-                            {% elif progress <= 100 %}
-                                bg-warning
-                            {% else %}
-                                bg-danger
-                            {% endif %}" 
-                            role="progressbar" 
-                            style="width: {{ progress if progress <= 100 else 100 }}%;" 
-                            aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                    
-                    {% if budget_categories %}
-                    <div class="categories-overview mb-3">
-                        {% for category, amount in budget_categories.items() %}
-                        <div class="mb-2">
-                            <div class="d-flex justify-content-between small">
-                                <span>{{ category }}</span>
-                                <span>${{ amount|round|int }}</span>
-                            </div>
-                            {% set category_spent = budget_summary.categories[category].spent %}
-                            {% set category_progress = (category_spent / amount * 100)|round|int if amount > 0 else 0 %}
-                            <div class="progress" style="height: 6px;">
-                                <div class="progress-bar 
-                                    {% if category_progress <= 70 %}
-                                        bg-success
-                                    {% elif category_progress <= 100 %}
-                                        bg-warning
-                                    {% else %}
-                                        bg-danger
-                                    {% endif %}" 
-                                    role="progressbar" 
-                                    style="width: {{ category_progress if category_progress <= 100 else 100 }}%;" 
-                                    aria-valuenow="{{ category_progress }}" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
+                                <i class="fas fa-check"></i>
+                            {% endif %}
                         </div>
-                        {% endfor %}
+                        <div>
+                            <h5 class="mb-0">{{ pain_forecast.location }}</h5>
+                            <p class="mb-0 small text-muted">
+                                Pressure: {{ pain_forecast.current_pressure }} hPa 
+                                <span class="badge
+                                    {% if pain_forecast.trend_direction == 'falling' %}bg-danger
+                                    {% elif pain_forecast.trend_direction == 'rising' %}bg-warning
+                                    {% else %}bg-info{% endif %}">
+                                    {{ pain_forecast.trend_direction }}
+                                </span>
+                            </p>
+                        </div>
                     </div>
-                    {% endif %}
                     
-                    <a href="#" class="btn btn-sm btn-outline-primary" onclick="submitCommand('budget summary')">
-                        <i class="fas fa-info-circle me-1"></i> Full Budget Details
-                    </a>
+                    <div class="mb-3">
+                        <strong>Risk Factors:</strong>
+                        <ul class="mb-0 ps-3 small">
+                            {% for factor in pain_forecast.factors %}
+                            <li>{{ factor }}</li>
+                            {% endfor %}
+                            {% if not pain_forecast.factors %}
+                            <li>No significant risk factors</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    <button class="btn btn-sm btn-primary w-100"
+                            onclick="submitCommand('pain forecast in {{ pain_forecast.location }}')">
+                        View Detailed Forecast
+                    </button>
                 </div>
             </div>
         </div>
         {% endif %}
+    </div>
+    
+    <!-- Health Section -->
+    <section id="health-section" class="mb-5">
+        <div class="dashboard-section-header mb-4">
+            <h2 class="h4">
+                <i class="fas fa-heartbeat me-2 text-danger"></i>Health
+            </h2>
+            <hr>
+        </div>
         
-        <!-- Recent Activity -->
-        <div class="col-lg-6 mb-4">
-            <div class="card h-100 border-0">
+        <div class="row">
+            <!-- Upcoming Appointments -->
+            <div class="col-lg-6 mb-4">
+                <div class="card border-0 h-100">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-calendar-check me-2"></i>Upcoming Appointments
+                            </h5>
+                            <a href="#" onclick="submitCommand('show appointments');return false;" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if appointments %}
+                            <div class="list-group">
+                                {% for appointment in appointments[:3] %}
+                                <div class="list-group-item border-0 px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ appointment.doctor.name }}</strong>
+                                            <div class="small text-muted">{{ appointment.description }}</div>
+                                        </div>
+                                        <span class="badge bg-primary">{{ appointment.date.strftime('%b %d') }}</span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">No upcoming appointments</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Medications to Refill -->
+            <div class="col-lg-6 mb-4">
+                <div class="card border-0 h-100">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-pills me-2"></i>Medications to Refill
+                            </h5>
+                            <a href="#" onclick="submitCommand('show medications');return false;" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if medications_to_refill %}
+                            <div class="list-group">
+                                {% for medication in medications_to_refill[:3] %}
+                                <div class="list-group-item border-0 px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ medication.name }}</strong>
+                                            <div class="small text-muted">{{ medication.remaining }} remaining</div>
+                                        </div>
+                                        <span class="badge bg-warning text-dark">Refill Soon</span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">No medications need refilling</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Shopping Section -->
+    <section id="shopping-section" class="mb-5">
+        <div class="dashboard-section-header mb-4">
+            <h2 class="h4">
+                <i class="fas fa-shopping-cart me-2 text-success"></i>Shopping
+            </h2>
+            <hr>
+        </div>
+        
+        <div class="row">
+            <!-- Shopping Lists -->
+            <div class="col-lg-6 mb-4">
+                <div class="card border-0 h-100">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-list me-2"></i>Shopping Lists
+                            </h5>
+                            <a href="#" onclick="submitCommand('show shopping lists');return false;" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if shopping_lists %}
+                            <div class="list-group">
+                                {% for list in shopping_lists[:3] %}
+                                <div class="list-group-item border-0 px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ list.name }}</strong>
+                                            <div class="small text-muted">{{ list.items|length }} items 
+                                                {% if list.store %}at {{ list.store }}{% endif %}
+                                            </div>
+                                        </div>
+                                        {% if list.is_recurring %}
+                                        <span class="badge bg-info">Recurring</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">No shopping lists created</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Due Orders -->
+            <div class="col-lg-6 mb-4">
+                <div class="card border-0 h-100">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-box me-2"></i>Due Orders
+                            </h5>
+                            <a href="#" onclick="submitCommand('show due orders');return false;" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if due_lists or products_to_order %}
+                            <div class="list-group">
+                                {% for list in due_lists|default([], true)[:2] %}
+                                <div class="list-group-item border-0 px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ list.name }}</strong>
+                                            <div class="small text-muted">Shopping list due to order</div>
+                                        </div>
+                                        <a href="#" onclick="submitCommand('view list {{ list.id }}');return false;" class="btn btn-sm btn-outline-success">View</a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                
+                                {% for product in products_to_order|default([], true)[:2] %}
+                                <div class="list-group-item border-0 px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ product.name }}</strong>
+                                            <div class="small text-muted">{{ product.source }} - ${{ product.price }}</div>
+                                        </div>
+                                        <a href="#" onclick="submitCommand('order product {{ product.id }}');return false;" class="btn btn-sm btn-outline-info">Order</a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">No orders due at this time</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Finance Section -->
+    <section id="finance-section" class="mb-5">
+        <div class="dashboard-section-header mb-4">
+            <h2 class="h4">
+                <i class="fas fa-chart-line me-2 text-primary"></i>Finance
+            </h2>
+            <hr>
+        </div>
+        
+        <div class="row">
+            <!-- Budget Summary -->
+            <div class="col-lg-6 mb-4">
+                <div class="card border-0 h-100">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-pie me-2"></i>Budget Summary
+                            </h5>
+                            <a href="#" onclick="submitCommand('budget summary');return false;" class="btn btn-sm btn-outline-primary">Details</a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if budget_summary %}
+                            <div class="d-flex justify-content-between mb-3">
+                                <div>
+                                    <h6 class="mb-0">Total Budget</h6>
+                                    <h4 class="mb-0">${{ budget_summary.total_budget }}</h4>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">Spent</h6>
+                                    <h4 class="mb-0">${{ budget_summary.total_spent }}</h4>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">Remaining</h6>
+                                    <h4 class="mb-0">${{ budget_summary.total_remaining }}</h4>
+                                </div>
+                            </div>
+                            
+                            <div class="progress mb-3" style="height: 10px;">
+                                {% set percentage = (budget_summary.total_spent / budget_summary.total_budget * 100)|int %}
+                                <div class="progress-bar {{ 'bg-success' if percentage < 75 else ('bg-warning' if percentage < 90 else 'bg-danger') }}" 
+                                     role="progressbar" style="width: {{ percentage }}%"
+                                     aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+                            
+                            <h6 class="mt-4 mb-2">Top Categories</h6>
+                            {% if budget_categories %}
+                                {% for category, amount in budget_categories.items() %}
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span>{{ category }}</span>
+                                    <span>${{ amount }}</span>
+                                </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% else %}
+                            <p class="text-muted mb-0">No budget data available</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Upcoming Payments -->
+            <div class="col-lg-6 mb-4">
+                <div class="card border-0 h-100">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-money-bill-wave me-2"></i>Upcoming Payments
+                            </h5>
+                            <a href="#" onclick="submitCommand('show upcoming payments');return false;" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if upcoming_payments %}
+                            <div class="list-group">
+                                {% for payment in upcoming_payments[:5] %}
+                                <div class="list-group-item border-0 px-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ payment.description }}</strong>
+                                            <div class="small text-muted">Due on {{ payment.next_date.strftime('%b %d') }}</div>
+                                        </div>
+                                        <span class="badge bg-primary">${{ payment.amount }}</span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">No upcoming payments scheduled</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Travel Section -->
+    <section id="travel-section" class="mb-5">
+        <div class="dashboard-section-header mb-4">
+            <h2 class="h4">
+                <i class="fas fa-plane-departure me-2 text-info"></i>Travel
+            </h2>
+            <hr>
+        </div>
+        
+        <div class="row">
+            <!-- Upcoming Trips -->
+            {% if upcoming_trips %}
+            <div class="col-lg-12 mb-4">
+                <div class="card border-0">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-suitcase me-2"></i>Upcoming Trips
+                            </h5>
+                            <a href="#" onclick="submitCommand('show trips');return false;" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Trip</th>
+                                        <th>Destination</th>
+                                        <th>Dates</th>
+                                        <th>Days Until</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for trip in upcoming_trips %}
+                                    <tr>
+                                        <td>{{ trip.name }}</td>
+                                        <td>{{ trip.destination }}</td>
+                                        <td>{{ trip.start_date.strftime('%b %d') }} - {{ trip.end_date.strftime('%b %d') }}</td>
+                                        <td>{{ trip.days_until }} days</td>
+                                        <td>
+                                            <a href="#" onclick="submitCommand('view trip {{ trip.id }}');return false;" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+    
+    <!-- Recent Activity Card -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card border-0">
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-history me-2"></i>Recent Activity
                     </h5>
                 </div>
                 <div class="card-body p-0">
-                    <ul class="list-group list-group-flush">
-                        {% if recent_activity %}
-                            {% for activity in recent_activity %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div class="list-group list-group-flush">
+                        {% for activity in recent_activity %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <span class="badge bg-secondary">{{ activity.action }}</span>
-                                    <span class="ms-2">{{ activity.description }}</span>
+                                    <strong>{{ activity.action }}</strong>
+                                    <div class="small text-muted">{{ activity.description }}</div>
                                 </div>
-                                <small class="text-muted">{{ activity.time_ago }}</small>
-                            </li>
-                            {% endfor %}
-                        {% else %}
-                            <li class="list-group-item text-center py-4">
-                                <i class="fas fa-info-circle me-2"></i>No recent activity
-                            </li>
-                        {% endif %}
-                    </ul>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Upcoming Events -->
-        <div class="col-lg-6 mb-4">
-            <div class="card h-100 border-0">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-calendar me-2"></i>Upcoming 
-                    </h5>
-                </div>
-                <div class="card-body p-0">
-                    <ul class="list-group list-group-flush">
-                        {% set has_content = false %}
-                        
-                        {% if appointments %}
-                            {% for appointment in appointments[:2] %}
-                            {% set has_content = true %}
-                            <li class="list-group-item">
-                                <div class="d-flex align-items-center">
-                                    <div class="icon-circle bg-info bg-opacity-10 p-2 me-3">
-                                        <i class="fas fa-stethoscope text-info"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">Doctor Appointment</h6>
-                                        <p class="mb-0 small">
-                                            {{ appointment.doctor_name }} - 
-                                            {{ appointment.date.strftime('%b %d, %Y') }}
-                                            {{ appointment.time.strftime('%I:%M %p') }}
-                                        </p>
-                                    </div>
-                                </div>
-                            </li>
-                            {% endfor %}
-                        {% endif %}
-                        
-                        {% if upcoming_trips %}
-                            {% for trip in upcoming_trips[:1] %}
-                            {% set has_content = true %}
-                            <li class="list-group-item">
-                                <div class="d-flex align-items-center">
-                                    <div class="icon-circle bg-primary bg-opacity-10 p-2 me-3">
-                                        <i class="fas fa-plane text-primary"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">{{ trip.name }}</h6>
-                                        <p class="mb-0 small">
-                                            {{ trip.destination }} - Starts in 
-                                            {{ trip.days_until }} day{{ 's' if trip.days_until != 1 }}
-                                        </p>
-                                    </div>
-                                </div>
-                            </li>
-                            {% endfor %}
-                        {% endif %}
-                        
-                        {% if medications_to_refill %}
-                            {% for medication in medications_to_refill[:1] %}
-                            {% set has_content = true %}
-                            <li class="list-group-item">
-                                <div class="d-flex align-items-center">
-                                    <div class="icon-circle bg-danger bg-opacity-10 p-2 me-3">
-                                        <i class="fas fa-pills text-danger"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">Medication Refill Needed</h6>
-                                        <p class="mb-0 small">
-                                            {{ medication.name }} - 
-                                            Only {{ medication.remaining_quantity }} remaining
-                                        </p>
-                                    </div>
-                                </div>
-                            </li>
-                            {% endfor %}
-                        {% endif %}
-                        
-                        {% if products_to_order %}
-                            {% for product in products_to_order[:1] %}
-                            {% set has_content = true %}
-                            <li class="list-group-item">
-                                <div class="d-flex align-items-center">
-                                    <div class="icon-circle bg-success bg-opacity-10 p-2 me-3">
-                                        <i class="fas fa-shopping-cart text-success"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">Product to Order</h6>
-                                        <p class="mb-0 small">
-                                            {{ product.name }} - 
-                                            Last ordered: {{ product.last_ordered.strftime('%b %d') if product.last_ordered }}
-                                        </p>
-                                    </div>
-                                </div>
-                            </li>
-                            {% endfor %}
-                        {% endif %}
-                        
-                        {% if not has_content %}
-                            <li class="list-group-item text-center py-4">
-                                <i class="fas fa-check-circle me-2"></i>No upcoming events
-                            </li>
-                        {% endif %}
-                    </ul>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Pain Flare Forecast Widget -->
-        <div class="col-lg-6 mb-4">
-            <div class="card h-100 border-0">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fas fa-cloud-rain me-2"></i>Pain Flare Forecast
-                    </h5>
-                    <button class="btn btn-sm btn-outline-secondary" 
-                            onclick="submitCommand('pain forecast')">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
-                </div>
-                <div class="card-body">
-                    {% if pain_forecast %}
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="me-3">
-                                {% if pain_forecast.risk_level == 'low' %}
-                                    <div class="circle-indicator bg-success">🟢</div>
-                                {% elif pain_forecast.risk_level == 'moderate' %}
-                                    <div class="circle-indicator bg-warning">🟡</div>
-                                {% elif pain_forecast.risk_level == 'high' %}
-                                    <div class="circle-indicator bg-warning">🟠</div>
-                                {% elif pain_forecast.risk_level == 'very high' %}
-                                    <div class="circle-indicator bg-danger">🔴</div>
-                                {% else %}
-                                    <div class="circle-indicator bg-secondary">❓</div>
-                                {% endif %}
-                            </div>
-                            <div>
-                                <h4 class="h5 mb-0">{{ pain_forecast.risk_level|title }} Risk</h4>
-                                <small class="text-muted">{{ pain_forecast.location }}</small>
+                                <span class="badge bg-light text-dark">{{ activity.time_ago }}</span>
                             </div>
                         </div>
-                        
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span>Barometric Pressure:</span>
-                                <span>{{ pain_forecast.current_pressure }} hPa</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-1">
-                                <span>Trend:</span>
-                                <span>
-                                    {{ pain_forecast.trend_direction|title }}
-                                    {% if pain_forecast.pressure_change > 0 %}
-                                        <i class="fas fa-arrow-up text-danger"></i>
-                                    {% elif pain_forecast.pressure_change < 0 %}
-                                        <i class="fas fa-arrow-down text-success"></i>
-                                    {% else %}
-                                        <i class="fas fa-arrows-alt-h text-muted"></i>
-                                    {% endif %}
-                                    {{ pain_forecast.pressure_change|abs|round(1) }} hPa
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <strong>Risk Factors:</strong>
-                            <ul class="mb-0 ps-3 small">
-                                {% for factor in pain_forecast.factors %}
-                                <li>{{ factor }}</li>
-                                {% endfor %}
-                                {% if not pain_forecast.factors %}
-                                <li>No significant risk factors</li>
-                                {% endif %}
-                            </ul>
-                        </div>
-                        
-                        <button class="btn btn-sm btn-primary w-100"
-                                onclick="submitCommand('pain forecast in {{ pain_forecast.location }}')">
-                            View Detailed Forecast
-                        </button>
-                    {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-cloud-rain fa-3x mb-3 text-muted"></i>
-                            <p>No pain forecast data available.</p>
-                            <button class="btn btn-sm btn-primary"
-                                    onclick="submitCommand('pain forecast')">
-                                Get Pain Forecast
-                            </button>
-                        </div>
-                    {% endif %}
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -381,6 +557,36 @@
         align-items: center;
         justify-content: center;
         font-size: 20px;
+    }
+    
+    .dashboard-section-header {
+        position: relative;
+        padding-bottom: 0.5rem;
+    }
+    
+    .quick-access-tile .card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    
+    .quick-access-tile .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .health-tile .card:hover {
+        border-color: var(--bs-danger) !important;
+    }
+    
+    .shopping-tile .card:hover {
+        border-color: var(--bs-success) !important;
+    }
+    
+    .finance-tile .card:hover {
+        border-color: var(--bs-primary) !important;
+    }
+    
+    .travel-tile .card:hover {
+        border-color: var(--bs-info) !important;
     }
 </style>
 {% endblock %}
