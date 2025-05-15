@@ -576,8 +576,11 @@ def analyze_image(image_data, prompt=None):
         if not prompt:
             prompt = "Analyze this image in detail. Describe what you see, including objects, people, activities, context, and any notable elements."
         
-        # Prepare messages with proper typing
-        user_content = [
+        # Prepare messages with proper typing for multimodal content
+        from typing import List, Dict, Any, Union
+        
+        # Create the structure needed for ChatCompletionContentPartTextParam and ChatCompletionContentPartImageParam
+        user_content: List[Dict[str, Union[str, Dict[str, str]]]] = [
             {
                 "type": "text",
                 "text": prompt
@@ -588,10 +591,10 @@ def analyze_image(image_data, prompt=None):
             }
         ]
         
-        # Create a dictionary with the correct structure
+        # Create a properly typed message object
         user_message: ChatCompletionUserMessageParam = {
             "role": "user", 
-            "content": user_content
+            "content": user_content # type: ignore
         }
         
         messages = [user_message]

@@ -670,12 +670,14 @@ def get_weather_based_automation_suggestions() -> Dict[str, Any]:
         logging.error(f"Error generating automation suggestions: {str(e)}")
         return {"success": False, "error": f"Suggestion error: {str(e)}"}
 
-def create_voice_command(command_text: str) -> Dict[str, Any]:
+def create_voice_command(command_text: str, user_id: str = None, context: Dict[str, Any] = None) -> Dict[str, Any]:
     """
-    Process a natural language voice command for smart home control
+    Process a natural language voice command for smart home control with enhanced context awareness
     
     Args:
         command_text: Natural language command
+        user_id: Optional user ID for personalization and context
+        context: Optional additional context (time of day, user location, etc.)
         
     Returns:
         Dict with processed command and execution result
@@ -704,35 +706,99 @@ def create_voice_command(command_text: str) -> Dict[str, Any]:
             if device["room"] not in rooms:
                 rooms.append(device["room"])
         
-        # Use AI to parse the command
-        prompt = f"""
+        # Prepare context information
+        context_str = ""
+        if context:
+            context_items = []
+            
+            if "time_of_day" in context:
+                context_items.append(f"Time of day: {context['time_of_day']}")
+                
+            if "user_location" in context:
+                context_items.append(f"User location: {context['user_location']}")
+                
+            if "weather" in context:
+                context_items.append(f"Weather: {context['weather']}")
+                
+            if "temperature" in context:
+                context_items.append(f"Current temperature: {context['temperature']}")
+                
+            if "previous_commands" in context and context["previous_commands"]:
+                prev_cmds = context["previous_commands"][-3:]  # Get last 3 commands
+                context_items.append(f"Recent commands: {', '.join(prev_cmds)}")
+                
+            context_str = "\n".join(context_items)
+        
+        # Use AI to parse the command with added context awareness
+        system_prompt = """
+        You are an advanced smart home voice assistant that parses natural language commands into structured device control commands.
+        
+        You should understand context, implied targets, and natural conversational references like "it", "them", "there", etc. when 
+        referring to previously mentioned devices or rooms.
+        
+        You should also understand complex commands that may involve multiple devices or rooms, as well as multi-step controls.
+        
+        When parsing commands, determine:
+        1. Target (device name, room, or "all")
+        2. Target type (device, room, all)
+        3. Command (on, off, setBrightness, setTemperature, etc.)
+        4. Parameters (brightness level, temperature, etc.)
+        
+        Return a JSON object with the following structure:
+        {
+            "target_type": "device|room|all",
+            "target": "name of device or room",
+            "command": "command name",
+            "parameters": {"param1": value1, "param2": value2},
+            "confirmation_message": "human-friendly confirmation of the action"
+        }
+        
+        If the command is ambiguous or targets unavailable devices, include an "error" field.
+        """
+        
+        user_prompt = f"""
         Parse this voice command for smart home control: "{command_text}"
         
         Available rooms: {", ".join(rooms)}
         
         Available devices:
         {json.dumps(devices, indent=2)}
-        
-        Determine:
-        1. Target (device name, room, or "all")
-        2. Command (on, off, setBrightness, setTemperature, etc.)
-        3. Parameters (brightness level, temperature, etc.)
-        
-        Format as a JSON object with the parsed command details.
-        If the command is ambiguous or targets unavailable devices, include an "error" field.
         """
+        
+        if context_str:
+            user_prompt += f"\n\nContext Information:\n{context_str}"
+        
+        from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
+        
+        # Prepare messages with proper typing
+        messages = []
+        
+        # Add system message
+        system_msg: ChatCompletionSystemMessageParam = {
+            "role": "system",
+            "content": system_prompt
+        }
+        messages.append(system_msg)
+        
+        # Add user message
+        user_msg: ChatCompletionUserMessageParam = {
+            "role": "user",
+            "content": user_prompt
+        }
+        messages.append(user_msg)
         
         response = client.chat.completions.create(
             model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
-            messages=[
-                {"role": "system", "content": "You are a smart home voice assistant that parses natural language commands into structured device control commands."},
-                {"role": "user", "content": prompt}
-            ],
+            messages=messages,
             response_format={"type": "json_object"}
         )
         
         # Parse the response
-        parsed_command = json.loads(response.choices[0].message.content)
+        result_content = response.choices[0].message.content
+        if result_content is None:
+            return {"success": False, "error": "Empty response from AI parser"}
+            
+        parsed_command = json.loads(result_content)
         
         # Check if there was an error in parsing
         if "error" in parsed_command:
@@ -746,11 +812,13 @@ def create_voice_command(command_text: str) -> Dict[str, Any]:
         parameters = parsed_command.get("parameters", {})
         
         if target_type == "device":
-            # Find the device ID by name
+            # Find the device ID by name (case insensitive and partial matching)
             device_id = None
             for id, device in SMART_HOME_STATUS.devices.items():
-                if device["name"].lower() == target.lower():
+                if target.lower() in device["name"].lower():
                     device_id = id
+                    # Update target to exact name for feedback
+                    parsed_command["target"] = device["name"]
                     break
                     
             if device_id:
@@ -759,7 +827,19 @@ def create_voice_command(command_text: str) -> Dict[str, Any]:
                 return {"success": False, "error": f"Device not found: {target}", "parsed_command": parsed_command}
                 
         elif target_type == "room":
-            result = control_room(target, command, parameters)
+            # Case insensitive room matching
+            room_match = None
+            for room in rooms:
+                if target.lower() in room.lower():
+                    room_match = room
+                    # Update target to exact room name for feedback
+                    parsed_command["target"] = room
+                    break
+                    
+            if room_match:
+                result = control_room(room_match, command, parameters)
+            else:
+                return {"success": False, "error": f"Room not found: {target}", "parsed_command": parsed_command}
             
         elif target_type == "all":
             # Control all devices
@@ -779,16 +859,242 @@ def create_voice_command(command_text: str) -> Dict[str, Any]:
                 "device_count": len(SMART_HOME_STATUS.devices),
                 "results": results
             }
-            
         else:
             return {"success": False, "error": f"Unknown target type: {target_type}", "parsed_command": parsed_command}
             
-        return {
+        # Add the parsed command and confirmation message to the result
+        final_result = {
             "success": result["success"] if result else False,
             "parsed_command": parsed_command,
-            "execution_result": result
+            "execution_result": result,
+            "confirmation_message": parsed_command.get("confirmation_message", "Command executed successfully")
         }
+            
+        # If user_id provided, add this command to context memory
+        if user_id:
+            try:
+                from utils.ai_helper import conversation_memory
+                
+                # Add as context for future commands
+                conversation_memory.add_context(
+                    user_id, 
+                    "smart_home_commands", 
+                    f"Command: {command} on {target_type} '{target}' with parameters {parameters}"
+                )
+            except ImportError:
+                logging.warning("Could not import conversation_memory from ai_helper")
+            
+        return final_result
         
     except Exception as e:
         logging.error(f"Error processing voice command: {str(e)}")
-        return {"success": False, "error": f"Voice command error: {str(e)}"}
+        return {"success": False, "error": f"Voice command processing error: {str(e)}"}
+        
+def create_routine(name: str, triggers: List[Dict], actions: List[Dict], user_id: str = None) -> Dict[str, Any]:
+    """
+    Create a smart home routine/automation
+    
+    Args:
+        name: Name of the routine
+        triggers: List of trigger conditions (time, device state, etc.)
+        actions: List of actions to perform
+        user_id: Optional user ID for personalization
+        
+    Returns:
+        Dict with routine creation result
+    """
+    try:
+        if not SMART_HOME_STATUS.enabled:
+            return {"success": False, "error": "Smart home integration not configured"}
+            
+        if not SMART_HOME_STATUS.has_devices():
+            return {"success": False, "error": "No devices discovered"}
+        
+        # Validation
+        if not name:
+            return {"success": False, "error": "Routine name is required"}
+            
+        if not triggers or not isinstance(triggers, list):
+            return {"success": False, "error": "At least one trigger is required"}
+            
+        if not actions or not isinstance(actions, list):
+            return {"success": False, "error": "At least one action is required"}
+        
+        # In a real implementation, we would store the routine in a database
+        # For demonstration, we return a mock success response
+        
+        return {
+            "success": True,
+            "routine": {
+                "id": f"routine_{name.lower().replace(' ', '_')}",
+                "name": name,
+                "triggers": triggers,
+                "actions": actions,
+                "created_at": datetime.datetime.now().isoformat()
+            },
+            "message": f"Routine '{name}' created successfully"
+        }
+    
+    except Exception as e:
+        logging.error(f"Error creating routine: {str(e)}")
+        return {"success": False, "error": f"Routine creation error: {str(e)}"}
+        
+def get_device_status(device_id: str = None, room: str = None) -> Dict[str, Any]:
+    """
+    Get status information for devices
+    
+    Args:
+        device_id: Optional specific device ID
+        room: Optional room name to filter devices
+        
+    Returns:
+        Dict with device status information
+    """
+    try:
+        if not SMART_HOME_STATUS.enabled:
+            return {"success": False, "error": "Smart home integration not configured"}
+            
+        if not SMART_HOME_STATUS.has_devices():
+            return {"success": False, "error": "No devices discovered"}
+            
+        # If specific device requested
+        if device_id:
+            if device_id not in SMART_HOME_STATUS.devices:
+                return {"success": False, "error": f"Device not found: {device_id}"}
+                
+            # In a real implementation, we would query the device status via API
+            # For demonstration, we return mock data
+            device = SMART_HOME_STATUS.devices[device_id]
+            capabilities = SMART_HOME_STATUS.device_capabilities.get(device_id, [])
+            
+            # Generate mock status based on device type
+            status = {"online": True}
+            
+            if "switch" in str(capabilities).lower():
+                status["power"] = "on"  # or "off"
+                
+            if "switchLevel" in str(capabilities).lower() or "brightness" in str(capabilities).lower():
+                status["brightness"] = 65  # 0-100
+                
+            if "thermostat" in str(capabilities).lower() or "temperature" in str(capabilities).lower():
+                status["mode"] = "heat"  # or "cool", "auto", "off"
+                status["temperature"] = 72  # degrees
+                status["target_temperature"] = 68  # degrees
+                
+            if "audio" in str(capabilities).lower() or "mediaPlayback" in str(capabilities).lower():
+                status["volume"] = 40  # 0-100
+                status["playing"] = False  # or True
+                
+            return {
+                "success": True,
+                "device": {
+                    "id": device_id,
+                    "name": device["name"],
+                    "type": device["type"],
+                    "room": device["room"],
+                    "capabilities": capabilities,
+                    "status": status
+                }
+            }
+            
+        # If room filter provided
+        elif room:
+            # Check if room exists
+            if room not in SMART_HOME_STATUS.rooms:
+                # Try case-insensitive matching
+                room_match = None
+                for r in SMART_HOME_STATUS.rooms.keys():
+                    if room.lower() == r.lower():
+                        room_match = r
+                        break
+                        
+                if not room_match:
+                    return {"success": False, "error": f"Room not found: {room}"}
+                    
+                room = room_match
+                
+            # Get devices in the room
+            device_ids = SMART_HOME_STATUS.rooms.get(room, [])
+            devices = []
+            
+            for device_id in device_ids:
+                device = SMART_HOME_STATUS.devices[device_id]
+                capabilities = SMART_HOME_STATUS.device_capabilities.get(device_id, [])
+                
+                # Generate mock status (similar to above)
+                status = {"online": True}
+                
+                if "switch" in str(capabilities).lower():
+                    status["power"] = "on"  # or "off"
+                    
+                if "switchLevel" in str(capabilities).lower() or "brightness" in str(capabilities).lower():
+                    status["brightness"] = 65  # 0-100
+                    
+                if "thermostat" in str(capabilities).lower() or "temperature" in str(capabilities).lower():
+                    status["mode"] = "heat"  # or "cool", "auto", "off"
+                    status["temperature"] = 72  # degrees
+                    status["target_temperature"] = 68  # degrees
+                    
+                if "audio" in str(capabilities).lower() or "mediaPlayback" in str(capabilities).lower():
+                    status["volume"] = 40  # 0-100
+                    status["playing"] = False  # or True
+                    
+                devices.append({
+                    "id": device_id,
+                    "name": device["name"],
+                    "type": device["type"],
+                    "capabilities": capabilities,
+                    "status": status
+                })
+                
+            return {
+                "success": True,
+                "room": room,
+                "device_count": len(devices),
+                "devices": devices
+            }
+        
+        # If no filters, return all devices
+        else:
+            all_devices = []
+            
+            for device_id, device in SMART_HOME_STATUS.devices.items():
+                capabilities = SMART_HOME_STATUS.device_capabilities.get(device_id, [])
+                
+                # Generate mock status (similar to above)
+                status = {"online": True}
+                
+                if "switch" in str(capabilities).lower():
+                    status["power"] = "on"  # or "off"
+                    
+                if "switchLevel" in str(capabilities).lower() or "brightness" in str(capabilities).lower():
+                    status["brightness"] = 65  # 0-100
+                    
+                if "thermostat" in str(capabilities).lower() or "temperature" in str(capabilities).lower():
+                    status["mode"] = "heat"  # or "cool", "auto", "off"
+                    status["temperature"] = 72  # degrees
+                    status["target_temperature"] = 68  # degrees
+                    
+                if "audio" in str(capabilities).lower() or "mediaPlayback" in str(capabilities).lower():
+                    status["volume"] = 40  # 0-100
+                    status["playing"] = False  # or True
+                    
+                all_devices.append({
+                    "id": device_id,
+                    "name": device["name"],
+                    "type": device["type"],
+                    "room": device["room"],
+                    "capabilities": capabilities,
+                    "status": status
+                })
+                
+            return {
+                "success": True,
+                "device_count": len(all_devices),
+                "devices": all_devices,
+                "rooms": list(SMART_HOME_STATUS.rooms.keys())
+            }
+            
+    except Exception as e:
+        logging.error(f"Error getting device status: {str(e)}")
+        return {"success": False, "error": f"Status retrieval error: {str(e)}"}
