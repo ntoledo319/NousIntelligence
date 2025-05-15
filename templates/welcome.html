@@ -1,0 +1,79 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-lg-8 text-center">
+            <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" alt="NOUS Logo" class="img-fluid mb-4" style="max-height: 180px;">
+            <h1 class="display-4 mb-4">Welcome to NOUS</h1>
+            <p class="lead mb-4">Your personal assistant for managing health, finances, shopping, and travel - all in one place.</p>
+        </div>
+    </div>
+
+    <div class="row mt-4 justify-content-center">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h2 class="card-title text-center mb-4">What can NOUS do for you?</h2>
+                    
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start mb-3">
+                                <i class="fas fa-heartbeat text-danger fs-4 me-3 mt-1"></i>
+                                <div>
+                                    <h5>Health Tracking</h5>
+                                    <p class="text-muted">Monitor medications, doctor appointments, and pain levels.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start mb-3">
+                                <i class="fas fa-shopping-cart text-success fs-4 me-3 mt-1"></i>
+                                <div>
+                                    <h5>Shopping Lists</h5>
+                                    <p class="text-muted">Create and manage recurring shopping needs.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start mb-3">
+                                <i class="fas fa-chart-line text-primary fs-4 me-3 mt-1"></i>
+                                <div>
+                                    <h5>Finance Management</h5>
+                                    <p class="text-muted">Track expenses and monitor your budget.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start mb-3">
+                                <i class="fas fa-plane-departure text-info fs-4 me-3 mt-1"></i>
+                                <div>
+                                    <h5>Trip Planning</h5>
+                                    <p class="text-muted">Organize travel itineraries and reservations.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-8 text-center">
+            <div class="card">
+                <div class="card-body py-5">
+                    <h2 class="mb-4">Get Started Now</h2>
+                    <p class="mb-4">Sign in with your Replit account to access all features.</p>
+                    <a href="{{ url_for('replit_auth.login') }}" class="btn btn-primary btn-lg px-5">
+                        <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

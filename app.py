@@ -116,8 +116,8 @@ def index():
     """Main entry point and command UI"""
     # Check if user is authenticated
     if not current_user.is_authenticated:
-        # Show a special landing page for non-authenticated users
-        return render_template("login.html")
+        # Show a welcome page for non-authenticated users
+        return render_template("welcome.html")
         
     if request.method == "GET":
         # Check if there's a command in the query parameters (from dashboard links)
@@ -179,9 +179,13 @@ def process_command(cmd):
 def dashboard():
     """Show dashboard with data visualizations and summaries"""
     # Check if user is authenticated
+    if not current_user.is_authenticated:
+        flash("Please log in to access the dashboard", "warning")
+        return redirect(url_for("replit_auth.login"))
+    
+    # Check for Google services connection
     if "google_creds" not in session:
-        flash("Please connect your Google account to access the dashboard", "warning")
-        return redirect(url_for("index"))
+        flash("Please connect your Google account to access all dashboard features", "warning")
         
     # Prepare data for the dashboard
     data = {}
@@ -372,6 +376,11 @@ def dashboard():
 @app.route("/authorize/google")
 def authorize_google():
     """Start Google OAuth flow"""
+    # Require authentication
+    if not current_user.is_authenticated:
+        flash("Please log in first to connect your Google account", "warning")
+        return redirect(url_for("replit_auth.login"))
+        
     flow = get_google_flow(GOOGLE_CLIENT_SECRETS, GOOGLE_REDIRECT)
     authorization_url, state = flow.authorization_url(
         access_type='offline',
@@ -383,11 +392,22 @@ def authorize_google():
 @app.route("/callback/google")
 def callback_google():
     """Handle Google OAuth callback"""
+    # Require authentication
+    if not current_user.is_authenticated:
+        flash("Please log in first to connect your Google account", "warning")
+        return redirect(url_for("replit_auth.login"))
+        
     try:
+        from utils.auth_helper import save_google_credentials
+        
         flow = get_google_flow(GOOGLE_CLIENT_SECRETS, GOOGLE_REDIRECT)
         flow.fetch_token(authorization_response=request.url)
         creds = flow.credentials
-        # Store the credentials in session
+        
+        # Store the credentials in the database for this user
+        save_google_credentials(current_user.id, creds)
+        
+        # Also store in session for current browser session
         creds_dict = {
             'token': creds.token,
             'refresh_token': creds.refresh_token,

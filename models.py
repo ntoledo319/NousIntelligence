@@ -30,6 +30,28 @@ class OAuth(OAuthConsumerMixin, db.Model):
         'provider',
         name='uq_user_browser_session_key_provider',
     ),)
+    
+# Third-party service connections for users
+class UserConnection(db.Model):
+    __tablename__ = 'user_connections'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String, db.ForeignKey(User.id), nullable=False)
+    service = db.Column(db.String(50), nullable=False)  # 'google', 'spotify', etc.
+    token = db.Column(db.Text, nullable=False)
+    refresh_token = db.Column(db.Text, nullable=True)
+    token_uri = db.Column(db.String(255), nullable=True)
+    client_id = db.Column(db.String(255), nullable=True)
+    client_secret = db.Column(db.String(255), nullable=True)
+    scopes = db.Column(db.Text, nullable=True)  # JSON string of scopes
+    expires_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user = db.relationship('User', backref=db.backref('connections', lazy=True))
+    
+    __table_args__ = (
+        UniqueConstraint('user_id', 'service', name='uq_user_service'),
+    )
 
 # Enum for DBT (Dialectical Behavior Therapy) skills
 class DBTSkillCategory(enum.Enum):
