@@ -1,7 +1,10 @@
 import os
 import logging
 import json
+import datetime
+from typing import Dict, List, Any, Optional, Union, cast
 from openai import OpenAI
+from openai.types.chat import ChatCompletionMessageParam, ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam, ChatCompletionAssistantMessageParam
 
 # Initialize OpenAI client if key is present
 api_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("OPENROUTER_API_KEY")
@@ -13,10 +16,99 @@ if api_key:
     except Exception as e:
         logging.error(f"Error initializing OpenAI client: {str(e)}")
 
-def parse_natural_language(user_input):
+# Global conversation memory with context awareness
+class ConversationMemory:
+    def __init__(self, max_history: int = 15, context_window_days: int = 7):
+        self.user_histories: Dict[str, List[Dict[str, str]]] = {}
+        self.user_contexts: Dict[str, Dict[str, Any]] = {}
+        self.max_history = max_history
+        self.context_window_days = context_window_days
+    
+    def add_message(self, user_id: str, role: str, content: str) -> None:
+        """Add a message to the user's conversation history"""
+        if user_id not in self.user_histories:
+            self.user_histories[user_id] = []
+        
+        self.user_histories[user_id].append({
+            "role": role,
+            "content": content,
+            "timestamp": datetime.datetime.utcnow().isoformat()
+        })
+        
+        # Trim history if needed
+        if len(self.user_histories[user_id]) > self.max_history:
+            self.user_histories[user_id] = self.user_histories[user_id][-self.max_history:]
+    
+    def add_context(self, user_id: str, context_type: str, context_data: Any) -> None:
+        """Add context information for a user"""
+        if user_id not in self.user_contexts:
+            self.user_contexts[user_id] = {}
+        
+        if context_type not in self.user_contexts[user_id]:
+            self.user_contexts[user_id][context_type] = []
+        
+        # Add timestamp to the context
+        context_entry = {
+            "data": context_data,
+            "timestamp": datetime.datetime.utcnow().isoformat()
+        }
+        
+        self.user_contexts[user_id][context_type].append(context_entry)
+        
+        # Trim old contexts
+        cutoff_date = datetime.datetime.utcnow() - datetime.timedelta(days=self.context_window_days)
+        self.user_contexts[user_id][context_type] = [
+            entry for entry in self.user_contexts[user_id][context_type]
+            if datetime.datetime.fromisoformat(entry["timestamp"]) >= cutoff_date
+        ]
+    
+    def get_recent_messages(self, user_id: str, count: Optional[int] = None) -> List[Dict[str, str]]:
+        """Get the most recent messages for a user"""
+        if user_id not in self.user_histories:
+            return []
+        
+        # If count is None, use self.max_history
+        message_count = self.max_history if count is None else count
+        history = self.user_histories[user_id][-message_count:]
+        # Return only role and content for OpenAI API compatibility
+        return [{"role": msg["role"], "content": msg["content"]} for msg in history]
+    
+    def get_context_summary(self, user_id: str) -> str:
+        """Get a summary of the user's context"""
+        if user_id not in self.user_contexts:
+            return "No context available for this user."
+        
+        summary = []
+        for context_type, contexts in self.user_contexts[user_id].items():
+            if contexts:
+                summary.append(f"{context_type.capitalize()}:")
+                for context in contexts[-3:]:  # Show only the 3 most recent of each type
+                    data_str = str(context["data"])
+                    if len(data_str) > 100:
+                        data_str = data_str[:100] + "..."
+                    summary.append(f"- {data_str}")
+        
+        if not summary:
+            return "No context available for this user."
+        
+        return "\n".join(summary)
+    
+    def get_formatted_context(self, user_id: str) -> str:
+        """Get a formatted context string for the user"""
+        ctx_summary = self.get_context_summary(user_id)
+        return f"User Context Information:\n{ctx_summary}"
+
+# Initialize the global conversation memory
+conversation_memory = ConversationMemory()
+
+def parse_natural_language(user_input: str, user_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Use OpenAI to parse natural language input and convert it to a structured command
     
+    Args:
+        user_input: The user's natural language input
+        user_id: Optional user identifier for context awareness
+        
     Returns:
         dict: A dictionary with parsed command information
     """
@@ -42,6 +134,12 @@ def parse_natural_language(user_input):
         12. Appointments List: "show appointments"
         13. Chat: "chat: [message]" - For free-form conversation with the AI assistant
         14. Analyze Email: "analyze email: [email content or ID]"
+        15. Shopping: "add to shopping list: [items]" or "show shopping lists"
+        16. Medication: "refill [medication]" or "check medications"
+        17. Weather: "check weather in [location]" or "get pain forecast"
+        18. Travel: "plan trip to [destination]" or "check my itinerary"
+        19. Smart Home: "turn on [device]" or "set temperature to [value]"
+        20. Budget: "add expense: [amount] for [category]" or "show budget summary"
         
         If the user is asking about a doctor appointment or mentions a doctor visit, use the appropriate doctor or appointment command format.
         
@@ -51,19 +149,40 @@ def parse_natural_language(user_input):
         
         Respond with JSON in this exact format:
         {
-            "command_type": "calendar|task|note|mood|workout|music|query|reflection|doctor|doctor_list|appointment|appointments_list|chat|analyze_email",
+            "command_type": "calendar|task|note|mood|workout|music|query|reflection|doctor|doctor_list|appointment|appointments_list|chat|analyze_email|shopping|medication|weather|travel|smart_home|budget",
             "structured_command": "the exact command in the proper format",
             "confidence": 0.0 to 1.0
         }
         """
         
+        # Add context if user_id is provided
+        context_str = ""
+        if user_id:
+            context_str = conversation_memory.get_formatted_context(user_id)
+            if len(context_str) > 10:  # Only add if there's meaningful context
+                system_prompt += f"\n\nUser Context (use this to better understand the request):\n{context_str}"
+        
+        # Prepare messages with proper typing
+        messages: List[ChatCompletionMessageParam] = []
+        
+        # Add system message
+        system_msg: ChatCompletionSystemMessageParam = {
+            "role": "system",
+            "content": system_prompt
+        }
+        messages.append(system_msg)
+        
+        # Add user message
+        user_msg: ChatCompletionUserMessageParam = {
+            "role": "user",
+            "content": user_input
+        }
+        messages.append(user_msg)
+        
         try:
             response = client.chat.completions.create(
                 model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_input}
-                ],
+                messages=messages,
                 response_format={"type": "json_object"}
             )
         except Exception as e:
@@ -74,14 +193,25 @@ def parse_natural_language(user_input):
         
         # The response is already JSON formatted
         try:
-            if result:
+            if result is not None and result:
                 parsed = json.loads(result)
+                
+                # Store the interaction in conversation memory if user_id provided
+                if user_id:
+                    conversation_memory.add_message(user_id, "user", user_input)
+                    # Also store the parsed command as context
+                    conversation_memory.add_context(
+                        user_id, 
+                        "command_history", 
+                        f"Command: {parsed.get('command_type')} - {parsed.get('structured_command')}"
+                    )
+                
                 return parsed
             else:
                 return {"error": "Empty response from OpenAI"}
         except json.JSONDecodeError as e:
             logging.error(f"Error parsing JSON response: {str(e)}")
-            return {"error": f"Invalid JSON response: {str(e)}", "original": result}
+            return {"error": f"Invalid JSON response: {str(e)}", "original": str(result)}
         
     except Exception as e:
         logging.error(f"Error parsing natural language: {str(e)}")
@@ -162,18 +292,14 @@ def get_motivation_quote(theme=None):
         logging.error(f"Error generating motivational quote: {str(e)}")
         return f"Error generating quote: {str(e)}"
         
-# User conversation history cache (user_id -> list of message objects)
-conversation_history = {}
-# Conversation history max length per user
-MAX_HISTORY_LENGTH = 10
-
-def handle_conversation(user_id, message):
+def handle_conversation(user_id, message, context_data=None):
     """
-    Handle a free-form conversation with the AI assistant
+    Handle a free-form conversation with the AI assistant, with improved context awareness
     
     Args:
         user_id: The unique identifier for the user
         message: The user's message
+        context_data: Optional additional context data to include (dict with context types as keys)
         
     Returns:
         str: The AI assistant's response
@@ -182,27 +308,64 @@ def handle_conversation(user_id, message):
         if not client:
             return "Conversation functionality not available (missing API key)"
             
-        # Initialize conversation history for this user if it doesn't exist
-        if user_id not in conversation_history:
-            conversation_history[user_id] = []
-            
-        # Add this message to the history
-        conversation_history[user_id].append({"role": "user", "content": message})
+        # Add current message to conversation memory
+        conversation_memory.add_message(user_id, "user", message)
         
-        # Limit the conversation history length
-        if len(conversation_history[user_id]) > MAX_HISTORY_LENGTH:
-            conversation_history[user_id] = conversation_history[user_id][-MAX_HISTORY_LENGTH:]
+        # Add any provided context data
+        if context_data:
+            for context_type, data in context_data.items():
+                conversation_memory.add_context(user_id, context_type, data)
+        
+        # Get recent conversation history
+        recent_messages = conversation_memory.get_recent_messages(user_id)
+        
+        # Get user context summary
+        context_str = conversation_memory.get_formatted_context(user_id)
             
-        # Prepare the messages for the API call
-        system_message = {
-            "role": "system", 
-            "content": """You are NOUS, a helpful, friendly, and conversational personal assistant. 
-            Respond conversationally and helpfully to the user. Keep responses concise but informative.
-            You're running within a larger personal assistant application that has specialized functions 
-            for many tasks, so focus on being helpful with general knowledge, advice, and friendly conversation."""
+        # Prepare the system message with context
+        system_content = """You are NOUS, a helpful, friendly, and intelligent personal assistant. 
+        Respond conversationally and helpfully to the user. Keep responses concise but informative.
+        You're running within a larger personal assistant application that has specialized functions 
+        for many tasks, so focus on being helpful with general knowledge, advice, and friendly conversation.
+        
+        When responding:
+        - Be personable and engaging
+        - Remember prior conversations and show continuity
+        - Acknowledge the user's emotions and needs
+        - Provide helpful and accurate information
+        - Keep responses under 150 words unless detailed information is requested
+        
+        The current date and time is: """ + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n"
+        
+        # Add context information if available
+        if len(context_str) > 10:
+            system_content += f"\n{context_str}\n"
+            system_content += "\nUse this context information to personalize your responses and show continuity with previous interactions."
+            
+        # Prepare the messages for the API call with proper typing
+        messages: List[ChatCompletionMessageParam] = []
+        
+        # Add system message
+        system_msg: ChatCompletionSystemMessageParam = {
+            "role": "system",
+            "content": system_content
         }
+        messages.append(system_msg)
         
-        messages = [system_message] + conversation_history[user_id]
+        # Add conversation history
+        for msg in recent_messages:
+            if msg["role"] == "user":
+                user_msg: ChatCompletionUserMessageParam = {
+                    "role": "user",
+                    "content": msg["content"]
+                }
+                messages.append(user_msg)
+            elif msg["role"] == "assistant":
+                assistant_msg: ChatCompletionAssistantMessageParam = {
+                    "role": "assistant",
+                    "content": msg["content"]
+                }
+                messages.append(assistant_msg)
         
         try:
             response = client.chat.completions.create(
@@ -212,11 +375,12 @@ def handle_conversation(user_id, message):
             )
             
             assistant_message = response.choices[0].message.content
-            
-            # Add the assistant's response to the conversation history
-            conversation_history[user_id].append({"role": "assistant", "content": assistant_message})
-            
-            return assistant_message
+            if assistant_message is not None:
+                # Add the assistant's response to conversation memory
+                conversation_memory.add_message(user_id, "assistant", assistant_message)
+                return assistant_message
+            else:
+                return "I received an empty response. Let me try to help you differently."
             
         except Exception as e:
             logging.error(f"OpenAI API error in conversation: {str(e)}")
@@ -337,19 +501,33 @@ def analyze_gmail_threads(user_id, threads, max_threads=5):
                 
                 prompt = f"Subject: {thread_subject}\n\nThread content:\n{thread_content}"
                 
+                # Prepare messages with proper typing
+                messages: List[ChatCompletionMessageParam] = []
+                
+                # Add system message
+                system_msg: ChatCompletionSystemMessageParam = {
+                    "role": "system",
+                    "content": system_prompt
+                }
+                messages.append(system_msg)
+                
+                # Add user message
+                user_msg: ChatCompletionUserMessageParam = {
+                    "role": "user",
+                    "content": prompt
+                }
+                messages.append(user_msg)
+                
                 response = client.chat.completions.create(
                     model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": prompt}
-                    ],
+                    messages=messages,
                     response_format={"type": "json_object"}
                 )
                 
                 result = response.choices[0].message.content
                 
                 try:
-                    if result:
+                    if result and result is not None:
                         parsed = json.loads(result)
                         # Add thread ID to the result
                         parsed["thread_id"] = thread.get("id")
@@ -369,3 +547,179 @@ def analyze_gmail_threads(user_id, threads, max_threads=5):
     except Exception as e:
         logging.error(f"Error in Gmail threads analysis: {str(e)}")
         return {"error": f"Threads analysis failed: {str(e)}"}
+
+# New multimodal functionality
+
+def analyze_image(image_data, prompt=None):
+    """
+    Analyze an image using OpenAI's vision capabilities
+    
+    Args:
+        image_data: Base64 encoded image data or image URL
+        prompt: Optional custom prompt for the analysis
+        
+    Returns:
+        dict: Dictionary containing the analysis results
+    """
+    try:
+        if not client:
+            return {"success": False, "error": "Image analysis not available (missing API key)"}
+        
+        # Determine if the input is a URL or base64 data
+        if image_data.startswith('http'):
+            image_url = {"url": image_data}
+        else:
+            # Assume it's base64 data
+            image_url = {"url": f"data:image/jpeg;base64,{image_data}"}
+        
+        # Default analysis prompt if none provided
+        if not prompt:
+            prompt = "Analyze this image in detail. Describe what you see, including objects, people, activities, context, and any notable elements."
+        
+        # Prepare messages with proper typing
+        user_content = [
+            {
+                "type": "text",
+                "text": prompt
+            },
+            {
+                "type": "image_url",
+                "image_url": image_url
+            }
+        ]
+        
+        # Create a dictionary with the correct structure
+        user_message: ChatCompletionUserMessageParam = {
+            "role": "user", 
+            "content": user_content
+        }
+        
+        messages = [user_message]
+        
+        # Call the API
+        response = client.chat.completions.create(
+            model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+            messages=messages,
+            max_tokens=500
+        )
+        
+        description = response.choices[0].message.content
+        
+        # Get additional AI analysis for categorization
+        if description:
+            # Prepare for categorization
+            system_prompt = """
+            Based on the image description, provide a structured categorization with the following:
+            
+            1. Main subject(s) of the image (list)
+            2. Scene type (indoor, outdoor, urban, nature, etc.)
+            3. Dominant colors
+            4. Emotional tone/mood
+            5. Suggested tags (max 5)
+            
+            Format your response as JSON with these keys:
+            - subjects: list of main subjects
+            - scene_type: string describing the scene
+            - colors: list of dominant colors
+            - mood: emotional tone of the image
+            - tags: list of relevant tags
+            """
+            
+            # Prepare messages for categorization
+            category_messages: List[ChatCompletionMessageParam] = []
+            
+            # Add system message
+            system_msg: ChatCompletionSystemMessageParam = {
+                "role": "system",
+                "content": system_prompt
+            }
+            category_messages.append(system_msg)
+            
+            # Add user message
+            user_msg: ChatCompletionUserMessageParam = {
+                "role": "user",
+                "content": f"Image description: {description}"
+            }
+            category_messages.append(user_msg)
+            
+            category_response = client.chat.completions.create(
+                model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+                messages=category_messages,
+                response_format={"type": "json_object"}
+            )
+            
+            category_result = category_response.choices[0].message.content
+            
+            if category_result and category_result is not None:
+                try:
+                    categories = json.loads(category_result)
+                    return {
+                        "success": True,
+                        "description": description,
+                        "categories": categories
+                    }
+                except json.JSONDecodeError:
+                    return {
+                        "success": True,
+                        "description": description,
+                        "categories": {"error": "Failed to parse categories"}
+                    }
+            else:
+                return {
+                    "success": True,
+                    "description": description,
+                    "categories": {"error": "Empty category response"}
+                }
+        else:
+            return {"success": False, "error": "Failed to generate image description"}
+            
+    except Exception as e:
+        logging.error(f"Error analyzing image: {str(e)}")
+        return {"success": False, "error": f"Image analysis failed: {str(e)}"}
+        
+def generate_image(prompt, style=None, size="1024x1024"):
+    """
+    Generate an image using AI based on a prompt
+    
+    Args:
+        prompt: The description of the image to generate
+        style: Optional style parameter (e.g., "photorealistic", "cartoon", etc.)
+        size: Image size (default: 1024x1024)
+        
+    Returns:
+        dict: Dictionary containing the generation results
+    """
+    try:
+        if not client:
+            return {"success": False, "error": "Image generation not available (missing API key)"}
+        
+        # Enhance the prompt with style information if provided
+        full_prompt = prompt
+        if style:
+            full_prompt = f"{prompt} Style: {style}."
+            
+        # Call the DALL-E API
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=full_prompt,
+            n=1,
+            size=size
+        )
+        
+        # Extract the image URL
+        if response.data and len(response.data) > 0:
+            image_url = response.data[0].url
+            revised_prompt = response.data[0].revised_prompt if hasattr(response.data[0], 'revised_prompt') else None
+            
+            return {
+                "success": True,
+                "url": image_url,
+                "original_prompt": prompt,
+                "revised_prompt": revised_prompt
+            }
+        else:
+            return {"success": False, "error": "No image generated"}
+            
+    except Exception as e:
+        logging.error(f"Error generating image: {str(e)}")
+        return {"success": False, "error": f"Image generation failed: {str(e)}"}
