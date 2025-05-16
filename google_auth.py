@@ -1,17 +1,30 @@
 import json
 import os
+import logging
 
 import requests
 from flask import Blueprint, redirect, request, url_for, flash, session
 from flask_login import login_required, login_user, logout_user, current_user
 from oauthlib.oauth2 import WebApplicationClient
 
-# Configure Google OAuth
-# Hard-coding should be avoided, but since the client ID and secret are already in client_secret.json,
-# we're using them directly here for troubleshooting purposes
-GOOGLE_CLIENT_ID = "1015094007473-337qm1ofr5htlodjmsf2p6r3fcht6pg2.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET = "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"
+# Load client secrets from file
+try:
+    with open('client_secret.json', 'r') as f:
+        client_config = json.load(f)['web']
+    GOOGLE_CLIENT_ID = client_config['client_id']
+    GOOGLE_CLIENT_SECRET = client_config['client_secret']
+    logging.info(f"Successfully loaded Google OAuth credentials from client_secret.json")
+except Exception as e:
+    # Fall back to environment variables if file can't be loaded
+    GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET")
+    logging.info(f"Using Google OAuth credentials from environment variables")
+
 GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
+
+# Log configuration information (without secrets)
+logging.info(f"Google client ID configured: {'Yes' if GOOGLE_CLIENT_ID else 'No'}")
+logging.info(f"Google client secret configured: {'Yes' if GOOGLE_CLIENT_SECRET else 'No'}")
 
 # Initialize Google OAuth client
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
@@ -22,57 +35,75 @@ google_auth = Blueprint("google_auth", __name__)
 @google_auth.route("/login/google")
 def login():
     """Start Google OAuth flow"""
-    # Get Google's OAuth 2.0 provider configuration
-    google_provider_cfg = requests.get(GOOGLE_DISCOVERY_URL).json()
-    authorization_endpoint = google_provider_cfg["authorization_endpoint"]
+    try:
+        # Get Google's OAuth 2.0 provider configuration
+        google_provider_cfg = requests.get(GOOGLE_DISCOVERY_URL).json()
+        authorization_endpoint = google_provider_cfg["authorization_endpoint"]
 
-    # Create the redirect URI to Google's OAuth 2.0 server
-    # Use the exact redirect URI registered in Google Cloud Console
-    # Extract the base app URL from the request
-    base_url = request.url_root.rstrip('/').replace("http://", "https://")
-    redirect_uri = f"{base_url}/callback/google"
-    
-    # Use the library to create an authorization URL with expanded scopes
-    request_uri = client.prepare_request_uri(
-        authorization_endpoint,
-        redirect_uri=redirect_uri,
-        scope=[
-            # Basic identity scopes
-            "openid", "email", "profile",
-            
-            # Google Calendar scopes
-            "https://www.googleapis.com/auth/calendar",
-            "https://www.googleapis.com/auth/calendar.events",
-            
-            # Google Tasks and Keep scopes
-            "https://www.googleapis.com/auth/tasks",
-            "https://www.googleapis.com/auth/keep",
-            
-            # Gmail scopes
-            "https://www.googleapis.com/auth/gmail.readonly",
-            "https://www.googleapis.com/auth/gmail.labels",
-            
-            # Google Drive scopes
-            "https://www.googleapis.com/auth/drive.readonly",
-            "https://www.googleapis.com/auth/drive.file",
-            
-            # Google Maps Platform scopes
-            "https://www.googleapis.com/auth/maps.platform",
-            
-            # Google Photos scopes
-            "https://www.googleapis.com/auth/photoslibrary.readonly",
-            
-            # Google Docs/Sheets scopes
-            "https://www.googleapis.com/auth/documents",
-            "https://www.googleapis.com/auth/spreadsheets",
-            
-            # YouTube scopes
-            "https://www.googleapis.com/auth/youtube.readonly"
-        ],
-    )
-    
-    # Redirect to Google's OAuth 2.0 server
-    return redirect(request_uri)
+        # Get the redirect URIs from client_secret.json to ensure they match
+        with open('client_secret.json', 'r') as f:
+            client_config = json.load(f)['web']
+            registered_redirect_uris = client_config.get('redirect_uris', [])
+        
+        # Create the redirect URI based on the current domain
+        base_url = request.url_root.rstrip('/').replace("http://", "https://")
+        redirect_uri = f"{base_url}/callback/google"
+        
+        # Log the URIs for debugging
+        logging.info(f"Current URL root: {request.url_root}")
+        logging.info(f"Constructed redirect URI: {redirect_uri}")
+        logging.info(f"Registered redirect URIs: {registered_redirect_uris}")
+        
+        # Use the library to create an authorization URL with expanded scopes
+        request_uri = client.prepare_request_uri(
+            authorization_endpoint,
+            redirect_uri=redirect_uri,
+            scope=[
+                # Basic identity scopes
+                "openid", "email", "profile",
+                
+                # Google Calendar scopes
+                "https://www.googleapis.com/auth/calendar",
+                "https://www.googleapis.com/auth/calendar.events",
+                
+                # Google Tasks and Keep scopes
+                "https://www.googleapis.com/auth/tasks",
+                "https://www.googleapis.com/auth/keep",
+                
+                # Gmail scopes
+                "https://www.googleapis.com/auth/gmail.readonly",
+                "https://www.googleapis.com/auth/gmail.labels",
+                
+                # Google Drive scopes
+                "https://www.googleapis.com/auth/drive.readonly",
+                "https://www.googleapis.com/auth/drive.file",
+                
+                # Google Maps Platform scopes
+                "https://www.googleapis.com/auth/maps.platform",
+                
+                # Google Photos scopes
+                "https://www.googleapis.com/auth/photoslibrary.readonly",
+                
+                # Google Docs/Sheets scopes
+                "https://www.googleapis.com/auth/documents",
+                "https://www.googleapis.com/auth/spreadsheets",
+                
+                # YouTube scopes
+                "https://www.googleapis.com/auth/youtube.readonly"
+            ],
+        )
+        
+        # Log the authorization URI
+        logging.info(f"Authorization URI: {request_uri}")
+        
+        # Redirect to Google's OAuth 2.0 server
+        return redirect(request_uri)
+    except Exception as e:
+        logging.error(f"Error in Google login: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        flash(f"Unable to start Google authentication: {str(e)}", "danger")
+        return redirect(url_for("index"))
 
 @google_auth.route("/callback/google")
 def callback():
