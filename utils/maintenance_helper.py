@@ -87,18 +87,26 @@ def _prune_knowledge_base():
     """Prune the knowledge base to keep it at a manageable size."""
     from utils.knowledge_helper import prune_knowledge_base
     
-    # Prune global knowledge
-    result = prune_knowledge_base(user_id=None, max_entries=1000, min_relevance=0.2, run_async=False)
-    logging.info(f"Pruned {result or 0} global knowledge entries")
-    
-    # Get list of active users
-    from models import User
-    users = User.query.filter_by(account_active=True).all()
-    
-    # Prune each user's knowledge
-    for user in users:
-        result = prune_knowledge_base(user_id=user.id, max_entries=500, min_relevance=0.3, run_async=False)
-        logging.info(f"Pruned {result or 0} knowledge entries for user {user.id}")
+    try:
+        # Prune global knowledge
+        result = prune_knowledge_base(user_id=None, max_entries=1000, min_relevance=0.2, run_async=False)
+        logging.info(f"Pruned {result or 0} global knowledge entries")
+        
+        # Get list of active users - use specific columns to avoid non-existent columns
+        from models import User
+        from sqlalchemy import select
+        from app import db
+        
+        # Only select the columns we know exist in the database
+        stmt = select(User.id).where(User.account_active == True)
+        users = [row[0] for row in db.session.execute(stmt)]
+        
+        # Prune each user's knowledge
+        for user_id in users:
+            result = prune_knowledge_base(user_id=user_id, max_entries=500, min_relevance=0.3, run_async=False)
+            logging.info(f"Pruned {result or 0} knowledge entries for user {user_id}")
+    except Exception as e:
+        logging.error(f"Error pruning knowledge base: {str(e)}")
 
 def _clean_caches():
     """Clean up all in-memory caches."""
@@ -161,21 +169,36 @@ def _optimize_database():
     from app import db
     from sqlalchemy import text
     
-    # Run VACUUM to reclaim space and update statistics
+    # To properly run VACUUM, we need to run it outside a transaction
     try:
-        db.session.execute(text("VACUUM ANALYZE"))
+        # Commit any pending transactions
+        db.session.commit()
+        
+        # Connect with autocommit mode
+        connection = db.engine.connect()
+        connection.execution_options(isolation_level="AUTOCOMMIT")
+        
+        # Run vacuum
+        connection.execute(text("VACUUM ANALYZE"))
         logging.info("Database VACUUM ANALYZE completed")
+        
+        # Close the connection
+        connection.close()
     except Exception as e:
         logging.error(f"Error running VACUUM: {str(e)}")
     
     # Additional PostgreSQL optimizations
     try:
-        # Update statistics
-        db.session.execute(text("ANALYZE"))
-        
-        # Optimize specific tables that may have a lot of updates/deletes
-        for table in ['knowledge_base', 'command_log', 'google_tokens']:
-            db.session.execute(text(f"REINDEX TABLE {table}"))
+        # Create a new connection for other operations
+        with db.engine.connect() as conn:
+            # Update statistics
+            conn.execute(text("ANALYZE"))
+            
+            # Optimize specific tables that may have a lot of updates/deletes
+            for table in ['knowledge_base', 'command_log', 'google_tokens']:
+                conn.execute(text(f"REINDEX TABLE {table}"))
+            
+            conn.commit()
             
         logging.info("Database optimization tasks completed")
     except Exception as e:
