@@ -217,7 +217,8 @@ def get_distance_matrix(origins, destinations, mode="driving"):
 def get_place_details(place_id):
     """Get details about a place using its place_id"""
     try:
-        if not MAPS_API_KEY:
+        api_key = get_maps_api_key()
+        if not api_key:
             return {
                 "success": False,
                 "error": "Maps API key not available"
@@ -228,7 +229,7 @@ def get_place_details(place_id):
         params = {
             "place_id": place_id,
             "fields": "name,rating,formatted_phone_number,formatted_address,opening_hours,website,geometry,types",
-            "key": MAPS_API_KEY
+            "key": api_key
         }
         
         # Make the request
@@ -265,7 +266,8 @@ def get_place_details(place_id):
 def search_nearby_places(lat, lng, radius=1000, type=None, keyword=None):
     """Search for places near a location"""
     try:
-        if not MAPS_API_KEY:
+        api_key = get_maps_api_key()
+        if not api_key:
             return {
                 "success": False,
                 "error": "Maps API key not available"
@@ -276,7 +278,7 @@ def search_nearby_places(lat, lng, radius=1000, type=None, keyword=None):
         params = {
             "location": f"{lat},{lng}",
             "radius": radius,
-            "key": MAPS_API_KEY
+            "key": api_key
         }
         
         # Add optional parameters
@@ -320,7 +322,8 @@ def search_nearby_places(lat, lng, radius=1000, type=None, keyword=None):
 def search_places(query, location=None, radius=None, type=None):
     """Search for places using text search"""
     try:
-        if not MAPS_API_KEY:
+        api_key = get_maps_api_key()
+        if not api_key:
             return {
                 "success": False,
                 "error": "Maps API key not available"
@@ -330,7 +333,7 @@ def search_places(query, location=None, radius=None, type=None):
         url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
         params = {
             "query": query,
-            "key": MAPS_API_KEY
+            "key": api_key
         }
         
         # Add optional parameters
@@ -380,7 +383,8 @@ def search_places(query, location=None, radius=None, type=None):
 def get_directions(origin, destination, mode="driving", waypoints=None, avoid=None):
     """Get directions between two locations"""
     try:
-        if not MAPS_API_KEY:
+        api_key = get_maps_api_key()
+        if not api_key:
             return {
                 "success": False,
                 "error": "Maps API key not available"
@@ -397,7 +401,7 @@ def get_directions(origin, destination, mode="driving", waypoints=None, avoid=No
             "origin": origin,
             "destination": destination,
             "mode": mode,
-            "key": MAPS_API_KEY
+            "key": api_key
         }
         
         # Add optional parameters
@@ -471,7 +475,8 @@ def get_directions(origin, destination, mode="driving", waypoints=None, avoid=No
 def get_static_map_url(center, zoom=13, size="600x300", markers=None, path=None):
     """Generate a URL for a static map image"""
     try:
-        if not MAPS_API_KEY:
+        api_key = get_maps_api_key()
+        if not api_key:
             return {
                 "success": False,
                 "error": "Maps API key not available"
@@ -483,7 +488,7 @@ def get_static_map_url(center, zoom=13, size="600x300", markers=None, path=None)
             "center": center,
             "zoom": zoom,
             "size": size,
-            "key": MAPS_API_KEY
+            "key": api_key
         }
         
         # Add markers if provided
