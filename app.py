@@ -19,6 +19,8 @@ from utils.weather_helper import (
     format_weather_output, format_forecast_output, get_pressure_trend,
     calculate_pain_flare_risk, get_storm_severity, format_pain_forecast_output
 )
+# Import Spotify visualization blueprint
+from routes.spotify_visualization import spotify_viz
 from utils.doctor_appointment_helper import (
     get_doctors, get_doctor_by_id, get_doctor_by_name, 
     add_doctor, update_doctor, delete_doctor,
