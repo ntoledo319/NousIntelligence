@@ -119,7 +119,7 @@ login_manager.login_message = "Please log in to access this page."
 login_manager.login_message_category = "info"
 
 # Import and register the Google auth blueprint
-from google_auth import google_auth
+from fixed_auth import google_auth
 app.register_blueprint(google_auth)
 
 # Import and register the routes from routes package
