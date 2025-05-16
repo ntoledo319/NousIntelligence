@@ -1,10 +1,21 @@
 import datetime
 import logging
 import re
-from flask import url_for
+import os
+import base64
+from io import BytesIO
+from PIL import Image
+from flask import url_for, session
 from utils.logger import log_workout, log_mood
 from utils.scraper import scrape_aa_reflection
 from utils.ai_helper import parse_natural_language, handle_conversation, analyze_gmail_content, analyze_gmail_threads
+
+# Import Hugging Face image helpers if available
+try:
+    from utils.image_helper import describe_image, detect_objects_in_image, analyze_image_for_travel
+    IMAGE_ANALYSIS_ENABLED = True
+except ImportError:
+    IMAGE_ANALYSIS_ENABLED = False
 
 # Import knowledge base utilities if available
 try:
@@ -3399,6 +3410,201 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
             log.append(f"❌ Error checking emotional vulnerability: {str(e)}")
         return result
         
+    # Image description command
+    elif cmd.startswith("describe image") and IMAGE_ANALYSIS_ENABLED:
+        # Check if there's a recently uploaded image
+        try:
+            user_id = session.get('user_id') if session else None
+            
+            # Get the uploaded image
+            image_path = None
+            
+            # Create uploads directory if it doesn't exist
+            os.makedirs("uploads", exist_ok=True)
+            user_dir = os.path.join("uploads", f"user_{user_id}" if user_id else "anonymous")
+            os.makedirs(user_dir, exist_ok=True)
+            
+            # Check if we have any uploaded images for this user
+            files = []
+            if os.path.exists(user_dir):
+                files = [f for f in os.listdir(user_dir) if os.path.isfile(os.path.join(user_dir, f)) and 
+                        f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
+            
+            if files:
+                # Sort by modification time, newest first
+                files.sort(key=lambda x: os.path.getmtime(os.path.join(user_dir, x)), reverse=True)
+                image_path = os.path.join(user_dir, files[0])
+                
+                # Read the image file
+                with open(image_path, 'rb') as f:
+                    image_data = f.read()
+                    
+                # Analyze the image
+                log.append("🖼️ Analyzing your image using Hugging Face's free AI services...")
+                result = describe_image(image_data)
+                
+                if result and not (isinstance(result, dict) and 'error' in result):
+                    log.append(f"🔍 Image Description: {result.get('description', 'No description available')}")
+                    
+                    # Add categories if available
+                    if 'categories' in result and result['categories']:
+                        category_text = ", ".join(result['categories'])
+                        log.append(f"🏷️ Categories: {category_text}")
+                        
+                    # Add confidence if available
+                    if 'top_category' in result and result['top_category'] and 'confidence' in result:
+                        confidence = result['confidence'] * 100
+                        log.append(f"📊 Primary classification: {result['top_category']} ({confidence:.1f}% confident)")
+                else:
+                    error_msg = result.get('error', 'Unknown error occurred') if isinstance(result, dict) else 'Failed to analyze image'
+                    log.append(f"❌ {error_msg}")
+            else:
+                log.append("❌ No images found. Please upload an image first.")
+                log.append("💡 You can upload an image by using the file attachment button in the chat interface.")
+                
+        except Exception as e:
+            logging.error(f"Error in image description: {str(e)}")
+            log.append(f"❌ Error analyzing image: {str(e)}")
+            
+        return result
+    
+    # Object detection command
+    elif cmd.startswith("detect objects") and IMAGE_ANALYSIS_ENABLED:
+        # Check if there's a recently uploaded image
+        try:
+            user_id = session.get('user_id') if session else None
+            
+            # Get the uploaded image
+            image_path = None
+            
+            # Create uploads directory if it doesn't exist
+            os.makedirs("uploads", exist_ok=True)
+            user_dir = os.path.join("uploads", f"user_{user_id}" if user_id else "anonymous")
+            os.makedirs(user_dir, exist_ok=True)
+            
+            # Check if we have any uploaded images for this user
+            files = []
+            if os.path.exists(user_dir):
+                files = [f for f in os.listdir(user_dir) if os.path.isfile(os.path.join(user_dir, f)) and 
+                        f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
+            
+            if files:
+                # Sort by modification time, newest first
+                files.sort(key=lambda x: os.path.getmtime(os.path.join(user_dir, x)), reverse=True)
+                image_path = os.path.join(user_dir, files[0])
+                
+                # Read the image file
+                with open(image_path, 'rb') as f:
+                    image_data = f.read()
+                    
+                # Detect objects in the image
+                log.append("🔍 Detecting objects using Hugging Face's free AI services...")
+                result = detect_objects_in_image(image_data)
+                
+                if result and not (isinstance(result, dict) and 'error' in result):
+                    total_objects = result.get('total_objects', 0)
+                    log.append(f"🎯 Found {total_objects} objects in the image")
+                    
+                    # Add object counts if available
+                    if 'counts' in result and result['counts']:
+                        log.append("📋 Objects detected:")
+                        for obj, count in result['counts'].items():
+                            log.append(f"  • {obj}: {count}")
+                            
+                    # Add detailed objects if available
+                    if 'objects' in result and result['objects']:
+                        top_objects = result['objects'][:5]  # Limit to top 5 objects
+                        if len(top_objects) > 0:
+                            log.append("🔍 Top detections with confidence:")
+                            for obj in top_objects:
+                                confidence = obj.get('confidence', 0) * 100
+                                log.append(f"  • {obj.get('label')}: {confidence:.1f}%")
+                else:
+                    error_msg = result.get('error', 'Unknown error occurred') if isinstance(result, dict) else 'Failed to detect objects'
+                    log.append(f"❌ {error_msg}")
+            else:
+                log.append("❌ No images found. Please upload an image first.")
+                log.append("💡 You can upload an image by using the file attachment button in the chat interface.")
+                
+        except Exception as e:
+            logging.error(f"Error in object detection: {str(e)}")
+            log.append(f"❌ Error detecting objects: {str(e)}")
+            
+        return result
+    
+    # Travel photo analysis command
+    elif cmd.startswith("analyze image for travel") and IMAGE_ANALYSIS_ENABLED:
+        # Check if there's a recently uploaded image
+        try:
+            user_id = session.get('user_id') if session else None
+            
+            # Get the uploaded image
+            image_path = None
+            
+            # Create uploads directory if it doesn't exist
+            os.makedirs("uploads", exist_ok=True)
+            user_dir = os.path.join("uploads", f"user_{user_id}" if user_id else "anonymous")
+            os.makedirs(user_dir, exist_ok=True)
+            
+            # Check if we have any uploaded images for this user
+            files = []
+            if os.path.exists(user_dir):
+                files = [f for f in os.listdir(user_dir) if os.path.isfile(os.path.join(user_dir, f)) and 
+                        f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))]
+            
+            if files:
+                # Sort by modification time, newest first
+                files.sort(key=lambda x: os.path.getmtime(os.path.join(user_dir, x)), reverse=True)
+                image_path = os.path.join(user_dir, files[0])
+                
+                # Read the image file
+                with open(image_path, 'rb') as f:
+                    image_data = f.read()
+                    
+                # Analyze the travel photo
+                log.append("🌍 Analyzing your travel photo using Hugging Face's free AI services...")
+                result = analyze_image_for_travel(image_data)
+                
+                if result and not (isinstance(result, dict) and 'error' in result):
+                    log.append(f"📸 Travel Photo Analysis: {result.get('description', 'No description available')}")
+                    
+                    # Add photo types if available
+                    photo_types = []
+                    if result.get('is_landmark'):
+                        photo_types.append("📍 Landmark/Architecture")
+                    if result.get('is_nature'):
+                        photo_types.append("🌲 Nature/Landscape")
+                    if result.get('is_food'):
+                        photo_types.append("🍽️ Food/Cuisine")
+                        
+                    if photo_types:
+                        log.append("🏷️ Photo Type:")
+                        for photo_type in photo_types:
+                            log.append(f"  • {photo_type}")
+                    else:
+                        log.append("🏷️ Photo Type: Other/General")
+                        
+                    # Add travel details if available
+                    if 'travel_details' in result and result['travel_details']:
+                        log.append(f"✈️ Travel Information: {result['travel_details']}")
+                        
+                    # Add categories if available
+                    if 'categories' in result and result['categories']:
+                        category_text = ", ".join(result['categories'])
+                        log.append(f"🔍 Detected Elements: {category_text}")
+                else:
+                    error_msg = result.get('error', 'Unknown error occurred') if isinstance(result, dict) else 'Failed to analyze travel photo'
+                    log.append(f"❌ {error_msg}")
+            else:
+                log.append("❌ No images found. Please upload an image first.")
+                log.append("💡 You can upload an image by using the file attachment button in the chat interface.")
+                
+        except Exception as e:
+            logging.error(f"Error in travel photo analysis: {str(e)}")
+            log.append(f"❌ Error analyzing travel photo: {str(e)}")
+            
+        return result
+
     # Handle logging a DBT skill
     elif cmd.startswith("log skill "):
         # Expected format: "log skill [skill_name] category [category] effectiveness [1-5]: [situation]"
