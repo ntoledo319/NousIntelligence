@@ -248,8 +248,7 @@ def callback():
                     "https://www.googleapis.com/auth/drive.readonly",
                     "https://www.googleapis.com/auth/drive.file",
                     
-                    # Google Maps Platform scopes
-                    "https://www.googleapis.com/auth/maps.platform",
+                    # Maps scope removed to fix authorization error
                     
                     # Google Photos scopes
                     "https://www.googleapis.com/auth/photoslibrary.readonly",
