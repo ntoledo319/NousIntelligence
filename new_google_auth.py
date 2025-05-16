@@ -35,9 +35,18 @@ def login():
     print("=======================================")
     
     # Create a flow instance with client credentials and scopes
-    redirect_uri = client_config['web']['redirect_uris'][0]
+    # Dynamically adapt to the current domain instead of using the hardcoded one
+    current_domain = request.host
+    redirect_uri = f"https://{current_domain}/callback/google"
+    print(f"Using dynamic redirect URI: {redirect_uri}")
+    
+    # Create a modified client config with the current domain
+    modified_config = dict(client_config)
+    modified_config['web'] = dict(client_config['web'])
+    modified_config['web']['redirect_uris'] = [redirect_uri]
+    
     flow = Flow.from_client_config(
-        client_config,
+        modified_config,
         scopes=SCOPES,
         redirect_uri=redirect_uri
     )
@@ -60,6 +69,12 @@ def login():
 @google_auth.route('/callback/google')
 def callback():
     """Handle the Google OAuth callback."""
+    # Print diagnostic information
+    print("===== GOOGLE AUTH CALLBACK DIAGNOSTIC INFO =====")
+    print(f"Callback URL: {request.url}")
+    print(f"State parameter: {request.args.get('state')}")
+    print("==============================================")
+    
     # Check state token for CSRF protection
     state = session.get('oauth_state')
     if not state or request.args.get('state') != state:
@@ -67,11 +82,19 @@ def callback():
         return redirect(url_for('login_page'))
     
     try:
-        # Create a flow instance
+        # Create a flow instance with dynamic redirect URI
+        current_domain = request.host
+        redirect_uri = f"https://{current_domain}/callback/google"
+        
+        # Create a modified client config with the current domain
+        modified_config = dict(client_config)
+        modified_config['web'] = dict(client_config['web'])
+        modified_config['web']['redirect_uris'] = [redirect_uri]
+        
         flow = Flow.from_client_config(
-            client_config,
+            modified_config,
             scopes=SCOPES,
-            redirect_uri=client_config['web']['redirect_uris'][0]
+            redirect_uri=redirect_uri
         )
         
         # Use the authorization response to get credentials
