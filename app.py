@@ -159,7 +159,7 @@ def load_user(user_id):
 
 # OAuth config
 GOOGLE_CLIENT_SECRETS = os.environ.get("GOOGLE_CLIENT_SECRETS_FILE", "client_secret.json")
-GOOGLE_REDIRECT = os.environ.get("GOOGLE_REDIRECT_URI", "https://toledonick981.repl.co/callback/google")
+GOOGLE_REDIRECT = os.environ.get("GOOGLE_REDIRECT_URI", "https://mynous.replit.app/callback/google")
 
 SPOTIFY_CLIENT_ID = os.environ.get("SPOTIFY_CLIENT_ID")
 SPOTIFY_CLIENT_SECRET = os.environ.get("SPOTIFY_CLIENT_SECRET")
