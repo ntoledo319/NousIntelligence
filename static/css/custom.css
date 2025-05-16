@@ -1,0 +1,163 @@
+/* Custom CSS for NOUS Personal Assistant */
+
+:root {
+  /* Primary colors extracted from the logo */
+  --nous-primary: #4a7eb5;
+  --nous-secondary: #2c3e50;
+  --nous-accent: #3498db;
+  --nous-light: #ecf0f1;
+  --nous-dark: #2c3e50;
+  --nous-success: #2ecc71;
+  --nous-warning: #f39c12;
+  --nous-danger: #e74c3c;
+  --nous-info: #3498db;
+}
+
+/* Logo styles */
+.navbar-logo {
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.hero-logo {
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.hero-logo:hover {
+  transform: scale(1.05);
+}
+
+/* Chat interface styles */
+.chat-container {
+  max-height: 65vh;
+  overflow-y: auto;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background-color: var(--nous-light);
+  padding: 1rem;
+}
+
+.chat-message {
+  margin-bottom: 1rem;
+  border-radius: 18px;
+  padding: 0.75rem 1rem;
+  max-width: 80%;
+}
+
+.user-message {
+  background-color: var(--nous-primary);
+  color: white;
+  margin-left: auto;
+  border-top-right-radius: 5px;
+}
+
+.assistant-message {
+  background-color: #f8f9fa;
+  color: var(--nous-dark);
+  margin-right: auto;
+  border-top-left-radius: 5px;
+  border-left: 4px solid var(--nous-accent);
+}
+
+.chat-input-container {
+  border-radius: 25px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+  background-color: white;
+}
+
+.chat-input {
+  border: none;
+  outline: none;
+  width: 100%;
+  background-color: transparent;
+}
+
+.chat-button {
+  background-color: var(--nous-primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.chat-button:hover {
+  background-color: var(--nous-accent);
+  transform: scale(1.1);
+}
+
+/* Card and button styles */
+.card {
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.btn-nous-primary {
+  background-color: var(--nous-primary);
+  border-color: var(--nous-primary);
+  color: white;
+  border-radius: 5px;
+  padding: 0.5rem 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.btn-nous-primary:hover {
+  background-color: var(--nous-accent);
+  border-color: var(--nous-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Navigation styles */
+.nav-link.active {
+  background-color: var(--nous-primary) !important;
+  color: white !important;
+  border-radius: 5px;
+}
+
+.nav-link:hover {
+  background-color: rgba(74, 126, 181, 0.1);
+  border-radius: 5px;
+}
+
+/* Animation for loading */
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+.loading-indicator {
+  animation: pulse 1.5s infinite;
+  color: var(--nous-primary);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .chat-message {
+    max-width: 90%;
+  }
+  
+  .hero-logo {
+    max-height: 100px !important;
+  }
+}
