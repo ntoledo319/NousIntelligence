@@ -39,7 +39,9 @@ else:
     logging.warning("OpenAI API key not found in .env file")
 
 if openrouter_api_key:
-    logging.info(f"Using OpenRouter API key (first 8 chars): {openrouter_api_key[:8]}")
+    # Clean up the key (remove quotes if present)
+    openrouter_api_key = openrouter_api_key.strip('"\'')
+    logging.info(f"Using OpenRouter API key (first 8 chars): {openrouter_api_key[:8] if len(openrouter_api_key) >= 8 else openrouter_api_key}")
     os.environ["OPENROUTER_API_KEY"] = openrouter_api_key
 else:
     logging.warning("OpenRouter API key not found in .env file")
