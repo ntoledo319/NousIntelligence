@@ -30,12 +30,14 @@ class User(UserMixin, db.Model):
     account_active = db.Column(db.Boolean, default=True)  # Renamed to avoid conflict with UserMixin
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    password_hash = db.Column(db.String(256), nullable=False)
-    last_login = db.Column(db.DateTime, nullable=True)
     
-    # Two-factor authentication fields
-    two_factor_enabled = db.Column(db.Boolean, default=False)
-    two_factor_secret = db.Column(db.String(32), nullable=True)
+    # These fields are in the model but not in the database (commented out to match actual DB)
+    # password_hash = db.Column(db.String(256), nullable=False)
+    # last_login = db.Column(db.DateTime, nullable=True)
+    # 
+    # # Two-factor authentication fields
+    # two_factor_enabled = db.Column(db.Boolean, default=False)
+    # two_factor_secret = db.Column(db.String(32), nullable=True)
     
     # Relationship with user settings
     settings = db.relationship('UserSettings', backref='user', uselist=False, cascade="all, delete-orphan")
@@ -47,17 +49,17 @@ class User(UserMixin, db.Model):
                                lazy='dynamic',
                                cascade='all, delete-orphan')
     
-    # Relationship with memory entries
-    memory_entries = db.relationship('UserMemoryEntry', backref='user', lazy=True, cascade="all, delete-orphan")
+    # Relationship with memory entries - removed backref to avoid conflict
+    memory_entries = db.relationship('UserMemoryEntry', lazy=True, cascade="all, delete-orphan")
     
-    # Relationship with topic interests
-    topic_interests = db.relationship('UserTopicInterest', backref='user', lazy=True, cascade="all, delete-orphan")
+    # Relationship with topic interests - removed backref to avoid conflict
+    topic_interests = db.relationship('UserTopicInterest', lazy=True, cascade="all, delete-orphan")
     
-    # Relationship with entity memories
-    entity_memories = db.relationship('UserEntityMemory', backref='user', lazy=True, cascade="all, delete-orphan")
+    # Relationship with entity memories - removed backref to avoid conflict 
+    entity_memories = db.relationship('UserEntityMemory', lazy=True, cascade="all, delete-orphan")
     
-    # Relationship with backup codes
-    backup_codes = db.relationship('TwoFactorBackupCode', backref='user', lazy=True, cascade="all, delete-orphan")
+    # Relationship with backup codes - removed backref to avoid conflict
+    backup_codes = db.relationship('TwoFactorBackupCode', lazy=True, cascade="all, delete-orphan")
     
     def is_administrator(self):
         """Check if user has admin privileges"""
@@ -110,11 +112,14 @@ class TwoFactorBackupCode(db.Model):
     """Model for storing two-factor authentication backup codes"""
     __tablename__ = 'two_factor_backup_codes'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(255), db.ForeignKey('users.id'), nullable=False)  # Changed to match User.id type
+    user_id = db.Column(db.String(255), db.ForeignKey(User.id), nullable=False)  # Changed to match User.id type
     code_hash = db.Column(db.String(255), nullable=False)  # Stores hashed backup code
     used = db.Column(db.Boolean, default=False)  # Whether this code has been used
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     used_at = db.Column(db.DateTime, nullable=True)  # When the code was used
+    
+    # No backref to avoid conflict
+    user = db.relationship(User)
     
     __table_args__ = (
         Index('idx_backup_codes_user_id', 'user_id'),
@@ -317,14 +322,15 @@ class UserMemoryEntry(db.Model):
     """Stores conversation message history"""
     __tablename__ = 'user_memory_entries'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    user_id = db.Column(db.String(255), db.ForeignKey(User.id), nullable=False)  # Changed to match User.id type
     role = db.Column(db.String(20), nullable=False)  # 'user' or 'assistant'
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     importance = db.Column(db.Integer, default=1)  # 1-5 scale
     embedding = db.Column(db.Text, nullable=True)  # Vector embedding for semantic search
     
-    user = db.relationship(User, backref='memory_entries')
+    # Removed backref as it's causing a conflict
+    user = db.relationship(User)
     
     __table_args__ = (
         Index('idx_memory_user_timestamp', 'user_id', 'timestamp'),
@@ -337,13 +343,14 @@ class UserTopicInterest(db.Model):
     """Tracks user interests in topics based on conversation history"""
     __tablename__ = 'user_topic_interests'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    user_id = db.Column(db.String(255), db.ForeignKey(User.id), nullable=False)  # Changed to match User.id type
     topic_name = db.Column(db.String(50), nullable=False)
     interest_level = db.Column(db.Float, default=0.5)  # 0-1 scale
     last_discussed = db.Column(db.DateTime, default=datetime.utcnow)
     engagement_count = db.Column(db.Integer, default=1)  # How many times mentioned
     
-    user = db.relationship(User, backref='topic_interests')
+    # No backref to avoid conflict
+    user = db.relationship(User)
     
     __table_args__ = (UniqueConstraint(
         'user_id', 
@@ -358,14 +365,15 @@ class UserEntityMemory(db.Model):
     """Stores information about entities (people, places, things) mentioned by the user"""
     __tablename__ = 'user_entity_memories'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    user_id = db.Column(db.String(255), db.ForeignKey(User.id), nullable=False)  # Changed to match User.id type
     entity_name = db.Column(db.String(100), nullable=False)
     entity_type = db.Column(db.String(50), nullable=False)  # person, place, thing, etc.
     attributes = db.Column(db.JSON, nullable=False)
     last_mentioned = db.Column(db.DateTime, default=datetime.utcnow)
     mention_count = db.Column(db.Integer, default=1)
     
-    user = db.relationship(User, backref='entity_memories')
+    # No backref to avoid conflict
+    user = db.relationship(User)
     
     __table_args__ = (UniqueConstraint(
         'user_id', 

@@ -59,6 +59,12 @@ MIGRATIONS = [
         "function": "apply_migration",
         "description": "Updating api_key_events table to use string performed_by_id",
         "required": True
+    },
+    {
+        "module": "migrate_user_memory",
+        "function": "apply_migration",
+        "description": "Updating user_memory_entries table to use string user_id",
+        "required": True
     }
 ]
 
