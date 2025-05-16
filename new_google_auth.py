@@ -33,8 +33,8 @@ SCOPES = [
     'https://www.googleapis.com/auth/photoslibrary.readonly',
     'https://www.googleapis.com/auth/documents',
     'https://www.googleapis.com/auth/spreadsheets',
-    'https://www.googleapis.com/auth/youtube.readonly',
-    'https://www.googleapis.com/auth/maps.platform'
+    'https://www.googleapis.com/auth/youtube.readonly'
+    # Removed the invalid maps.platform scope
 ]
 
 @google_auth.route('/login')

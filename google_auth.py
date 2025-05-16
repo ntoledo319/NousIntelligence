@@ -82,8 +82,7 @@ def login():
                 "https://www.googleapis.com/auth/drive.readonly",
                 "https://www.googleapis.com/auth/drive.file",
                 
-                # Google Maps Platform scopes
-                "https://www.googleapis.com/auth/maps.platform",
+                # Maps scope removed - use API key instead
                 
                 # Google Photos scopes
                 "https://www.googleapis.com/auth/photoslibrary.readonly",
