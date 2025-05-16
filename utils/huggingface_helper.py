@@ -36,7 +36,7 @@ def get_headers():
         headers["Authorization"] = f"Bearer {HF_ACCESS_TOKEN}"
     return headers
 
-def get_embedding(text: str, model: str = None) -> Optional[np.ndarray]:
+def get_embedding(text: str, model: str = "") -> Optional[np.ndarray]:
     """
     Generate embeddings using Hugging Face Inference API
     

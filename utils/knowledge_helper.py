@@ -162,12 +162,30 @@ def get_embedding_for_text(text):
     except Exception as e:
         logging.error(f"Error generating embedding with OpenAI: {str(e)}")
         
-        # If it's a quota error, go straight to local fallback
-        # OpenRouter doesn't seem to support embeddings currently
+        # If it's a quota error, try OpenRouter as fallback
         if "quota" in str(e).lower() or "rate limit" in str(e).lower():
-            logging.warning("OpenAI quota exceeded, skipping OpenRouter and using local fallback")
+            logging.warning("OpenAI quota exceeded, trying OpenRouter as fallback")
+            openrouter_embedding = get_embedding_via_openrouter(cleaned_text)
+            if openrouter_embedding is not None:
+                logging.info("Successfully generated embedding via OpenRouter")
+                # Cache the embedding for future use (12 hour TTL)
+                cache_embedding(text, openrouter_embedding, ttl_seconds=43200)
+                return openrouter_embedding
     
-    # If we get here, both OpenAI and OpenRouter failed (or weren't available)
+    # Try Hugging Face if OpenAI and OpenRouter both failed
+    if hf_get_embedding:
+        try:
+            logging.info("Trying Hugging Face for embedding generation as fallback")
+            hf_embedding = hf_get_embedding(cleaned_text)
+            if hf_embedding is not None:
+                logging.info(f"Successfully generated embedding via Hugging Face (size: {len(hf_embedding)})")
+                # Cache the embedding for future use (12 hour TTL)
+                cache_embedding(text, hf_embedding, ttl_seconds=43200)
+                return hf_embedding
+        except Exception as hf_error:
+            logging.error(f"Error generating embedding with Hugging Face: {str(hf_error)}")
+    
+    # If we get here, all external services failed (or weren't available)
     # Create a deterministic fallback embedding as last resort
     try:
         logging.warning("Using local fallback embedding generation")
@@ -429,6 +447,39 @@ def get_completion_via_openrouter(messages, max_tokens=1000, temperature=0.7):
         logging.error(f"Error using OpenRouter for completion: {str(e)}")
         return None
 
+def get_completion_via_huggingface(messages, max_tokens=1000, temperature=0.7):
+    """
+    Get a chat completion using Hugging Face as a fallback when OpenAI and OpenRouter are unavailable.
+    
+    Args:
+        messages: The messages to send (list of dicts with 'role' and 'content' keys)
+        max_tokens: Maximum tokens in the response
+        temperature: Creativity parameter
+        
+    Returns:
+        str or None: The generated text, or None if failed
+    """
+    # Import the Hugging Face helper function if available
+    try:
+        from utils.huggingface_helper import generate_chat_response
+    except ImportError:
+        logging.error("Hugging Face helper not available for chat completion")
+        return None
+    
+    try:
+        logging.info("Attempting to use Hugging Face for chat completion as fallback")
+        response = generate_chat_response(messages, max_length=max_tokens)
+        
+        if response:
+            logging.info("Successfully generated completion via Hugging Face")
+            return response
+            
+        logging.error("Hugging Face chat completion returned empty response")
+        return None
+    except Exception as e:
+        logging.error(f"Error using Hugging Face for chat completion: {str(e)}")
+        return None
+
 
 def run_self_reflection(user_id=None, max_prompts=3, run_async=False):
     """
@@ -504,9 +555,19 @@ def run_self_reflection(user_id=None, max_prompts=3, run_async=False):
                                 if "quota" in str(e).lower() or "rate limit" in str(e).lower():
                                     logging.warning("OpenAI quota exceeded, trying OpenRouter as fallback")
                                     reflection_text = get_completion_via_openrouter(messages)
+                                    
+                                    # If OpenRouter fails, try Hugging Face
+                                    if reflection_text is None:
+                                        logging.warning("OpenRouter failed, trying Hugging Face as fallback")
+                                        reflection_text = get_completion_via_huggingface(messages)
                         else:
                             # If no OpenAI key, try directly with OpenRouter
                             reflection_text = get_completion_via_openrouter(messages)
+                            
+                            # If OpenRouter fails, try Hugging Face
+                            if reflection_text is None:
+                                logging.warning("OpenRouter failed or not available, trying Hugging Face as fallback")
+                                reflection_text = get_completion_via_huggingface(messages)
                         
                         # Process the response if we got one
                         if reflection_text:
