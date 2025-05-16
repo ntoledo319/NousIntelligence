@@ -187,7 +187,8 @@ def settings_page():
             'conversation_difficulty': session.get('conversation_difficulty', ConversationDifficulty.INTERMEDIATE.value),
             'enable_voice_responses': session.get('enable_voice_responses', False),
             'preferred_language': session.get('preferred_language', 'en-US'),
-            'theme': session.get('theme', 'light')
+            'theme': session.get('theme', 'light'),
+            'color_theme': session.get('color_theme', 'default')
         }
         
     return render_template('settings.html', settings=settings)
@@ -203,6 +204,7 @@ def save_settings():
     enable_voice = 'enable_voice_responses' in request.form
     language = request.form.get('preferred_language', 'en-US')
     theme = request.form.get('theme', 'light')
+    color_theme = request.form.get('color_theme', 'default')
     
     # For logged-in users, save to database
     if current_user.is_authenticated:
@@ -214,6 +216,7 @@ def save_settings():
             settings.enable_voice_responses = enable_voice
             settings.preferred_language = language
             settings.theme = theme
+            settings.color_theme = color_theme
             db.session.add(settings)
         else:
             # Update existing settings
@@ -221,6 +224,7 @@ def save_settings():
             current_user.settings.enable_voice_responses = enable_voice
             current_user.settings.preferred_language = language
             current_user.settings.theme = theme
+            current_user.settings.color_theme = color_theme
             
         db.session.commit()
         flash('Settings saved successfully', 'success')

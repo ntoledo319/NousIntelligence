@@ -63,6 +63,7 @@ class UserSettings(db.Model):
     enable_voice_responses = db.Column(db.Boolean, default=False)
     preferred_language = db.Column(db.String(10), default='en-US')
     theme = db.Column(db.String(20), default='light')
+    color_theme = db.Column(db.String(20), default='default')
     
     # AI Character customization
     ai_name = db.Column(db.String(30), default='NOUS')
