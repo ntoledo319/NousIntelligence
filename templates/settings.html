@@ -95,11 +95,67 @@
                         <!-- Interface Theme -->
                         <div class="mb-4">
                             <label for="theme" class="form-label fw-bold">Interface Theme</label>
-                            <select class="form-select" id="theme" name="theme">
+                            <select class="form-select mb-2" id="theme" name="theme">
                                 <option value="light" {% if not settings or settings.theme == 'light' %}selected{% endif %}>Light</option>
                                 <option value="dark" {% if settings and settings.theme == 'dark' %}selected{% endif %}>Dark</option>
                                 <option value="auto" {% if settings and settings.theme == 'auto' %}selected{% endif %}>Auto (follow system)</option>
                             </select>
+                            <p class="text-muted small">Select light or dark mode for the overall interface</p>
+                        </div>
+                        
+                        <!-- Color Theme -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Color Theme</label>
+                            <p class="text-muted small mb-3">
+                                Choose a color palette for buttons, accents and interface elements
+                            </p>
+                            
+                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                <div class="form-check color-theme-option">
+                                    <input class="form-check-input" type="radio" name="color_theme" id="color_default" value="default" 
+                                        {% if not settings or not settings.color_theme or settings.color_theme == 'default' %}checked{% endif %}>
+                                    <label class="form-check-label d-flex align-items-center" for="color_default">
+                                        <span class="color-swatch" style="background: linear-gradient(45deg, #4a7eb5, #3498db);"></span>
+                                        <span class="ms-2">Default</span>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check color-theme-option">
+                                    <input class="form-check-input" type="radio" name="color_theme" id="color_ocean" value="ocean"
+                                        {% if settings and settings.color_theme == 'ocean' %}checked{% endif %}>
+                                    <label class="form-check-label d-flex align-items-center" for="color_ocean">
+                                        <span class="color-swatch" style="background: linear-gradient(45deg, #1a73e8, #4285f4);"></span>
+                                        <span class="ms-2">Ocean</span>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check color-theme-option">
+                                    <input class="form-check-input" type="radio" name="color_theme" id="color_sunset" value="sunset"
+                                        {% if settings and settings.color_theme == 'sunset' %}checked{% endif %}>
+                                    <label class="form-check-label d-flex align-items-center" for="color_sunset">
+                                        <span class="color-swatch" style="background: linear-gradient(45deg, #ff7043, #ff9800);"></span>
+                                        <span class="ms-2">Sunset</span>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check color-theme-option">
+                                    <input class="form-check-input" type="radio" name="color_theme" id="color_forest" value="forest"
+                                        {% if settings and settings.color_theme == 'forest' %}checked{% endif %}>
+                                    <label class="form-check-label d-flex align-items-center" for="color_forest">
+                                        <span class="color-swatch" style="background: linear-gradient(45deg, #388e3c, #4caf50);"></span>
+                                        <span class="ms-2">Forest</span>
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check color-theme-option">
+                                    <input class="form-check-input" type="radio" name="color_theme" id="color_midnight" value="midnight"
+                                        {% if settings and settings.color_theme == 'midnight' %}checked{% endif %}>
+                                    <label class="form-check-label d-flex align-items-center" for="color_midnight">
+                                        <span class="color-swatch" style="background: linear-gradient(45deg, #512da8, #7c4dff);"></span>
+                                        <span class="ms-2">Midnight</span>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                         
                         <!-- AI Character Customization -->
@@ -207,8 +263,9 @@
     </div>
 </div>
 
-<!-- Add some basic styling for the difficulty options -->
+<!-- Add styling for the settings options -->
 <style>
+/* Difficulty option styling */
 .difficulty-option {
     padding: 10px;
     margin-bottom: 10px;
@@ -242,5 +299,51 @@
     background-color: var(--nous-primary);
     border-color: var(--nous-primary);
 }
+
+/* Color theme options styling */
+.color-theme-option {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.color-swatch {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    display: inline-block;
+    transition: transform 0.2s ease;
+}
+
+.color-theme-option:hover .color-swatch {
+    transform: scale(1.1);
+}
+
+.color-theme-option input:checked ~ label .color-swatch {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 2px var(--nous-primary), 0 2px 4px rgba(0, 0, 0, 0.2);
+}
 </style>
+
+<script>
+// Function to apply the selected color theme immediately for preview
+document.addEventListener('DOMContentLoaded', function() {
+    const colorThemeInputs = document.querySelectorAll('input[name="color_theme"]');
+    const htmlElement = document.documentElement;
+    
+    // Apply the currently selected theme on page load
+    const currentTheme = document.querySelector('input[name="color_theme"]:checked').value;
+    htmlElement.setAttribute('data-theme', currentTheme);
+    
+    // Add change listeners to all theme inputs
+    colorThemeInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            if (this.checked) {
+                // Apply the theme immediately for preview
+                htmlElement.setAttribute('data-theme', this.value);
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

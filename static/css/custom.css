@@ -1,5 +1,6 @@
 /* Custom CSS for NOUS Personal Assistant */
 
+/* Default theme colors */
 :root {
   /* Primary colors extracted from the logo */
   --nous-primary: #4a7eb5;
@@ -11,6 +12,58 @@
   --nous-warning: #f39c12;
   --nous-danger: #e74c3c;
   --nous-info: #3498db;
+}
+
+/* Ocean Theme */
+[data-theme="ocean"] {
+  --nous-primary: #1a73e8;
+  --nous-secondary: #174ea6;
+  --nous-accent: #4285f4;
+  --nous-light: #e8f0fe;
+  --nous-dark: #202124;
+  --nous-success: #0f9d58;
+  --nous-warning: #f4b400;
+  --nous-danger: #ea4335;
+  --nous-info: #4285f4;
+}
+
+/* Sunset Theme */
+[data-theme="sunset"] {
+  --nous-primary: #ff7043;
+  --nous-secondary: #d84315;
+  --nous-accent: #ff9800;
+  --nous-light: #fff3e0;
+  --nous-dark: #3e2723;
+  --nous-success: #43a047;
+  --nous-warning: #ffb300;
+  --nous-danger: #e53935;
+  --nous-info: #039be5;
+}
+
+/* Forest Theme */
+[data-theme="forest"] {
+  --nous-primary: #388e3c;
+  --nous-secondary: #1b5e20;
+  --nous-accent: #4caf50;
+  --nous-light: #e8f5e9;
+  --nous-dark: #2e7d32;
+  --nous-success: #00c853;
+  --nous-warning: #ffd600;
+  --nous-danger: #dd2c00;
+  --nous-info: #00b0ff;
+}
+
+/* Midnight Theme */
+[data-theme="midnight"] {
+  --nous-primary: #512da8;
+  --nous-secondary: #311b92;
+  --nous-accent: #7c4dff;
+  --nous-light: #ede7f6;
+  --nous-dark: #1a237e;
+  --nous-success: #00bfa5;
+  --nous-warning: #ffd740;
+  --nous-danger: #ff5252;
+  --nous-info: #448aff;
 }
 
 /* Logo styles */
