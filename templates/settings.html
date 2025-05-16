@@ -341,8 +341,16 @@ document.addEventListener('DOMContentLoaded', function() {
             if (this.checked) {
                 // Apply the theme immediately for preview
                 htmlElement.setAttribute('data-theme', this.value);
+                // Save to localStorage for immediate persistence
+                localStorage.setItem('colorTheme', this.value);
             }
         });
+    });
+    
+    // Add form submit event to ensure localStorage is updated
+    document.querySelector('form').addEventListener('submit', function() {
+        const selectedTheme = document.querySelector('input[name="color_theme"]:checked').value;
+        localStorage.setItem('colorTheme', selectedTheme);
     });
 });
 </script>
