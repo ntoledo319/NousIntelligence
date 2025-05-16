@@ -418,7 +418,7 @@
                                 <li><a class="dropdown-item" href="{{ url_for('clear_log') }}">
                                     <i class="fas fa-broom me-2"></i>Clear Log</a>
                                 </li>
-                                <li><a class="dropdown-item" href="{{ url_for('google_auth.logout') }}">
+                                <li><a class="dropdown-item" href="{{ url_for('replit_auth.logout') }}">
                                     <i class="fas fa-sign-out-alt me-2"></i>Logout</a>
                                 </li>
                                 <li>
@@ -432,9 +432,9 @@
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('google_auth.login') }}" data-bs-toggle="tooltip" title="Log in with Google">
+                            <a class="nav-link" href="{{ url_for('replit_auth.login') }}" data-bs-toggle="tooltip" title="Log in with Replit">
                                 <i class="fas fa-sign-in-alt me-1"></i>
-                                <span class="d-none d-lg-inline">Login with Google</span>
+                                <span class="d-none d-lg-inline">Login with Replit</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -545,12 +545,12 @@
                             <a href="{{ url_for('settings_page') }}" class="btn btn-outline-primary">
                                 <i class="fas fa-cog me-2"></i>Settings
                             </a>
-                            <a href="{{ url_for('google_auth.logout') }}" class="btn btn-outline-danger">
+                            <a href="{{ url_for('replit_auth.logout') }}" class="btn btn-outline-danger">
                                 <i class="fas fa-sign-out-alt me-2"></i>Logout
                             </a>
                         {% else %}
-                            <a href="{{ url_for('google_auth.login') }}" class="btn btn-primary">
-                                <i class="fas fa-sign-in-alt me-2"></i>Login with Google
+                            <a href="{{ url_for('replit_auth.login') }}" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login with Replit
                             </a>
                         {% endif %}
                     </div>

@@ -57,7 +57,7 @@
                         <a href="{{ url_for('help_page') }}" class="btn btn-outline-primary">
                             <i class="fas fa-question-circle me-2"></i>Get Help
                         </a>
-                        <a href="{{ url_for('google_auth.logout') }}" class="btn btn-outline-danger">
+                        <a href="{{ url_for('replit_auth.logout') }}" class="btn btn-outline-danger">
                             <i class="fas fa-sign-out-alt me-2"></i>Sign Out
                         </a>
                     </div>
@@ -352,7 +352,7 @@
                                             {% if 'google_creds' in session %}
                                             <div>
                                                 <span class="badge bg-success-soft me-2">Connected</span>
-                                                <a href="{{ url_for('google_auth.logout') }}" class="btn btn-sm btn-outline-danger">Disconnect</a>
+                                                <a href="{{ url_for('replit_auth.logout') }}" class="btn btn-sm btn-outline-danger">Disconnect</a>
                                             </div>
                                             {% else %}
                                             <a href="{{ url_for('authorize_google') }}" class="btn btn-primary">
