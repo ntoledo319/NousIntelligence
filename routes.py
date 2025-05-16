@@ -18,13 +18,11 @@ from routes.aa_routes import aa_bp
 from routes.amazon_routes import amazon_bp
 from routes.setup_routes import setup_bp
 
-# Setup Google OAuth with Flask-Dance
-from flask_google_oauth import create_google_blueprint
-from models import User, OAuth
-google_bp = create_google_blueprint(db, User, OAuth)
+# Setup Google OAuth with our new implementation
+from new_google_auth import google_auth as google_bp
 
 # Register the blueprints
-app.register_blueprint(google_bp, url_prefix="/login")  # This is the Google login blueprint
+app.register_blueprint(google_bp)  # No prefix, so callbacks match exactly what's registered in Google Cloud
 app.register_blueprint(beta_bp, url_prefix="/beta")
 app.register_blueprint(aa_bp, url_prefix="/aa") 
 app.register_blueprint(amazon_bp, url_prefix="/amazon")
