@@ -69,6 +69,31 @@
                             <div class="nav-link text-muted small py-1">FEATURES</div>
                         </li>
                         
+                        <!-- Music & Media -->
+                        <li class="nav-item">
+                            <div class="d-flex align-items-center px-3 py-2 text-light">
+                                <i class="fas fa-music me-2 text-success"></i>
+                                <span class="fw-medium">Music & Media</span>
+                            </div>
+                            <ul class="list-unstyled ms-3 mb-2">
+                                <li>
+                                    <a class="nav-link py-1" href="{{ url_for('spotify_viz.spotify_report_page') }}">
+                                        <i class="fab fa-spotify me-2 text-success"></i>Spotify Analytics
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="nav-link py-1" href="{{ url_for('index') }}?cmd=my%20playlists">
+                                        <i class="fas fa-headphones me-2"></i>My Playlists
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="nav-link py-1" href="{{ url_for('index') }}?cmd=music%20stats">
+                                        <i class="fas fa-chart-bar me-2"></i>Listening Stats
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        
                         <!-- Health -->
                         <li class="nav-item">
                             <div class="d-flex align-items-center px-3 py-2 text-light">
