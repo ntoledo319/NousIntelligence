@@ -178,8 +178,8 @@ def callback():
                 "https://www.googleapis.com/auth/drive.readonly",
                 "https://www.googleapis.com/auth/drive.file",
                 
-                # Google Maps scopes
-                "https://www.googleapis.com/auth/maps",
+                # Google Maps scopes - removed invalid scope
+                # "https://www.googleapis.com/auth/maps",
                 
                 # Google Photos scopes
                 "https://www.googleapis.com/auth/photoslibrary.readonly",
