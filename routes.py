@@ -18,11 +18,10 @@ from routes.aa_routes import aa_bp
 from routes.amazon_routes import amazon_bp
 from routes.setup_routes import setup_bp
 
-# Setup Google OAuth with our new implementation
-from new_google_auth import google_auth as google_bp
+# Setup Google OAuth with our new implementation - registered in app.py
+from google_auth import google_auth as google_bp
 
-# Register the blueprints
-# Removed google_bp registration to fix authentication conflicts
+# Register the blueprints - Google auth is registered in app.py
 app.register_blueprint(beta_bp, url_prefix="/beta")
 app.register_blueprint(aa_bp, url_prefix="/aa") 
 app.register_blueprint(amazon_bp, url_prefix="/amazon")
