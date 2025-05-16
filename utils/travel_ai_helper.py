@@ -5,6 +5,12 @@ Features:
 - Local event discovery
 - Smart packing recommendations based on weather
 - Personalized itinerary suggestions
+
+Uses a multi-tier approach to AI services:
+1. OpenAI (primary for complex tasks)
+2. OpenRouter (fallback for complex tasks)
+3. Hugging Face (for lighter AI tasks like phrase translation, summarization)
+4. Local fallbacks (when all services are unavailable)
 """
 
 import os
@@ -21,9 +27,25 @@ from utils.travel_helper import (
 )
 from openai import OpenAI
 
+# Import Hugging Face helper for lightweight tasks
+try:
+    from utils.huggingface_helper import (
+        translate_text, summarize_text, analyze_sentiment, 
+        get_embedding, generate_chat_response
+    )
+    HUGGINGFACE_AVAILABLE = True
+except ImportError:
+    logging.warning("Hugging Face helper not available, will skip this fallback option")
+    HUGGINGFACE_AVAILABLE = False
+
 # Initialize OpenAI client
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 client = OpenAI(api_key=OPENAI_API_KEY)
+
+# OpenRouter configuration for fallback
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+OPENROUTER_CHAT_URL = f"{OPENROUTER_BASE_URL}/chat/completions"
 
 # Travel API configuration (Optional - will be checked before use)
 TRAVEL_ADVISOR_API_KEY = os.environ.get("TRAVEL_ADVISOR_API_KEY")

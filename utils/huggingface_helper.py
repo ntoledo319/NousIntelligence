@@ -84,7 +84,7 @@ def get_embedding(text: str, model: str = "") -> Optional[np.ndarray]:
         logging.error(f"Error generating embedding with Hugging Face: {str(e)}")
         return None
 
-def generate_text(prompt: str, max_length: int = 50, model: str = None) -> Optional[str]:
+def generate_text(prompt: str, max_length: int = 50, model: str = "") -> Optional[str]:
     """
     Generate text completions using Hugging Face Inference API
     
@@ -128,7 +128,7 @@ def generate_text(prompt: str, max_length: int = 50, model: str = None) -> Optio
         logging.error(f"Error generating text with Hugging Face: {str(e)}")
         return None
 
-def summarize_text(text: str, max_length: int = 130, min_length: int = 30, model: str = None) -> Optional[str]:
+def summarize_text(text: str, max_length: int = 130, min_length: int = 30, model: str = "") -> Optional[str]:
     """
     Summarize text using Hugging Face Inference API
     
@@ -216,7 +216,7 @@ def translate_text(text: str, source_lang: str = "en", target_lang: str = "fr") 
         logging.error(f"Error translating text with Hugging Face: {str(e)}")
         return None
 
-def analyze_sentiment(text: str, model: str = None) -> Optional[Dict[str, float]]:
+def analyze_sentiment(text: str, model: str = "") -> Optional[Dict[str, float]]:
     """
     Analyze sentiment of text using Hugging Face Inference API
     
@@ -252,7 +252,7 @@ def analyze_sentiment(text: str, model: str = None) -> Optional[Dict[str, float]
         logging.error(f"Error analyzing sentiment with Hugging Face: {str(e)}")
         return None
 
-def extract_entities(text: str, model: str = None) -> Optional[List[Dict[str, Any]]]:
+def extract_entities(text: str, model: str = "") -> Optional[List[Dict[str, Any]]]:
     """
     Extract named entities from text using Hugging Face Inference API
     
@@ -286,7 +286,7 @@ def extract_entities(text: str, model: str = None) -> Optional[List[Dict[str, An
         logging.error(f"Error extracting entities with Hugging Face: {str(e)}")
         return None
 
-def answer_question(question: str, context: str, model: str = None) -> Optional[Dict[str, Any]]:
+def answer_question(question: str, context: str, model: str = "") -> Optional[Dict[str, Any]]:
     """
     Answer a question based on context using Hugging Face Inference API
     
@@ -326,7 +326,7 @@ def answer_question(question: str, context: str, model: str = None) -> Optional[
         logging.error(f"Error answering question with Hugging Face: {str(e)}")
         return None
 
-def classify_zero_shot(text: str, labels: List[str], model: str = None) -> Optional[Dict[str, List[float]]]:
+def classify_zero_shot(text: str, labels: List[str], model: str = "") -> Optional[Dict[str, List[float]]]:
     """
     Classify text into given labels without training using Hugging Face Inference API
     
@@ -364,7 +364,7 @@ def classify_zero_shot(text: str, labels: List[str], model: str = None) -> Optio
         logging.error(f"Error classifying text with Hugging Face: {str(e)}")
         return None
 
-def describe_image(image_path: str, model: str = None) -> Optional[str]:
+def describe_image(image_path: str, model: str = "") -> Optional[str]:
     """
     Generate caption for an image using Hugging Face Inference API
     
@@ -431,7 +431,7 @@ def generate_chat_response(messages: List[Dict[str, str]], max_length: int = 100
     # Use a standard text generation model
     return generate_text(prompt, max_length=max_length, model=DEFAULT_MODELS["text_generation"])
 
-def transcribe_audio(audio_path: str, model: str = None) -> Optional[str]:
+def transcribe_audio(audio_path: str, model: str = "") -> Optional[str]:
     """
     Transcribe audio using Hugging Face Inference API
     
