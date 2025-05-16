@@ -9,7 +9,7 @@ import json
 from urllib.parse import urlencode
 
 # Google Maps API
-MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")
+MAPS_API_KEY = os.environ.get("MAPS_API_KEY")
 
 def geocode_address(address):
     """Convert an address to geographical coordinates"""
