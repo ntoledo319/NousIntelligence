@@ -10,18 +10,26 @@ from datetime import datetime
 from openai import OpenAI
 # Import knowledge base functions at runtime to avoid circular imports
 
-# Import our key configuration module instead of directly accessing environment variables
+# Import our key configuration module
 from utils.key_config import OPENAI_API_KEY, OPENROUTER_API_KEY, USE_OPENROUTER, get_preferred_service
 
-# Create the OpenAI client with the OpenAI key only
-openai = OpenAI(api_key=OPENAI_API_KEY)
+# Only create the OpenAI client if we have a valid OpenAI key
+if OPENAI_API_KEY:
+    openai = OpenAI(api_key=OPENAI_API_KEY)
+else:
+    # Create a dummy client for type checking, but we won't use it
+    openai = None
 
-# Log which AI service we're using
+# Always check the preferred service for each API call
 preferred_service = get_preferred_service()
+
+# Log our API configuration
 if preferred_service == "openrouter":
     logging.info("NOUS will use OpenRouter API service for AI functionality")
+    logging.info(f"OpenRouter key found: {bool(OPENROUTER_API_KEY)}")
 elif preferred_service == "openai":
-    logging.info("NOUS will use OpenAI API service for AI functionality")
+    logging.info("NOUS will use OpenAI API service for AI functionality") 
+    logging.info(f"OpenAI key found: {bool(OPENAI_API_KEY)}")
 else:
     logging.warning("No valid AI service keys found. Some features may not work correctly")
 
@@ -127,8 +135,11 @@ def analyze_gmail_content(content, headers=None, user_id=None):
                 }
             ]
             
-            # Check if we're using OpenRouter
-            if openai_api_key.startswith("sk-or-"):
+            # Import our key configuration which has the latest status
+            from utils.key_config import get_preferred_service
+            
+            # Check if we're using OpenRouter as the preferred service
+            if get_preferred_service() == "openrouter":
                 # Import our OpenRouter helper
                 from utils.openrouter_helper import chat_completion
                 

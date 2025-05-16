@@ -24,8 +24,8 @@ if OPENAI_API_KEY and OPENAI_API_KEY.startswith("sk-or-"):
 if not OPENROUTER_API_KEY and os.environ.get("OPENAI_API_KEY", "").startswith("sk-or-"):
     OPENROUTER_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 
-# Flag to control which AI service to use
-USE_OPENROUTER = os.environ.get("USE_OPENROUTER", "True").lower() == "true"
+# Flag to control which AI service to use - always use OpenRouter if the key is available
+USE_OPENROUTER = os.environ.get("USE_OPENROUTER", "True").lower() == "true" or bool(OPENROUTER_API_KEY)
 
 def validate_keys():
     """Validate API keys and log their status"""
