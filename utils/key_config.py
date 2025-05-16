@@ -1,6 +1,7 @@
 """
 API Key Configuration module.
 Handles loading and validating API keys for various services.
+Prioritizes cost-effective AI services (Hugging Face) over more expensive options.
 """
 
 import os
@@ -24,7 +25,9 @@ if OPENAI_API_KEY and OPENAI_API_KEY.startswith("sk-or-"):
 if not OPENROUTER_API_KEY and os.environ.get("OPENAI_API_KEY", "").startswith("sk-or-"):
     OPENROUTER_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 
-# Flag to control which AI service to use - always use OpenRouter if the key is available
+# Flag to control which AI service to use
+# Priority: Hugging Face (free) > OpenRouter (lower cost) > OpenAI (higher cost)
+USE_HUGGINGFACE = os.environ.get("USE_HUGGINGFACE", "True").lower() == "true" or bool(HF_ACCESS_TOKEN)
 USE_OPENROUTER = os.environ.get("USE_OPENROUTER", "True").lower() == "true" or bool(OPENROUTER_API_KEY)
 
 def validate_keys():
@@ -76,16 +79,29 @@ def validate_keys():
     return keys_valid
 
 def get_preferred_service():
-    """Get the preferred AI service based on available keys and configuration"""
+    """
+    Get the preferred AI service based on available keys and configuration.
+    Prioritizes cost-effective services (Hugging Face > OpenRouter > OpenAI).
+    """
     keys_valid = validate_keys()
     
-    if USE_OPENROUTER and keys_valid["openrouter"]:
+    # Add Hugging Face validation
+    keys_valid["huggingface"] = bool(HF_ACCESS_TOKEN)
+    
+    # First priority: Hugging Face (free service)
+    if USE_HUGGINGFACE and keys_valid["huggingface"]:
+        return "huggingface"
+    # Second priority: OpenRouter (lower cost than OpenAI)
+    elif USE_OPENROUTER and keys_valid["openrouter"]:
         return "openrouter"
-    elif not USE_OPENROUTER and keys_valid["openai"]:
-        return "openai"
-    elif keys_valid["openrouter"]:
-        return "openrouter"
+    # Third priority: OpenAI (highest cost)
     elif keys_valid["openai"]:
         return "openai"
+    # Fallbacks if preferred services aren't available
+    elif keys_valid["huggingface"]:
+        return "huggingface" 
+    elif keys_valid["openrouter"]:
+        return "openrouter"
+    # Last resort
     else:
-        return None
+        return "local"  # Return "local" instead of None to enable local fallbacks

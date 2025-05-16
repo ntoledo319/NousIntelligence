@@ -11,7 +11,10 @@ from openai import OpenAI
 # Import knowledge base functions at runtime to avoid circular imports
 
 # Import our key configuration module
-from utils.key_config import OPENAI_API_KEY, OPENROUTER_API_KEY, USE_OPENROUTER, get_preferred_service
+from utils.key_config import (
+    OPENAI_API_KEY, OPENROUTER_API_KEY, HF_ACCESS_TOKEN,
+    USE_HUGGINGFACE, USE_OPENROUTER, get_preferred_service
+)
 
 # Only create the OpenAI client if we have a valid OpenAI key
 if OPENAI_API_KEY:
@@ -24,12 +27,17 @@ else:
 preferred_service = get_preferred_service()
 
 # Log our API configuration
-if preferred_service == "openrouter":
+if preferred_service == "huggingface":
+    logging.info("NOUS will use Hugging Face API service for cost-effective AI functionality")
+    logging.info(f"Hugging Face token found: {bool(HF_ACCESS_TOKEN)}")
+elif preferred_service == "openrouter":
     logging.info("NOUS will use OpenRouter API service for AI functionality")
     logging.info(f"OpenRouter key found: {bool(OPENROUTER_API_KEY)}")
 elif preferred_service == "openai":
     logging.info("NOUS will use OpenAI API service for AI functionality") 
     logging.info(f"OpenAI key found: {bool(OPENAI_API_KEY)}")
+elif preferred_service == "local":
+    logging.info("NOUS will use local fallbacks for AI functionality")
 else:
     logging.warning("No valid AI service keys found. Some features may not work correctly")
 
