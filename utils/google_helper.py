@@ -10,7 +10,8 @@ def get_google_flow(client_secrets_file, redirect_uri):
     scopes = [
         "https://www.googleapis.com/auth/calendar.events",
         "https://www.googleapis.com/auth/tasks",
-        "https://www.googleapis.com/auth/keep"
+        "https://www.googleapis.com/auth/keep",
+        "https://www.googleapis.com/auth/maps.platform"
     ]
     
     try:
