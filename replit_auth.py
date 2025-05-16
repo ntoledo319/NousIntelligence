@@ -30,15 +30,18 @@ def load_user(user_id):
 class UserSessionStorage(BaseStorage):
 
     def get(self, blueprint):
+        if not current_user.is_authenticated:
+            return None
+            
         try:
-            token = db.session.query(OAuth).filter_by(
+            oauth = db.session.query(OAuth).filter_by(
                 user_id=current_user.get_id(),
                 browser_session_key=g.browser_session_key,
                 provider=blueprint.name,
-            ).one().token
+            ).one()
+            return oauth.token
         except NoResultFound:
-            token = None
-        return token
+            return None
 
     def set(self, blueprint, token):
         db.session.query(OAuth).filter_by(
@@ -140,8 +143,17 @@ def save_user(user_claims):
 
 @oauth_authorized.connect
 def logged_in(blueprint, token):
-    user_claims = jwt.decode(token['id_token'],
-                             options={"verify_signature": False})
+    # PyJWT >= 2.0.0 uses jwt.decode instead of jwt.decode_token
+    try:
+        user_claims = jwt.decode(token['id_token'],
+                               algorithms=["RS256"],
+                               options={"verify_signature": False})
+    except AttributeError:
+        # Fall back for older versions
+        import jwt as pyjwt
+        user_claims = pyjwt.decode(token['id_token'],
+                                 verify=False)
+                                 
     user = save_user(user_claims)
     login_user(user)
     blueprint.token = token
@@ -162,7 +174,11 @@ def require_login(f):
         if not current_user.is_authenticated:
             session["next_url"] = get_next_navigation_url(request)
             return redirect(url_for('replit_auth.login'))
-
+            
+        # Get issuer URL
+        issuer_url = os.environ.get('ISSUER_URL', "https://replit.com/oidc")
+        
+        # Check token expiration
         expires_in = replit.token.get('expires_in', 0)
         if expires_in < 0:
             refresh_token_url = issuer_url + "/token"

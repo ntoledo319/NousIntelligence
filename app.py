@@ -120,13 +120,13 @@ else:
     
 # Initialize LoginManager
 login_manager = LoginManager(app)
-login_manager.login_view = "google_auth.login"
+login_manager.login_view = "replit_auth.login"
 login_manager.login_message = "Please log in to access this page."
 login_manager.login_message_category = "info"
 
-# Import and register the Google auth blueprint
-from fixed_auth import google_auth
-app.register_blueprint(google_auth)
+# Import and setup Replit authentication
+from replit_auth import make_replit_blueprint
+app.register_blueprint(make_replit_blueprint(), url_prefix="/auth")
 
 # Import and register the routes from routes package
 from routes import register_blueprints
