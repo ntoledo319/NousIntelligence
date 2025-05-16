@@ -1,24 +1,57 @@
-/* Custom styles for NOUS assistant */
+/* Modern redesigned styles for NOUS assistant */
 
 :root {
-    /* Logo-inspired colors - based on the NOUS logo */
-    --terminal-bg: #0a1225;
-    --terminal-text: #c5d1e8;
-    --terminal-user: #5a92ff;
-    --terminal-success: #5acea6;
-    --terminal-warning: #ffba68;
-    --terminal-error: #ff6b8e;
-    --terminal-info: #38c4de;
-    --accent-color: #5a92ff;
-    --card-bg: #162340;
-    --nav-bg: #0a1225;
+    /* Core color palette - modern, clean aesthetic */
+    --primary: #4361ee;
+    --primary-light: #6f8eff;
+    --primary-dark: #3247b8;
+    --secondary: #2ec4b6;
+    --tertiary: #ff6b8e;
+    --accent: #ff9f1c;
+    --dark: #1a1b25;
+    --dark-surface: #252733;
+    --gray-100: #f7f7f9;
+    --gray-200: #e9eaef;
+    --gray-300: #dadbe6;
+    --gray-400: #babbc5;
+    --gray-500: #9a9ba7;
+    --gray-600: #70727f;
+    --gray-700: #4a4c5f;
+    --gray-800: #2e3047;
+    --gray-900: #1a1b25;
     
-    /* NOUS brand colors */
-    --nous-primary: #142d69;
-    --nous-secondary: #5a92ff;
-    --nous-accent: #ff6b8e;
-    --nous-dark: #0a1225;
-    --nous-light: #e8f0ff;
+    /* Functional colors */
+    --success: #2ec4b6;
+    --info: #3da9fc;
+    --warning: #ff9f1c;
+    --danger: #ef476f;
+    
+    /* Terminal/Console colors */
+    --terminal-bg: #15171e;
+    --terminal-text: #e6e6e9;
+    --terminal-user: #6f8eff;
+    --terminal-success: #2ec4b6;
+    --terminal-warning: #ff9f1c;
+    --terminal-error: #ef476f;
+    --terminal-info: #3da9fc;
+    
+    /* Semantic mappings */
+    --text-primary: var(--gray-900);
+    --text-secondary: var(--gray-700);
+    --text-tertiary: var(--gray-500);
+    --text-on-dark: var(--gray-100);
+    --text-on-primary: white;
+    
+    /* Surface/background colors */
+    --surface: white;
+    --background: var(--gray-100);
+    --surface-dark: var(--dark-surface);
+    
+    /* Component-specific colors */
+    --card-bg: var(--surface);
+    --nav-bg: var(--dark);
+    --sidebar-bg: var(--dark-surface);
+    --header-bg: var(--primary);
 }
 
 body {
