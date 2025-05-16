@@ -1193,7 +1193,7 @@ class APIKey(db.Model):
     __tablename__ = 'api_keys'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.String(255), db.ForeignKey('users.id'), nullable=False)  # Changed to match User.id type
     name = db.Column(db.String(100), nullable=False)  # User-defined name for this key
     key_prefix = db.Column(db.String(8), nullable=False)  # First few chars of key (shown to user)
     key_hash = db.Column(db.String(255), nullable=False)  # Securely hashed API key
@@ -1318,7 +1318,7 @@ class APIKeyEvent(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     ip_address = db.Column(db.String(45), nullable=True)  # IPv6 can be up to 45 chars
     user_agent = db.Column(db.String(255), nullable=True)
-    performed_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    performed_by_id = db.Column(db.String(255), db.ForeignKey('users.id'), nullable=True)  # Changed to match User.id type
     event_metadata = db.Column(db.Text, nullable=True)  # JSON string with additional info
     
     # Relationships

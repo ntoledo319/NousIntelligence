@@ -47,6 +47,18 @@ MIGRATIONS = [
         "function": "apply_migration",
         "description": "Updating two_factor_backup_codes table to use string user_id",
         "required": True
+    },
+    {
+        "module": "migrate_api_keys",
+        "function": "apply_migration",
+        "description": "Updating api_keys table to use string user_id",
+        "required": True
+    },
+    {
+        "module": "migrate_api_key_events",
+        "function": "apply_migration",
+        "description": "Updating api_key_events table to use string performed_by_id",
+        "required": True
     }
 ]
 
