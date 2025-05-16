@@ -12,6 +12,7 @@ import secrets
 import string
 import hashlib
 import logging
+import time  # Added missing time module
 from datetime import datetime, timedelta
 import json
 from typing import Dict, Any, Optional, Tuple, List, Union

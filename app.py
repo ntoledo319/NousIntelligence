@@ -5,7 +5,7 @@ import logging
 from flask import Flask, request, redirect, session, url_for, render_template, jsonify, flash
 from markupsafe import Markup
 from dotenv import load_dotenv
-from flask_login import LoginManager, current_user
+from flask_login import LoginManager, current_user, login_required
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Import custom utility modules

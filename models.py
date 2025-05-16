@@ -21,7 +21,7 @@ class ConversationDifficulty(enum.Enum):
 # User model for authentication
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(255), primary_key=True)  # Changed to match database type
     email = db.Column(db.String(120), unique=True, nullable=False)
     first_name = db.Column(db.String(80), nullable=False)
     last_name = db.Column(db.String(80), nullable=False)
@@ -110,7 +110,7 @@ class TwoFactorBackupCode(db.Model):
     """Model for storing two-factor authentication backup codes"""
     __tablename__ = 'two_factor_backup_codes'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.String(255), db.ForeignKey('users.id'), nullable=False)  # Changed to match User.id type
     code_hash = db.Column(db.String(255), nullable=False)  # Stores hashed backup code
     used = db.Column(db.Boolean, default=False)  # Whether this code has been used
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -1319,7 +1319,7 @@ class APIKeyEvent(db.Model):
     ip_address = db.Column(db.String(45), nullable=True)  # IPv6 can be up to 45 chars
     user_agent = db.Column(db.String(255), nullable=True)
     performed_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    metadata = db.Column(db.Text, nullable=True)  # JSON string with additional info
+    event_metadata = db.Column(db.Text, nullable=True)  # JSON string with additional info
     
     # Relationships
     api_key = db.relationship('APIKey', backref=db.backref('events', lazy=True))
@@ -1346,10 +1346,10 @@ class APIKeyEvent(db.Model):
             'performed_by_id': self.performed_by_id
         }
         
-        if self.metadata:
+        if self.event_metadata:
             try:
-                result['metadata'] = json.loads(self.metadata)
+                result['metadata'] = json.loads(self.event_metadata)
             except json.JSONDecodeError:
-                result['metadata'] = self.metadata
+                result['metadata'] = self.event_metadata
                 
         return result

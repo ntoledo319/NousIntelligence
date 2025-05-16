@@ -41,6 +41,12 @@ MIGRATIONS = [
         "function": "apply_migrations",
         "description": "Adding any missing database columns",
         "required": True
+    },
+    {
+        "module": "migrate_backup_codes",
+        "function": "apply_migration",
+        "description": "Updating two_factor_backup_codes table to use string user_id",
+        "required": True
     }
 ]
 

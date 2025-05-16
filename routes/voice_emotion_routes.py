@@ -9,7 +9,10 @@ from flask import Blueprint, render_template, request, jsonify, current_app, ses
 from flask_login import login_required, current_user
 
 from utils.emotion_detection import analyze_voice_audio, log_emotion
-from utils.key_config import HF_ACCESS_TOKEN
+from utils.key_config import get_huggingface_token
+
+# Get the Hugging Face access token
+HF_ACCESS_TOKEN = get_huggingface_token()
 
 voice_emotion_bp = Blueprint('voice_emotion', __name__)
 

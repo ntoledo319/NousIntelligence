@@ -12,9 +12,14 @@ from openai import OpenAI
 
 # Import our key configuration module
 from utils.key_config import (
-    OPENAI_API_KEY, OPENROUTER_API_KEY, HF_ACCESS_TOKEN,
+    get_openai_key, get_openrouter_key, get_huggingface_token,
     USE_HUGGINGFACE, USE_OPENROUTER, get_preferred_service
 )
+
+# Get API keys
+OPENAI_API_KEY = get_openai_key()
+OPENROUTER_API_KEY = get_openrouter_key()
+HF_ACCESS_TOKEN = get_huggingface_token()
 
 # Only create the OpenAI client if we have a valid OpenAI key
 if OPENAI_API_KEY:
