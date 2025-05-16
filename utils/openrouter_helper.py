@@ -13,13 +13,14 @@ from typing import List, Dict, Any, Optional
 API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 BASE_URL = "https://openrouter.ai/api/v1"
 
-# OpenRouter-specific headers
-HEADERS = {
-    "Authorization": f"Bearer {API_KEY}",
-    "Content-Type": "application/json",
-    "HTTP-Referer": "https://nous.replit.app/",
-    "X-Title": "NOUS Personal Assistant"
-}
+def get_headers():
+    """Get fresh headers with the current API key"""
+    return {
+        "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY', '')}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://nous.replit.app/",
+        "X-Title": "NOUS Personal Assistant"
+    }
 
 def chat_completion(
     messages: List[Dict[str, str]],
@@ -39,7 +40,9 @@ def chat_completion(
     Returns:
         The generated text response or None if there was an error
     """
-    if not API_KEY:
+    # Get the current API key from environment
+    current_api_key = os.environ.get("OPENROUTER_API_KEY", "")
+    if not current_api_key:
         logging.error("No OpenRouter API key found")
         return None
         
@@ -54,10 +57,10 @@ def chat_completion(
             "max_tokens": max_tokens
         }
         
-        # Send request to OpenRouter API
+        # Send request to OpenRouter API with fresh headers
         response = requests.post(
             f"{BASE_URL}/chat/completions",
-            headers=HEADERS,
+            headers=get_headers(),
             json=payload,
             timeout=30
         )
@@ -103,7 +106,7 @@ def get_embeddings(text: str) -> Optional[List[float]]:
         # Send request to OpenRouter API
         response = requests.post(
             f"{BASE_URL}/embeddings",
-            headers=HEADERS,
+            headers=get_headers(),
             json=payload,
             timeout=30
         )
@@ -136,7 +139,7 @@ def list_available_models() -> Optional[List[Dict[str, Any]]]:
     try:
         response = requests.get(
             f"{BASE_URL}/models",
-            headers=HEADERS,
+            headers=get_headers(),
             timeout=10
         )
         
