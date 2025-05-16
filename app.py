@@ -243,7 +243,7 @@ def index():
     # Check if user is authenticated
     if not current_user.is_authenticated:
         # Show a welcome page for non-authenticated users
-        return render_template("welcome.html")
+        return render_template("simple_welcome.html")
         
     if request.method == "GET":
         # Check if there's a command in the query parameters (from dashboard links)
