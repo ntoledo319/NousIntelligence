@@ -1,45 +1,61 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="NOUS - A comprehensive personal assistant web application">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="NOUS - An advanced AI-powered personal assistant">
+    <meta name="theme-color" content="#4361ee">
     <title>NOUS - Personal Assistant</title>
-    <!-- Bootstrap from Replit CDN -->
-    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
     <!-- Font Awesome icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <!-- Custom styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/IMG_4875.jpeg') }}">
+    
+    <!-- PWA Support -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/IMG_4875.jpeg') }}">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
+    <!-- Modern Navbar -->
+    <nav class="navbar navbar-expand-lg">
         <div class="container">
+            <!-- Brand and Logo -->
             <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
-                <img src="{{ url_for('static', filename='img/IMG_4875.jpeg') }}" alt="NOUS Logo" class="navbar-logo me-2" height="30">
+                <img src="{{ url_for('static', filename='img/IMG_4875.jpeg') }}" alt="NOUS Logo" class="navbar-logo me-2" width="32" height="32">
                 <span>NOUS</span>
-                <span class="badge bg-info ms-2 fw-normal" style="font-size: 0.6rem;">v1.0</span>
+                <span class="badge bg-primary ms-2">v1.0</span>
             </a>
+            
+            <!-- Mobile Toggle Button -->
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#navbarOffcanvas"
                     aria-controls="navbarOffcanvas" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+                <i class="fas fa-bars"></i>
             </button>
             
             <!-- Mobile Offcanvas Menu -->
-            <div class="offcanvas offcanvas-end bg-dark text-white d-lg-none" tabindex="-1" id="navbarOffcanvas" aria-labelledby="offcanvasNavbarLabel">
-                <div class="offcanvas-header border-bottom border-secondary">
-                    <h5 class="offcanvas-title" id="offcanvasNavbarLabel">
-                        <img src="{{ url_for('static', filename='img/IMG_4875.jpeg') }}" alt="NOUS Logo" class="navbar-logo me-2" height="30">
+            <div class="offcanvas offcanvas-end" tabindex="-1" id="navbarOffcanvas" aria-labelledby="offcanvasNavbarLabel">
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title d-flex align-items-center" id="offcanvasNavbarLabel">
+                        <img src="{{ url_for('static', filename='img/IMG_4875.jpeg') }}" alt="NOUS Logo" class="navbar-logo me-2" width="28" height="28">
                         NOUS Menu
                     </h5>
-                    <button type="button" class="btn-close btn-close-white text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                 </div>
                 <div class="offcanvas-body">
                     <ul class="navbar-nav">
@@ -457,40 +473,66 @@
             {% endif %}
         {% endwith %}
         
-        {% block content %}{% endblock %}
+        <!-- Main Content Container -->
+        <main class="py-4">
+            <div class="container">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
     </div>
 
-    <footer class="py-4 text-center text-muted">
+    <!-- Modern Footer -->
+    <footer>
         <div class="container">
             <div class="row">
-                <div class="col-md-4 text-md-start">
-                    <div class="d-flex align-items-center justify-content-center justify-content-md-start">
-                        <i class="fas fa-robot me-2"></i>
-                        <p class="mb-0">NOUS v1.0</p>
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="{{ url_for('static', filename='img/IMG_4875.jpeg') }}" alt="NOUS Logo" class="navbar-logo me-2" width="32" height="32">
+                        <h5 class="mb-0">NOUS</h5>
+                    </div>
+                    <p class="mb-3">An advanced AI-powered personal assistant designed to help organize your life.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
                     </div>
                 </div>
-                <div class="col-md-4 my-3 my-md-0">
-                    <p class="mb-0">Your Personal Assistant</p>
+                
+                <div class="col-6 col-md-3 col-lg-2 mb-4 mb-lg-0">
+                    <h5>Features</h5>
+                    <ul class="footer-links">
+                        <li><a href="{{ url_for('index') }}?cmd=show%20doctors">Health</a></li>
+                        <li><a href="{{ url_for('index') }}?cmd=show%20shopping%20lists">Shopping</a></li>
+                        <li><a href="{{ url_for('index') }}?cmd=budget%20summary">Finance</a></li>
+                        <li><a href="{{ url_for('index') }}?cmd=show%20trips">Travel</a></li>
+                    </ul>
                 </div>
-                <div class="col-md-4 text-md-end">
-                    <div class="d-flex justify-content-center justify-content-md-end">
-                        <a href="{{ url_for('help_page') }}" class="text-muted me-3">
-                            <i class="fas fa-question-circle"></i>
-                        </a>
-                        <a href="{{ url_for('clear_log') }}" class="text-muted me-3">
-                            <i class="fas fa-broom"></i>
-                        </a>
+                
+                <div class="col-6 col-md-3 col-lg-2 mb-4 mb-lg-0">
+                    <h5>Resources</h5>
+                    <ul class="footer-links">
+                        <li><a href="{{ url_for('user_guide') }}">User Guide</a></li>
+                        <li><a href="{{ url_for('help_page') }}">Help Center</a></li>
+                        <li><a href="{{ url_for('clear_log') }}">Clear Log</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-md-6 col-lg-4">
+                    <h5>Connect Services</h5>
+                    <ul class="footer-links">
+                        <li><a href="{{ url_for('authorize_google') }}"><i class="fab fa-google me-2"></i>Connect Google</a></li>
+                        <li><a href="{{ url_for('authorize_spotify') }}"><i class="fab fa-spotify me-2"></i>Connect Spotify</a></li>
                         {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('google_auth.logout') }}" class="text-muted">
-                            <i class="fas fa-sign-out-alt"></i>
-                        </a>
+                        <li><a href="{{ url_for('google_auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
                         {% else %}
-                        <a href="{{ url_for('google_auth.login') }}" class="text-muted">
-                            <i class="fas fa-sign-in-alt"></i>
-                        </a>
+                        <li><a href="{{ url_for('google_auth.login') }}"><i class="fas fa-sign-in-alt me-2"></i>Login</a></li>
                         {% endif %}
-                    </div>
+                    </ul>
                 </div>
+            </div>
+            
+            <div class="copyright">
+                <p>NOUS v1.0 &copy; {% now 'Y' %} All rights reserved.</p>
             </div>
         </div>
     </footer>

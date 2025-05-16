@@ -1429,109 +1429,245 @@ pre code {
     font-size: 1.25rem;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .terminal-output {
-        min-height: 200px;
-        max-height: 350px;
-        padding: 12px;
-        font-size: 0.9rem;
-    }
-    
-    .card-header h3 {
-        font-size: 1.1rem;
-    }
-    
+/* Responsive layout adjustments */
+@media (max-width: 1200px) {
     .container {
-        padding-left: 10px;
-        padding-right: 10px;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+    
+    .ai-feature-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    }
+}
+
+@media (max-width: 992px) {
+    .dashboard h1 {
+        font-size: 2rem;
+    }
+    
+    .dashboard h2 {
+        font-size: 1.5rem;
+    }
+    
+    .dashboard .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .summary-card .card-title {
+        font-size: 1.5rem;
+    }
+    
+    .card-stats {
+        padding: 1.25rem;
+    }
+}
+
+/* Tablet and smaller devices */
+@media (max-width: 768px) {
+    /* General layout adjustments */
+    .container {
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
         max-width: 100%;
     }
     
     .row {
-        margin-left: -10px;
-        margin-right: -10px;
+        margin-left: -0.75rem;
+        margin-right: -0.75rem;
     }
     
-    .col, .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12, 
-    .col-sm, .col-sm-1, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-sm-10, .col-sm-11, .col-sm-12,
-    .col-md, .col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12 {
-        padding-right: 10px;
-        padding-left: 10px;
+    [class*="col-"] {
+        padding-right: 0.75rem;
+        padding-left: 0.75rem;
     }
     
+    /* Terminal output adjustments */
+    .terminal-output {
+        min-height: 280px;
+        max-height: 400px;
+        padding: 1.25rem;
+        margin-top: 1.25rem;
+        font-size: 0.9rem;
+    }
+    
+    .terminal-output::before {
+        top: 0.5rem;
+        left: 0.75rem;
+        width: 8px;
+        height: 8px;
+        box-shadow: 16px 0 0 var(--warning), 32px 0 0 var(--success);
+    }
+    
+    /* Card adjustments */
+    .card {
+        margin-bottom: 1.25rem;
+    }
+    
+    .card-header {
+        padding: 1rem 1.25rem;
+    }
+    
+    .card-body {
+        padding: 1.25rem;
+    }
+    
+    .card:hover {
+        transform: translateY(-4px);
+    }
+    
+    /* Table adjustments */
     .table {
         font-size: 0.85rem;
     }
     
-    .table td, .table th {
-        padding: 8px 10px;
-    }
-
-    .dashboard .card {
-        margin-bottom: 1rem;
+    .table th, .table td {
+        padding: 0.75rem 1rem;
     }
     
-    /* Smaller buttons on mobile */
+    /* Button adjustments */
     .btn {
-        padding: .375rem .75rem;
+        padding: 0.4375rem 1rem;
         font-size: 0.9rem;
     }
     
     .btn-lg {
-        padding: .5rem 1rem;
+        padding: 0.625rem 1.25rem;
         font-size: 1rem;
     }
     
-    /* Improved command input on mobile */
-    .input-group .form-control {
-        font-size: 0.9rem;
-        padding: 10px 12px;
+    .btn-sm {
+        padding: 0.3125rem 0.75rem;
+        font-size: 0.8rem;
     }
     
-    /* Smaller navbar elements */
+    /* Form adjustments */
+    .input-group {
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+    }
+    
+    .input-group .form-control {
+        height: 48px;
+        font-size: 0.9rem;
+        padding: 0.75rem 1rem;
+    }
+    
+    /* Navigation */
     .navbar-brand {
         font-size: 1.1rem;
     }
     
     .nav-link {
-        padding: 0.4rem 0.6rem;
+        padding: 0.5rem 0.75rem;
         font-size: 0.9rem;
     }
     
-    /* Improve dropdown menus on mobile */
-    .dropdown-menu {
-        font-size: 0.9rem;
-        max-height: 80vh;
-        overflow-y: auto;
+    /* Dashboard elements */
+    .dashboard h1 {
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
     }
     
-    .dropdown-item {
-        padding: 0.4rem 1rem;
+    .dashboard h2 {
+        font-size: 1.35rem;
     }
     
-    /* Make cards less animated on mobile to reduce performance issues */
-    .card:hover {
-        transform: translateY(-2px);
+    .dashboard .dashboard-section {
+        margin-bottom: 2.5rem;
+    }
+    
+    .ai-feature-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 1rem;
+    }
+    
+    .ai-feature-card {
+        padding: 1.25rem 1rem;
+    }
+    
+    .ai-feature-card .feature-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .ai-feature-card h4 {
+        font-size: 1rem;
+    }
+    
+    /* Voice and speaking inputs */
+    .voice-controls {
+        margin-bottom: 0.75rem;
+    }
+    
+    #voiceButton {
+        width: 42px;
+        height: 42px;
     }
 }
 
-/* Extra small devices */
+/* Mobile devices */
 @media (max-width: 576px) {
+    /* General layout adjustments */
     .container {
-        padding-left: 8px;
-        padding-right: 8px;
+        padding-left: 1rem;
+        padding-right: 1rem;
     }
     
+    .row {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+    }
+    
+    [class*="col-"] {
+        padding-right: 0.5rem;
+        padding-left: 0.5rem;
+    }
+    
+    /* Terminal output */
     .terminal-output {
-        min-height: 180px;
-        max-height: 300px;
-        padding: 10px;
+        min-height: 240px;
+        max-height: 320px;
+        padding: 1rem;
         font-size: 0.85rem;
     }
     
-    /* Stack buttons on welcome page */
-    .welcome-buttons .btn {
+    /* Card simplification for better performance */
+    .card {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        margin-bottom: 1rem;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    }
+    
+    .card-header {
+        padding: 0.875rem 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    /* Simplify animations for better performance */
+    .summary-card:hover,
+    .feature-card:hover,
+    .ai-feature-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    /* Stack elements on mobile */
+    .dashboard .dashboard-header {
+        margin-bottom: 1.5rem;
+    }
+    
+    .welcome-buttons .btn,
+    .action-buttons .btn {
         display: block;
         width: 100%;
         margin-bottom: 0.5rem;
@@ -1539,24 +1675,15 @@ pre code {
     
     /* Adjust logo sizes */
     .navbar-logo {
-        height: 30px;
+        height: 28px;
     }
     
     .hero-logo {
-        max-width: 80%;
+        max-width: 70%;
+        max-height: 100px;
     }
     
-    /* Simplified card animations for better performance */
-    .card {
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-    
-    .card:hover {
-        transform: none;
-        box-shadow: 0 3px 7px rgba(0, 0, 0, 0.15);
-    }
-    
-    /* Reduce page margins and paddings */
+    /* Reduce spacing */
     .my-4 {
         margin-top: 1rem !important;
         margin-bottom: 1rem !important;
@@ -1567,13 +1694,191 @@ pre code {
         padding-bottom: 1rem !important;
     }
     
+    .mt-5 {
+        margin-top: 2rem !important;
+    }
+    
+    .mb-5 {
+        margin-bottom: 2rem !important;
+    }
+    
+    /* Reduce text sizes */
     h1, .h1 {
-        font-size: 1.75rem;
+        font-size: 1.675rem;
     }
     
     h2, .h2 {
-        font-size: 1.5rem;
+        font-size: 1.375rem;
     }
+    
+    h3, .h3 {
+        font-size: 1.25rem;
+    }
+    
+    /* Mobile grid adaptations */
+    .ai-feature-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    /* Mobile optimized forms */
+    .input-group {
+        flex-direction: column;
+        box-shadow: none;
+    }
+    
+    .input-group:focus-within {
+        box-shadow: none;
+    }
+    
+    .input-group .form-control {
+        border-radius: 12px;
+        border: 1px solid var(--gray-200);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+        margin-bottom: 0.5rem;
+        width: 100%;
+    }
+    
+    .input-group .form-control:focus {
+        border-color: var(--primary-light);
+        box-shadow: 0 4px 15px rgba(67, 97, 238, 0.1);
+    }
+    
+    .input-group-append,
+    .input-group-prepend {
+        display: flex;
+        width: 100%;
+    }
+    
+    .input-group-append .btn,
+    .input-group-prepend .btn {
+        flex: 1;
+        margin-left: 0;
+        margin-right: 0.25rem;
+        border-radius: 8px;
+    }
+    
+    .input-group-append .btn:last-child {
+        margin-right: 0;
+    }
+    
+    /* Mobile-friendly navigation */
+    .navbar-brand {
+        font-size: 1.05rem;
+    }
+    
+    .navbar-toggler {
+        padding: 0.25rem;
+    }
+    
+    .offcanvas-body {
+        padding: 1rem;
+    }
+    
+    /* Mobile-optimized tables */
+    .table-responsive-stack tr {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 1rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 8px;
+    }
+    
+    .table-responsive-stack td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: none;
+        border-bottom: 1px solid var(--gray-200);
+        padding: 0.75rem 1rem;
+    }
+    
+    .table-responsive-stack td:last-child {
+        border-bottom: none;
+    }
+    
+    .table-responsive-stack td:before {
+        content: attr(data-label);
+        font-weight: 600;
+    }
+}
+
+/* Small height adjustments */
+@media (max-height: 700px) {
+    .terminal-output {
+        min-height: 200px;
+        max-height: 300px;
+    }
+    
+    .hero-logo {
+        max-height: 80px;
+    }
+    
+    .dashboard h1 {
+        margin-bottom: 1.25rem;
+    }
+}
+
+/* Mobile Navigation Categories */
+.nav-category-header {
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.mobile-category {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mobile-category:after {
+    content: "\f107"; /* fa-chevron-down */
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    margin-left: auto;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+}
+
+.mobile-category.active:after {
+    transform: rotate(180deg);
+}
+
+.mobile-category-items {
+    padding-left: 1.5rem;
+    margin-bottom: 0.75rem;
+    border-left: 2px solid var(--gray-200);
+    margin-left: 0.75rem;
+}
+
+.mobile-category-items .nav-link {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+
+.mobile-category-items .nav-link:hover {
+    color: var(--primary);
+    transform: translateX(2px);
+}
+
+.avatar-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: rgba(67, 97, 238, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
 }
 
 /* Typing indicator animation */
