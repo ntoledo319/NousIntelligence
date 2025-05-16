@@ -8,13 +8,31 @@ from datetime import datetime
 import json
 from urllib.parse import urlencode
 
-# Google Maps API
-MAPS_API_KEY = os.environ.get("MAPS_API_KEY")
+# Google Maps API - Try multiple environment variable names for flexibility
+MAPS_API_KEY = os.environ.get("MAPS_API_KEY") or os.environ.get("GOOGLE_MAPS_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+
+def get_maps_api_key():
+    """Get Maps API key from environment or from Google credentials"""
+    # First, try environment variables
+    if MAPS_API_KEY:
+        return MAPS_API_KEY
+        
+    # If not found in environment, try to get from Google OAuth credentials
+    try:
+        from flask import session
+        if 'google_credentials' in session:
+            # Get API key from Google credentials if available
+            return session['google_credentials'].get('maps_api_key')
+    except Exception as e:
+        logging.error(f"Error retrieving Maps API key from session: {str(e)}")
+        
+    return None
 
 def geocode_address(address):
     """Convert an address to geographical coordinates"""
     try:
-        if not MAPS_API_KEY:
+        api_key = get_maps_api_key()
+        if not api_key:
             return {
                 "success": False,
                 "error": "Maps API key not available"
@@ -24,7 +42,7 @@ def geocode_address(address):
         url = "https://maps.googleapis.com/maps/api/geocode/json"
         params = {
             "address": address,
-            "key": MAPS_API_KEY
+            "key": api_key
         }
         
         # Make the request
@@ -68,7 +86,8 @@ def geocode_address(address):
 def reverse_geocode(lat, lng):
     """Convert geographical coordinates to an address"""
     try:
-        if not MAPS_API_KEY:
+        api_key = get_maps_api_key()
+        if not api_key:
             return {
                 "success": False,
                 "error": "Maps API key not available"
@@ -78,7 +97,7 @@ def reverse_geocode(lat, lng):
         url = "https://maps.googleapis.com/maps/api/geocode/json"
         params = {
             "latlng": f"{lat},{lng}",
-            "key": MAPS_API_KEY
+            "key": api_key
         }
         
         # Make the request
@@ -132,7 +151,8 @@ def reverse_geocode(lat, lng):
 def get_distance_matrix(origins, destinations, mode="driving"):
     """Get the distance and duration between origins and destinations"""
     try:
-        if not MAPS_API_KEY:
+        api_key = get_maps_api_key()
+        if not api_key:
             return {
                 "success": False,
                 "error": "Maps API key not available"
@@ -160,7 +180,7 @@ def get_distance_matrix(origins, destinations, mode="driving"):
             "origins": origins_str,
             "destinations": destinations_str,
             "mode": mode,
-            "key": MAPS_API_KEY
+            "key": api_key
         }
         
         # Make the request
