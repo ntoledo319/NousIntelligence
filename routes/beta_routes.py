@@ -148,11 +148,32 @@ def submit_feedback():
             
             # TODO: Implement file upload handling
             # For now, just store the filenames
+            
+            # Implement file upload handling
+            import os
+            
+            # Create screenshots directory if it doesn't exist
+            screenshots_dir = os.path.join(current_app.config.get('UPLOAD_FOLDER', 'uploads'), 'beta_screenshots')
+            if not os.path.exists(screenshots_dir):
+                os.makedirs(screenshots_dir)
+            
             for file in request.files.getlist('screenshots'):
                 if file and file.filename:
+                    # Secure the filename
                     filename = secure_filename(file.filename)
-                    filenames.append(filename)
                     
+                    # Add timestamp to prevent overwriting files with same name
+                    timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+                    base, ext = os.path.splitext(filename)
+                    unique_filename = f"{base}_{timestamp}{ext}"
+                    
+                    # Save the file
+                    file_path = os.path.join(screenshots_dir, unique_filename)
+                    file.save(file_path)
+                    
+                    # Add to filenames list
+                    filenames.append(unique_filename)
+                
             if filenames:
                 screenshots = json.dumps(filenames)
         

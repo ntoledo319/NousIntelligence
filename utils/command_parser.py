@@ -8,21 +8,7 @@ from PIL import Image
 from flask import url_for, session
 from utils.logger import log_workout, log_mood
 from utils.scraper import scrape_aa_reflection
-from utils.ai_helper import parse_natural_language, handle_conversation, analyze_gmail_content, analyze_gmail_threads
-
-# Import Hugging Face image helpers if available
-try:
-    from utils.image_helper import describe_image, detect_objects_in_image, analyze_image_for_travel
-    IMAGE_ANALYSIS_ENABLED = True
-except ImportError:
-    IMAGE_ANALYSIS_ENABLED = False
-
-# Import knowledge base utilities if available
-try:
-    from utils.knowledge_helper import query_knowledge_base, add_to_knowledge_base, run_self_reflection, prune_knowledge_base
-    KNOWLEDGE_BASE_ENABLED = True
-except ImportError:
-    KNOWLEDGE_BASE_ENABLED = False
+from utils.ai_helper import parse_natural_language, handle_conversation, analyze_gmail_content, analyze_gmail_threads, cfhat
 from utils.google_helper import create_calendar_event
 from utils.gmail_helper import get_gmail_service, get_gmail_messages, get_message_content, get_gmail_threads, search_gmail
 from utils.google_api_manager import GoogleApiManager
@@ -106,6 +92,20 @@ from models import (
     Budget, Expense, RecurringPayment, Trip, ItineraryItem, 
     Accommodation, TravelDocument, PackingItem
 )
+
+# Import Hugging Face image helpers if available
+try:
+    from utils.image_helper import describe_image, detect_objects_in_image, analyze_image_for_travel
+    IMAGE_ANALYSIS_ENABLED = True
+except ImportError:
+    IMAGE_ANALYSIS_ENABLED = False
+
+# Import knowledge base utilities if available
+try:
+    from utils.knowledge_helper import query_knowledge_base, add_to_knowledge_base, run_self_reflection, prune_knowledge_base
+    KNOWLEDGE_BASE_ENABLED = True
+except ImportError:
+    KNOWLEDGE_BASE_ENABLED = False
 
 def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
     """
@@ -2300,7 +2300,8 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
         else:
             # Get user_id from session
             user_id = session.get('user_id', 'anonymous') if session else 'anonymous'
-            response = handle_conversation(user_id, chat_message)
+            # Use the cfhat function instead of handle_conversation directly
+            response = cfhat(chat_message, user_id=user_id, feature=None)
             log.append(f"🤖 {response}")
     
     # Handle knowledge base reflection command
@@ -2373,52 +2374,64 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
             # Get user_id from session
             user_id = session.get('user_id', 'anonymous') if session else 'anonymous'
             
-            # Analyze the email content
-            analysis = analyze_gmail_content(user_id, email_content)
+            # Use cfhat function for analysis
+            from utils.ai_helper import cfhat
+            analysis = cfhat(
+                email_content, 
+                user_id=user_id, 
+                feature="email_analysis", 
+                context={"email_content": email_content, "format": "json"}
+            )
             
-            if "error" in analysis:
+            if isinstance(analysis, dict) and "error" in analysis:
                 log.append(f"⚠️ Error analyzing email: {analysis['error']}")
             else:
                 # Format the analysis results
                 log.append("📧 Email Analysis:")
-                log.append(f"📌 Summary: {analysis.get('summary', 'No summary available')}")
                 
-                # Priority
-                priority = analysis.get('priority', 'Unknown')
-                priority_emoji = "🔴" if priority.lower() == "high" else "🟡" if priority.lower() == "medium" else "🟢"
-                log.append(f"{priority_emoji} Priority: {priority}")
-                
-                # Tone
-                log.append(f"🎭 Tone: {analysis.get('tone', 'Unknown')}")
-                
-                # Key points
-                key_points = analysis.get('key_points', [])
-                if key_points:
-                    log.append("📋 Key points:")
-                    for point in key_points:
-                        log.append(f"  • {point}")
-                
-                # Action items
-                action_items = analysis.get('action_items', [])
-                if action_items:
-                    log.append("✅ Action items:")
-                    for item in action_items:
-                        log.append(f"  • {item}")
-                
-                # Deadlines
-                deadlines = analysis.get('deadlines', [])
-                if deadlines:
-                    log.append("⏰ Deadlines:")
-                    for deadline in deadlines:
-                        log.append(f"  • {deadline}")
-                
-                # People mentioned
-                people = analysis.get('people', [])
-                if people:
-                    log.append("👥 People mentioned:")
-                    for person in people:
-                        log.append(f"  • {person}")
-                        
+                if isinstance(analysis, dict):
+                    # Handle structured response
+                    log.append(f"📌 Summary: {analysis.get('summary', 'No summary available')}")
+                    
+                    # Priority
+                    priority = analysis.get('priority', 'Unknown')
+                    priority_emoji = "🔴" if priority.lower() == "high" else "🟡" if priority.lower() == "medium" else "🟢"
+                    log.append(f"{priority_emoji} Priority: {priority}")
+                    
+                    # Tone
+                    log.append(f"🎭 Tone: {analysis.get('tone', 'Unknown')}")
+                    
+                    # Key points
+                    key_points = analysis.get('key_points', [])
+                    if key_points:
+                        log.append("📋 Key points:")
+                        for point in key_points:
+                            log.append(f"  • {point}")
+                    
+                    # Action items
+                    action_items = analysis.get('action_items', [])
+                    if action_items:
+                        log.append("✅ Action items:")
+                        for item in action_items:
+                            log.append(f"  • {item}")
+                    
+                    # Deadlines
+                    deadlines = analysis.get('deadlines', [])
+                    if deadlines:
+                        log.append("⏰ Deadlines:")
+                        for deadline in deadlines:
+                            log.append(f"  • {deadline}")
+                    
+                    # People mentioned
+                    people = analysis.get('people', [])
+                    if people:
+                        log.append("👥 People mentioned:")
+                        for person in people:
+                            log.append(f"  • {person}")
+                else:
+                    # Handle text response
+                    log.append(analysis)
+    
     elif cmd.startswith("pain forecast") or cmd.startswith("pain flare") or cmd == "pain":
         # Get pain flare forecast based on weather conditions
         location_match = re.search(r'(?:for|in|at) (.+)$', cmd)
@@ -2461,9 +2474,35 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
             # Calculate pain flare risk
             pain_risk = calculate_pain_flare_risk(pressure_trend, storm_data)
             
-            # Format for display
+            # Use cfhat to get personalized insights based on weather data
+            user_id = session.get('user_id', 'anonymous') if session else 'anonymous'
+            from utils.ai_helper import cfhat
+            
+            # Combine all weather data for context
+            weather_context = {
+                "location": location,
+                "current_weather": weather_data,
+                "pressure_trend": pressure_trend,
+                "storm_data": storm_data,
+                "pain_risk": pain_risk
+            }
+            
+            # Generate enhanced insights
+            prompt = f"Provide a pain flare risk analysis for {location} based on weather and pressure trends."
+            enhanced_insights = cfhat(
+                prompt,
+                user_id=user_id,
+                feature="weather",
+                context={"weather_data": weather_context}
+            )
+            
+            # Format for display using both structured data and AI insights
             formatted_output = format_pain_forecast_output(pressure_trend, pain_risk)
             log.append(formatted_output)
+            
+            # Add the enhanced AI insights
+            log.append("\n🧠 Enhanced Analysis:")
+            log.append(enhanced_insights)
             
             # Add tracking data to the response
             result["pain_forecast"] = {
@@ -2483,11 +2522,18 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
     elif cmd.startswith("dbt skill for "):
         text = cmd[13:].strip()
         try:
-            response = skills_on_demand(text)
-            if "error" in response:
-                log.append(f"❌ Error: {response['error']}")
-            else:
-                log.append(f"🧠 DBT Skill Suggestion: {response['response']}")
+            user_id = session.get('user_id', 'anonymous') if session else 'anonymous'
+            from utils.ai_helper import cfhat
+            
+            prompt = f"Suggest a DBT skill for the following situation: {text}"
+            response = cfhat(
+                prompt,
+                user_id=user_id,
+                feature="dbt",
+                context={"situation": text}
+            )
+            
+            log.append(f"🧠 DBT Skill Suggestion: {response}")
         except Exception as e:
             log.append(f"❌ Error getting DBT skill suggestion: {str(e)}")
         return result
@@ -2496,58 +2542,64 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
     elif cmd.startswith("diary card "):
         text = cmd[11:].strip()
         try:
-            response = generate_diary_card(text)
-            if "error" in response:
-                log.append(f"❌ Error: {response['error']}")
-            else:
-                card_text = response['response']
-                log.append(f"📝 Generated Diary Card:")
-                log.append(card_text)
+            user_id = session.get('user_id', 'anonymous') if session else 'anonymous'
+            from utils.ai_helper import cfhat
+            
+            prompt = f"Generate a DBT diary card based on: {text}"
+            card_text = cfhat(
+                prompt,
+                user_id=user_id,
+                feature="dbt",
+                context={"request_type": "diary_card", "situation": text}
+            )
+            
+            log.append(f"📝 Generated Diary Card:")
+            log.append(card_text)
+            
+            # Try to parse and save the diary card
+            try:
+                # Very basic parsing - would be better with structured response from API
+                mood_match = re.search(r'Mood rating.*?(\d)', card_text)
+                mood_rating = int(mood_match.group(1)) if mood_match else 3
                 
-                # Try to parse and save the diary card
-                try:
-                    # Very basic parsing - would be better with structured response from API
-                    mood_match = re.search(r'Mood rating.*?(\d)', card_text)
-                    mood_rating = int(mood_match.group(1)) if mood_match else 3
+                triggers = None
+                urges = None
+                skills_used = None
+                reflection = None
+                
+                # Extract triggers
+                triggers_match = re.search(r'Triggers:(.+?)(?:Urges:|$)', card_text, re.DOTALL)
+                if triggers_match:
+                    triggers = triggers_match.group(1).strip()
+                
+                # Extract urges
+                urges_match = re.search(r'Urges:(.+?)(?:DBT skill|Skills used:|$)', card_text, re.DOTALL)
+                if urges_match:
+                    urges = urges_match.group(1).strip()
+                
+                # Extract skills used
+                skills_match = re.search(r'(?:DBT skill|Skills used):(.+?)(?:Reflection|Note:|$)', card_text, re.DOTALL)
+                if skills_match:
+                    skills_used = skills_match.group(1).strip()
+                
+                # Extract reflection
+                reflection_match = re.search(r'(?:Reflection|Note):(.+?)$', card_text, re.DOTALL)
+                if reflection_match:
+                    reflection = reflection_match.group(1).strip()
+                
+                # Save to database
+                create_result = create_diary_card(
+                    session, mood_rating, triggers, urges, skills_used, reflection
+                )
+                
+                if create_result.get("status") == "success":
+                    log.append("✅ Diary card saved to your records")
+                else:
+                    log.append(f"⚠️ {create_result.get('message', 'Could not save diary card')}")
                     
-                    triggers = None
-                    urges = None
-                    skills_used = None
-                    reflection = None
-                    
-                    # Extract triggers
-                    triggers_match = re.search(r'Triggers:(.+?)(?:Urges:|$)', card_text, re.DOTALL)
-                    if triggers_match:
-                        triggers = triggers_match.group(1).strip()
-                    
-                    # Extract urges
-                    urges_match = re.search(r'Urges:(.+?)(?:DBT skill|Skills used:|$)', card_text, re.DOTALL)
-                    if urges_match:
-                        urges = urges_match.group(1).strip()
-                    
-                    # Extract skills used
-                    skills_match = re.search(r'(?:DBT skill|Skills used):(.+?)(?:Reflection|Note:|$)', card_text, re.DOTALL)
-                    if skills_match:
-                        skills_used = skills_match.group(1).strip()
-                    
-                    # Extract reflection
-                    reflection_match = re.search(r'(?:Reflection|Note):(.+?)$', card_text, re.DOTALL)
-                    if reflection_match:
-                        reflection = reflection_match.group(1).strip()
-                    
-                    # Save to database
-                    create_result = create_diary_card(
-                        session, mood_rating, triggers, urges, skills_used, reflection
-                    )
-                    
-                    if create_result.get("status") == "success":
-                        log.append("✅ Diary card saved to your records")
-                    else:
-                        log.append(f"⚠️ {create_result.get('message', 'Could not save diary card')}")
-                        
-                except Exception as parse_error:
-                    logging.error(f"Error parsing diary card: {str(parse_error)}")
-                    log.append("⚠️ Generated diary card, but couldn't save it automatically")
+            except Exception as parse_error:
+                logging.error(f"Error parsing diary card: {str(parse_error)}")
+                log.append("⚠️ Generated diary card, but couldn't save it automatically")
         except Exception as e:
             log.append(f"❌ Error generating diary card: {str(e)}")
         return result

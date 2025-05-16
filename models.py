@@ -4,8 +4,10 @@ import enum
 import numpy as np
 from flask_login import UserMixin
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
-from sqlalchemy import UniqueConstraint, func, text
+from sqlalchemy import UniqueConstraint, func, text, Index
 import json
+from werkzeug.security import generate_password_hash, check_password_hash
+import uuid
 
 db = SQLAlchemy()
 
@@ -19,15 +21,21 @@ class ConversationDifficulty(enum.Enum):
 # User model for authentication
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
-    id = db.Column(db.String, primary_key=True)
-    email = db.Column(db.String, unique=True, nullable=True)
-    first_name = db.Column(db.String, nullable=True)
-    last_name = db.Column(db.String, nullable=True)
-    profile_image_url = db.Column(db.String, nullable=True)
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    first_name = db.Column(db.String(80), nullable=False)
+    last_name = db.Column(db.String(80), nullable=False)
+    profile_image_url = db.Column(db.String(255), nullable=True)
     is_admin = db.Column(db.Boolean, default=False)
     account_active = db.Column(db.Boolean, default=True)  # Renamed to avoid conflict with UserMixin
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    password_hash = db.Column(db.String(256), nullable=False)
+    last_login = db.Column(db.DateTime, nullable=True)
+    
+    # Two-factor authentication fields
+    two_factor_enabled = db.Column(db.Boolean, default=False)
+    two_factor_secret = db.Column(db.String(32), nullable=True)
     
     # Relationship with user settings
     settings = db.relationship('UserSettings', backref='user', uselist=False, cascade="all, delete-orphan")
@@ -38,6 +46,18 @@ class User(UserMixin, db.Model):
                                backref=db.backref('owner', lazy='joined'),
                                lazy='dynamic',
                                cascade='all, delete-orphan')
+    
+    # Relationship with memory entries
+    memory_entries = db.relationship('UserMemoryEntry', backref='user', lazy=True, cascade="all, delete-orphan")
+    
+    # Relationship with topic interests
+    topic_interests = db.relationship('UserTopicInterest', backref='user', lazy=True, cascade="all, delete-orphan")
+    
+    # Relationship with entity memories
+    entity_memories = db.relationship('UserEntityMemory', backref='user', lazy=True, cascade="all, delete-orphan")
+    
+    # Relationship with backup codes
+    backup_codes = db.relationship('TwoFactorBackupCode', backref='user', lazy=True, cascade="all, delete-orphan")
     
     def is_administrator(self):
         """Check if user has admin privileges"""
@@ -53,12 +73,67 @@ class User(UserMixin, db.Model):
     def is_active(self, value):
         """Set whether the user account is active"""
         self.account_active = value
+    
+    def set_password(self, password):
+        """Set user password with secure hashing"""
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        """Check a password against the stored hash"""
+        return check_password_hash(self.password_hash, password)
+    
+    @property
+    def is_authenticated(self):
+        """Required by Flask-Login"""
+        return True
+    
+    @property
+    def is_anonymous(self):
+        """Required by Flask-Login"""
+        return False
+    
+    def get_id(self):
+        """Required by Flask-Login"""
+        return str(self.id)
+    
+    def __repr__(self):
+        return f'<User {self.email}>'
+    
+    # Add indexes for frequently queried fields
+    __table_args__ = (
+        Index('idx_user_email', 'email'),
+        Index('idx_user_active', 'account_active'),
+    )
+
+# TwoFactorBackupCode model for 2FA recovery codes
+class TwoFactorBackupCode(db.Model):
+    """Model for storing two-factor authentication backup codes"""
+    __tablename__ = 'two_factor_backup_codes'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    code_hash = db.Column(db.String(255), nullable=False)  # Stores hashed backup code
+    used = db.Column(db.Boolean, default=False)  # Whether this code has been used
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    used_at = db.Column(db.DateTime, nullable=True)  # When the code was used
+    
+    __table_args__ = (
+        Index('idx_backup_codes_user_id', 'user_id'),
+        Index('idx_backup_codes_used', 'used'),
+    )
+    
+    def __repr__(self):
+        return f'<TwoFactorBackupCode {self.id} (User: {self.user_id}, Used: {self.used})>'
+    
+    def use_code(self):
+        """Mark this code as used"""
+        self.used = True
+        self.used_at = datetime.utcnow()
 
 # UserSettings model to store user preferences
 class UserSettings(db.Model):
     __tablename__ = 'user_settings'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True)
     conversation_difficulty = db.Column(db.String(20), default=ConversationDifficulty.INTERMEDIATE.value)
     enable_voice_responses = db.Column(db.Boolean, default=False)
     preferred_language = db.Column(db.String(10), default='en-US')
@@ -115,7 +190,7 @@ class UserSettings(db.Model):
 
 # OAuth model for token storage
 class OAuth(OAuthConsumerMixin, db.Model):
-    user_id = db.Column(db.String, db.ForeignKey(User.id))
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     browser_session_key = db.Column(db.String, nullable=False)
     user = db.relationship(User)
 
@@ -130,7 +205,7 @@ class OAuth(OAuthConsumerMixin, db.Model):
 class AssistantProfile(db.Model):
     __tablename__ = 'assistant_profiles'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String, db.ForeignKey('users.id'), nullable=True)  # Nullable for default profile
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Nullable for default profile
     
     # Basic information
     name = db.Column(db.String(50), nullable=False, default="NOUS")  # Internal name
@@ -171,7 +246,7 @@ class BetaTester(db.Model):
     """Model for managing beta testers"""
     __tablename__ = 'beta_testers'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String, db.ForeignKey(User.id), nullable=False, unique=True)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False, unique=True)
     status = db.Column(db.String(20), default='active')  # 'active', 'inactive'
     notes = db.Column(db.Text, nullable=True)
     feedback_count = db.Column(db.Integer, default=0)  # Count of feedback submissions
@@ -242,12 +317,18 @@ class UserMemoryEntry(db.Model):
     """Stores conversation message history"""
     __tablename__ = 'user_memory_entries'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String, db.ForeignKey(User.id), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
     role = db.Column(db.String(20), nullable=False)  # 'user' or 'assistant'
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    importance = db.Column(db.Integer, default=1)  # 1-5 scale
+    embedding = db.Column(db.Text, nullable=True)  # Vector embedding for semantic search
     
     user = db.relationship(User, backref='memory_entries')
+    
+    __table_args__ = (
+        Index('idx_memory_user_timestamp', 'user_id', 'timestamp'),
+    )
     
     def __repr__(self):
         return f"<UserMemoryEntry {self.id}: {self.role} at {self.timestamp}>"
@@ -256,9 +337,9 @@ class UserTopicInterest(db.Model):
     """Tracks user interests in topics based on conversation history"""
     __tablename__ = 'user_topic_interests'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String, db.ForeignKey(User.id), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
     topic_name = db.Column(db.String(50), nullable=False)
-    interest_level = db.Column(db.Integer, default=1)  # Higher = more interested
+    interest_level = db.Column(db.Float, default=0.5)  # 0-1 scale
     last_discussed = db.Column(db.DateTime, default=datetime.utcnow)
     engagement_count = db.Column(db.Integer, default=1)  # How many times mentioned
     
@@ -277,10 +358,10 @@ class UserEntityMemory(db.Model):
     """Stores information about entities (people, places, things) mentioned by the user"""
     __tablename__ = 'user_entity_memories'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String, db.ForeignKey(User.id), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
     entity_name = db.Column(db.String(100), nullable=False)
     entity_type = db.Column(db.String(50), nullable=False)  # person, place, thing, etc.
-    attributes = db.Column(db.Text, default='{}')  # JSON string of attributes
+    attributes = db.Column(db.JSON, nullable=False)
     last_mentioned = db.Column(db.DateTime, default=datetime.utcnow)
     mention_count = db.Column(db.Integer, default=1)
     
@@ -299,7 +380,7 @@ class UserEmotionLog(db.Model):
     """Logs detected user emotions from interactions"""
     __tablename__ = 'user_emotion_logs'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String, db.ForeignKey(User.id), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     emotion = db.Column(db.String(30), nullable=False)  # happiness, sadness, anger, etc.
     confidence = db.Column(db.Float, default=0.0)  # 0-1 scale of detection confidence
@@ -315,7 +396,7 @@ class UserEmotionLog(db.Model):
 class UserConnection(db.Model):
     __tablename__ = 'user_connections'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String, db.ForeignKey(User.id), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
     service = db.Column(db.String(50), nullable=False)  # 'google', 'spotify', etc.
     token = db.Column(db.Text, nullable=False)
     refresh_token = db.Column(db.Text, nullable=True)
@@ -348,7 +429,7 @@ class DBTSkillCategory(enum.Enum):
 class DBTSkillLog(db.Model):
     """Model for tracking DBT skill usage"""
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(255))  # User identifier (from session)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     skill_name = db.Column(db.String(100), nullable=False)
     category = db.Column(db.String(50))  # Uses DBTSkillCategory values
     situation = db.Column(db.Text)  # The situation where the skill was used
@@ -371,7 +452,7 @@ class DBTSkillLog(db.Model):
 class DBTDiaryCard(db.Model):
     """Model for DBT diary cards"""
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(255))  # User identifier (from session)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     date = db.Column(db.Date, default=datetime.utcnow().date)
     mood_rating = db.Column(db.Integer)  # 0-5 scale
     triggers = db.Column(db.Text)  # What triggered emotions
@@ -396,7 +477,7 @@ class DBTDiaryCard(db.Model):
 class DBTSkillRecommendation(db.Model):
     """Model for personalized skill recommendations"""
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(255))  # User identifier (from session)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     situation_type = db.Column(db.String(100))  # General type of situation
     skill_name = db.Column(db.String(100))  # Recommended skill
     category = db.Column(db.String(50))  # Skill category
@@ -421,7 +502,7 @@ class DBTSkillRecommendation(db.Model):
 class DBTSkillChallenge(db.Model):
     """Model for DBT skill challenges"""
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(255))  # User identifier (from session)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     challenge_name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     skill_category = db.Column(db.String(50))  # Primary skill category for this challenge
@@ -449,7 +530,7 @@ class DBTSkillChallenge(db.Model):
 class DBTCrisisResource(db.Model):
     """Model for crisis resources"""
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(255))  # User identifier (from session)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     name = db.Column(db.String(100), nullable=False)
     contact_info = db.Column(db.String(255))
     resource_type = db.Column(db.String(50))  # e.g., hotline, therapist, hospital
@@ -471,7 +552,7 @@ class DBTCrisisResource(db.Model):
 class DBTEmotionTrack(db.Model):
     """Model for tracking emotions"""
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(255))  # User identifier (from session)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     emotion_name = db.Column(db.String(50), nullable=False)
     intensity = db.Column(db.Integer)  # 1-10 scale
     trigger = db.Column(db.Text)
@@ -520,11 +601,16 @@ class Doctor(db.Model):
     phone = db.Column(db.String(20))
     address = db.Column(db.String(255))
     notes = db.Column(db.Text)
-    user_id = db.Column(db.String(255))  # User identifier (from session)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationship with appointments
     appointments = db.relationship('Appointment', backref='doctor', lazy=True, cascade="all, delete-orphan")
+    
+    __table_args__ = (
+        Index('idx_doctor_user', 'user_id'),
+        Index('idx_doctor_name', 'name'),
+    )
     
     def to_dict(self):
         return {
@@ -545,7 +631,14 @@ class Appointment(db.Model):
     status = db.Column(db.String(50), default='scheduled')  # scheduled, completed, cancelled
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(db.String(255))  # User identifier (from session)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    
+    __table_args__ = (
+        Index('idx_appointment_user', 'user_id'),
+        Index('idx_appointment_doctor', 'doctor_id'),
+        Index('idx_appointment_date', 'date'),
+        Index('idx_appointment_status', 'status'),
+    )
     
     def to_dict(self):
         return {
@@ -564,7 +657,7 @@ class AppointmentReminder(db.Model):
     frequency_months = db.Column(db.Integer, default=6)  # How often to see this doctor (in months)
     last_appointment = db.Column(db.DateTime)  # Date of the last appointment
     next_reminder = db.Column(db.DateTime)  # When to remind about making the next appointment
-    user_id = db.Column(db.String(255))  # User identifier (from session)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 # Shopping List and Grocery Features
@@ -578,7 +671,7 @@ class ShoppingList(db.Model):
     frequency_days = db.Column(db.Integer, default=0)  # For recurring orders, every X days
     next_order_date = db.Column(db.DateTime)  # For recurring orders
     last_ordered = db.Column(db.DateTime)  # When this list was last ordered
-    user_id = db.Column(db.String(255))  # User identifier (from session)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationship with items
@@ -638,8 +731,14 @@ class Medication(db.Model):
     refill_reminder_threshold = db.Column(db.Integer, default=7)  # Remind when X days of medicine left
     next_refill_date = db.Column(db.DateTime)
     last_refilled = db.Column(db.DateTime)
-    user_id = db.Column(db.String(255))  # User identifier (from session)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    __table_args__ = (
+        Index('idx_medication_user', 'user_id'),
+        Index('idx_medication_doctor', 'doctor_id'),
+        Index('idx_medication_refill_date', 'next_refill_date'),
+    )
     
     def to_dict(self):
         return {
@@ -670,7 +769,7 @@ class Product(db.Model):
     frequency_days = db.Column(db.Integer, default=0)  # For recurring orders, every X days
     next_order_date = db.Column(db.DateTime)  # For recurring orders
     last_ordered = db.Column(db.DateTime)  # When this product was last ordered
-    user_id = db.Column(db.String(255))  # User identifier (from session)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
@@ -699,7 +798,7 @@ class Budget(db.Model):
     start_date = db.Column(db.DateTime, default=datetime.utcnow)
     end_date = db.Column(db.DateTime)  # For fixed-period budgets
     is_recurring = db.Column(db.Boolean, default=True)  # Monthly recurring by default
-    user_id = db.Column(db.String(255))  # User identifier (from session)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationship with expenses
@@ -731,7 +830,7 @@ class Expense(db.Model):
     recurring_frequency = db.Column(db.String(20))  # daily, weekly, monthly, yearly
     next_due_date = db.Column(db.DateTime)  # For recurring expenses
     notes = db.Column(db.Text)
-    user_id = db.Column(db.String(255))  # User identifier (from session)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
@@ -801,6 +900,11 @@ class Trip(db.Model):
     accommodations = db.relationship('Accommodation', backref='trip', lazy=True, cascade="all, delete-orphan")
     travel_documents = db.relationship('TravelDocument', backref='trip', lazy=True, cascade="all, delete-orphan")
     packing_items = db.relationship('PackingItem', backref='trip', lazy=True, cascade="all, delete-orphan")
+    
+    __table_args__ = (
+        Index('idx_trip_user', 'user_id'),
+        Index('idx_trip_dates', 'start_date', 'end_date'),
+    )
     
     def to_dict(self):
         return {
@@ -949,6 +1053,12 @@ class WeatherLocation(db.Model):
     added_date = db.Column(db.DateTime, default=datetime.utcnow)
     last_accessed = db.Column(db.DateTime)
     
+    __table_args__ = (
+        Index('idx_weather_user', 'user_id'),
+        Index('idx_weather_primary', 'is_primary'),
+        Index('idx_weather_coords', 'latitude', 'longitude'),
+    )
+    
     def to_dict(self):
         return {
             'id': self.id,
@@ -983,8 +1093,11 @@ class KnowledgeBase(db.Model):
     # Relationship with user
     user = db.relationship('User', backref=db.backref('knowledge_entries', lazy=True))
     
-    def __repr__(self):
-        return f"<KnowledgeBase {self.id}: {self.content[:30]}...>"
+    __table_args__ = (
+        Index('idx_knowledge_user_relevance', 'user_id', 'relevance_score'),
+        Index('idx_knowledge_source', 'source'),
+        Index('idx_knowledge_access', 'access_count'),
+    )
         
     def get_embedding_array(self):
         """
@@ -1070,3 +1183,173 @@ class ReflectionPrompt(db.Model):
             'use_count': self.use_count,
             'enabled': self.enabled
         }
+
+# API Key Management Models
+class APIKey(db.Model):
+    """
+    Model for storing and managing API keys with rotation support.
+    Each user can have multiple API keys with different scopes and statuses.
+    """
+    __tablename__ = 'api_keys'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)  # User-defined name for this key
+    key_prefix = db.Column(db.String(8), nullable=False)  # First few chars of key (shown to user)
+    key_hash = db.Column(db.String(255), nullable=False)  # Securely hashed API key
+    scopes = db.Column(db.Text, nullable=False)  # JSON list of permitted scopes
+    status = db.Column(db.String(20), default='active')  # active, rotated, revoked
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    expires_at = db.Column(db.DateTime, nullable=True)  # Optional expiration date
+    last_used_at = db.Column(db.DateTime, nullable=True)
+    use_count = db.Column(db.Integer, default=0)
+    last_rotated_at = db.Column(db.DateTime, nullable=True)
+    rotation_count = db.Column(db.Integer, default=0)
+    
+    # For audit purposes
+    rotated_from_id = db.Column(db.Integer, db.ForeignKey('api_keys.id'), nullable=True)
+    rotated_to_id = db.Column(db.Integer, db.ForeignKey('api_keys.id'), nullable=True)
+    
+    # For tracking rate limits
+    hourly_usage = db.Column(db.Integer, default=0)
+    daily_usage = db.Column(db.Integer, default=0)
+    hourly_reset_at = db.Column(db.DateTime, default=datetime.utcnow)
+    daily_reset_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Self-referential relationships for tracking rotation history
+    rotated_from = db.relationship('APIKey', foreign_keys=[rotated_from_id],
+                                 remote_side=[id], backref='rotated_to_prev')
+    rotated_to = db.relationship('APIKey', foreign_keys=[rotated_to_id],
+                               remote_side=[id], backref='rotated_from_next')
+    
+    # User relationship
+    user = db.relationship('User', backref=db.backref('api_keys', lazy=True))
+    
+    __table_args__ = (
+        UniqueConstraint('key_prefix', name='uq_api_key_prefix'),
+        Index('idx_api_key_user', 'user_id'),
+        Index('idx_api_key_status', 'status'),
+        Index('idx_api_key_expires', 'expires_at'),
+    )
+    
+    def __repr__(self):
+        return f"<APIKey {self.key_prefix}... ({self.status})>"
+    
+    def is_active(self):
+        """Check if the API key is active and not expired"""
+        if self.status != 'active':
+            return False
+        if self.expires_at and self.expires_at < datetime.utcnow():
+            return False
+        return True
+        
+    def has_scope(self, scope):
+        """Check if the API key has the requested scope"""
+        import json
+        if not self.is_active():
+            return False
+        
+        try:
+            key_scopes = json.loads(self.scopes)
+            # If key has '*' scope, it has access to everything
+            if '*' in key_scopes:
+                return True
+            return scope in key_scopes
+        except json.JSONDecodeError:
+            return False
+    
+    def record_usage(self):
+        """Record usage of this API key and update rate limit counters"""
+        now = datetime.utcnow()
+        self.last_used_at = now
+        self.use_count += 1
+        
+        # Reset hourly counter if needed
+        hourly_diff = now - self.hourly_reset_at
+        if hourly_diff.total_seconds() > 3600:  # 1 hour
+            self.hourly_usage = 0
+            self.hourly_reset_at = now
+        
+        # Reset daily counter if needed
+        daily_diff = now - self.daily_reset_at
+        if daily_diff.total_seconds() > 86400:  # 24 hours
+            self.daily_usage = 0
+            self.daily_reset_at = now
+        
+        # Increment counters
+        self.hourly_usage += 1
+        self.daily_usage += 1
+    
+    def to_dict(self, include_metadata=False):
+        """Convert to dictionary for API responses"""
+        import json
+        result = {
+            'id': self.id,
+            'name': self.name,
+            'key_prefix': f"{self.key_prefix}...",
+            'status': self.status,
+            'scopes': json.loads(self.scopes) if isinstance(self.scopes, str) else self.scopes,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'expires_at': self.expires_at.isoformat() if self.expires_at else None,
+            'rotation_count': self.rotation_count
+        }
+        
+        if include_metadata:
+            result.update({
+                'last_used_at': self.last_used_at.isoformat() if self.last_used_at else None,
+                'use_count': self.use_count,
+                'last_rotated_at': self.last_rotated_at.isoformat() if self.last_rotated_at else None,
+                'hourly_usage': self.hourly_usage,
+                'daily_usage': self.daily_usage
+            })
+            
+        return result
+            
+class APIKeyEvent(db.Model):
+    """
+    Model for tracking API key lifecycle events for auditing purposes.
+    Records all key creations, rotations, and revocations.
+    """
+    __tablename__ = 'api_key_events'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    api_key_id = db.Column(db.Integer, db.ForeignKey('api_keys.id'), nullable=False)
+    event_type = db.Column(db.String(20), nullable=False)  # created, rotated, revoked
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    ip_address = db.Column(db.String(45), nullable=True)  # IPv6 can be up to 45 chars
+    user_agent = db.Column(db.String(255), nullable=True)
+    performed_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    metadata = db.Column(db.Text, nullable=True)  # JSON string with additional info
+    
+    # Relationships
+    api_key = db.relationship('APIKey', backref=db.backref('events', lazy=True))
+    performed_by = db.relationship('User', backref=db.backref('api_key_events', lazy=True))
+    
+    __table_args__ = (
+        Index('idx_api_key_event_key', 'api_key_id'),
+        Index('idx_api_key_event_type', 'event_type'),
+        Index('idx_api_key_event_time', 'timestamp'),
+    )
+    
+    def __repr__(self):
+        return f"<APIKeyEvent {self.event_type} for key {self.api_key_id} at {self.timestamp}>"
+    
+    def to_dict(self):
+        """Convert to dictionary for API responses"""
+        import json
+        result = {
+            'id': self.id,
+            'api_key_id': self.api_key_id,
+            'event_type': self.event_type,
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None,
+            'ip_address': self.ip_address,
+            'performed_by_id': self.performed_by_id
+        }
+        
+        if self.metadata:
+            try:
+                result['metadata'] = json.loads(self.metadata)
+            except json.JSONDecodeError:
+                result['metadata'] = self.metadata
+                
+        return result

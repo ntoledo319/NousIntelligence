@@ -451,3 +451,97 @@ def handle_conversation(messages, user_id=None, include_debug=False):
             'response': "I apologize, but I'm having trouble processing your request right now. Please try again in a moment.",
             'error': str(e) if include_debug else None
         }
+
+def cfhat(message_text, user_id=None, feature=None, context=None, include_debug=False):
+    """
+    Central function for all chat-related features. All features should connect through this
+    function to ensure consistent handling, knowledge storage, and model selection.
+    
+    Args:
+        message_text (str): The user's message
+        user_id (str, optional): User ID for personalized knowledge
+        feature (str, optional): The specific feature being used (e.g., 'email_analysis', 'weather', 'travel')
+        context (dict, optional): Additional context relevant to the feature
+        include_debug (bool): Whether to include debug info in response
+        
+    Returns:
+        str or dict: Response to the user's message
+    """
+    try:
+        logging.info(f"cfhat called with feature={feature}")
+        
+        # Prepare the conversation messages
+        messages = []
+        
+        # If we have a specific feature, add context and feature-specific instructions
+        if feature:
+            # Create a specialized system message based on the feature
+            system_content = "You are Nous, an AI personal assistant. "
+            
+            # Add feature-specific context and instructions
+            if feature == "email_analysis":
+                system_content += "You're analyzing an email to extract key information and insights."
+                if context and "email_content" in context:
+                    message_text = context["email_content"]
+            elif feature == "weather":
+                system_content += "You're providing weather information and insights."
+                if context and "weather_data" in context:
+                    system_content += f"\nCurrent weather data: {json.dumps(context['weather_data'])}"
+            elif feature == "travel":
+                system_content += "You're helping with travel planning and recommendations."
+                if context and "destination" in context:
+                    system_content += f"\nDestination: {context['destination']}"
+            elif feature == "dbt":
+                system_content += "You're providing Dialectical Behavior Therapy (DBT) support."
+            elif feature == "spotify":
+                system_content += "You're helping with music recommendations and Spotify features."
+            elif feature == "budget":
+                system_content += "You're assisting with budget management and financial insights."
+            elif feature == "shopping":
+                system_content += "You're helping with shopping list management and recommendations."
+            
+            # Create the system message with feature-specific instructions
+            messages.append({
+                "role": "system",
+                "content": system_content
+            })
+        
+        # Add the user's message
+        messages.append({
+            "role": "user",
+            "content": message_text
+        })
+        
+        # Use the handle_conversation function to get a response
+        response = handle_conversation(messages, user_id, include_debug)
+        
+        # If we have a feature that needs post-processing, handle it here
+        if feature and feature == "email_analysis" and context and "format" in context:
+            if context["format"] == "json":
+                try:
+                    # Try to extract structured data from the response
+                    from utils.email_parser import extract_structured_data
+                    return extract_structured_data(response['response'])
+                except Exception as e:
+                    logging.error(f"Error extracting structured data: {str(e)}")
+        
+        # Return either the full response object or just the text based on include_debug
+        if include_debug:
+            return response
+        else:
+            return response['response']
+            
+    except Exception as e:
+        logging.error(f"Error in cfhat: {str(e)}")
+        return "I apologize, but I'm having trouble processing your request right now. Please try again in a moment."
+
+# Import these at the end to avoid circular dependencies
+try:
+    from utils.knowledge_helper import query_knowledge_base, add_to_knowledge_base
+except ImportError:
+    # Create placeholder functions for environments without knowledge_helper
+    def query_knowledge_base(query, user_id=None, similarity_threshold=0.0):
+        return []
+        
+    def add_to_knowledge_base(entry, user_id=None, source=None):
+        pass

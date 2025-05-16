@@ -14,6 +14,7 @@ from utils.spotify_helper import get_spotify_client
 from utils.scraper import scrape_aa_reflection
 from utils.command_parser import parse_command
 from utils.logger import log_workout, log_mood
+from utils.ai_helper import cfhat  # Add import for cfhat function
 from utils.weather_helper import (
     get_current_weather, get_weather_forecast, get_location_coordinates,
     format_weather_output, format_forecast_output, get_pressure_trend,
@@ -62,6 +63,9 @@ from utils.travel_helper import (
 from models import db, Doctor, Appointment, AppointmentReminder, ShoppingList, ShoppingItem, Medication, Product
 from models import Budget, Expense, RecurringPayment, Trip, ItineraryItem, Accommodation, TravelDocument, PackingItem, WeatherLocation
 
+# Import the rate limit decorator
+from utils.security_helper import rate_limit, log_security_event
+
 # Load environment variables
 load_dotenv()
 
@@ -90,9 +94,9 @@ if database_url:
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
         'pool_pre_ping': True,  # Verify connections before using from pool
-        'pool_recycle': 300,    # Recycle connections every 5 minutes
-        'pool_size': 10,        # Maximum number of connections to keep in pool
-        'max_overflow': 5,      # Maximum number of connections to create beyond pool_size
+        'pool_recycle': 600,    # Increase connection recycling to 10 minutes (was 300/5min)
+        'pool_size': 20,        # Increase maximum connections in pool (was 10)
+        'max_overflow': 10,     # Increase overflow connections (was 5)
         'pool_timeout': 30,     # Timeout for getting a connection from pool (seconds)
         'echo_pool': False,     # Don't log all pool checkouts/checkins
         'pool_use_lifo': True,  # Use last-in-first-out to reduce number of open connections
@@ -160,12 +164,13 @@ def load_user(user_id):
     return User.query.get(user_id)
 
 # OAuth config
-GOOGLE_CLIENT_SECRETS = os.environ.get("GOOGLE_CLIENT_SECRETS_FILE", "client_secret.json")
-GOOGLE_REDIRECT = os.environ.get("GOOGLE_REDIRECT_URI", "https://mynous.replit.app/callback/google")
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
+GOOGLE_REDIRECT = os.environ.get("GOOGLE_REDIRECT_URI", request.url_root.rstrip('/') + "/callback/google" if request else "https://mynous.replit.app/callback/google")
 
 SPOTIFY_CLIENT_ID = os.environ.get("SPOTIFY_CLIENT_ID")
 SPOTIFY_CLIENT_SECRET = os.environ.get("SPOTIFY_CLIENT_SECRET")
-SPOTIFY_REDIRECT = os.environ.get("SPOTIFY_REDIRECT_URI", "https://toledonick981.repl.co/callback/spotify")
+SPOTIFY_REDIRECT = os.environ.get("SPOTIFY_REDIRECT_URI", request.url_root.rstrip('/') + "/callback/spotify" if request else "https://mynous.replit.app/callback/spotify")
 
 OPENROUTER_KEY = os.environ.get("OPENROUTER_API_KEY")
 
@@ -194,6 +199,7 @@ def settings_page():
     return render_template('settings.html', settings=settings)
 
 @app.route("/settings", methods=['POST'])
+@rate_limit(max_requests=30, time_window=60)  # 30 requests per minute
 def save_settings():
     """Save user settings"""
     from models import UserSettings, ConversationDifficulty
@@ -644,6 +650,8 @@ def api_get_doctors():
     return jsonify([doctor.to_dict() for doctor in doctors])
 
 @app.route("/api/doctors", methods=["POST"])
+@login_required
+@rate_limit(max_requests=20, time_window=60)  # 20 requests per minute
 def api_add_doctor():
     """Add a new doctor"""
     if "google_creds" not in session:
@@ -735,6 +743,8 @@ def api_get_doctor_appointments(doctor_id):
     return jsonify([appointment.to_dict() for appointment in appointments])
 
 @app.route("/api/appointments", methods=["POST"])
+@login_required
+@rate_limit(max_requests=20, time_window=60)  # 20 requests per minute
 def api_add_appointment():
     """Add a new appointment"""
     if "google_creds" not in session:
@@ -815,6 +825,8 @@ def api_get_shopping_lists():
     return jsonify([lst.to_dict() for lst in shopping_lists])
 
 @app.route("/api/shopping-lists", methods=["POST"])
+@login_required
+@rate_limit(max_requests=20, time_window=60)  # 20 requests per minute
 def api_create_shopping_list():
     """Create a new shopping list"""
     if "google_creds" not in session:
@@ -963,6 +975,8 @@ def api_get_medications():
     return jsonify([med.to_dict() for med in medications])
 
 @app.route("/api/medications", methods=["POST"])
+@login_required
+@rate_limit(max_requests=20, time_window=60)  # 20 requests per minute
 def api_add_medication():
     """Add a new medication"""
     if "google_creds" not in session:
@@ -1072,6 +1086,8 @@ def api_get_products():
     return jsonify([product.to_dict() for product in products])
 
 @app.route("/api/products", methods=["POST"])
+@login_required
+@rate_limit(max_requests=20, time_window=60)  # 20 requests per minute
 def api_add_product():
     """Add a new product to track"""
     if "google_creds" not in session:
@@ -1190,6 +1206,8 @@ def api_get_budget_summary():
     return jsonify(summary)
 
 @app.route("/api/budgets", methods=["POST"])
+@login_required
+@rate_limit(max_requests=20, time_window=60)  # 20 requests per minute
 def api_create_budget():
     """Create a new budget"""
     if "google_creds" not in session:
@@ -1289,6 +1307,8 @@ def api_get_expenses():
     return jsonify([expense.to_dict() for expense in expenses])
 
 @app.route("/api/expenses", methods=["POST"])
+@login_required
+@rate_limit(max_requests=20, time_window=60)  # 20 requests per minute
 def api_add_expense():
     """Add a new expense"""
     if "google_creds" not in session:
@@ -1452,6 +1472,8 @@ def api_get_active_trip():
         return jsonify({"message": "No active trip found"}), 404
 
 @app.route("/api/trips", methods=["POST"])
+@login_required
+@rate_limit(max_requests=20, time_window=60)  # 20 requests per minute
 def api_create_trip():
     """Create a new trip"""
     if "google_creds" not in session:
@@ -2027,64 +2049,124 @@ def api_set_primary_weather_location(location_id):
         
 @app.route("/api/weather/pain-forecast", methods=["GET"])
 def api_pain_flare_forecast():
-    """Get pain flare forecast based on barometric pressure changes"""
+    """API endpoint to get pain flare forecast based on weather"""
     try:
-        user_id = session.get("user_id")
+        # Get location parameters
+        location = request.args.get('location')
+        lat = request.args.get('lat')
+        lon = request.args.get('lon')
         
-        # Check if user is authorized to use pain forecast (only toldeonick98@gmail.com)
-        from models import User
-        user = User.query.get(user_id)
-        if not user or user.email != "toldeonick98@gmail.com":
-            return jsonify({"success": False, "error": "You are not authorized to use this feature"}), 403
-        
-        # Get location from query parameters or use primary
-        location_name = request.args.get("location")
-        hours = int(request.args.get("hours", 24))
-        
-        # If no location provided, try to use the user's primary location
-        if not location_name:
-            primary_location = WeatherLocation.query.filter_by(user_id=user_id, is_primary=True).first()
-            if primary_location:
-                location_name = primary_location.name
-            else:
-                return jsonify({"success": False, "error": "No location specified and no primary location set"}), 400
-        
-        # Get current weather for the location - needed for storm severity
-        weather_data = get_current_weather(location_name)
-        if not weather_data:
-            return jsonify({"success": False, "error": f"Location '{location_name}' not found"}), 404
+        # Either location name or coordinates must be provided
+        if not location and not (lat and lon):
+            return jsonify({"error": "Either location name or lat/lon coordinates must be provided"}), 400
             
-        # Get pressure trend data
-        pressure_trend = get_pressure_trend(location_name, hours)
-        if not pressure_trend:
-            return jsonify({"success": False, "error": f"Could not retrieve pressure data for '{location_name}'"}), 500
+        # Get forecast
+        if location:
+            # Get by location name
+            forecast = get_pain_flare_forecast(location)
+        else:
+            # Get by coordinates
+            lat = float(lat)
+            lon = float(lon)
+            forecast = get_pain_flare_forecast(None, lat, lon)
             
-        # Extract storm severity from weather data
-        storm_data = get_storm_severity(weather_data)
-        
-        # Calculate pain flare risk
-        pain_risk = calculate_pain_flare_risk(pressure_trend, storm_data)
-        
-        # Format for display
-        formatted_output = format_pain_forecast_output(pressure_trend, pain_risk)
-        
-        # Create response with both raw data and formatted output
-        response = {
-            "success": True,
-            "location": pressure_trend["location"],
-            "current_pressure": pressure_trend["current_pressure"],
-            "trend_direction": pressure_trend["trend_direction"],
-            "pressure_change": pressure_trend["overall_change"],
-            "risk_level": pain_risk["risk_level"],
-            "risk_score": pain_risk["risk_score"],
-            "confidence": pain_risk["confidence"],
-            "factors": pain_risk["factors"],
-            "recommendation": pain_risk["recommendation"],
-            "storm_severity": storm_data["category"] if storm_data else "none",
-            "formatted_output": formatted_output,
-            "pressure_data": pressure_trend["pressure_data"]
+        if not forecast:
+            return jsonify({"error": "Unable to get pain flare forecast"}), 404
+            
+        return jsonify(forecast)
+    except Exception as e:
+        logging.error(f"Error getting pain flare forecast: {str(e)}")
+        return jsonify({"error": "Error processing request"}), 500
+
+# Health Check Endpoint
+@app.route("/health", methods=["GET"])
+def health_check():
+    """Health check endpoint for monitoring system health"""
+    try:
+        health_status = {
+            "status": "healthy",
+            "timestamp": datetime.datetime.utcnow().isoformat(),
+            "version": os.environ.get("APP_VERSION", "1.0.0"),
+            "components": {}
         }
         
-        return jsonify(response)
+        # Check database connection
+        try:
+            # Simple query to check if database is responsive
+            db.session.execute("SELECT 1").scalar()
+            health_status["components"]["database"] = {
+                "status": "healthy",
+                "message": "Database connection successful"
+            }
+        except Exception as e:
+            health_status["status"] = "unhealthy"
+            health_status["components"]["database"] = {
+                "status": "unhealthy",
+                "message": f"Database connection failed: {str(e)}"
+            }
+        
+        # Check OpenRouter API (if configured)
+        from utils.key_config import APIKeyManager
+        openrouter_key = APIKeyManager.get_key("openrouter")
+        if openrouter_key:
+            health_status["components"]["openrouter"] = {
+                "status": "configured",
+                "message": "OpenRouter API key is configured"
+            }
+        else:
+            health_status["components"]["openrouter"] = {
+                "status": "unconfigured",
+                "message": "OpenRouter API key is not configured"
+            }
+        
+        # Check external services (just check connectivity)
+        external_services = ["https://openrouter.ai/", "https://huggingface.co/"]
+        health_status["components"]["external_services"] = {}
+        import requests
+        for service_url in external_services:
+            try:
+                # Just check if the service is reachable with a 2s timeout
+                response = requests.head(service_url, timeout=2)
+                health_status["components"]["external_services"][service_url] = {
+                    "status": "reachable" if response.status_code < 400 else "error",
+                    "code": response.status_code
+                }
+            except requests.RequestException as e:
+                health_status["components"]["external_services"][service_url] = {
+                    "status": "unreachable",
+                    "message": str(e)
+                }
+        
+        # Check file system (make sure important directories are writable)
+        upload_dir = os.path.join(app.root_path, 'uploads')
+        if os.path.exists(upload_dir):
+            if os.access(upload_dir, os.W_OK):
+                health_status["components"]["filesystem"] = {
+                    "status": "writable",
+                    "message": "Upload directory is writable"
+                }
+            else:
+                health_status["status"] = "unhealthy"
+                health_status["components"]["filesystem"] = {
+                    "status": "unwritable",
+                    "message": "Upload directory is not writable"
+                }
+        else:
+            health_status["components"]["filesystem"] = {
+                "status": "missing",
+                "message": "Upload directory does not exist"
+            }
+        
+        # Return appropriate status code
+        status_code = 200 if health_status["status"] == "healthy" else 503
+        return jsonify(health_status), status_code
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 400
+        return jsonify({
+            "status": "error",
+            "message": f"Error running health check: {str(e)}",
+            "timestamp": datetime.datetime.utcnow().isoformat()
+        }), 500
+
+# Main entry point
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', debug=True)
