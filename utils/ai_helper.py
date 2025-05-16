@@ -10,17 +10,22 @@ from datetime import datetime
 from openai import OpenAI
 # Import knowledge base functions at runtime to avoid circular imports
 
-# Initialize OpenAI client with key from environment variable
+# Get API keys from environment variables
 openai_api_key = os.environ.get("OPENAI_API_KEY", "")
+openrouter_api_key = os.environ.get("OPENROUTER_API_KEY", "")
 
-if openai_api_key:
-    # Check if it's an OpenRouter key that was incorrectly set as OpenAI key
+# Use OpenRouter key if available and no OpenAI key is present
+if not openai_api_key and openrouter_api_key:
+    logging.info("No OpenAI API key found, but OpenRouter key is available. Using OpenRouter for all API calls.")
+    # Use OpenRouter key for OpenAI client, will be used with the OpenRouter base URL in functions
+    openai_api_key = openrouter_api_key
+elif openai_api_key:
     if openai_api_key.startswith("sk-or-"):
-        logging.warning("Found OpenRouter key in OPENAI_API_KEY. This needs to be a valid OpenAI key.")
+        logging.info("Using OpenRouter key format for all API calls")
     else:
         logging.info("Using OpenAI API key from environment variables")
 else:
-    logging.warning("OpenAI API key not found in environment variables")
+    logging.warning("No API keys found in environment variables")
 
 # Create the OpenAI client with the key
 openai = OpenAI(api_key=openai_api_key)
@@ -127,13 +132,36 @@ def analyze_gmail_content(content, headers=None, user_id=None):
                 }
             ]
             
-            response = openai.chat.completions.create(
-                model="gpt-4o",
-                messages=messages,
-                temperature=0.3,
-                max_tokens=500,
-                response_format={"type": "json_object"}
-            )
+            # Check if we're using OpenRouter
+            if openai_api_key.startswith("sk-or-"):
+                # Import our OpenRouter helper
+                from utils.openrouter_helper import chat_completion
+                
+                # Format the response for OpenRouter
+                response_text = chat_completion(
+                    messages=messages,
+                    model="openai/gpt-4-turbo",
+                    temperature=0.3,
+                    max_tokens=500
+                )
+                
+                # Create a response object similar to OpenAI's
+                class MockResponse:
+                    def __init__(self, content):
+                        self.choices = [type('obj', (object,), {
+                            'message': type('obj', (object,), {'content': content})
+                        })]
+                
+                response = MockResponse(response_text)
+            else:
+                # Use standard OpenAI client
+                response = openai.chat.completions.create(
+                    model="gpt-4o",
+                    messages=messages,
+                    temperature=0.3,
+                    max_tokens=500,
+                    response_format={"type": "json_object"}
+                )
             
             content_str = response.choices[0].message.content
             if content_str is not None:
