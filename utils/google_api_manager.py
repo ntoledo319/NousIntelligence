@@ -155,14 +155,29 @@ class GoogleApiManager:
     # Maps Helper Functions
     def geocode(self, address):
         """Convert address to geographical coordinates"""
+        # Pass the API key from Google credentials if available
+        api_key = None
+        if self.credentials:
+            api_key = self.credentials.token
+            os.environ["MAPS_API_KEY"] = api_key
         return geocode_address(address)
         
     def search_places_nearby(self, query, location=None, radius=None):
         """Search for places using text search"""
+        # Pass the API key from Google credentials if available
+        api_key = None
+        if self.credentials:
+            api_key = self.credentials.token
+            os.environ["MAPS_API_KEY"] = api_key
         return search_places(query, location, radius)
         
     def get_travel_directions(self, origin, destination, mode="driving"):
         """Get directions between two locations"""
+        # Pass the API key from Google credentials if available
+        api_key = None
+        if self.credentials:
+            api_key = self.credentials.token
+            os.environ["MAPS_API_KEY"] = api_key
         return get_directions(origin, destination, mode)
     
     # Photos Helper Functions
