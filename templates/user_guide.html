@@ -2,11 +2,20 @@
 
 {% block content %}
 <div class="container my-5">
-    <div class="row justify-content-center mb-5">
-        <div class="col-lg-10 text-center">
-            <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" alt="NOUS Logo" class="hero-logo mb-3" style="max-height: 130px;">
-            <h1 class="display-4" style="color: var(--nous-primary);">NOUS Personal Assistant Guide</h1>
-            <p class="lead">Your comprehensive guide to using all features of your AI-powered personal assistant.</p>
+    <div class="user-guide-hero mb-5">
+        <div class="row align-items-center">
+            <div class="col-lg-4 col-md-5 text-center text-md-start mb-4 mb-md-0">
+                <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" alt="NOUS Logo" class="hero-logo mb-3">
+            </div>
+            <div class="col-lg-8 col-md-7">
+                <h1 class="guide-title">NOUS <span class="text-gradient">User Guide</span></h1>
+                <p class="guide-subtitle">Your comprehensive guide to using all features of your AI-powered personal assistant. Learn how to get the most out of NOUS with these detailed instructions and tips.</p>
+                <div class="guide-badges">
+                    <span class="badge rounded-pill bg-primary-soft"><i class="fas fa-book me-1"></i>Documentation</span>
+                    <span class="badge rounded-pill bg-success-soft"><i class="fas fa-lightbulb me-1"></i>Tips & Tricks</span>
+                    <span class="badge rounded-pill bg-info-soft"><i class="fas fa-code me-1"></i>Command Reference</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -32,9 +41,21 @@
         <div class="col-md-9">
             <!-- Getting Started -->
             <section id="getting-started" class="mb-5">
-                <div class="card border-0 shadow-sm">
+                <div class="card card-modern">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon-wrapper primary-soft me-3">
+                                <i class="fas fa-rocket"></i>
+                            </div>
+                            <h2 class="card-title mb-0">Getting Started</h2>
+                        </div>
+                    </div>
                     <div class="card-body p-4">
-                        <h2 class="mb-4">Getting Started</h2>
+                        <div class="section-intro mb-4">
+                            <div class="intro-badge mb-2">
+                                <span class="badge bg-primary-soft">Beginner Friendly</span>
+                            </div>
+                        </div>
                         <p>NOUS is your AI-powered personal assistant designed to help you manage your daily life through a natural conversation interface. Here's how to get started:</p>
                         
                         <h5 class="mt-4">1. Connect Your Accounts</h5>
@@ -67,9 +88,22 @@
 
             <!-- Chat Interface -->
             <section id="chat-interface" class="mb-5">
-                <div class="card border-0 shadow-sm">
+                <div class="card card-modern">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon-wrapper success-soft me-3">
+                                <i class="fas fa-comment-dots"></i>
+                            </div>
+                            <h2 class="card-title mb-0">Chat Interface</h2>
+                        </div>
+                    </div>
                     <div class="card-body p-4">
-                        <h2 class="mb-4">Chat Interface</h2>
+                        <div class="section-intro mb-4">
+                            <div class="intro-badge mb-2">
+                                <span class="badge bg-success-soft">Core Feature</span>
+                                <span class="badge bg-info-soft">Interactive</span>
+                            </div>
+                        </div>
                         <p>NOUS's chat interface is designed for natural conversations. You can interact in several ways:</p>
                         
                         <h5 class="mt-4">Natural Language</h5>
@@ -128,9 +162,22 @@
 
             <!-- Voice Commands -->
             <section id="voice-commands" class="mb-5">
-                <div class="card border-0 shadow-sm">
+                <div class="card card-modern">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon-wrapper info-soft me-3">
+                                <i class="fas fa-microphone"></i>
+                            </div>
+                            <h2 class="card-title mb-0">Voice Commands</h2>
+                        </div>
+                    </div>
                     <div class="card-body p-4">
-                        <h2 class="mb-4">Voice Commands</h2>
+                        <div class="section-intro mb-4">
+                            <div class="intro-badge mb-2">
+                                <span class="badge bg-info-soft">Hands-free</span>
+                                <span class="badge bg-warning-soft">Advanced</span>
+                            </div>
+                        </div>
                         <p>Speak directly to NOUS using the voice interface:</p>
                         
                         <h5 class="mt-4">Using Voice Commands</h5>
