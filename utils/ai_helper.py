@@ -10,29 +10,20 @@ from datetime import datetime
 from openai import OpenAI
 # Import knowledge base functions at runtime to avoid circular imports
 
-# Get API keys from environment variables
-openai_api_key = os.environ.get("OPENAI_API_KEY", "")
-openrouter_api_key = os.environ.get("OPENROUTER_API_KEY", "")
+# Import our key configuration module instead of directly accessing environment variables
+from utils.key_config import OPENAI_API_KEY, OPENROUTER_API_KEY, USE_OPENROUTER, get_preferred_service
 
-# Never use OpenRouter key as OpenAI key - they require different endpoints
-if openai_api_key and openai_api_key.startswith("sk-or-"):
-    logging.warning("Found OpenRouter key in OPENAI_API_KEY environment variable. This won't work with OpenAI API.")
-    # Clear the OpenAI key if it's actually an OpenRouter key
-    openai_api_key = ""
+# Create the OpenAI client with the OpenAI key only
+openai = OpenAI(api_key=OPENAI_API_KEY)
 
-# Log availability of keys
-if openrouter_api_key:
-    logging.info("OpenRouter API key is available. Using OpenRouter for AI requests.")
+# Log which AI service we're using
+preferred_service = get_preferred_service()
+if preferred_service == "openrouter":
+    logging.info("NOUS will use OpenRouter API service for AI functionality")
+elif preferred_service == "openai":
+    logging.info("NOUS will use OpenAI API service for AI functionality")
 else:
-    logging.warning("OpenRouter API key not found in environment variables")
-    
-if openai_api_key:
-    logging.info("OpenAI API key is available. Will use as fallback.")
-else:
-    logging.warning("OpenAI API key not found in environment variables")
-
-# Create the OpenAI client with the key (will be used as fallback only)
-openai = OpenAI(api_key=openai_api_key)
+    logging.warning("No valid AI service keys found. Some features may not work correctly")
 
 def parse_natural_language(command_text):
     """

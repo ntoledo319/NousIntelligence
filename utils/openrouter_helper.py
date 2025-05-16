@@ -9,14 +9,14 @@ import json
 import requests
 from typing import List, Dict, Any, Optional
 
-# Get the OpenRouter API key from environment
-API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+# Import our key configuration which has properly validated keys
+from utils.key_config import OPENROUTER_API_KEY
 BASE_URL = "https://openrouter.ai/api/v1"
 
 def get_headers():
     """Get fresh headers with the current API key"""
     return {
-        "Authorization": f"Bearer {os.environ.get('OPENROUTER_API_KEY', '')}",
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://nous.replit.app/",
         "X-Title": "NOUS Personal Assistant"
@@ -40,9 +40,8 @@ def chat_completion(
     Returns:
         The generated text response or None if there was an error
     """
-    # Get the current API key from environment
-    current_api_key = os.environ.get("OPENROUTER_API_KEY", "")
-    if not current_api_key:
+    # Check if we have a valid API key
+    if not OPENROUTER_API_KEY:
         logging.error("No OpenRouter API key found")
         return None
         
@@ -90,7 +89,7 @@ def get_embeddings(text: str) -> Optional[List[float]]:
     Returns:
         List of embedding values or None if there was an error
     """
-    if not API_KEY:
+    if not OPENROUTER_API_KEY:
         logging.error("No OpenRouter API key found")
         return None
         
@@ -132,7 +131,7 @@ def list_available_models() -> Optional[List[Dict[str, Any]]]:
     Returns:
         List of model information or None if there was an error
     """
-    if not API_KEY:
+    if not OPENROUTER_API_KEY:
         logging.error("No OpenRouter API key found")
         return None
         
