@@ -25,35 +25,25 @@ except ImportError:
 # Import db and models within functions to avoid circular imports
 # These will be imported when needed to prevent circular dependencies
 
-# Initialize OpenAI client with key directly from .env file
-env_path = '.env'
-openai_api_key = ""
-openrouter_api_key = ""
+# Use environment variables for API keys directly
+openai_api_key = os.environ.get("OPENAI_API_KEY", "")
+openrouter_api_key = os.environ.get("OPENROUTER_API_KEY", "")
 
-if os.path.exists(env_path):
-    with open(env_path, 'r') as f:
-        for line in f:
-            if line.strip().startswith('OPENAI_API_KEY='):
-                openai_api_key = line.strip().split('=', 1)[1]
-                logging.info("Found OpenAI API key in .env file")
-            elif line.strip().startswith('OPENROUTER_API_KEY='):
-                openrouter_api_key = line.strip().split('=', 1)[1]
-                logging.info("Found OpenRouter API key in .env file")
-
+# Log API key status
 if openai_api_key:
-    logging.info(f"Using OpenAI API key (first 8 chars): {openai_api_key[:8]}")
-    # Set in environment for other modules
-    os.environ["OPENAI_API_KEY"] = openai_api_key
+    # Check if it's an OpenRouter key mistakenly set as OpenAI (starts with sk-or)
+    if openai_api_key.startswith("sk-or-"):
+        logging.warning("Found OpenRouter key format in OPENAI_API_KEY. This may cause issues.")
+    else:
+        logging.info("OpenAI API key available")
 else:
-    logging.warning("OpenAI API key not found in .env file")
+    logging.warning("OpenAI API key not found in environment variables")
 
+# Check OpenRouter key
 if openrouter_api_key:
-    # Clean up the key (remove quotes if present)
-    openrouter_api_key = openrouter_api_key.strip('"\'')
-    logging.info(f"Using OpenRouter API key (first 8 chars): {openrouter_api_key[:8] if len(openrouter_api_key) >= 8 else openrouter_api_key}")
-    os.environ["OPENROUTER_API_KEY"] = openrouter_api_key
+    logging.info("OpenRouter API key available")
 else:
-    logging.warning("OpenRouter API key not found in .env file")
+    logging.warning("OpenRouter API key not found in environment variables")
 
 openai = OpenAI(api_key=openai_api_key)
 
