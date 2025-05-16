@@ -14,20 +14,24 @@ from openai import OpenAI
 openai_api_key = os.environ.get("OPENAI_API_KEY", "")
 openrouter_api_key = os.environ.get("OPENROUTER_API_KEY", "")
 
-# Use OpenRouter key if available and no OpenAI key is present
-if not openai_api_key and openrouter_api_key:
-    logging.info("No OpenAI API key found, but OpenRouter key is available. Using OpenRouter for all API calls.")
-    # Use OpenRouter key for OpenAI client, will be used with the OpenRouter base URL in functions
-    openai_api_key = openrouter_api_key
-elif openai_api_key:
-    if openai_api_key.startswith("sk-or-"):
-        logging.info("Using OpenRouter key format for all API calls")
-    else:
-        logging.info("Using OpenAI API key from environment variables")
-else:
-    logging.warning("No API keys found in environment variables")
+# Never use OpenRouter key as OpenAI key - they require different endpoints
+if openai_api_key and openai_api_key.startswith("sk-or-"):
+    logging.warning("Found OpenRouter key in OPENAI_API_KEY environment variable. This won't work with OpenAI API.")
+    # Clear the OpenAI key if it's actually an OpenRouter key
+    openai_api_key = ""
 
-# Create the OpenAI client with the key
+# Log availability of keys
+if openrouter_api_key:
+    logging.info("OpenRouter API key is available. Using OpenRouter for AI requests.")
+else:
+    logging.warning("OpenRouter API key not found in environment variables")
+    
+if openai_api_key:
+    logging.info("OpenAI API key is available. Will use as fallback.")
+else:
+    logging.warning("OpenAI API key not found in environment variables")
+
+# Create the OpenAI client with the key (will be used as fallback only)
 openai = OpenAI(api_key=openai_api_key)
 
 def parse_natural_language(command_text):
@@ -349,12 +353,55 @@ def handle_conversation(messages, user_id=None, include_debug=False):
                 if role and content:
                     typed_messages.append({"role": role, "content": content})
             
-            response = openai.chat.completions.create(
-                model="gpt-4o",  # Use the latest model
-                messages=typed_messages,
-                temperature=temperature,
-                max_tokens=max_tokens
-            )
+            # Check if we should use OpenRouter
+            openrouter_key = os.environ.get("OPENROUTER_API_KEY")
+            if openrouter_key:
+                # Use our dedicated OpenRouter helper
+                from utils.openrouter_helper import chat_completion
+                logging.info("Using OpenRouter API for chat completion")
+                
+                # Map to OpenRouter model format
+                openrouter_model = "openai/gpt-4-turbo"  # OpenRouter equivalent of gpt-4o
+                
+                response_text = chat_completion(
+                    messages=typed_messages,
+                    model=openrouter_model,
+                    temperature=temperature,
+                    max_tokens=max_tokens
+                )
+                
+                # Create a response object matching OpenAI's format for consistent handling
+                class MockResponse:
+                    class Choice:
+                        class Message:
+                            def __init__(self, content):
+                                self.content = content
+                                
+                        def __init__(self, content):
+                            self.message = self.Message(content)
+                    
+                    def __init__(self, content):
+                        self.choices = [self.Choice(content)]
+                
+                # If we got a response from OpenRouter, return it in the expected format
+                if response_text:
+                    response = MockResponse(response_text)
+                else:
+                    # Fall back to OpenAI if OpenRouter fails
+                    response = openai.chat.completions.create(
+                        model="gpt-4o",
+                        messages=typed_messages,
+                        temperature=temperature,
+                        max_tokens=max_tokens
+                    )
+            else:
+                # Use standard OpenAI API
+                response = openai.chat.completions.create(
+                    model="gpt-4o",  # Use the latest model
+                    messages=typed_messages,
+                    temperature=temperature,
+                    max_tokens=max_tokens
+                )
             
             if response.choices and response.choices[0].message:
                 return response.choices[0].message.content
