@@ -16,7 +16,7 @@
                     <i class="fas fa-home me-2"></i> Go to Home
                 </a>
                 {% if not current_user.is_authenticated %}
-                <a href="{{ url_for('google_auth.login') }}" class="btn btn-outline-primary btn-lg ms-2">
+                <a href="{{ url_for('replit_auth.login') }}" class="btn btn-outline-primary btn-lg ms-2">
                     <i class="fas fa-sign-in-alt me-2"></i> Log In
                 </a>
                 {% endif %}
