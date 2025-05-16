@@ -156,11 +156,24 @@ def handle_error(blueprint, error, error_description=None, error_uri=None):
 
 
 def require_login(f):
+
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
             session["next_url"] = get_next_navigation_url(request)
             return redirect(url_for('replit_auth.login'))
+
+        expires_in = replit.token.get('expires_in', 0)
+        if expires_in < 0:
+            refresh_token_url = issuer_url + "/token"
+            try:
+                token = replit.refresh_token(token_url=refresh_token_url,
+                                             client_id=os.environ['REPL_ID'])
+            except InvalidGrantError:
+                # If the refresh token is invalid, the users needs to re-login.
+                session["next_url"] = get_next_navigation_url(request)
+                return redirect(url_for('replit_auth.login'))
+            replit.token_updater(token)
 
         return f(*args, **kwargs)
 
