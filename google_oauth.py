@@ -18,8 +18,13 @@ GOOGLE_CLIENT_SECRET = client_config['client_secret']
 GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
 # Get current domain dynamically
 import os
-CURRENT_DOMAIN = os.environ.get('REPLIT_DEV_DOMAIN', 'toledonick981.repl.co')
-REDIRECT_URI = f"https://{CURRENT_DOMAIN}/callback/google"  # Construct based on current domain
+# Use the exact URI from client_secret.json for production
+REDIRECT_URI = "https://toledonick981.repl.co/callback/google"  
+
+# Print information about domains for debugging
+import logging
+logging.info(f"REPLIT_DEV_DOMAIN: {os.environ.get('REPLIT_DEV_DOMAIN')}")
+logging.info(f"Using REDIRECT_URI: {REDIRECT_URI}")
 
 # Initialize OAuth client
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
