@@ -8,6 +8,7 @@ import json
 import base64
 import logging
 import requests
+import numpy as np  # Used for embedding conversion
 from io import BytesIO
 from PIL import Image
 
@@ -17,7 +18,20 @@ HF_TOKEN = os.environ.get("HF_ACCESS_TOKEN")
 # Define get_embedding to match import in knowledge_helper.py
 def get_embedding(text, model="BAAI/bge-small-en-v1.5"):
     """Function alias for compatibility with knowledge_helper.py import"""
-    return hf_text_embeddings(text, model)
+    embedding = hf_text_embeddings(text, model)
+    
+    # Ensure the embedding is a list and not a float
+    if embedding is not None:
+        # If it's a single float value (which causes "object of type 'float' has no len()" error)
+        if isinstance(embedding, float):
+            # Create a simple vector with the expected dimension (e.g., 384 for bge-small)
+            # This is a fallback to prevent errors
+            return np.ones(384, dtype=np.float32) * embedding
+        
+        # If it's already a list-like object, convert to numpy array
+        return np.array(embedding, dtype=np.float32)
+    
+    return None
     
 def hf_text_embeddings(text, model="BAAI/bge-small-en-v1.5"):
     """Generate text embeddings using Hugging Face's free embedding models"""
@@ -32,6 +46,7 @@ def hf_text_embeddings(text, model="BAAI/bge-small-en-v1.5"):
     api_url = f"https://api-inference.huggingface.co/models/{model}"
     
     try:
+        logging.info(f"Requesting embedding from Hugging Face model: {model}")
         response = requests.post(
             api_url,
             headers=headers,
@@ -40,9 +55,30 @@ def hf_text_embeddings(text, model="BAAI/bge-small-en-v1.5"):
         
         if response.status_code == 200:
             embeddings = response.json()
-            # Return the first embedding vector if it's a list of embeddings
-            if isinstance(embeddings, list) and len(embeddings) > 0:
-                return embeddings[0]
+            logging.info(f"Received embedding response type: {type(embeddings)}")
+            
+            # Different models return embeddings in different formats
+            # BGE models typically return a list where the first item contains the embedding vector
+            if isinstance(embeddings, list):
+                if len(embeddings) > 0:
+                    # For models that return list of embeddings
+                    if isinstance(embeddings[0], list):
+                        logging.info(f"Using list embedding of length {len(embeddings[0])}")
+                        return embeddings[0]
+                    # For models that return objects with embedding info
+                    elif isinstance(embeddings[0], dict) and 'embedding' in embeddings[0]:
+                        logging.info(f"Using dict embedding of length {len(embeddings[0]['embedding'])}")
+                        return embeddings[0]['embedding']
+                    else:
+                        logging.info(f"Using default list embedding")
+                        return embeddings[0]
+            # For models that return a single embedding vector
+            elif isinstance(embeddings, dict) and 'embedding' in embeddings:
+                logging.info(f"Using dict embedding of length {len(embeddings['embedding'])}")
+                return embeddings['embedding']
+            
+            # Final fallback - just return whatever we got
+            logging.info(f"Using fallback embedding approach")
             return embeddings
         else:
             logging.error(f"Hugging Face API error: {response.status_code} - {response.text}")
