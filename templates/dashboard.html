@@ -1,313 +1,286 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="dashboard">
-    <div class="dashboard-hero mb-5">
+<div class="container">
+    <!-- Dashboard Hero Section -->
+    <section class="section-container mb-4">
         <div class="row align-items-center">
-            <div class="col-lg-3 col-md-4 text-center text-md-start mb-4 mb-md-0">
-                <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" alt="NOUS Logo" class="hero-logo mb-3" style="max-height: 150px;">
-            </div>
-            <div class="col-lg-6 col-md-8">
-                <h1 class="dashboard-title mb-2">
-                    <i class="fas fa-tachometer-alt me-2"></i>Your <span class="text-gradient">Dashboard</span>
-                </h1>
-                <p class="dashboard-subtitle mb-3">View all your important data in one place with quick access to your most-used features</p>
-                <div class="dashboard-actions">
+            <div class="col-lg-8">
+                <h1 class="mb-3">Welcome to Your Dashboard</h1>
+                <p class="text-secondary mb-4">Here's an overview of your personal data and insights from NOUS.</p>
+                
+                <!-- Quick action buttons -->
+                <div class="d-flex flex-wrap gap-2">
                     <a href="{{ url_for('index') }}" class="btn btn-primary">
-                        <i class="fas fa-terminal me-1"></i> Command Interface
+                        <i class="fas fa-comment-dots me-2"></i>Talk to NOUS
                     </a>
-                    <a href="{{ url_for('settings_page') }}" class="btn btn-outline-primary ms-2">
-                        <i class="fas fa-cog me-1"></i> Settings
+                    <a href="{{ url_for('voice_emotion.voice_emotion_page') }}" class="btn btn-info">
+                        <i class="fas fa-microphone me-2"></i>Voice Analysis
+                    </a>
+                    <a href="{{ url_for('image_routes.image_upload') }}" class="btn btn-success">
+                        <i class="fas fa-image me-2"></i>Image Analysis
                     </a>
                 </div>
             </div>
-            <div class="col-lg-3 d-none d-lg-block">
-                <div class="dashboard-date-card">
-                    <div class="date-card-inner">
-                        <div class="date-month">{{ now.strftime('%b') }}</div>
-                        <div class="date-day">{{ now.strftime('%d') }}</div>
-                        <div class="date-year">{{ now.strftime('%Y') }}</div>
-                    </div>
+            <div class="col-lg-4 d-none d-lg-block">
+                <div class="text-end">
+                    <img src="{{ url_for('static', filename='img/IMG_4875.jpeg') }}" alt="NOUS Assistant" class="img-fluid rounded" style="max-width: 180px;">
                 </div>
             </div>
         </div>
-    </div>
+    </section>
     
     <!-- Quick Access Tiles -->
-    <div class="quick-access-section mb-5">
-        <h4 class="section-label mb-3"><i class="fas fa-bolt me-2"></i>Quick Access</h4>
-        <div class="row">
-            <div class="col-6 col-md-3 mb-4">
-                <div class="quick-access-tile">
-                    <a href="#health-section" class="tile-link">
-                        <div class="tile-icon tile-health">
-                            <i class="fas fa-heartbeat"></i>
-                        </div>
-                        <div class="tile-content">
-                            <h5>Health</h5>
-                            <span class="tile-description">Appointments & medications</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="col-6 col-md-3 mb-4">
-                <div class="quick-access-tile">
-                    <a href="#shopping-section" class="tile-link">
-                        <div class="tile-icon tile-shopping">
-                            <i class="fas fa-shopping-cart"></i>
-                        </div>
-                        <div class="tile-content">
-                            <h5>Shopping</h5>
-                            <span class="tile-description">Lists & product tracking</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="col-6 col-md-3 mb-4">
-                <div class="quick-access-tile">
-                    <a href="#finance-section" class="tile-link">
-                        <div class="tile-icon tile-finance">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="tile-content">
-                            <h5>Finance</h5>
-                            <span class="tile-description">Budgets & expenses</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="col-6 col-md-3 mb-4">
-                <div class="quick-access-tile">
-                    <a href="#travel-section" class="tile-link">
-                        <div class="tile-icon tile-travel">
-                            <i class="fas fa-plane-departure"></i>
-                        </div>
-                        <div class="tile-content">
-                            <h5>Travel</h5>
-                            <span class="tile-description">Trips & itineraries</span>
-                        </div>
-                    </a>
-                </div>
+    <section class="section-container mb-4">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Quick Access</h2>
+                <p class="section-subtitle">Frequently used features and services</p>
             </div>
         </div>
-    </div>
-    
-    <div class="row">
-        <!-- Welcome Card -->
-        <div class="col-lg-12 mb-4">
-            <div class="welcome-card">
-                <div class="welcome-card-bg"></div>
-                <div class="welcome-card-content">
-                    <div class="d-flex align-items-center flex-wrap">
-                        <div class="welcome-icon">
-                            <i class="fas fa-user-circle"></i>
-                        </div>
-                        <div class="welcome-text">
-                            <h2 class="welcome-title">Welcome back!</h2>
-                            <p class="welcome-message mb-0">
-                                This dashboard provides a quick overview of your data across various categories. 
-                                Find what you need quickly or use the command interface for detailed interactions.
-                            </p>
-                        </div>
-                        <div class="welcome-actions ms-auto mt-3 mt-md-0">
-                            <a href="{{ url_for('help_page') }}" class="btn btn-light btn-sm me-2">
-                                <i class="fas fa-question-circle me-1"></i> Help
-                            </a>
-                            <a href="{{ url_for('user_guide') }}" class="btn btn-primary btn-sm">
-                                <i class="fas fa-book me-1"></i> User Guide
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    
-        <!-- Active Trip Card -->
-        {% if active_trip %}
-        <div class="col-lg-6 mb-4">
-            <div class="card h-100 border-0">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-plane me-2"></i>Active Trip
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <h4 class="card-title">{{ active_trip.name }}</h4>
-                    <p class="card-text">
-                        <strong>Destination:</strong> {{ active_trip.destination }}<br>
-                        <strong>Status:</strong> 
-                        {% if active_trip.days_left > 0 %}
-                            {{ active_trip.days_left }} days remaining
-                        {% else %}
-                            Trip concludes today!
-                        {% endif %}
-                    </p>
-                    
-                    <div class="progress mb-3" style="height: 8px;">
-                        {% set total_days = active_trip.duration %}
-                        {% set days_passed = total_days - active_trip.days_left %}
-                        {% set percentage = (days_passed / total_days * 100)|int %}
-                        
-                        <div class="progress-bar bg-info" role="progressbar" 
-                            style="width: {{ percentage }}%" 
-                            aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                    
-                    <div class="d-flex gap-2">
-                        <a class="btn btn-sm btn-outline-primary" 
-                           href="#" onclick="submitCommand('view trip {{ active_trip.id }}');return false;">
-                            Details
-                        </a>
-                        <a class="btn btn-sm btn-outline-info" 
-                           href="#" onclick="submitCommand('view trip itinerary {{ active_trip.id }}');return false;">
-                            Itinerary
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
         
-        <!-- Pain Forecast Card -->
-        {% if pain_forecast %}
-        <div class="col-lg-6 mb-4">
-            <div class="card h-100 border-0">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-cloud-sun-rain me-2"></i>Pain Forecast
-                    </h5>
+        <div class="quick-access-grid">
+            <a href="{{ url_for('process_command') }}?cmd=Show%20my%20doctors" class="quick-access-tile text-decoration-none">
+                <div class="tile-icon text-primary">
+                    <i class="fas fa-user-md"></i>
                 </div>
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="circle-indicator me-3
-                            {% if pain_forecast.risk_level == 'High' %} bg-danger text-white
-                            {% elif pain_forecast.risk_level == 'Moderate' %} bg-warning
-                            {% else %} bg-success text-white{% endif %}">
-                            {% if pain_forecast.risk_level == 'High' %}
-                                <i class="fas fa-exclamation"></i>
-                            {% elif pain_forecast.risk_level == 'Moderate' %}
-                                <i class="fas fa-exclamation-triangle"></i>
-                            {% else %}
-                                <i class="fas fa-check"></i>
-                            {% endif %}
-                        </div>
-                        <div>
-                            <h5 class="mb-0">{{ pain_forecast.location }}</h5>
-                            <p class="mb-0 small text-muted">
-                                Pressure: {{ pain_forecast.current_pressure }} hPa 
-                                <span class="badge
-                                    {% if pain_forecast.trend_direction == 'falling' %}bg-danger
-                                    {% elif pain_forecast.trend_direction == 'rising' %}bg-warning
-                                    {% else %}bg-info{% endif %}">
-                                    {{ pain_forecast.trend_direction }}
-                                </span>
-                            </p>
+                <div class="tile-title">Doctors</div>
+            </a>
+            
+            <a href="{{ url_for('process_command') }}?cmd=Show%20my%20appointments" class="quick-access-tile text-decoration-none">
+                <div class="tile-icon text-success">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="tile-title">Appointments</div>
+            </a>
+            
+            <a href="{{ url_for('process_command') }}?cmd=Show%20my%20medications" class="quick-access-tile text-decoration-none">
+                <div class="tile-icon text-danger">
+                    <i class="fas fa-pills"></i>
+                </div>
+                <div class="tile-title">Medications</div>
+            </a>
+            
+            <a href="{{ url_for('process_command') }}?cmd=Show%20shopping%20lists" class="quick-access-tile text-decoration-none">
+                <div class="tile-icon text-warning">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="tile-title">Shopping</div>
+            </a>
+            
+            <a href="{{ url_for('process_command') }}?cmd=Show%20my%20budget" class="quick-access-tile text-decoration-none">
+                <div class="tile-icon" style="color: #4361ee;">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div class="tile-title">Budget</div>
+            </a>
+            
+            <a href="{{ url_for('process_command') }}?cmd=Show%20my%20trips" class="quick-access-tile text-decoration-none">
+                <div class="tile-icon text-info">
+                    <i class="fas fa-plane-departure"></i>
+                </div>
+                <div class="tile-title">Travel</div>
+            </a>
+            
+            <a href="{{ url_for('process_command') }}?cmd=Show%20weather" class="quick-access-tile text-decoration-none">
+                <div class="tile-icon" style="color: #00b0ff;">
+                    <i class="fas fa-cloud-sun"></i>
+                </div>
+                <div class="tile-title">Weather</div>
+            </a>
+            
+            <a href="{{ url_for('spotify_viz.spotify_report_page') }}" class="quick-access-tile text-decoration-none">
+                <div class="tile-icon" style="color: #1DB954;">
+                    <i class="fab fa-spotify"></i>
+                </div>
+                <div class="tile-title">Spotify</div>
+            </a>
+            
+            <a href="{{ url_for('settings_page') }}" class="quick-access-tile text-decoration-none">
+                <div class="tile-icon text-secondary">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <div class="tile-title">Settings</div>
+            </a>
+            
+            <a href="{{ url_for('user_guide') }}" class="quick-access-tile text-decoration-none">
+                <div class="tile-icon" style="color: #9333ea;">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="tile-title">User Guide</div>
+            </a>
+        </div>
+    </section>
+    
+    <!-- Welcome Card -->
+    <section class="section-container mb-4">
+        <div class="card card-modern">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h3 class="mb-3">Welcome to NOUS Personal Assistant</h3>
+                        <p>NOUS is an advanced AI personal assistant designed to help you organize your life, find information, and complete tasks through natural conversation.</p>
+                        
+                        <div class="mt-4">
+                            <h5 class="mb-3">What would you like to do?</h5>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="{{ url_for('spotify_viz.spotify_report_page') }}" class="btn btn-sm btn-outline-success">
+                                    <i class="fab fa-spotify me-1"></i>Connect Spotify
+                                </a>
+                                <a href="{{ url_for('authorize_google') }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fab fa-google me-1"></i>Connect Google
+                                </a>
+                                <a href="{{ url_for('user_guide') }}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-book me-1"></i>View User Guide
+                                </a>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <strong>Risk Factors:</strong>
-                        <ul class="mb-0 ps-3 small">
-                            {% for factor in pain_forecast.factors %}
-                            <li>{{ factor }}</li>
-                            {% endfor %}
-                            {% if not pain_forecast.factors %}
-                            <li>No significant risk factors</li>
-                            {% endif %}
-                        </ul>
+                    <div class="col-md-4 d-none d-md-block text-center">
+                        <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" class="img-fluid rounded-circle" style="max-width: 160px;">
                     </div>
-                    
-                    <button class="btn btn-sm btn-primary w-100"
-                            onclick="submitCommand('pain forecast in {{ pain_forecast.location }}')">
-                        View Detailed Forecast
-                    </button>
                 </div>
             </div>
         </div>
-        {% endif %}
-    </div>
+    </section>
     
     <!-- Health Section -->
-    <section id="health-section" class="mb-5">
-        <div class="section-header-modern mb-4">
-            <div class="section-icon health-icon">
-                <i class="fas fa-heartbeat"></i>
+    <section class="mb-4">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title text-gradient">Health</h2>
+                <p class="section-subtitle">Manage your health information</p>
             </div>
-            <div class="section-title">
-                <h2>Health</h2>
-                <p class="section-subtitle">Manage your appointments and medications</p>
-            </div>
+            <a href="{{ url_for('process_command') }}?cmd=What%20health%20features%20do%20you%20offer" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-plus me-1"></i>Explore More
+            </a>
         </div>
         
-        <div class="row">
-            <!-- Upcoming Appointments -->
-            <div class="col-lg-6 mb-4">
+        <div class="row g-4">
+            <!-- Appointments Card -->
+            <div class="col-md-6">
                 <div class="card card-modern h-100">
                     <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center">
-                                <div class="card-icon-wrapper health-soft me-2">
-                                    <i class="fas fa-calendar-check"></i>
-                                </div>
-                                <h5 class="card-title mb-0">Upcoming Appointments</h5>
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon-wrapper success-soft me-3">
+                                <i class="fas fa-calendar-check"></i>
                             </div>
-                            <a href="#" onclick="submitCommand('show appointments');return false;" class="btn btn-sm btn-outline-primary">View All</a>
+                            <h3 class="card-title mb-0">Upcoming Appointments</h3>
                         </div>
                     </div>
                     <div class="card-body">
-                        {% if appointments %}
-                            <div class="list-group">
-                                {% for appointment in appointments[:3] %}
-                                <div class="list-group-item border-0 px-0">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <strong>{{ appointment.doctor.name }}</strong>
-                                            <div class="small text-muted">{{ appointment.description }}</div>
-                                        </div>
-                                        <span class="badge bg-primary">{{ appointment.date.strftime('%b %d') }}</span>
+                        <div id="appointment-list">
+                            <!-- This would be populated from Flask with actual data -->
+                            <div class="appointment-card">
+                                <div class="appointment-date">
+                                    <i class="far fa-calendar-alt"></i> May 20, 2025
+                                </div>
+                                <div class="doctor-info">
+                                    <div class="doctor-avatar">
+                                        <i class="fas fa-user-md"></i>
+                                    </div>
+                                    <div>
+                                        <div class="doctor-name">Dr. Sarah Johnson</div>
+                                        <div class="doctor-specialty">Cardiologist</div>
                                     </div>
                                 </div>
-                                {% endfor %}
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span class="badge bg-info-soft">
+                                        <i class="far fa-clock me-1"></i>10:30 AM
+                                    </span>
+                                    <a href="#" class="btn btn-sm btn-outline-primary">Details</a>
+                                </div>
                             </div>
-                        {% else %}
-                            <p class="text-muted mb-0">No upcoming appointments</p>
-                        {% endif %}
+                            
+                            <div class="appointment-card">
+                                <div class="appointment-date">
+                                    <i class="far fa-calendar-alt"></i> June 5, 2025
+                                </div>
+                                <div class="doctor-info">
+                                    <div class="doctor-avatar">
+                                        <i class="fas fa-user-md"></i>
+                                    </div>
+                                    <div>
+                                        <div class="doctor-name">Dr. Michael Chen</div>
+                                        <div class="doctor-specialty">Neurologist</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span class="badge bg-info-soft">
+                                        <i class="far fa-clock me-1"></i>2:15 PM
+                                    </span>
+                                    <a href="#" class="btn btn-sm btn-outline-primary">Details</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('process_command') }}?cmd=Show%20all%20appointments" class="btn btn-sm btn-outline-primary">
+                                View All Appointments
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Medications to Refill -->
-            <div class="col-lg-6 mb-4">
+            <!-- Medications Card -->
+            <div class="col-md-6">
                 <div class="card card-modern h-100">
                     <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center">
-                                <div class="card-icon-wrapper health-soft me-2">
-                                    <i class="fas fa-pills"></i>
-                                </div>
-                                <h5 class="card-title mb-0">Medications to Refill</h5>
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon-wrapper warning-soft me-3">
+                                <i class="fas fa-pills"></i>
                             </div>
-                            <a href="#" onclick="submitCommand('show medications');return false;" class="btn btn-sm btn-outline-primary">View All</a>
+                            <h3 class="card-title mb-0">Medications</h3>
                         </div>
                     </div>
                     <div class="card-body">
-                        {% if medications_to_refill %}
-                            <div class="list-group">
-                                {% for medication in medications_to_refill[:3] %}
-                                <div class="list-group-item border-0 px-0">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <strong>{{ medication.name }}</strong>
-                                            <div class="small text-muted">{{ medication.remaining }} remaining</div>
-                                        </div>
-                                        <span class="badge bg-warning text-dark">Refill Soon</span>
-                                    </div>
+                        <ul class="medication-list">
+                            <li class="medication-item">
+                                <div class="medication-icon">
+                                    <i class="fas fa-capsules"></i>
                                 </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <p class="text-muted mb-0">No medications need refilling</p>
-                        {% endif %}
+                                <div>
+                                    <div class="medication-name">Lisinopril</div>
+                                    <div class="medication-dosage">10mg, once daily</div>
+                                </div>
+                                <div class="medication-meta">
+                                    <div class="remaining-pills pill-medium">15 left</div>
+                                </div>
+                            </li>
+                            
+                            <li class="medication-item">
+                                <div class="medication-icon">
+                                    <i class="fas fa-tablets"></i>
+                                </div>
+                                <div>
+                                    <div class="medication-name">Metformin</div>
+                                    <div class="medication-dosage">500mg, twice daily</div>
+                                </div>
+                                <div class="medication-meta">
+                                    <div class="remaining-pills pill-high">30 left</div>
+                                </div>
+                            </li>
+                            
+                            <li class="medication-item">
+                                <div class="medication-icon">
+                                    <i class="fas fa-prescription-bottle"></i>
+                                </div>
+                                <div>
+                                    <div class="medication-name">Atorvastatin</div>
+                                    <div class="medication-dosage">20mg, once daily</div>
+                                </div>
+                                <div class="medication-meta">
+                                    <div class="remaining-pills pill-low">5 left</div>
+                                </div>
+                            </li>
+                        </ul>
+                        
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('process_command') }}?cmd=Show%20all%20medications" class="btn btn-sm btn-outline-warning">
+                                View All Medications
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -315,99 +288,120 @@
     </section>
     
     <!-- Shopping Section -->
-    <section id="shopping-section" class="mb-5">
-        <div class="section-header-modern mb-4">
-            <div class="section-icon shopping-icon">
-                <i class="fas fa-shopping-cart"></i>
+    <section class="mb-4">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title text-gradient-success">Shopping</h2>
+                <p class="section-subtitle">Track your shopping lists and products</p>
             </div>
-            <div class="section-title">
-                <h2>Shopping</h2>
-                <p class="section-subtitle">Manage your shopping lists and product tracking</p>
-            </div>
+            <a href="{{ url_for('process_command') }}?cmd=What%20shopping%20features%20do%20you%20offer" class="btn btn-sm btn-outline-success">
+                <i class="fas fa-plus me-1"></i>Explore More
+            </a>
         </div>
         
-        <div class="row">
-            <!-- Shopping Lists -->
-            <div class="col-lg-6 mb-4">
+        <div class="row g-4">
+            <!-- Shopping Lists Card -->
+            <div class="col-md-6">
                 <div class="card card-modern h-100">
                     <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center">
-                                <div class="card-icon-wrapper shopping-soft me-2">
-                                    <i class="fas fa-list"></i>
-                                </div>
-                                <h5 class="card-title mb-0">Shopping Lists</h5>
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon-wrapper success-soft me-3">
+                                <i class="fas fa-shopping-basket"></i>
                             </div>
-                            <a href="#" onclick="submitCommand('show shopping lists');return false;" class="btn btn-sm btn-outline-primary">View All</a>
+                            <h3 class="card-title mb-0">Shopping Lists</h3>
                         </div>
                     </div>
                     <div class="card-body">
-                        {% if shopping_lists %}
-                            <div class="list-group">
-                                {% for list in shopping_lists[:3] %}
-                                <div class="list-group-item border-0 px-0">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <strong>{{ list.name }}</strong>
-                                            <div class="small text-muted">{{ list.items|length }} items 
-                                                {% if list.store %}at {{ list.store }}{% endif %}
-                                            </div>
-                                        </div>
-                                        {% if list.is_recurring %}
-                                        <span class="badge bg-info">Recurring</span>
-                                        {% endif %}
-                                    </div>
+                        <ul class="shopping-list">
+                            <li class="shopping-item">
+                                <input type="checkbox" class="form-check-input item-checkbox">
+                                <span class="item-name">Organic Apples</span>
+                                <span class="item-category">Produce</span>
+                                <div class="item-actions">
+                                    <button class="item-action-btn" title="Remove item">
+                                        <i class="fas fa-times"></i>
+                                    </button>
                                 </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <p class="text-muted mb-0">No shopping lists created</p>
-                        {% endif %}
+                            </li>
+                            
+                            <li class="shopping-item checked">
+                                <input type="checkbox" class="form-check-input item-checkbox" checked>
+                                <span class="item-name">Whole Wheat Bread</span>
+                                <span class="item-category">Bakery</span>
+                                <div class="item-actions">
+                                    <button class="item-action-btn" title="Remove item">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </li>
+                            
+                            <li class="shopping-item">
+                                <input type="checkbox" class="form-check-input item-checkbox">
+                                <span class="item-name">Greek Yogurt</span>
+                                <span class="item-category">Dairy</span>
+                                <div class="item-actions">
+                                    <button class="item-action-btn" title="Remove item">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </li>
+                        </ul>
+                        
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('process_command') }}?cmd=Show%20all%20shopping%20lists" class="btn btn-sm btn-outline-success">
+                                View All Lists
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Due Orders -->
-            <div class="col-lg-6 mb-4">
-                <div class="card border-0 h-100">
+            <!-- Products Card -->
+            <div class="col-md-6">
+                <div class="card card-modern h-100">
                     <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i class="fas fa-box me-2"></i>Due Orders
-                            </h5>
-                            <a href="#" onclick="submitCommand('show due orders');return false;" class="btn btn-sm btn-outline-primary">View All</a>
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon-wrapper warning-soft me-3">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <h3 class="card-title mb-0">Tracked Products</h3>
                         </div>
                     </div>
                     <div class="card-body">
-                        {% if due_lists or products_to_order %}
-                            <div class="list-group">
-                                {% for list in due_lists|default([], true)[:2] %}
-                                <div class="list-group-item border-0 px-0">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <strong>{{ list.name }}</strong>
-                                            <div class="small text-muted">Shopping list due to order</div>
-                                        </div>
-                                        <a href="#" onclick="submitCommand('view list {{ list.id }}');return false;" class="btn btn-sm btn-outline-success">View</a>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                                
-                                {% for product in products_to_order|default([], true)[:2] %}
-                                <div class="list-group-item border-0 px-0">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <strong>{{ product.name }}</strong>
-                                            <div class="small text-muted">{{ product.source }} - ${{ product.price }}</div>
-                                        </div>
-                                        <a href="#" onclick="submitCommand('order product {{ product.id }}');return false;" class="btn btn-sm btn-outline-info">Order</a>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <p class="text-muted mb-0">No orders due at this time</p>
-                        {% endif %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Price</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Wireless Headphones</td>
+                                        <td>$89.99</td>
+                                        <td><span class="badge bg-success-soft">Available</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Coffee Maker</td>
+                                        <td>$129.99</td>
+                                        <td><span class="badge bg-warning-soft">Price Drop</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Smart Watch</td>
+                                        <td>$249.99</td>
+                                        <td><span class="badge bg-primary-soft">Watched</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('process_command') }}?cmd=Show%20all%20tracked%20products" class="btn btn-sm btn-outline-warning">
+                                View All Products
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -415,167 +409,146 @@
     </section>
     
     <!-- Finance Section -->
-    <section id="finance-section" class="mb-5">
-        <div class="section-header-modern mb-4">
-            <div class="section-icon finance-icon">
-                <i class="fas fa-chart-line"></i>
+    <section class="mb-4">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title text-gradient-warning">Finance</h2>
+                <p class="section-subtitle">Track your budgets and expenses</p>
             </div>
-            <div class="section-title">
-                <h2>Finance</h2>
-                <p class="section-subtitle">Track your budgets and manage expenses</p>
-            </div>
+            <a href="{{ url_for('process_command') }}?cmd=What%20financial%20features%20do%20you%20offer" class="btn btn-sm btn-outline-warning">
+                <i class="fas fa-plus me-1"></i>Explore More
+            </a>
         </div>
         
-        <div class="row">
-            <!-- Budget Summary -->
-            <div class="col-lg-6 mb-4">
-                <div class="card border-0 h-100">
+        <div class="row g-4">
+            <!-- Budget Summary Card -->
+            <div class="col-md-6">
+                <div class="card card-modern h-100">
                     <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i class="fas fa-chart-pie me-2"></i>Budget Summary
-                            </h5>
-                            <a href="#" onclick="submitCommand('budget summary');return false;" class="btn btn-sm btn-outline-primary">Details</a>
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon-wrapper warning-soft me-3">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <h3 class="card-title mb-0">Budget Summary</h3>
                         </div>
                     </div>
                     <div class="card-body">
-                        {% if budget_summary %}
-                            <div class="d-flex justify-content-between mb-3">
-                                <div>
-                                    <h6 class="mb-0">Total Budget</h6>
-                                    <h4 class="mb-0">${{ budget_summary.total_budget }}</h4>
-                                </div>
-                                <div>
-                                    <h6 class="mb-0">Spent</h6>
-                                    <h4 class="mb-0">${{ budget_summary.total_spent }}</h4>
-                                </div>
-                                <div>
-                                    <h6 class="mb-0">Remaining</h6>
-                                    <h4 class="mb-0">${{ budget_summary.total_remaining }}</h4>
-                                </div>
-                            </div>
-                            
-                            <div class="progress mb-3" style="height: 10px;">
-                                {% set percentage = (budget_summary.total_spent / budget_summary.total_budget * 100)|int %}
-                                <div class="progress-bar {{ 'bg-success' if percentage < 75 else ('bg-warning' if percentage < 90 else 'bg-danger') }}" 
-                                     role="progressbar" style="width: {{ percentage }}%"
-                                     aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100">
-                                </div>
-                            </div>
-                            
-                            <h6 class="mt-4 mb-2">Top Categories</h6>
-                            {% if budget_categories %}
-                                {% for category, amount in budget_categories.items() %}
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span>{{ category }}</span>
-                                    <span>${{ amount }}</span>
-                                </div>
-                                {% endfor %}
-                            {% endif %}
-                        {% else %}
-                            <p class="text-muted mb-0">No budget data available</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Upcoming Payments -->
-            <div class="col-lg-6 mb-4">
-                <div class="card border-0 h-100">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i class="fas fa-money-bill-wave me-2"></i>Upcoming Payments
-                            </h5>
-                            <a href="#" onclick="submitCommand('show upcoming payments');return false;" class="btn btn-sm btn-outline-primary">View All</a>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        {% if upcoming_payments %}
-                            <div class="list-group">
-                                {% for payment in upcoming_payments[:5] %}
-                                <div class="list-group-item border-0 px-0">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <strong>{{ payment.description }}</strong>
-                                            <div class="small text-muted">Due on {{ payment.next_date.strftime('%b %d') }}</div>
-                                        </div>
-                                        <span class="badge bg-primary">${{ payment.amount }}</span>
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <div class="stat-card">
+                                    <div class="stat-title">MONTHLY INCOME</div>
+                                    <div class="stat-value">$5,250</div>
+                                    <div class="stat-change positive">
+                                        <i class="fas fa-arrow-up me-1"></i>5.2% from last month
                                     </div>
                                 </div>
-                                {% endfor %}
                             </div>
-                        {% else %}
-                            <p class="text-muted mb-0">No upcoming payments scheduled</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <!-- AI Features Section -->
-    <section id="ai-features-section" class="mb-5">
-        <div class="dashboard-section-header mb-4">
-            <h2 class="h4">
-                <i class="fas fa-robot me-2 text-primary"></i>AI Features
-            </h2>
-            <hr>
-        </div>
-        
-        <div class="row">
-            <!-- Voice Emotion Analysis Card -->
-            <div class="col-lg-6 mb-4">
-                <div class="card border-0 h-100">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i class="fas fa-microphone-alt me-2"></i>Voice Emotion Analysis
-                            </h5>
-                            <a href="{{ url_for('voice_emotion.voice_emotion_analysis') }}" class="btn btn-sm btn-primary">Try Now</a>
+                            
+                            <div class="col-sm-6">
+                                <div class="stat-card">
+                                    <div class="stat-title">MONTHLY EXPENSES</div>
+                                    <div class="stat-value">$3,840</div>
+                                    <div class="stat-change negative">
+                                        <i class="fas fa-arrow-up me-1"></i>2.8% from last month
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-sm-6">
+                                <div class="stat-card">
+                                    <div class="stat-title">SAVINGS RATE</div>
+                                    <div class="stat-value">26.9%</div>
+                                    <div class="stat-change positive">
+                                        <i class="fas fa-arrow-up me-1"></i>1.4% from last month
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-sm-6">
+                                <div class="stat-card">
+                                    <div class="stat-title">UPCOMING BILLS</div>
+                                    <div class="stat-value">$1,280</div>
+                                    <div class="stat-change">
+                                        Due in next 7 days
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="text-center py-3">
-                            <i class="fas fa-volume-up fa-3x text-primary mb-3"></i>
-                            <p class="mb-3">Analyze the emotional tone of your voice using AI technology.</p>
-                            <div class="d-flex justify-content-center align-items-center mb-3">
-                                <span class="badge bg-danger me-2">Anger</span>
-                                <span class="badge bg-success me-2">Joy</span>
-                                <span class="badge bg-primary me-2">Sadness</span>
-                                <span class="badge bg-info me-2">Surprise</span>
-                                <span class="badge bg-secondary">Neutral</span>
-                            </div>
-                            <a href="{{ url_for('voice_emotion.voice_emotion_analysis') }}" class="btn btn-outline-primary">
-                                <i class="fas fa-microphone me-2"></i>Analyze Your Voice
+                        
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('process_command') }}?cmd=Show%20budget%20details" class="btn btn-sm btn-outline-warning">
+                                View Budget Details
                             </a>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Voice Mindfulness Card -->
-            <div class="col-lg-6 mb-4">
-                <div class="card border-0 h-100">
+            <!-- Expenses Card -->
+            <div class="col-md-6">
+                <div class="card card-modern h-100">
                     <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i class="fas fa-om me-2"></i>Voice Mindfulness
-                            </h5>
-                            <a href="{{ url_for('voice_mindfulness.index') }}" class="btn btn-sm btn-info">Explore</a>
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon-wrapper danger-soft me-3">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            <h3 class="card-title mb-0">Recent Expenses</h3>
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="text-center py-3">
-                            <i class="fas fa-spa fa-3x text-info mb-3"></i>
-                            <p class="mb-3">Use voice-guided mindfulness exercises to reduce stress and anxiety.</p>
-                            <div class="d-flex justify-content-center align-items-center mb-3">
-                                <span class="badge bg-info me-2">2-min</span>
-                                <span class="badge bg-info me-2">5-min</span>
-                                <span class="badge bg-info">10-min</span>
-                            </div>
-                            <a href="{{ url_for('voice_mindfulness.index') }}" class="btn btn-outline-info">
-                                <i class="fas fa-headphones me-2"></i>Start Exercise
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Amount</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <span class="badge bg-primary-soft me-2">
+                                                    <i class="fas fa-home"></i>
+                                                </span>
+                                                Housing
+                                            </div>
+                                        </td>
+                                        <td>$1,500.00</td>
+                                        <td>May 15, 2025</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <span class="badge bg-success-soft me-2">
+                                                    <i class="fas fa-shopping-cart"></i>
+                                                </span>
+                                                Groceries
+                                            </div>
+                                        </td>
+                                        <td>$245.32</td>
+                                        <td>May 12, 2025</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <span class="badge bg-info-soft me-2">
+                                                    <i class="fas fa-car"></i>
+                                                </span>
+                                                Transportation
+                                            </div>
+                                        </td>
+                                        <td>$120.00</td>
+                                        <td>May 10, 2025</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('process_command') }}?cmd=Show%20all%20expenses" class="btn btn-sm btn-outline-danger">
+                                View All Expenses
                             </a>
                         </div>
                     </div>
@@ -585,144 +558,213 @@
     </section>
     
     <!-- Travel Section -->
-    <section id="travel-section" class="mb-5">
-        <div class="section-header-modern mb-4">
-            <div class="section-icon travel-icon">
-                <i class="fas fa-plane-departure"></i>
+    <section class="mb-4">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title text-gradient-info">Travel</h2>
+                <p class="section-subtitle">Plan and manage your trips</p>
             </div>
-            <div class="section-title">
-                <h2>Travel</h2>
-                <p class="section-subtitle">Plan trips and manage your itineraries</p>
-            </div>
+            <a href="{{ url_for('process_command') }}?cmd=What%20travel%20features%20do%20you%20offer" class="btn btn-sm btn-outline-info">
+                <i class="fas fa-plus me-1"></i>Explore More
+            </a>
         </div>
         
-        <div class="row">
-            <!-- Upcoming Trips -->
-            {% if upcoming_trips %}
-            <div class="col-lg-12 mb-4">
-                <div class="card border-0">
+        <div class="row g-4">
+            <!-- Upcoming Trips Card -->
+            <div class="col-md-6">
+                <div class="card card-modern h-100">
                     <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i class="fas fa-suitcase me-2"></i>Upcoming Trips
-                            </h5>
-                            <a href="#" onclick="submitCommand('show trips');return false;" class="btn btn-sm btn-outline-primary">View All</a>
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon-wrapper info-soft me-3">
+                                <i class="fas fa-plane-departure"></i>
+                            </div>
+                            <h3 class="card-title mb-0">Upcoming Trips</h3>
                         </div>
                     </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Trip</th>
-                                        <th>Destination</th>
-                                        <th>Dates</th>
-                                        <th>Days Until</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for trip in upcoming_trips %}
-                                    <tr>
-                                        <td>{{ trip.name }}</td>
-                                        <td>{{ trip.destination }}</td>
-                                        <td>{{ trip.start_date.strftime('%b %d') }} - {{ trip.end_date.strftime('%b %d') }}</td>
-                                        <td>{{ trip.days_until }} days</td>
-                                        <td>
-                                            <a href="#" onclick="submitCommand('view trip {{ trip.id }}');return false;" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-    </section>
-    
-    <!-- Recent Activity Card -->
-    <div class="row">
-        <div class="col-12 mb-4">
-            <div class="card border-0">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-history me-2"></i>Recent Activity
-                    </h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush">
-                        {% for activity in recent_activity %}
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>{{ activity.action }}</strong>
-                                    <div class="small text-muted">{{ activity.description }}</div>
+                    <div class="card-body">
+                        <div class="card mb-3 border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="mb-0">San Francisco Vacation</h5>
+                                    <span class="badge bg-primary-soft">Upcoming</span>
                                 </div>
-                                <span class="badge bg-light text-dark">{{ activity.time_ago }}</span>
+                                <p class="text-secondary mb-2">June 15 - June 22, 2025</p>
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="me-3">
+                                        <i class="fas fa-map-marker-alt text-danger"></i>
+                                        <span class="ms-1">San Francisco, CA</span>
+                                    </div>
+                                    <div>
+                                        <i class="fas fa-users text-primary"></i>
+                                        <span class="ms-1">2 travelers</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <div class="small text-secondary">Total Budget</div>
+                                        <div>$2,500</div>
+                                    </div>
+                                    <a href="#" class="btn btn-sm btn-outline-primary">View Details</a>
+                                </div>
                             </div>
                         </div>
-                        {% endfor %}
+                        
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="mb-0">Tokyo Business Trip</h5>
+                                    <span class="badge bg-primary-soft">Upcoming</span>
+                                </div>
+                                <p class="text-secondary mb-2">July 8 - July 15, 2025</p>
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="me-3">
+                                        <i class="fas fa-map-marker-alt text-danger"></i>
+                                        <span class="ms-1">Tokyo, Japan</span>
+                                    </div>
+                                    <div>
+                                        <i class="fas fa-user text-primary"></i>
+                                        <span class="ms-1">1 traveler</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <div class="small text-secondary">Total Budget</div>
+                                        <div>$3,800</div>
+                                    </div>
+                                    <a href="#" class="btn btn-sm btn-outline-primary">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('process_command') }}?cmd=Show%20all%20trips" class="btn btn-sm btn-outline-info">
+                                View All Trips
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Weather Card -->
+            <div class="col-md-6">
+                <div class="card card-modern h-100">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon-wrapper primary-soft me-3">
+                                <i class="fas fa-cloud-sun"></i>
+                            </div>
+                            <h3 class="card-title mb-0">Weather Forecast</h3>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-4">
+                            <h4 class="mb-1">New York, NY</h4>
+                            <p class="text-secondary mb-3">May 16, 2025</p>
+                            
+                            <div class="d-flex justify-content-center align-items-center mb-3">
+                                <i class="fas fa-sun fs-1 text-warning me-3"></i>
+                                <span class="fs-1 fw-bold">72°F</span>
+                            </div>
+                            
+                            <p>Sunny with clear skies</p>
+                        </div>
+                        
+                        <div class="row g-2 text-center">
+                            <div class="col">
+                                <div class="p-2 bg-light rounded">
+                                    <div class="small text-secondary">Humidity</div>
+                                    <div>45%</div>
+                                </div>
+                            </div>
+                            
+                            <div class="col">
+                                <div class="p-2 bg-light rounded">
+                                    <div class="small text-secondary">Wind</div>
+                                    <div>8 mph</div>
+                                </div>
+                            </div>
+                            
+                            <div class="col">
+                                <div class="p-2 bg-light rounded">
+                                    <div class="small text-secondary">Feels Like</div>
+                                    <div>74°F</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h5 class="mb-3">5-Day Forecast</h5>
+                        <div class="row g-2 text-center">
+                            <div class="col">
+                                <div class="p-2 bg-light rounded">
+                                    <div>Mon</div>
+                                    <i class="fas fa-sun text-warning"></i>
+                                    <div>75°F</div>
+                                </div>
+                            </div>
+                            
+                            <div class="col">
+                                <div class="p-2 bg-light rounded">
+                                    <div>Tue</div>
+                                    <i class="fas fa-cloud-sun text-secondary"></i>
+                                    <div>72°F</div>
+                                </div>
+                            </div>
+                            
+                            <div class="col">
+                                <div class="p-2 bg-light rounded">
+                                    <div>Wed</div>
+                                    <i class="fas fa-cloud text-secondary"></i>
+                                    <div>68°F</div>
+                                </div>
+                            </div>
+                            
+                            <div class="col">
+                                <div class="p-2 bg-light rounded">
+                                    <div>Thu</div>
+                                    <i class="fas fa-cloud-showers-heavy text-info"></i>
+                                    <div>65°F</div>
+                                </div>
+                            </div>
+                            
+                            <div class="col">
+                                <div class="p-2 bg-light rounded">
+                                    <div>Fri</div>
+                                    <i class="fas fa-sun text-warning"></i>
+                                    <div>70°F</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 </div>
 
-<style>
-    .circle-indicator {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-    }
-    
-    .dashboard-section-header {
-        position: relative;
-        padding-bottom: 0.5rem;
-    }
-    
-    .quick-access-tile .card {
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    }
-    
-    .quick-access-tile .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
-    }
-    
-    .health-tile .card:hover {
-        border-color: var(--bs-danger) !important;
-    }
-    
-    .shopping-tile .card:hover {
-        border-color: var(--bs-success) !important;
-    }
-    
-    .finance-tile .card:hover {
-        border-color: var(--bs-primary) !important;
-    }
-    
-    .travel-tile .card:hover {
-        border-color: var(--bs-info) !important;
-    }
-</style>
-{% endblock %}
+<!-- Mobile Bottom Navigation -->
+<div class="bottom-nav d-md-none">
+    <a href="{{ url_for('index') }}" class="bottom-nav-item">
+        <i class="fas fa-home bottom-nav-icon"></i>
+        <span>Home</span>
+    </a>
+    <a href="{{ url_for('dashboard') }}" class="bottom-nav-item active">
+        <i class="fas fa-tachometer-alt bottom-nav-icon"></i>
+        <span>Dashboard</span>
+    </a>
+    <a href="{{ url_for('user_guide') }}" class="bottom-nav-item">
+        <i class="fas fa-book bottom-nav-icon"></i>
+        <span>Guide</span>
+    </a>
+    <a href="{{ url_for('settings_page') }}" class="bottom-nav-item">
+        <i class="fas fa-cog bottom-nav-icon"></i>
+        <span>Settings</span>
+    </a>
+</div>
 
-{% block scripts %}
+<!-- Add body class for bottom nav spacing -->
 <script>
-// Function to submit commands from dashboard
-function submitCommand(cmd) {
-    // Redirect to index with the command
-    window.location.href = "{{ url_for('index') }}?cmd=" + encodeURIComponent(cmd);
-}
+    document.body.classList.add('has-bottom-nav');
 </script>
 {% endblock %}

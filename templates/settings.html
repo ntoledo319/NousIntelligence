@@ -1,357 +1,847 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-8 col-md-10">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-cog me-2"></i>Settings
-                    </h3>
+<div class="container">
+    <section class="section-container mb-4">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="mb-3">Settings</h1>
+                <p class="text-secondary mb-4">Configure your NOUS experience and preferences.</p>
+            </div>
+            <div class="col-lg-4 d-none d-lg-block">
+                <div class="text-end">
+                    <img src="{{ url_for('static', filename='img/IMG_4875.jpeg') }}" alt="NOUS Logo" class="img-fluid rounded" style="max-width: 120px;">
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <div class="row g-4">
+        <div class="col-md-3">
+            <!-- Settings Navigation -->
+            <div class="card card-modern mb-4">
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="#general" class="list-group-item list-group-item-action active py-3" data-bs-toggle="list">
+                            <i class="fas fa-sliders-h me-2"></i>General
+                        </a>
+                        <a href="#account" class="list-group-item list-group-item-action py-3" data-bs-toggle="list">
+                            <i class="fas fa-user me-2"></i>Account
+                        </a>
+                        <a href="#appearance" class="list-group-item list-group-item-action py-3" data-bs-toggle="list">
+                            <i class="fas fa-paint-brush me-2"></i>Appearance
+                        </a>
+                        <a href="#integrations" class="list-group-item list-group-item-action py-3" data-bs-toggle="list">
+                            <i class="fas fa-plug me-2"></i>Integrations
+                        </a>
+                        <a href="#privacy" class="list-group-item list-group-item-action py-3" data-bs-toggle="list">
+                            <i class="fas fa-shield-alt me-2"></i>Privacy & Security
+                        </a>
+                        <a href="#notifications" class="list-group-item list-group-item-action py-3" data-bs-toggle="list">
+                            <i class="fas fa-bell me-2"></i>Notifications
+                        </a>
+                        <a href="#advanced" class="list-group-item list-group-item-action py-3" data-bs-toggle="list">
+                            <i class="fas fa-cogs me-2"></i>Advanced
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Additional Actions -->
+            <div class="card card-modern">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Actions</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ url_for('save_settings') }}">
-                        <h4 class="mb-3">Conversation Settings</h4>
-                        
-                        <!-- Conversation Difficulty -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Conversation Difficulty</label>
-                            <p class="text-muted small mb-3">
-                                Select how technical you want NOUS responses to be. This affects the complexity and detail level of AI-generated responses.
-                            </p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('help_page') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-question-circle me-2"></i>Get Help
+                        </a>
+                        <a href="{{ url_for('google_auth.logout') }}" class="btn btn-outline-danger">
+                            <i class="fas fa-sign-out-alt me-2"></i>Sign Out
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- General Settings -->
+                <div class="tab-pane fade show active" id="general">
+                    <div class="card card-modern">
+                        <div class="card-header">
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon-wrapper primary-soft me-3">
+                                    <i class="fas fa-sliders-h"></i>
+                                </div>
+                                <h3 class="card-title mb-0">General Settings</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" action="{{ url_for('save_settings') }}">
+                                <div class="settings-section">
+                                    <div class="settings-category">Basic Settings</div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="username" class="form-label">Display Name</label>
+                                        <input type="text" class="form-control" id="username" name="username" value="{{ session.user_settings.username if session.user_settings and 'username' in session.user_settings else '' }}">
+                                        <div class="form-text">This is how NOUS will address you in conversations.</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="timezone" class="form-label">Time Zone</label>
+                                        <select class="form-select" id="timezone" name="timezone">
+                                            <option value="America/New_York" {% if session.user_settings and session.user_settings.timezone == 'America/New_York' %}selected{% endif %}>Eastern Time (ET)</option>
+                                            <option value="America/Chicago" {% if session.user_settings and session.user_settings.timezone == 'America/Chicago' %}selected{% endif %}>Central Time (CT)</option>
+                                            <option value="America/Denver" {% if session.user_settings and session.user_settings.timezone == 'America/Denver' %}selected{% endif %}>Mountain Time (MT)</option>
+                                            <option value="America/Los_Angeles" {% if session.user_settings and session.user_settings.timezone == 'America/Los_Angeles' %}selected{% endif %}>Pacific Time (PT)</option>
+                                            <option value="UTC" {% if session.user_settings and session.user_settings.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                                        </select>
+                                        <div class="form-text">Used for scheduling and time-related information.</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="default_location" class="form-label">Default Location</label>
+                                        <input type="text" class="form-control" id="default_location" name="default_location" value="{{ session.user_settings.default_location if session.user_settings and 'default_location' in session.user_settings else '' }}">
+                                        <div class="form-text">Used for weather and location-based services.</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="settings-section">
+                                    <div class="settings-category">Language & Accessibility</div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="language" class="form-label">Interface Language</label>
+                                        <select class="form-select" id="language" name="language">
+                                            <option value="en" {% if not session.user_settings or not session.user_settings.language or session.user_settings.language == 'en' %}selected{% endif %}>English</option>
+                                            <option value="es" {% if session.user_settings and session.user_settings.language == 'es' %}selected{% endif %}>Español</option>
+                                            <option value="fr" {% if session.user_settings and session.user_settings.language == 'fr' %}selected{% endif %}>Français</option>
+                                            <option value="de" {% if session.user_settings and session.user_settings.language == 'de' %}selected{% endif %}>Deutsch</option>
+                                            <option value="ja" {% if session.user_settings and session.user_settings.language == 'ja' %}selected{% endif %}>日本語</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="text_to_speech" name="text_to_speech" {% if session.user_settings and session.user_settings.text_to_speech %}checked{% endif %}>
+                                        <label class="form-check-label" for="text_to_speech">Enable Text-to-Speech</label>
+                                        <div class="form-text">NOUS will read responses aloud when enabled.</div>
+                                    </div>
+                                    
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="reduced_motion" name="reduced_motion" {% if session.user_settings and session.user_settings.reduced_motion %}checked{% endif %}>
+                                        <label class="form-check-label" for="reduced_motion">Reduce Motion</label>
+                                        <div class="form-text">Minimizes animations throughout the interface.</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <button type="reset" class="btn btn-secondary">Reset</button>
+                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Account Settings -->
+                <div class="tab-pane fade" id="account">
+                    <div class="card card-modern">
+                        <div class="card-header">
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon-wrapper info-soft me-3">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <h3 class="card-title mb-0">Account Settings</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="settings-section">
+                                <div class="settings-category">User Information</div>
+                                
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="me-3">
+                                            <img src="{{ session.user_settings.profile_image if session.user_settings and 'profile_image' in session.user_settings else url_for('static', filename='img/IMG_4875.jpeg') }}" alt="Profile" class="rounded-circle" width="60" height="60">
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-1">{{ session.user_settings.username if session.user_settings and 'username' in session.user_settings else 'User' }}</h5>
+                                            <p class="text-secondary mb-0">{{ session.user_settings.email if session.user_settings and 'email' in session.user_settings else 'user@example.com' }}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <button class="btn btn-sm btn-outline-primary">Change Profile Picture</button>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" id="email" value="{{ session.user_settings.email if session.user_settings and 'email' in session.user_settings else 'user@example.com' }}" readonly>
+                                    <div class="form-text">Your email is managed through your login provider.</div>
+                                </div>
+                            </div>
                             
-                            <div class="difficulty-selector mb-3">
-                                <div class="form-check difficulty-option">
-                                    <input class="form-check-input" type="radio" name="conversation_difficulty" id="difficulty_beginner" value="beginner" 
-                                        {% if settings and settings.conversation_difficulty == 'beginner' %}checked{% endif %}>
-                                    <label class="form-check-label" for="difficulty_beginner">
-                                        <span class="difficulty-title">Beginner</span><br>
-                                        <small class="text-muted">Simple language, basic explanations, no technical terms</small>
-                                    </label>
+                            <div class="settings-section">
+                                <div class="settings-category">Account Management</div>
+                                
+                                <div class="alert alert-info">
+                                    <div class="d-flex">
+                                        <div class="me-3">
+                                            <i class="fas fa-info-circle fa-2x"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="alert-heading">Google Account Connected</h5>
+                                            <p class="mb-0">Your NOUS account is linked to your Google account. To change account details, please visit your Google account settings.</p>
+                                        </div>
+                                    </div>
                                 </div>
                                 
-                                <div class="form-check difficulty-option">
-                                    <input class="form-check-input" type="radio" name="conversation_difficulty" id="difficulty_intermediate" value="intermediate"
-                                        {% if not settings or settings.conversation_difficulty == 'intermediate' %}checked{% endif %}>
-                                    <label class="form-check-label" for="difficulty_intermediate">
-                                        <span class="difficulty-title">Intermediate</span><br>
-                                        <small class="text-muted">Balanced language, some technical terms with explanations</small>
-                                    </label>
-                                </div>
-                                
-                                <div class="form-check difficulty-option">
-                                    <input class="form-check-input" type="radio" name="conversation_difficulty" id="difficulty_advanced" value="advanced"
-                                        {% if settings and settings.conversation_difficulty == 'advanced' %}checked{% endif %}>
-                                    <label class="form-check-label" for="difficulty_advanced">
-                                        <span class="difficulty-title">Advanced</span><br>
-                                        <small class="text-muted">Technical language, assumes domain knowledge</small>
-                                    </label>
-                                </div>
-                                
-                                <div class="form-check difficulty-option">
-                                    <input class="form-check-input" type="radio" name="conversation_difficulty" id="difficulty_expert" value="expert"
-                                        {% if settings and settings.conversation_difficulty == 'expert' %}checked{% endif %}>
-                                    <label class="form-check-label" for="difficulty_expert">
-                                        <span class="difficulty-title">Expert</span><br>
-                                        <small class="text-muted">Highly technical, specialized terminology, maximum detail</small>
-                                    </label>
+                                <div class="d-grid gap-2">
+                                    <a href="{{ url_for('clear_log') }}" class="btn btn-outline-warning">
+                                        <i class="fas fa-eraser me-2"></i>Clear Conversation History
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                                        <i class="fas fa-trash-alt me-2"></i>Delete Account
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Voice Response Settings -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Voice Responses</label>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="enable_voice_responses" name="enable_voice_responses" 
-                                       {% if settings and settings.enable_voice_responses %}checked{% endif %}>
-                                <label class="form-check-label" for="enable_voice_responses">Enable voice responses</label>
+                    </div>
+                </div>
+                
+                <!-- Appearance Settings -->
+                <div class="tab-pane fade" id="appearance">
+                    <div class="card card-modern">
+                        <div class="card-header">
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon-wrapper warning-soft me-3">
+                                    <i class="fas fa-paint-brush"></i>
+                                </div>
+                                <h3 class="card-title mb-0">Appearance Settings</h3>
                             </div>
-                            <p class="text-muted small">
-                                When enabled, NOUS will respond with voice in addition to text
-                            </p>
                         </div>
-                        
-                        <!-- Preferred Language -->
-                        <div class="mb-4">
-                            <label for="preferred_language" class="form-label fw-bold">Preferred Language</label>
-                            <select class="form-select" id="preferred_language" name="preferred_language">
-                                <option value="en-US" {% if not settings or settings.preferred_language == 'en-US' %}selected{% endif %}>English (US)</option>
-                                <option value="en-GB" {% if settings and settings.preferred_language == 'en-GB' %}selected{% endif %}>English (UK)</option>
-                                <option value="es-ES" {% if settings and settings.preferred_language == 'es-ES' %}selected{% endif %}>Spanish</option>
-                                <option value="fr-FR" {% if settings and settings.preferred_language == 'fr-FR' %}selected{% endif %}>French</option>
-                                <option value="de-DE" {% if settings and settings.preferred_language == 'de-DE' %}selected{% endif %}>German</option>
-                                <option value="it-IT" {% if settings and settings.preferred_language == 'it-IT' %}selected{% endif %}>Italian</option>
-                                <option value="ja-JP" {% if settings and settings.preferred_language == 'ja-JP' %}selected{% endif %}>Japanese</option>
-                                <option value="ko-KR" {% if settings and settings.preferred_language == 'ko-KR' %}selected{% endif %}>Korean</option>
-                                <option value="zh-CN" {% if settings and settings.preferred_language == 'zh-CN' %}selected{% endif %}>Chinese (Simplified)</option>
-                            </select>
-                            <p class="text-muted small">
-                                Used for voice recognition and speech synthesis
-                            </p>
-                        </div>
-                        
-                        <!-- Interface Theme -->
-                        <div class="mb-4">
-                            <label for="theme" class="form-label fw-bold">Interface Theme</label>
-                            <select class="form-select mb-2" id="theme" name="theme">
-                                <option value="light" {% if not settings or settings.theme == 'light' %}selected{% endif %}>Light</option>
-                                <option value="dark" {% if settings and settings.theme == 'dark' %}selected{% endif %}>Dark</option>
-                                <option value="auto" {% if settings and settings.theme == 'auto' %}selected{% endif %}>Auto (follow system)</option>
-                            </select>
-                            <p class="text-muted small">Select light or dark mode for the overall interface</p>
-                        </div>
-                        
-                        <!-- Color Theme -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Color Theme</label>
-                            <p class="text-muted small mb-3">
-                                Choose a color palette for buttons, accents and interface elements
-                            </p>
+                        <div class="card-body">
+                            <div class="settings-section">
+                                <div class="settings-category">Theme</div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label">Color Theme</label>
+                                    <div class="d-flex gap-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="theme" id="themeLight" value="light" checked>
+                                            <label class="form-check-label" for="themeLight">
+                                                Light
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="theme" id="themeDark" value="dark">
+                                            <label class="form-check-label" for="themeDark">
+                                                Dark
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="theme" id="themeSystem" value="system">
+                                            <label class="form-check-label" for="themeSystem">
+                                                System Preference
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label">Accent Color</label>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="accentColor" id="accentBlue" value="blue" checked>
+                                            <label class="form-check-label" for="accentBlue">
+                                                <span class="d-inline-block rounded-circle" style="width: 20px; height: 20px; background-color: #4361ee;"></span>
+                                                Blue
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="accentColor" id="accentPurple" value="purple">
+                                            <label class="form-check-label" for="accentPurple">
+                                                <span class="d-inline-block rounded-circle" style="width: 20px; height: 20px; background-color: #7b2cbf;"></span>
+                                                Purple
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="accentColor" id="accentGreen" value="green">
+                                            <label class="form-check-label" for="accentGreen">
+                                                <span class="d-inline-block rounded-circle" style="width: 20px; height: 20px; background-color: #2ecc71;"></span>
+                                                Green
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="accentColor" id="accentRed" value="red">
+                                            <label class="form-check-label" for="accentRed">
+                                                <span class="d-inline-block rounded-circle" style="width: 20px; height: 20px; background-color: #e74c3c;"></span>
+                                                Red
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             
-                            <div class="d-flex flex-wrap gap-2 mb-3">
-                                <div class="form-check color-theme-option">
-                                    <input class="form-check-input" type="radio" name="color_theme" id="color_default" value="default" 
-                                        {% if not settings or not settings.color_theme or settings.color_theme == 'default' %}checked{% endif %}>
-                                    <label class="form-check-label d-flex align-items-center" for="color_default">
-                                        <span class="color-swatch" style="background: linear-gradient(45deg, #4a7eb5, #3498db);"></span>
-                                        <span class="ms-2">Default</span>
-                                    </label>
+                            <div class="settings-section">
+                                <div class="settings-category">Display</div>
+                                
+                                <div class="mb-3">
+                                    <label for="fontSize" class="form-label">Font Size</label>
+                                    <select class="form-select" id="fontSize">
+                                        <option value="small">Small</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="large">Large</option>
+                                        <option value="xl">Extra Large</option>
+                                    </select>
                                 </div>
                                 
-                                <div class="form-check color-theme-option">
-                                    <input class="form-check-input" type="radio" name="color_theme" id="color_ocean" value="ocean"
-                                        {% if settings and settings.color_theme == 'ocean' %}checked{% endif %}>
-                                    <label class="form-check-label d-flex align-items-center" for="color_ocean">
-                                        <span class="color-swatch" style="background: linear-gradient(45deg, #1a73e8, #4285f4);"></span>
-                                        <span class="ms-2">Ocean</span>
-                                    </label>
+                                <div class="mb-3">
+                                    <label for="fontFamily" class="form-label">Font Family</label>
+                                    <select class="form-select" id="fontFamily">
+                                        <option value="inter" selected>Inter (Default)</option>
+                                        <option value="roboto">Roboto</option>
+                                        <option value="opensans">Open Sans</option>
+                                        <option value="lato">Lato</option>
+                                    </select>
                                 </div>
                                 
-                                <div class="form-check color-theme-option">
-                                    <input class="form-check-input" type="radio" name="color_theme" id="color_sunset" value="sunset"
-                                        {% if settings and settings.color_theme == 'sunset' %}checked{% endif %}>
-                                    <label class="form-check-label d-flex align-items-center" for="color_sunset">
-                                        <span class="color-swatch" style="background: linear-gradient(45deg, #ff7043, #ff9800);"></span>
-                                        <span class="ms-2">Sunset</span>
-                                    </label>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="reducedAnimations">
+                                    <label class="form-check-label" for="reducedAnimations">Reduce Animations</label>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" class="btn btn-secondary">Reset to Defaults</button>
+                                <button type="button" class="btn btn-primary">Save Changes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Integrations Settings -->
+                <div class="tab-pane fade" id="integrations">
+                    <div class="card card-modern">
+                        <div class="card-header">
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon-wrapper success-soft me-3">
+                                    <i class="fas fa-plug"></i>
+                                </div>
+                                <h3 class="card-title mb-0">Integrations</h3>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="settings-section">
+                                <div class="settings-category">Connected Services</div>
+                                
+                                <!-- Google Integration -->
+                                <div class="card mb-3 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3">
+                                                    <img src="{{ url_for('static', filename='img/google-logo.png') }}" alt="Google" width="40" height="40">
+                                                </div>
+                                                <div>
+                                                    <h5 class="mb-1">Google</h5>
+                                                    <p class="mb-0 text-secondary small">Access to Calendar, Gmail, Drive, and more</p>
+                                                </div>
+                                            </div>
+                                            
+                                            {% if 'google_creds' in session %}
+                                            <div>
+                                                <span class="badge bg-success-soft me-2">Connected</span>
+                                                <a href="{{ url_for('google_auth.logout') }}" class="btn btn-sm btn-outline-danger">Disconnect</a>
+                                            </div>
+                                            {% else %}
+                                            <a href="{{ url_for('authorize_google') }}" class="btn btn-primary">
+                                                <i class="fab fa-google me-2"></i>Connect
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
                                 </div>
                                 
-                                <div class="form-check color-theme-option">
-                                    <input class="form-check-input" type="radio" name="color_theme" id="color_forest" value="forest"
-                                        {% if settings and settings.color_theme == 'forest' %}checked{% endif %}>
-                                    <label class="form-check-label d-flex align-items-center" for="color_forest">
-                                        <span class="color-swatch" style="background: linear-gradient(45deg, #388e3c, #4caf50);"></span>
-                                        <span class="ms-2">Forest</span>
-                                    </label>
+                                <!-- Spotify Integration -->
+                                <div class="card mb-3 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3">
+                                                    <i class="fab fa-spotify fa-2x" style="color: #1DB954;"></i>
+                                                </div>
+                                                <div>
+                                                    <h5 class="mb-1">Spotify</h5>
+                                                    <p class="mb-0 text-secondary small">Access to music data, playlists, and recommendations</p>
+                                                </div>
+                                            </div>
+                                            
+                                            {% if 'spotify_user' in session %}
+                                            <div>
+                                                <span class="badge bg-success-soft me-2">Connected</span>
+                                                <a href="{{ url_for('clear_log') }}?spotify=1" class="btn btn-sm btn-outline-danger">Disconnect</a>
+                                            </div>
+                                            {% else %}
+                                            <a href="{{ url_for('authorize_spotify') }}" class="btn btn-success">
+                                                <i class="fab fa-spotify me-2"></i>Connect
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
                                 </div>
                                 
-                                <div class="form-check color-theme-option">
-                                    <input class="form-check-input" type="radio" name="color_theme" id="color_midnight" value="midnight"
-                                        {% if settings and settings.color_theme == 'midnight' %}checked{% endif %}>
-                                    <label class="form-check-label d-flex align-items-center" for="color_midnight">
-                                        <span class="color-swatch" style="background: linear-gradient(45deg, #512da8, #7c4dff);"></span>
-                                        <span class="ms-2">Midnight</span>
-                                    </label>
+                                <!-- Weather Service -->
+                                <div class="card mb-3 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3">
+                                                    <i class="fas fa-cloud-sun fa-2x text-info"></i>
+                                                </div>
+                                                <div>
+                                                    <h5 class="mb-1">Weather Service</h5>
+                                                    <p class="mb-0 text-secondary small">Access to weather forecasts and conditions</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <span class="badge bg-success-soft">Connected</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-section">
+                                <div class="settings-category">Available Integrations</div>
+                                
+                                <div class="card mb-3 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3">
+                                                    <i class="fab fa-twitter fa-2x text-info"></i>
+                                                </div>
+                                                <div>
+                                                    <h5 class="mb-1">Twitter</h5>
+                                                    <p class="mb-0 text-secondary small">Connect to share updates and get notifications</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <button class="btn btn-outline-primary">
+                                                <i class="fas fa-plus me-2"></i>Connect
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card mb-3 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3">
+                                                    <i class="fab fa-github fa-2x"></i>
+                                                </div>
+                                                <div>
+                                                    <h5 class="mb-1">GitHub</h5>
+                                                    <p class="mb-0 text-secondary small">Connect to manage repositories and code</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <button class="btn btn-outline-primary">
+                                                <i class="fas fa-plus me-2"></i>Connect
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- AI Character Customization -->
-                        <h4 class="mb-3 mt-5">AI Character Customization</h4>
-                        <p class="text-muted">Personalize your AI assistant to match your preferences</p>
-                        
-                        <!-- AI Name -->
-                        <div class="mb-3">
-                            <label for="ai_name" class="form-label fw-bold">Assistant Name</label>
-                            <input type="text" class="form-control" id="ai_name" name="ai_name" 
-                                value="{{ settings.ai_name if settings and settings.ai_name else 'NOUS' }}" maxlength="30">
-                            <p class="text-muted small">The name your assistant will use to identify itself</p>
+                    </div>
+                </div>
+                
+                <!-- Privacy & Security Settings -->
+                <div class="tab-pane fade" id="privacy">
+                    <div class="card card-modern">
+                        <div class="card-header">
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon-wrapper danger-soft me-3">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                <h3 class="card-title mb-0">Privacy & Security</h3>
+                            </div>
                         </div>
-                        
-                        <!-- AI Personality -->
-                        <div class="mb-3">
-                            <label for="ai_personality" class="form-label fw-bold">Personality</label>
-                            <select class="form-select" id="ai_personality" name="ai_personality">
-                                {% for option in personality_options %}
-                                <option value="{{ option.value }}" {% if settings and settings.ai_personality == option.value %}selected{% endif %}>
-                                    {{ option.label }}
-                                </option>
-                                {% endfor %}
-                            </select>
+                        <div class="card-body">
+                            <div class="settings-section">
+                                <div class="settings-category">Data Privacy</div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Conversation History</label>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="conversationHistory" id="saveHistory" checked>
+                                        <label class="form-check-label" for="saveHistory">
+                                            Save conversation history
+                                        </label>
+                                        <div class="form-text">NOUS will remember past conversations to provide better assistance.</div>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="conversationHistory" id="disableHistory">
+                                        <label class="form-check-label" for="disableHistory">
+                                            Don't save conversation history
+                                        </label>
+                                        <div class="form-text">Conversations will be forgotten after closing the session.</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="allowAnalytics" checked>
+                                    <label class="form-check-label" for="allowAnalytics">Allow Usage Analytics</label>
+                                    <div class="form-text">Share anonymous usage data to help improve NOUS.</div>
+                                </div>
+                                
+                                <div class="form-check form-switch mb-4">
+                                    <input class="form-check-input" type="checkbox" id="personalizationAds" checked>
+                                    <label class="form-check-label" for="personalizationAds">Personalized Recommendations</label>
+                                    <div class="form-text">Allow NOUS to provide personalized suggestions based on your activity.</div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <a href="#" class="btn btn-outline-primary">
+                                        <i class="fas fa-download me-2"></i>Download My Data
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-section">
+                                <div class="settings-category">Security</div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Two-Factor Authentication</label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="twoFactor">
+                                        <label class="form-check-label" for="twoFactor">Enable Two-Factor Authentication</label>
+                                    </div>
+                                    <div class="form-text">Add an extra layer of security to your account.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Login History</label>
+                                    <div class="alert alert-info">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            <div>Your account is secured through Google Authentication.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" class="btn btn-primary">Save Privacy Settings</button>
+                            </div>
                         </div>
-                        
-                        <!-- Formality Level -->
-                        <div class="mb-3">
-                            <label for="ai_formality" class="form-label fw-bold">Formality Level</label>
-                            <select class="form-select" id="ai_formality" name="ai_formality">
-                                {% for option in formality_options %}
-                                <option value="{{ option.value }}" {% if settings and settings.ai_formality == option.value %}selected{% endif %}>
-                                    {{ option.label }}
-                                </option>
-                                {% endfor %}
-                            </select>
+                    </div>
+                </div>
+                
+                <!-- Notification Settings -->
+                <div class="tab-pane fade" id="notifications">
+                    <div class="card card-modern">
+                        <div class="card-header">
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon-wrapper warning-soft me-3">
+                                    <i class="fas fa-bell"></i>
+                                </div>
+                                <h3 class="card-title mb-0">Notification Settings</h3>
+                            </div>
                         </div>
-                        
-                        <!-- Verbosity -->
-                        <div class="mb-3">
-                            <label for="ai_verbosity" class="form-label fw-bold">Response Detail</label>
-                            <select class="form-select" id="ai_verbosity" name="ai_verbosity">
-                                {% for option in verbosity_options %}
-                                <option value="{{ option.value }}" {% if settings and settings.ai_verbosity == option.value %}selected{% endif %}>
-                                    {{ option.label }}
-                                </option>
-                                {% endfor %}
-                            </select>
+                        <div class="card-body">
+                            <div class="settings-section">
+                                <div class="settings-category">Notification Preferences</div>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                                    <label class="form-check-label" for="emailNotifications">Email Notifications</label>
+                                    <div class="form-text">Receive important updates via email.</div>
+                                </div>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="pushNotifications" checked>
+                                    <label class="form-check-label" for="pushNotifications">Push Notifications</label>
+                                    <div class="form-text">Receive notifications in your browser.</div>
+                                </div>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="smsNotifications">
+                                    <label class="form-check-label" for="smsNotifications">SMS Notifications</label>
+                                    <div class="form-text">Receive urgent alerts via text message.</div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-section">
+                                <div class="settings-category">Notification Types</div>
+                                
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label class="form-label mb-0">Appointment Reminders</label>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="appointmentReminders" checked>
+                                            <label class="form-check-label" for="appointmentReminders"></label>
+                                        </div>
+                                    </div>
+                                    <select class="form-select">
+                                        <option value="1">1 day before</option>
+                                        <option value="2">2 days before</option>
+                                        <option value="3" selected>3 days before</option>
+                                        <option value="7">1 week before</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label class="form-label mb-0">Medication Reminders</label>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="medicationReminders" checked>
+                                            <label class="form-check-label" for="medicationReminders"></label>
+                                        </div>
+                                    </div>
+                                    <select class="form-select">
+                                        <option value="5" selected>When 5 pills remain</option>
+                                        <option value="10">When 10 pills remain</option>
+                                        <option value="15">When 15 pills remain</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <label class="form-label mb-0">Shopping List Reminders</label>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="shoppingReminders" checked>
+                                            <label class="form-check-label" for="shoppingReminders"></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <label class="form-label mb-0">Travel Updates</label>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="travelUpdates" checked>
+                                            <label class="form-check-label" for="travelUpdates"></label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <label class="form-label mb-0">Weather Alerts</label>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="weatherAlerts" checked>
+                                            <label class="form-check-label" for="weatherAlerts"></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-section">
+                                <div class="settings-category">Quiet Hours</div>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="enableQuietHours">
+                                    <label class="form-check-label" for="enableQuietHours">Enable Quiet Hours</label>
+                                    <div class="form-text">Silence notifications during specified hours.</div>
+                                </div>
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="quietHoursStart" class="form-label">Start Time</label>
+                                        <input type="time" class="form-control" id="quietHoursStart" value="22:00">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="quietHoursEnd" class="form-label">End Time</label>
+                                        <input type="time" class="form-control" id="quietHoursEnd" value="07:00">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" class="btn btn-primary">Save Notification Settings</button>
+                            </div>
                         </div>
-                        
-                        <!-- Enthusiasm Level -->
-                        <div class="mb-3">
-                            <label for="ai_enthusiasm" class="form-label fw-bold">Enthusiasm Level</label>
-                            <select class="form-select" id="ai_enthusiasm" name="ai_enthusiasm">
-                                {% for option in enthusiasm_options %}
-                                <option value="{{ option.value }}" {% if settings and settings.ai_enthusiasm == option.value %}selected{% endif %}>
-                                    {{ option.label }}
-                                </option>
-                                {% endfor %}
-                            </select>
+                    </div>
+                </div>
+                
+                <!-- Advanced Settings -->
+                <div class="tab-pane fade" id="advanced">
+                    <div class="card card-modern">
+                        <div class="card-header">
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon-wrapper info-soft me-3">
+                                    <i class="fas fa-cogs"></i>
+                                </div>
+                                <h3 class="card-title mb-0">Advanced Settings</h3>
+                            </div>
                         </div>
-                        
-                        <!-- Emoji Usage -->
-                        <div class="mb-3">
-                            <label for="ai_emoji_usage" class="form-label fw-bold">Emoji Usage</label>
-                            <select class="form-select" id="ai_emoji_usage" name="ai_emoji_usage">
-                                {% for option in emoji_options %}
-                                <option value="{{ option.value }}" {% if settings and settings.ai_emoji_usage == option.value %}selected{% endif %}>
-                                    {{ option.label }}
-                                </option>
-                                {% endfor %}
-                            </select>
+                        <div class="card-body">
+                            <div class="alert alert-warning">
+                                <div class="d-flex">
+                                    <div class="me-3">
+                                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="alert-heading">Warning</h5>
+                                        <p class="mb-0">Changes to these settings can significantly affect how NOUS functions. Proceed with caution.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-section">
+                                <div class="settings-category">AI Behavior</div>
+                                
+                                <div class="mb-3">
+                                    <label for="aiModel" class="form-label">AI Model</label>
+                                    <select class="form-select" id="aiModel">
+                                        <option value="default" selected>Default (Recommended)</option>
+                                        <option value="advanced">Advanced (Higher resource usage)</option>
+                                        <option value="lite">Lite (Faster responses)</option>
+                                    </select>
+                                    <div class="form-text">Select the AI model that powers NOUS.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="responseLength" class="form-label">Response Length</label>
+                                    <select class="form-select" id="responseLength">
+                                        <option value="concise">Concise</option>
+                                        <option value="balanced" selected>Balanced</option>
+                                        <option value="detailed">Detailed</option>
+                                    </select>
+                                    <div class="form-text">Control how verbose NOUS responses are.</div>
+                                </div>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="experimentalFeatures">
+                                    <label class="form-check-label" for="experimentalFeatures">Enable Experimental Features</label>
+                                    <div class="form-text">Get early access to new capabilities (may be unstable).</div>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-section">
+                                <div class="settings-category">Performance</div>
+                                
+                                <div class="mb-3">
+                                    <label for="cacheSize" class="form-label">Cache Size</label>
+                                    <select class="form-select" id="cacheSize">
+                                        <option value="small">Small (50MB)</option>
+                                        <option value="medium" selected>Medium (100MB)</option>
+                                        <option value="large">Large (200MB)</option>
+                                    </select>
+                                    <div class="form-text">Larger cache improves performance but uses more memory.</div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <button type="button" class="btn btn-outline-secondary">
+                                        <i class="fas fa-trash-alt me-2"></i>Clear Cache
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-section">
+                                <div class="settings-category">Developer Options</div>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="developerMode">
+                                    <label class="form-check-label" for="developerMode">Developer Mode</label>
+                                    <div class="form-text">Enables additional logging and debugging tools.</div>
+                                </div>
+                                
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="apiAccess">
+                                    <label class="form-check-label" for="apiAccess">API Access</label>
+                                    <div class="form-text">Allow external applications to access NOUS via API.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="apiKey" class="form-label">API Key</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="apiKey" value="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" readonly>
+                                        <button class="btn btn-outline-secondary" type="button">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                        <button class="btn btn-outline-primary" type="button">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" class="btn btn-danger">Reset All Settings</button>
+                                <button type="button" class="btn btn-primary">Save Advanced Settings</button>
+                            </div>
                         </div>
-                        
-                        <!-- Voice Type -->
-                        <div class="mb-3">
-                            <label for="ai_voice_type" class="form-label fw-bold">Voice Type</label>
-                            <select class="form-select" id="ai_voice_type" name="ai_voice_type">
-                                {% for option in voice_options %}
-                                <option value="{{ option.value }}" {% if settings and settings.ai_voice_type == option.value %}selected{% endif %}>
-                                    {{ option.label }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                            <p class="text-muted small">Applies when voice responses are enabled</p>
-                        </div>
-                        
-                        <!-- AI Backstory -->
-                        <div class="mb-4">
-                            <label for="ai_backstory" class="form-label fw-bold">Custom Backstory (Optional)</label>
-                            <textarea class="form-control" id="ai_backstory" name="ai_backstory" rows="3" 
-                                placeholder="Add a custom backstory for your AI assistant...">{{ settings.ai_backstory if settings and settings.ai_backstory else '' }}</textarea>
-                            <p class="text-muted small">Add an optional backstory or specific details about your assistant's character</p>
-                        </div>
-                        
-                        <!-- Submit button -->
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{{ url_for('index') }}" class="btn btn-secondary me-md-2">Cancel</a>
-                            <button type="submit" class="btn btn-primary">Save Settings</button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Add styling for the settings options -->
-<style>
-/* Difficulty option styling */
-.difficulty-option {
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #dee2e6;
-    border-radius: 5px;
-    transition: all 0.2s ease;
-}
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteAccountModalLabel">Delete Account</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    This action cannot be undone. All your data will be permanently deleted.
+                </div>
+                <p>Please type <strong>DELETE</strong> to confirm:</p>
+                <input type="text" class="form-control" id="deleteConfirmation">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" disabled>Delete Account</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-.difficulty-option:hover {
-    background-color: rgba(13, 110, 253, 0.05);
-}
-
-.difficulty-title {
-    font-weight: 600;
-    font-size: 1.05rem;
-}
-
-.form-check-input:checked ~ .form-check-label .difficulty-title {
-    color: var(--nous-primary);
-}
-
-.difficulty-option input:checked + label {
-    color: var(--nous-primary);
-}
-
-.form-check-input:checked ~ .form-check-label {
-    color: var(--nous-primary);
-}
-
-.difficulty-option input:checked {
-    background-color: var(--nous-primary);
-    border-color: var(--nous-primary);
-}
-
-/* Color theme options styling */
-.color-theme-option {
-    margin-right: 10px;
-    margin-bottom: 10px;
-}
-
-.color-swatch {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    display: inline-block;
-    transition: transform 0.2s ease;
-}
-
-.color-theme-option:hover .color-swatch {
-    transform: scale(1.1);
-}
-
-.color-theme-option input:checked ~ label .color-swatch {
-    transform: scale(1.1);
-    box-shadow: 0 0 0 2px var(--nous-primary), 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-</style>
-
+<!-- Add body class for better spacing -->
 <script>
-// Function to apply the selected color theme immediately for preview
-document.addEventListener('DOMContentLoaded', function() {
-    const colorThemeInputs = document.querySelectorAll('input[name="color_theme"]');
-    const htmlElement = document.documentElement;
-    
-    // Apply the currently selected theme on page load
-    const currentTheme = document.querySelector('input[name="color_theme"]:checked').value;
-    htmlElement.setAttribute('data-theme', currentTheme);
-    
-    // Add change listeners to all theme inputs
-    colorThemeInputs.forEach(input => {
-        input.addEventListener('change', function() {
-            if (this.checked) {
-                // Apply the theme immediately for preview
-                htmlElement.setAttribute('data-theme', this.value);
-                // Save to localStorage for immediate persistence
-                localStorage.setItem('colorTheme', this.value);
+    // Tab navigation with URL hash
+    document.addEventListener('DOMContentLoaded', function() {
+        const hash = window.location.hash;
+        if(hash) {
+            const triggerEl = document.querySelector(`a[href="${hash}"]`);
+            if(triggerEl) {
+                new bootstrap.Tab(triggerEl).show();
             }
+        }
+        
+        // Delete account confirmation
+        const deleteInput = document.getElementById('deleteConfirmation');
+        const deleteButton = document.querySelector('#deleteAccountModal .btn-danger');
+        
+        if(deleteInput && deleteButton) {
+            deleteInput.addEventListener('input', function() {
+                deleteButton.disabled = this.value !== 'DELETE';
+            });
+        }
+        
+        // Theme toggling
+        const themeRadios = document.querySelectorAll('input[name="theme"]');
+        themeRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if(this.value === 'light') {
+                    document.documentElement.setAttribute('data-bs-theme', 'light');
+                } else if(this.value === 'dark') {
+                    document.documentElement.setAttribute('data-bs-theme', 'dark');
+                } else {
+                    // System preference
+                    document.documentElement.removeAttribute('data-bs-theme');
+                }
+            });
         });
     });
-    
-    // Add form submit event to ensure localStorage is updated
-    document.querySelector('form').addEventListener('submit', function() {
-        const selectedTheme = document.querySelector('input[name="color_theme"]:checked').value;
-        localStorage.setItem('colorTheme', selectedTheme);
-    });
-});
 </script>
 {% endblock %}

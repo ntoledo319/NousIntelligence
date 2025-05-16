@@ -1,10 +1,10 @@
 {
-  "name": "NOUS - Personal Assistant",
+  "name": "NOUS Personal Assistant",
   "short_name": "NOUS",
-  "description": "An advanced AI-powered personal assistant",
+  "description": "Advanced AI-powered personal assistant for multi-modal interactions",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f7f7f9",
+  "background_color": "#4361ee",
   "theme_color": "#4361ee",
   "icons": [
     {
@@ -16,6 +16,34 @@
       "src": "/static/img/IMG_4875.jpeg",
       "sizes": "512x512",
       "type": "image/jpeg"
+    }
+  ],
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "utilities", "ai"],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View your personalized dashboard",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/static/img/IMG_4875.jpeg",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "short_name": "Settings",
+      "description": "Manage your account settings",
+      "url": "/settings",
+      "icons": [
+        {
+          "src": "/static/img/IMG_4875.jpeg",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }

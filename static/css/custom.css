@@ -1,216 +1,566 @@
-/* Custom CSS for NOUS Personal Assistant */
+/* 
+ * NOUS - Custom Styles 
+ * Additional specific styles for NOUS application
+ */
 
-/* Default theme colors */
-:root {
-  /* Primary colors extracted from the logo */
-  --nous-primary: #4a7eb5;
-  --nous-secondary: #2c3e50;
-  --nous-accent: #3498db;
-  --nous-light: #ecf0f1;
-  --nous-dark: #2c3e50;
-  --nous-success: #2ecc71;
-  --nous-warning: #f39c12;
-  --nous-danger: #e74c3c;
-  --nous-info: #3498db;
-}
-
-/* Ocean Theme */
-[data-theme="ocean"] {
-  --nous-primary: #1a73e8;
-  --nous-secondary: #174ea6;
-  --nous-accent: #4285f4;
-  --nous-light: #e8f0fe;
-  --nous-dark: #202124;
-  --nous-success: #0f9d58;
-  --nous-warning: #f4b400;
-  --nous-danger: #ea4335;
-  --nous-info: #4285f4;
-}
-
-/* Sunset Theme */
-[data-theme="sunset"] {
-  --nous-primary: #ff7043;
-  --nous-secondary: #d84315;
-  --nous-accent: #ff9800;
-  --nous-light: #fff3e0;
-  --nous-dark: #3e2723;
-  --nous-success: #43a047;
-  --nous-warning: #ffb300;
-  --nous-danger: #e53935;
-  --nous-info: #039be5;
-}
-
-/* Forest Theme */
-[data-theme="forest"] {
-  --nous-primary: #388e3c;
-  --nous-secondary: #1b5e20;
-  --nous-accent: #4caf50;
-  --nous-light: #e8f5e9;
-  --nous-dark: #2e7d32;
-  --nous-success: #00c853;
-  --nous-warning: #ffd600;
-  --nous-danger: #dd2c00;
-  --nous-info: #00b0ff;
-}
-
-/* Midnight Theme */
-[data-theme="midnight"] {
-  --nous-primary: #512da8;
-  --nous-secondary: #311b92;
-  --nous-accent: #7c4dff;
-  --nous-light: #ede7f6;
-  --nous-dark: #1a237e;
-  --nous-success: #00bfa5;
-  --nous-warning: #ffd740;
-  --nous-danger: #ff5252;
-  --nous-info: #448aff;
-}
-
-/* Logo styles */
-.navbar-logo {
-  border-radius: 5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.hero-logo {
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease;
-}
-
-.hero-logo:hover {
-  transform: scale(1.05);
-}
-
-/* Chat interface styles */
-.chat-container {
-  max-height: 65vh;
+/* Command Log Styling */
+.command-log {
+  max-height: 400px;
   overflow-y: auto;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  background-color: var(--nous-light);
+  margin-bottom: 1.5rem;
+  border-radius: var(--radius);
+  background-color: var(--bg-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.command-log-entry {
   padding: 1rem;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
-.chat-message {
+[data-bs-theme="dark"] .command-log-entry {
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.command-log-entry:last-child {
+  border-bottom: none;
+}
+
+.command-question {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.command-question i {
+  color: var(--brand-primary);
+  margin-right: 0.5rem;
+}
+
+.command-response {
+  padding-left: 1.5rem;
+  border-left: 3px solid var(--primary-soft);
+}
+
+/* Settings Page */
+.settings-section {
+  margin-bottom: 2rem;
+}
+
+.settings-category {
+  font-weight: 600;
+  font-size: 1.1rem;
   margin-bottom: 1rem;
-  border-radius: 18px;
-  padding: 0.75rem 1rem;
-  max-width: 80%;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
 }
 
-.user-message {
-  background-color: var(--nous-primary);
-  color: white;
-  margin-left: auto;
-  border-top-right-radius: 5px;
+[data-bs-theme="dark"] .settings-category {
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
-.assistant-message {
-  background-color: #f8f9fa;
-  color: var(--nous-dark);
-  margin-right: auto;
-  border-top-left-radius: 5px;
-  border-left: 4px solid var(--nous-accent);
-}
-
-.chat-input-container {
-  border-radius: 25px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  padding: 0.5rem;
-  background-color: white;
-}
-
-.chat-input {
-  border: none;
-  outline: none;
-  width: 100%;
-  background-color: transparent;
-}
-
-.chat-button {
-  background-color: var(--nous-primary);
-  color: white;
-  border: none;
+/* Voice Recording Button */
+.voice-record-btn {
+  width: 4rem;
+  height: 4rem;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  background: var(--gradient-primary);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.chat-button:hover {
-  background-color: var(--nous-accent);
-  transform: scale(1.1);
-}
-
-/* Card and button styles */
-.card {
-  border-radius: 10px;
+  font-size: 1.5rem;
   border: none;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease;
+  box-shadow: var(--shadow);
+  transition: all var(--transition-fast);
+  margin: 1rem auto;
 }
 
-.card:hover {
-  transform: translateY(-5px);
+.voice-record-btn:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg);
 }
 
-.btn-nous-primary {
-  background-color: var(--nous-primary);
-  border-color: var(--nous-primary);
-  color: white;
-  border-radius: 5px;
-  padding: 0.5rem 1.5rem;
-  transition: all 0.2s ease;
+.voice-record-btn.recording {
+  animation: pulse 1.5s infinite;
+  background: var(--gradient-danger);
 }
 
-.btn-nous-primary:hover {
-  background-color: var(--nous-accent);
-  border-color: var(--nous-accent);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Navigation styles */
-.nav-link.active {
-  background-color: var(--nous-primary) !important;
-  color: white !important;
-  border-radius: 5px;
-}
-
-.nav-link:hover {
-  background-color: rgba(74, 126, 181, 0.1);
-  border-radius: 5px;
-}
-
-/* Animation for loading */
 @keyframes pulse {
   0% {
-    opacity: 0.6;
+    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
   }
-  50% {
-    opacity: 1;
+  70% {
+    box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
   }
   100% {
-    opacity: 0.6;
+    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
   }
 }
 
-.loading-indicator {
-  animation: pulse 1.5s infinite;
-  color: var(--nous-primary);
+/* Spotify Integration */
+.spotify-card {
+  background: linear-gradient(135deg, #1DB954, #191414);
+  color: white;
+  border-radius: var(--radius);
+  overflow: hidden;
 }
 
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-  .chat-message {
-    max-width: 90%;
+.spotify-card .card-body {
+  padding: 1.5rem;
+}
+
+.spotify-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.track-artwork {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.track-info {
+  display: flex;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.track-info:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.track-metadata {
+  margin-left: 1rem;
+}
+
+.track-name {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.track-artist {
+  font-size: 0.875rem;
+  opacity: 0.8;
+}
+
+/* Welcome Modal */
+.welcome-modal .modal-content {
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: none;
+}
+
+.welcome-modal .modal-header {
+  background: var(--gradient-primary);
+  color: white;
+  border-bottom: none;
+}
+
+.welcome-modal .modal-title {
+  font-weight: 600;
+}
+
+.welcome-modal .modal-body {
+  padding: 2rem;
+}
+
+.welcome-steps {
+  counter-reset: step;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.welcome-step {
+  position: relative;
+  padding-left: 3rem;
+  margin-bottom: 1.5rem;
+}
+
+.welcome-step:before {
+  counter-increment: step;
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2rem;
+  height: 2rem;
+  background-color: var(--primary-soft);
+  color: var(--brand-primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.welcome-step:last-child {
+  margin-bottom: 0;
+}
+
+.welcome-step-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+/* Health Section */
+.appointment-card {
+  padding: 1rem;
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+  background-color: var(--bg-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.appointment-date {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.appointment-date i {
+  margin-right: 0.5rem;
+  color: var(--brand-primary);
+}
+
+.doctor-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+[data-bs-theme="dark"] .doctor-info {
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.doctor-avatar {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background-color: var(--primary-soft);
+  color: var(--brand-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-right: 1rem;
+}
+
+.doctor-name {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.doctor-specialty {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.medication-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.medication-item {
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.5rem;
+  background-color: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+}
+
+.medication-icon {
+  margin-right: 0.75rem;
+  color: var(--warning);
+}
+
+.medication-name {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.medication-dosage {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.medication-meta {
+  margin-left: auto;
+  text-align: right;
+}
+
+.remaining-pills {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.pill-low {
+  background-color: var(--danger-soft);
+  color: var(--danger);
+}
+
+.pill-medium {
+  background-color: var(--warning-soft);
+  color: var(--warning);
+}
+
+.pill-high {
+  background-color: var(--success-soft);
+  color: var(--success);
+}
+
+/* Shopping Section */
+.shopping-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.shopping-item {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+}
+
+.item-checkbox {
+  margin-right: 0.75rem;
+}
+
+.item-name {
+  flex: 1;
+  transition: text-decoration var(--transition-fast);
+}
+
+.shopping-item.checked .item-name {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+.item-category {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--primary-soft);
+  margin-right: 0.75rem;
+}
+
+.item-actions {
+  display: flex;
+  align-items: center;
+}
+
+.item-action-btn {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: var(--bg-primary);
+  color: var(--text-secondary);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.5rem;
+  transition: all var(--transition-fast);
+}
+
+.item-action-btn:hover {
+  background-color: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* Placeholder loading */
+.placeholder-shimmer {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.placeholder-shimmer::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.5) 60%,
+    rgba(255, 255, 255, 0)
+  );
+  animation: shimmer 2s infinite;
+  content: '';
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Image analysis section */
+.image-preview {
+  width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+}
+
+.upload-area {
+  border: 2px dashed rgba(0,0,0,0.1);
+  border-radius: var(--radius);
+  padding: 2rem;
+  text-align: center;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+  cursor: pointer;
+}
+
+[data-bs-theme="dark"] .upload-area {
+  border-color: rgba(255,255,255,0.1);
+}
+
+.upload-area:hover {
+  border-color: var(--brand-primary);
+  background-color: var(--primary-soft);
+}
+
+.upload-icon {
+  font-size: 2.5rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.upload-message {
+  color: var(--text-secondary);
+  margin-bottom: 0;
+}
+
+/* Mobile optimizations */
+@media (max-width: 767px) {
+  /* Fix navbar on mobile */
+  .navbar {
+    padding: 0.5rem 0;
   }
   
-  .hero-logo {
-    max-height: 100px !important;
+  /* Adjust command input for mobile */
+  .command-input {
+    height: 3rem;
   }
+  
+  .command-submit {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  
+  /* Adjust hero section spacing for mobile */
+  .hero-section {
+    padding: 2rem 0;
+  }
+  
+  /* Adjust padding for better mobile experience */
+  .section-container,
+  .card-body {
+    padding: 1rem;
+  }
+  
+  /* Make stat cards more compact on mobile */
+  .stat-card {
+    padding: 1rem;
+  }
+  
+  /* Stack columns more reliably on mobile */
+  .row > [class*="col-"] {
+    margin-bottom: 1rem;
+  }
+  
+  .row > [class*="col-"]:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* App icons */
+.app-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+/* Add bottom spacing when using bottom nav */
+body.has-bottom-nav {
+  padding-bottom: 4rem;
+}
+
+/* Mobile-specific bottom navigation */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--bg-primary);
+  display: flex;
+  justify-content: space-around;
+  padding: 0.5rem 0;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  z-index: 1030;
+}
+
+[data-bs-theme="dark"] .bottom-nav {
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  text-decoration: none;
+}
+
+.bottom-nav-icon {
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.bottom-nav-item.active {
+  color: var(--brand-primary);
+}
+
+/* Theme toggle button */
+.theme-toggle-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  transition: background-color var(--transition-fast);
+}
+
+.theme-toggle-btn:hover {
+  background-color: var(--bg-secondary);
 }
