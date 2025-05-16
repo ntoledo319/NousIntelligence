@@ -1,6 +1,7 @@
 """
 Knowledge Base Helper - Self-learning mechanism for Nous AI.
 This module handles embedding generation, storage, and semantic search.
+Includes multiple fallback options: OpenAI -> OpenRouter -> Hugging Face -> Local
 """
 
 import os
@@ -12,6 +13,14 @@ from datetime import datetime
 from openai import OpenAI
 from sqlalchemy import desc
 from utils.cache_helper import cache_result, get_cached_embedding, cache_embedding
+
+# Import Hugging Face helper for fallback functionality
+# This is an additional layer between OpenRouter and local fallbacks
+try:
+    from utils.huggingface_helper import get_embedding as hf_get_embedding
+except ImportError:
+    logging.warning("Hugging Face helper not available, will skip this fallback option")
+    hf_get_embedding = None
 
 # Import db and models within functions to avoid circular imports
 # These will be imported when needed to prevent circular dependencies
