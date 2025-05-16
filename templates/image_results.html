@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Image Analysis Results{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3>Image Analysis Results</h3>
+                    <a href="{{ url_for('image_routes.analyze_image') }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-image"></i> Analyze Another Image
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h5>Analyzed Image</h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <img src="{{ url_for('static', filename='uploads/' + filename) }}" 
+                                         class="img-fluid rounded" alt="Analyzed image" 
+                                         style="max-height: 400px;">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-7">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>
+                                        {% if analysis_type == 'describe' %}
+                                            Image Description
+                                        {% elif analysis_type == 'detect' %}
+                                            Object Detection
+                                        {% elif analysis_type == 'travel' %}
+                                            Travel Photo Analysis
+                                        {% else %}
+                                            Analysis Results
+                                        {% endif %}
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if analysis_type == 'describe' %}
+                                        <h4 class="text-primary">{{ result.description }}</h4>
+                                        
+                                        {% if result.categories %}
+                                            <h5 class="mt-4">Categories</h5>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                {% for category in result.categories %}
+                                                    <span class="badge bg-info text-dark">{{ category }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if result.top_category %}
+                                            <div class="mt-3">
+                                                <p>
+                                                    <strong>Primary classification:</strong> 
+                                                    {{ result.top_category }} 
+                                                    <span class="text-muted">({{ (result.confidence * 100)|round(1) }}% confidence)</span>
+                                                </p>
+                                            </div>
+                                        {% endif %}
+                                    {% elif analysis_type == 'detect' %}
+                                        <h5>Objects Detected: {{ result.total_objects }}</h5>
+                                        
+                                        {% if result.counts %}
+                                            <table class="table table-striped mt-3">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Object</th>
+                                                        <th>Count</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for object, count in result.counts.items() %}
+                                                        <tr>
+                                                            <td>{{ object }}</td>
+                                                            <td>{{ count }}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        {% endif %}
+                                        
+                                        {% if result.objects %}
+                                            <h5 class="mt-4">Detailed Detection Results</h5>
+                                            <div class="list-group">
+                                                {% for object in result.objects %}
+                                                    <div class="list-group-item">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <strong>{{ object.label }}</strong>
+                                                            <span class="badge bg-primary rounded-pill">
+                                                                {{ (object.confidence * 100)|round(1) }}%
+                                                            </span>
+                                                        </div>
+                                                        {% if object.box %}
+                                                            <small class="text-muted">
+                                                                Position: ({{ object.box.xmin|round(1) }}, {{ object.box.ymin|round(1) }})
+                                                                to ({{ object.box.xmax|round(1) }}, {{ object.box.ymax|round(1) }})
+                                                            </small>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    {% elif analysis_type == 'travel' %}
+                                        <h4 class="text-primary">{{ result.description }}</h4>
+                                        
+                                        <div class="mt-3">
+                                            <h5>Photo Type:</h5>
+                                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                                {% if result.is_landmark %}
+                                                    <span class="badge bg-danger">Landmark/Architecture</span>
+                                                {% endif %}
+                                                {% if result.is_nature %}
+                                                    <span class="badge bg-success">Nature/Landscape</span>
+                                                {% endif %}
+                                                {% if result.is_food %}
+                                                    <span class="badge bg-warning text-dark">Food/Cuisine</span>
+                                                {% endif %}
+                                                
+                                                {% if not result.is_landmark and not result.is_nature and not result.is_food %}
+                                                    <span class="badge bg-secondary">Other</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        {% if result.categories %}
+                                            <h5>Categories</h5>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                {% for category in result.categories %}
+                                                    <span class="badge bg-info text-dark">{{ category }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if result.travel_details %}
+                                            <div class="mt-4">
+                                                <h5>Travel Details:</h5>
+                                                <p>{{ result.travel_details }}</p>
+                                            </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <pre>{{ result|pprint }}</pre>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-muted">
+                    <small>Analysis powered by Hugging Face's free AI models</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

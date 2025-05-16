@@ -112,7 +112,8 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
            cmd.startswith("log workout") or cmd.startswith("log mood") or \
            cmd.startswith("add task") or cmd.startswith("add note") or \
            cmd.startswith("play ") or cmd.startswith("chat:") or \
-           cmd.startswith("analyze email:"):
+           cmd.startswith("analyze email:") or cmd.startswith("describe image") or \
+           cmd.startswith("analyze image") or cmd.startswith("detect objects"):
             # Use the standard parsing logic for recognized command formats
             pass
         else:

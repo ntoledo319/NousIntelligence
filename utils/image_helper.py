@@ -1,338 +1,210 @@
 """
-Image processing helper utilizing Hugging Face for cost-effective AI tasks
-Features:
-- Image captioning (describe what's in an image)
-- Image classification (identify objects/scenes)
-- Image embedding for similarity search
-- Travel photo organization and tagging
+Image processing and analysis utilities for Nous
+Uses Hugging Face's free services for cost-effective image analysis
 """
 
 import os
-import logging
 import base64
-import json
+import logging
 import tempfile
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Union
-from PIL import Image
-import io
-import numpy as np
-import requests
+from io import BytesIO
+from typing import Dict, List, Optional, Union, Any
+from datetime import datetime
 
-# Get Hugging Face API token from environment
-HF_ACCESS_TOKEN = os.environ.get("HF_ACCESS_TOKEN")
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+from PIL import Image, ImageDraw, ImageFont
 
-# Hugging Face API base URL
-HF_API_URL = "https://api-inference.huggingface.co/models"
+from utils.huggingface_helper import (
+    hf_image_caption,
+    hf_image_classification,
+    hf_object_detection,
+    hf_image_to_text,
+    hf_image_segmentation,
+    process_image_for_analysis
+)
 
-# Recommended models for various image tasks (optimized for free tier)
-MODELS = {
-    "image_captioning": "nlpconnect/vit-gpt2-image-captioning",
-    "image_classification": "google/vit-base-patch16-224",
-    "object_detection": "facebook/detr-resnet-50",
-    "image_segmentation": "facebook/detr-resnet-50-panoptic",
-}
+# Create temp directory if it doesn't exist
+os.makedirs("temp", exist_ok=True)
 
-def get_headers():
-    """Get authenticated headers for Hugging Face API requests"""
-    headers = {"Authorization": f"Bearer {HF_ACCESS_TOKEN}"}
-    return headers
-
-def describe_image(image_path: str) -> Dict[str, Any]:
-    """
-    Generate a descriptive caption for an image using Hugging Face's free service
-    
-    Args:
-        image_path (str): Path to the image file
-        
-    Returns:
-        dict: Description with related metadata
-    """
+def describe_image(image_data: bytes) -> Dict[str, Any]:
+    """Generate a detailed description of an image using Hugging Face's API"""
     try:
-        model = MODELS["image_captioning"]
-        url = f"{HF_API_URL}/{model}"
+        # Process and save the image for analysis
+        temp_path = process_image_for_analysis(image_data)
+        if not temp_path:
+            return {"error": "Failed to process image"}
+            
+        # Generate a caption using Hugging Face
+        caption = hf_image_caption(temp_path)
         
-        # Check if file exists
-        if not os.path.exists(image_path):
-            return {"error": f"Image file not found: {image_path}", "success": False}
+        # Check if there was an error
+        if isinstance(caption, dict) and "error" in caption:
+            return caption
+            
+        # Classify the image for additional context
+        classification = hf_image_classification(temp_path)
         
-        # Load and send the image
-        with open(image_path, "rb") as f:
-            image_bytes = f.read()
-            
-        headers = get_headers()
-        response = requests.post(url, headers=headers, data=image_bytes, timeout=30)
-            
-        if response.status_code == 200:
-            result = response.json()
-            
-            # Format the response based on the model output structure
-            if isinstance(result, list) and len(result) > 0:
-                # Most common response format
-                if "generated_text" in result[0]:
-                    description = result[0]["generated_text"]
-                    return {
-                        "description": description,
-                        "success": True,
-                        "provider": "huggingface"
-                    }
-            
-            # Unknown format, return raw result
-            return {
-                "raw_result": result,
-                "success": True,
-                "provider": "huggingface"
-            }
-                
-        # Handle errors
-        return {
-            "error": f"API error: {response.status_code} - {response.text}",
-            "success": False
-        }
-    except Exception as e:
-        logging.error(f"Error in describe_image: {str(e)}")
-        return {"error": str(e), "success": False}
-
-def classify_image(image_path: str, top_k: int = 5) -> Dict[str, Any]:
-    """
-    Classify the content of an image, identifying objects and scenes
-    
-    Args:
-        image_path (str): Path to the image file
-        top_k (int): Number of top classifications to return
-        
-    Returns:
-        dict: Classifications with confidence scores
-    """
-    try:
-        model = MODELS["image_classification"]
-        url = f"{HF_API_URL}/{model}"
-        
-        # Check if file exists
-        if not os.path.exists(image_path):
-            return {"error": f"Image file not found: {image_path}", "success": False}
-        
-        # Load and send the image
-        with open(image_path, "rb") as f:
-            image_bytes = f.read()
-            
-        headers = get_headers()
-        response = requests.post(url, headers=headers, data=image_bytes, timeout=30)
-            
-        if response.status_code == 200:
-            results = response.json()
-            
-            # Format and limit to top_k results
-            classifications = []
-            for result in results[:top_k]:
-                if "label" in result and "score" in result:
-                    classifications.append({
-                        "label": result["label"],
-                        "confidence": result["score"]
-                    })
-            
-            return {
-                "classifications": classifications,
-                "success": True,
-                "provider": "huggingface"
-            }
-                
-        # Handle errors
-        return {
-            "error": f"API error: {response.status_code} - {response.text}",
-            "success": False
-        }
-    except Exception as e:
-        logging.error(f"Error in classify_image: {str(e)}")
-        return {"error": str(e), "success": False}
-
-def detect_objects(image_path: str) -> Dict[str, Any]:
-    """
-    Detect and locate objects in an image 
-    
-    Args:
-        image_path (str): Path to the image file
-        
-    Returns:
-        dict: Object detections with bounding boxes and confidence scores
-    """
-    try:
-        model = MODELS["object_detection"]
-        url = f"{HF_API_URL}/{model}"
-        
-        # Check if file exists
-        if not os.path.exists(image_path):
-            return {"error": f"Image file not found: {image_path}", "success": False}
-        
-        # Load and send the image
-        with open(image_path, "rb") as f:
-            image_bytes = f.read()
-            
-        headers = get_headers()
-        response = requests.post(url, headers=headers, data=image_bytes, timeout=45)  # Longer timeout for object detection
-            
-        if response.status_code == 200:
-            results = response.json()
-            
-            # Process and format the detections
-            detections = []
-            if isinstance(results, list):
-                for detection in results:
-                    if "scores" in detection and "labels" in detection and "boxes" in detection:
-                        # Process the detected objects
-                        for i, (score, label, box) in enumerate(zip(
-                                detection["scores"], 
-                                detection["labels"], 
-                                detection["boxes"])):
-                            
-                            # Only include detections with reasonable confidence
-                            if score > 0.5:  
-                                detections.append({
-                                    "label": label,
-                                    "confidence": score,
-                                    "box": box  # [x1, y1, x2, y2] coordinates
-                                })
-            
-            return {
-                "detections": detections,
-                "success": True,
-                "provider": "huggingface"
-            }
-                
-        # Handle errors
-        return {
-            "error": f"API error: {response.status_code} - {response.text}",
-            "success": False
-        }
-    except Exception as e:
-        logging.error(f"Error in detect_objects: {str(e)}")
-        return {"error": str(e), "success": False}
-
-def analyze_travel_photo(image_path: str) -> Dict[str, Any]:
-    """
-    Comprehensive analysis of travel photos - combines multiple analyses for rich results.
-    This is particularly useful for travel apps to automatically organize and tag photos.
-    
-    Args:
-        image_path (str): Path to the image file
-        
-    Returns:
-        dict: Comprehensive analysis including description, classifications, landmarks, etc.
-    """
-    try:
-        # Run multiple analyses in sequence
-        description_result = describe_image(image_path)
-        classification_result = classify_image(image_path)
-        
-        # Prepare a comprehensive result
+        # Format the result
         result = {
-            "success": True,
-            "provider": "huggingface",
-            "description": description_result.get("description", ""),
-            "tags": []
+            "description": caption,
+            "categories": [],
+            "confidence": 0
         }
         
-        # Add classification tags
-        if classification_result.get("success", False):
-            classifications = classification_result.get("classifications", [])
-            result["tags"] = [item["label"] for item in classifications]
-        
-        # Use classification confidence to determine type of photo
-        photo_type = "unknown"
-        confidence_threshold = 0.7
-        
-        if classification_result.get("success", False):
-            classifications = classification_result.get("classifications", [])
-            
-            # Detect common travel photo types with high confidence
-            nature_keywords = ["mountain", "beach", "forest", "ocean", "river", "lake", "nature", "landscape"]
-            city_keywords = ["city", "building", "architecture", "street", "urban"]
-            food_keywords = ["food", "meal", "dish", "restaurant", "cuisine"]
-            
-            for cls in classifications:
-                label = cls["label"].lower()
-                confidence = cls["confidence"]
+        # Add classification data if available
+        if isinstance(classification, dict) and "categories" in classification:
+            result["categories"] = [c["category"] for c in classification["categories"][:3]]
+            if classification["top_category"]:
+                result["top_category"] = classification["top_category"]
+                result["confidence"] = classification["confidence"]
                 
-                if confidence > confidence_threshold:
-                    if any(keyword in label for keyword in nature_keywords):
-                        photo_type = "nature"
-                        break
-                    elif any(keyword in label for keyword in city_keywords):
-                        photo_type = "urban"
-                        break
-                    elif any(keyword in label for keyword in food_keywords):
-                        photo_type = "food"
-                        break
-        
-        result["photo_type"] = photo_type
-        
         return result
     except Exception as e:
-        logging.error(f"Error in analyze_travel_photo: {str(e)}")
-        return {"error": str(e), "success": False}
+        logging.error(f"Error describing image: {str(e)}")
+        return {"error": f"Image analysis failed: {str(e)}"}
 
-def organize_travel_photos(directory_path: str) -> Dict[str, Any]:
-    """
-    Batch analyze and organize travel photos in a directory
-    
-    Args:
-        directory_path (str): Path to directory containing travel photos
-        
-    Returns:
-        dict: Organization results with categorized photos
-    """
+def detect_objects_in_image(image_data: bytes) -> Dict[str, Any]:
+    """Detect and count objects in an image using Hugging Face's API"""
     try:
-        # Check if directory exists
-        if not os.path.isdir(directory_path):
-            return {"error": f"Directory not found: {directory_path}", "success": False}
-        
-        # Find image files
-        image_extensions = ['.jpg', '.jpeg', '.png']
-        image_files = []
-        
-        for ext in image_extensions:
-            image_files.extend(list(Path(directory_path).glob(f"*{ext}")))
-            image_files.extend(list(Path(directory_path).glob(f"*{ext.upper()}")))
-        
-        if not image_files:
-            return {"error": "No image files found in directory", "success": False}
-        
-        # Organize by categories
-        categories = {
-            "nature": [],
-            "urban": [],
-            "food": [],
-            "people": [],
-            "unknown": []
-        }
-        
-        # Process each image
-        for image_file in image_files:
-            analysis = analyze_travel_photo(str(image_file))
+        # Process and save the image for analysis
+        temp_path = process_image_for_analysis(image_data)
+        if not temp_path:
+            return {"error": "Failed to process image"}
             
-            if analysis.get("success", False):
-                photo_type = analysis.get("photo_type", "unknown")
-                
-                # Add to appropriate category
-                if photo_type in categories:
-                    categories[photo_type].append({
-                        "file": str(image_file),
-                        "description": analysis.get("description", ""),
-                        "tags": analysis.get("tags", [])
-                    })
-                else:
-                    categories["unknown"].append({
-                        "file": str(image_file),
-                        "description": analysis.get("description", ""),
-                        "tags": analysis.get("tags", [])
-                    })
+        # Detect objects using Hugging Face
+        detection = hf_object_detection(temp_path)
         
-        return {
-            "categories": categories,
-            "total_images": len(image_files),
-            "success": True
-        }
+        # Check if there was an error
+        if isinstance(detection, dict) and "error" in detection:
+            return detection
+            
+        return detection
     except Exception as e:
-        logging.error(f"Error in organize_travel_photos: {str(e)}")
-        return {"error": str(e), "success": False}
+        logging.error(f"Error detecting objects in image: {str(e)}")
+        return {"error": f"Object detection failed: {str(e)}"}
+
+def analyze_image_for_travel(image_data: bytes) -> Dict[str, Any]:
+    """Specialized analysis of travel photos using Hugging Face"""
+    try:
+        # Process and save the image for analysis
+        temp_path = process_image_for_analysis(image_data)
+        if not temp_path:
+            return {"error": "Failed to process image"}
+            
+        # Get a general description
+        caption = hf_image_caption(temp_path)
+        
+        # Classify the image
+        classification = hf_image_classification(temp_path)
+        
+        # Check for landmarks, scenery, or other travel-related content
+        prompt = "Describe this travel photo, mentioning any landmarks, scenery, or cultural elements"
+        travel_analysis = hf_image_to_text(temp_path, prompt=prompt)
+        
+        # Format the results
+        result = {
+            "description": caption if not isinstance(caption, dict) else "No description available",
+            "categories": [],
+            "travel_details": travel_analysis if not isinstance(travel_analysis, dict) else "No travel details available",
+            "is_landmark": False,
+            "is_nature": False,
+            "is_food": False,
+        }
+        
+        # Check for specific categories
+        if isinstance(classification, dict) and "categories" in classification:
+            result["categories"] = [c["category"] for c in classification["categories"][:5]]
+            
+            # Check for common travel photo types
+            categories_lower = [c.lower() for c in result["categories"]]
+            if any(term in " ".join(categories_lower) for term in ["landmark", "building", "monument", "statue", "tower", "temple"]):
+                result["is_landmark"] = True
+            if any(term in " ".join(categories_lower) for term in ["nature", "landscape", "mountain", "beach", "ocean", "forest"]):
+                result["is_nature"] = True
+            if any(term in " ".join(categories_lower) for term in ["food", "meal", "dish", "restaurant", "cuisine"]):
+                result["is_food"] = True
+                
+        return result
+    except Exception as e:
+        logging.error(f"Error analyzing travel image: {str(e)}")
+        return {"error": f"Travel image analysis failed: {str(e)}"}
+
+def encode_image_to_base64(image_path: str) -> str:
+    """Encode an image file to base64 for API calls or display"""
+    try:
+        with open(image_path, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
+            return encoded_string
+    except Exception as e:
+        logging.error(f"Error encoding image: {str(e)}")
+        return ""
+
+def segment_image(image_data: bytes) -> Dict[str, Any]:
+    """Segment an image into semantic regions using Hugging Face's API"""
+    try:
+        # Process and save the image for analysis
+        temp_path = process_image_for_analysis(image_data)
+        if not temp_path:
+            return {"error": "Failed to process image"}
+            
+        # Perform segmentation
+        segmentation = hf_image_segmentation(temp_path)
+        
+        # Check if there was an error
+        if isinstance(segmentation, dict) and "error" in segmentation:
+            return segmentation
+            
+        return segmentation
+    except Exception as e:
+        logging.error(f"Error segmenting image: {str(e)}")
+        return {"error": f"Image segmentation failed: {str(e)}"}
+
+def organize_images_by_content(image_files: List[bytes]) -> Dict[str, List[int]]:
+    """Group multiple images by their content"""
+    results = {}
+    
+    try:
+        # Process each image
+        for i, image_data in enumerate(image_files):
+            # Analyze the image
+            temp_path = process_image_for_analysis(image_data)
+            if not temp_path:
+                continue
+                
+            # Classify the image
+            classification = hf_image_classification(temp_path)
+            
+            if isinstance(classification, dict) and "top_category" in classification:
+                category = classification["top_category"]
+                
+                # Initialize category if it doesn't exist
+                if category not in results:
+                    results[category] = []
+                
+                # Add image index to the category
+                results[category].append(i)
+        
+        return results
+    except Exception as e:
+        logging.error(f"Error organizing images: {str(e)}")
+        return {"error": f"Image organization failed: {str(e)}"}
+
+def get_uploaded_image_file(user_id: int) -> Optional[str]:
+    """Get path to most recently uploaded image for a user"""
+    try:
+        # Create user upload directory if it doesn't exist
+        user_dir = os.path.join("uploads", f"user_{user_id}")
+        os.makedirs(user_dir, exist_ok=True)
+        
+        # Get the most recent file
+        files = [f for f in os.listdir(user_dir) if os.path.isfile(os.path.join(user_dir, f))]
+        if not files:
+            return None
+            
+        # Sort by modification time, newest first
+        files.sort(key=lambda x: os.path.getmtime(os.path.join(user_dir, x)), reverse=True)
+        
+        # Return the path to the most recent file
+        return os.path.join(user_dir, files[0])
+    except Exception as e:
+        logging.error(f"Error getting uploaded image: {str(e)}")
+        return None

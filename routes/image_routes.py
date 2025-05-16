@@ -1,172 +1,153 @@
 """
-Image processing routes for the application
-Uses Hugging Face services for cost-efficient AI image processing
+Routes for image analysis features using Hugging Face's API
 """
 
 import os
 import logging
-import json
+from io import BytesIO
 from datetime import datetime
-from flask import Blueprint, request, jsonify, current_app, render_template, flash, redirect, url_for
-from flask_login import login_required, current_user
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, session, flash
 from werkzeug.utils import secure_filename
 
-# Import our custom image helpers
 from utils.image_helper import (
     describe_image,
-    classify_image,
-    detect_objects,
-    analyze_travel_photo,
-    organize_travel_photos
+    detect_objects_in_image,
+    analyze_image_for_travel,
+    organize_images_by_content,
+    get_uploaded_image_file
 )
 
 # Create blueprint
 image_routes = Blueprint('image_routes', __name__)
 
-# Configure file uploads
-UPLOAD_FOLDER = 'static/uploads/images'
+# Configure upload folder
+UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+# Create upload directory if it doesn't exist
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def allowed_file(filename):
     """Check if file has an allowed extension"""
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def ensure_upload_folder():
-    """Ensure the upload folder exists"""
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    user_folder = os.path.join(UPLOAD_FOLDER, str(current_user.id))
-    os.makedirs(user_folder, exist_ok=True)
-    return user_folder
-
-@image_routes.route('/image/analyze', methods=['POST'])
-@login_required
+@image_routes.route('/image/analyze', methods=['GET', 'POST'])
 def analyze_image():
-    """Analyze an uploaded image using Hugging Face services"""
-    try:
-        # Check if image was uploaded
-        if 'image' not in request.files:
-            flash('No image file uploaded', 'error')
-            return redirect(request.referrer or url_for('index'))
+    """Analyze an image using Hugging Face's API"""
+    if request.method == 'GET':
+        return render_template('image_upload.html')
+        
+    if 'image' not in request.files:
+        flash('No image file provided')
+        return redirect(request.url)
+        
+    file = request.files['image']
+    
+    if file.filename == '' or not file or not allowed_file(file.filename):
+        flash('Invalid image file')
+        return redirect(request.url)
+        
+    # Read the file
+    file_data = file.read()
+    
+    # Get analysis type
+    analysis_type = request.form.get('analysis_type', 'describe')
+    
+    # Process the image based on the analysis type
+    if analysis_type == 'describe':
+        result = describe_image(file_data)
+    elif analysis_type == 'detect':
+        result = detect_objects_in_image(file_data)
+    elif analysis_type == 'travel':
+        result = analyze_image_for_travel(file_data)
+    else:
+        result = describe_image(file_data)
+        
+    # Check for error
+    if isinstance(result, dict) and 'error' in result:
+        flash(f"Error during analysis: {result['error']}")
+        return redirect(request.url)
+        
+    # Create user directory if it doesn't exist
+    user_id = session.get('user_id')
+    user_dir = os.path.join(UPLOAD_FOLDER, f"user_{user_id}" if user_id else "anonymous")
+    os.makedirs(user_dir, exist_ok=True)
+    
+    # Save the file
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = secure_filename(file.filename)
+    if filename:
+        # Add timestamp to avoid overwriting
+        filename = f"{timestamp}_{filename}"
+        filepath = os.path.join(user_dir, filename)
+        
+        with open(filepath, 'wb') as f:
+            f.write(file_data)
             
-        file = request.files['image']
-        if file.filename == '':
-            flash('No image selected', 'error')
-            return redirect(request.referrer or url_for('index'))
-            
-        if file and allowed_file(file.filename):
-            # Create user upload folder
-            user_folder = ensure_upload_folder()
-            
-            # Create a unique filename using timestamp
-            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-            filename = f"{timestamp}_{secure_filename(file.filename)}"
-            filepath = os.path.join(user_folder, filename)
-            
-            # Save the file
-            file.save(filepath)
-            
-            # Analyze the image
-            analysis_type = request.form.get('analysis_type', 'simple')
-            
-            if analysis_type == 'describe':
-                # Generate a description of the image
-                result = describe_image(filepath)
-                
-            elif analysis_type == 'classify':
-                # Classify what's in the image
-                result = classify_image(filepath)
-                
-            elif analysis_type == 'detect':
-                # Detect objects in the image
-                result = detect_objects(filepath)
-                
-            elif analysis_type == 'travel':
-                # Comprehensive travel photo analysis
-                result = analyze_travel_photo(filepath)
-                
-            else:
-                # Default to simple description
-                result = describe_image(filepath)
-                
-            # Add the image path for display
-            display_path = filepath.replace('static/', '')
-            result['image_path'] = display_path
-            
-            return render_template('image_analysis.html', analysis=result)
-        else:
-            flash('File type not allowed', 'error')
-            return redirect(request.referrer or url_for('index'))
-            
-    except Exception as e:
-        logging.error(f"Error analyzing image: {str(e)}")
-        flash(f"Error analyzing image: {str(e)}", 'error')
-        return redirect(request.referrer or url_for('index'))
+    # Return the results
+    return render_template('image_results.html', 
+                          result=result, 
+                          analysis_type=analysis_type,
+                          filename=filename if filename else "unknown.jpg")
 
 @image_routes.route('/image/organize', methods=['POST'])
-@login_required
 def organize_images():
-    """Organize and categorize multiple images"""
-    try:
-        # Check if any images were uploaded
-        if 'images' not in request.files:
-            flash('No image files uploaded', 'error')
-            return redirect(request.referrer or url_for('index'))
+    """Organize multiple images by content using Hugging Face's API"""
+    if 'images' not in request.files:
+        flash('No image files provided')
+        return redirect(url_for('image_routes.analyze_image'))
+        
+    files = request.files.getlist('images')
+    
+    if not files or len(files) == 0:
+        flash('No valid image files provided')
+        return redirect(url_for('image_routes.analyze_image'))
+        
+    # Read all files
+    image_data = []
+    filenames = []
+    
+    for file in files:
+        if file and allowed_file(file.filename):
+            image_data.append(file.read())
+            filenames.append(file.filename)
             
-        files = request.files.getlist('images')
-        if not files or files[0].filename == '':
-            flash('No images selected', 'error')
-            return redirect(request.referrer or url_for('index'))
-            
-        # Create user upload folder
-        user_folder = ensure_upload_folder()
-        batch_folder = os.path.join(user_folder, f"batch_{datetime.now().strftime('%Y%m%d%H%M%S')}")
-        os.makedirs(batch_folder, exist_ok=True)
-            
-        # Save all uploaded files
-        saved_files = []
-        for file in files:
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                filepath = os.path.join(batch_folder, filename)
-                file.save(filepath)
-                saved_files.append(filepath)
+    if len(image_data) == 0:
+        flash('No valid image files provided')
+        return redirect(url_for('image_routes.analyze_image'))
+        
+    # Organize the images
+    result = organize_images_by_content(image_data)
+    
+    # Check for error
+    if isinstance(result, dict) and 'error' in result:
+        flash(f"Error during organization: {result['error']}")
+        return redirect(url_for('image_routes.analyze_image'))
+        
+    # Create user directory if it doesn't exist
+    user_id = session.get('user_id')
+    user_dir = os.path.join(UPLOAD_FOLDER, f"user_{user_id}" if user_id else "anonymous")
+    os.makedirs(user_dir, exist_ok=True)
+    
+    # Save the files
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    saved_files = []
+    
+    for i, file_data in enumerate(image_data):
+        if i < len(filenames):
+            filename = secure_filename(filenames[i])
+            if filename:
+                # Add timestamp and index to avoid overwriting
+                filename = f"{timestamp}_{i}_{filename}"
+                filepath = os.path.join(user_dir, filename)
                 
-        if not saved_files:
-            flash('No valid image files uploaded', 'error')
-            return redirect(request.referrer or url_for('index'))
+                with open(filepath, 'wb') as f:
+                    f.write(file_data)
+                    
+                saved_files.append(filename)
                 
-        # Organize the saved images
-        result = organize_travel_photos(batch_folder)
-            
-        return render_template('image_organization.html', organization=result, batch_folder=batch_folder)
-            
-    except Exception as e:
-        logging.error(f"Error organizing images: {str(e)}")
-        flash(f"Error organizing images: {str(e)}", 'error')
-        return redirect(request.referrer or url_for('index'))
-
-@image_routes.route('/image/batch_analyze', methods=['POST'])
-@login_required
-def batch_analyze_images():
-    """Analyze all images in a directory"""
-    try:
-        directory = request.form.get('directory')
-        if not directory or not os.path.isdir(directory):
-            flash('Invalid directory specified', 'error')
-            return redirect(request.referrer or url_for('index'))
-            
-        # Only allow directories within the user's upload folder for security
-        user_folder = os.path.join(UPLOAD_FOLDER, str(current_user.id))
-        if not directory.startswith(user_folder):
-            flash('Unauthorized directory access', 'error')
-            return redirect(request.referrer or url_for('index'))
-            
-        # Analyze all images in the directory
-        result = organize_travel_photos(directory)
-            
-        return render_template('image_organization.html', organization=result, batch_folder=directory)
-            
-    except Exception as e:
-        logging.error(f"Error batch analyzing images: {str(e)}")
-        flash(f"Error batch analyzing images: {str(e)}", 'error')
-        return redirect(request.referrer or url_for('index'))
+    # Return the results
+    return render_template('image_organization.html', 
+                          categories=result, 
+                          filenames=saved_files)
