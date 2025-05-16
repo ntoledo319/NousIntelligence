@@ -482,57 +482,83 @@
     </div>
 
     <!-- Modern Footer -->
-    <footer>
+    <footer class="footer mt-5">
         <div class="container">
             <div class="row">
                 <div class="col-lg-4 mb-4 mb-lg-0">
                     <div class="d-flex align-items-center mb-3">
                         <img src="{{ url_for('static', filename='img/IMG_4875.jpeg') }}" alt="NOUS Logo" class="navbar-logo me-2" width="32" height="32">
-                        <h5 class="mb-0">NOUS</h5>
+                        <h5 class="mb-0 footer-heading">NOUS</h5>
                     </div>
-                    <p class="mb-3">An advanced AI-powered personal assistant designed to help organize your life.</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-github"></i></a>
-                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    <p class="mb-3 text-secondary">An advanced AI-powered personal assistant designed to help organize your life, provide insights, and assist with everyday tasks.</p>
+                    <div class="footer-social">
+                        <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-github"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
                     </div>
                 </div>
                 
                 <div class="col-6 col-md-3 col-lg-2 mb-4 mb-lg-0">
-                    <h5>Features</h5>
-                    <ul class="footer-links">
-                        <li><a href="{{ url_for('index') }}?cmd=show%20doctors">Health</a></li>
-                        <li><a href="{{ url_for('index') }}?cmd=show%20shopping%20lists">Shopping</a></li>
-                        <li><a href="{{ url_for('index') }}?cmd=budget%20summary">Finance</a></li>
-                        <li><a href="{{ url_for('index') }}?cmd=show%20trips">Travel</a></li>
+                    <h5 class="footer-heading">Features</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ url_for('index') }}?cmd=show%20doctors" class="footer-link"><i class="fas fa-heartbeat me-2 text-danger"></i>Health</a></li>
+                        <li><a href="{{ url_for('index') }}?cmd=show%20shopping%20lists" class="footer-link"><i class="fas fa-shopping-cart me-2 text-success"></i>Shopping</a></li>
+                        <li><a href="{{ url_for('index') }}?cmd=budget%20summary" class="footer-link"><i class="fas fa-chart-line me-2 text-warning"></i>Finance</a></li>
+                        <li><a href="{{ url_for('index') }}?cmd=show%20trips" class="footer-link"><i class="fas fa-plane-departure me-2 text-info"></i>Travel</a></li>
+                        <li><a href="{{ url_for('spotify_viz.spotify_report_page') }}" class="footer-link"><i class="fab fa-spotify me-2" style="color: #1DB954;"></i>Music</a></li>
                     </ul>
                 </div>
                 
                 <div class="col-6 col-md-3 col-lg-2 mb-4 mb-lg-0">
-                    <h5>Resources</h5>
-                    <ul class="footer-links">
-                        <li><a href="{{ url_for('user_guide') }}">User Guide</a></li>
-                        <li><a href="{{ url_for('help_page') }}">Help Center</a></li>
-                        <li><a href="{{ url_for('clear_log') }}">Clear Log</a></li>
+                    <h5 class="footer-heading">Resources</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ url_for('user_guide') }}" class="footer-link"><i class="fas fa-book me-2 text-primary"></i>User Guide</a></li>
+                        <li><a href="{{ url_for('help_page') }}" class="footer-link"><i class="fas fa-question-circle me-2 text-info"></i>Help Center</a></li>
+                        <li><a href="{{ url_for('voice_emotion.voice_emotion_page') }}" class="footer-link"><i class="fas fa-microphone me-2 text-danger"></i>Voice Analysis</a></li>
+                        <li><a href="{{ url_for('image_routes.image_upload') }}" class="footer-link"><i class="fas fa-image me-2 text-success"></i>Image Analysis</a></li>
+                        <li><a href="{{ url_for('clear_log') }}" class="footer-link"><i class="fas fa-broom me-2 text-warning"></i>Clear Log</a></li>
                     </ul>
                 </div>
                 
                 <div class="col-md-6 col-lg-4">
-                    <h5>Connect Services</h5>
-                    <ul class="footer-links">
-                        <li><a href="{{ url_for('authorize_google') }}"><i class="fab fa-google me-2"></i>Connect Google</a></li>
-                        <li><a href="{{ url_for('authorize_spotify') }}"><i class="fab fa-spotify me-2"></i>Connect Spotify</a></li>
+                    <h5 class="footer-heading">Connect & Account</h5>
+                    <div class="card card-modern mb-3">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-secondary small">External Services</span>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="{{ url_for('authorize_google') }}" class="btn btn-sm {% if 'google_creds' in session %}btn-outline-success{% else %}btn-outline-primary{% endif %}">
+                                    <i class="fab fa-google me-1"></i>
+                                    {% if 'google_creds' in session %}Connected{% else %}Connect Google{% endif %}
+                                </a>
+                                <a href="{{ url_for('authorize_spotify') }}" class="btn btn-sm {% if 'spotify_user' in session %}btn-outline-success{% else %}btn-outline-primary{% endif %}">
+                                    <i class="fab fa-spotify me-1"></i>
+                                    {% if 'spotify_user' in session %}Connected{% else %}Connect Spotify{% endif %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
                         {% if current_user.is_authenticated %}
-                        <li><a href="{{ url_for('google_auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                            <a href="{{ url_for('settings_page') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-cog me-2"></i>Settings
+                            </a>
+                            <a href="{{ url_for('google_auth.logout') }}" class="btn btn-outline-danger">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </a>
                         {% else %}
-                        <li><a href="{{ url_for('google_auth.login') }}"><i class="fas fa-sign-in-alt me-2"></i>Login</a></li>
+                            <a href="{{ url_for('google_auth.login') }}" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login with Google
+                            </a>
                         {% endif %}
-                    </ul>
+                    </div>
                 </div>
             </div>
             
             <div class="copyright">
-                <p>NOUS v1.0 &copy; {% now 'Y' %} All rights reserved.</p>
+                <p class="text-center text-secondary small">NOUS v1.0 &copy; 2025 All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -567,11 +593,15 @@
             
             // Toggle icons
             if (theme === 'dark') {
-                darkIcon.classList.remove('d-none');
-                lightIcon.classList.add('d-none');
+                if(darkIcon) darkIcon.classList.add('d-none');
+                if(lightIcon) lightIcon.classList.remove('d-none');
+                document.body.classList.add('dark-mode');
+                document.body.classList.remove('light-mode');
             } else {
-                darkIcon.classList.add('d-none');
-                lightIcon.classList.remove('d-none');
+                if(darkIcon) darkIcon.classList.remove('d-none');
+                if(lightIcon) lightIcon.classList.add('d-none');
+                document.body.classList.add('light-mode');
+                document.body.classList.remove('dark-mode');
             }
             
             // Store preference
@@ -580,24 +610,100 @@
             // Keep color theme when switching light/dark mode
             const colorTheme = localStorage.getItem('colorTheme') || 'default';
             htmlElement.setAttribute('data-theme', colorTheme);
+            
+            // Update any theme radios in settings
+            updateThemeRadios(theme);
+        };
+        
+        // Update theme radio buttons if they exist
+        const updateThemeRadios = (theme) => {
+            const themeLight = document.getElementById('themeLight');
+            const themeDark = document.getElementById('themeDark');
+            const themeSystem = document.getElementById('themeSystem');
+            
+            if(themeLight && themeDark && themeSystem) {
+                if(theme === 'light') {
+                    themeLight.checked = true;
+                } else if(theme === 'dark') {
+                    themeDark.checked = true;
+                } else {
+                    themeSystem.checked = true;
+                }
+            }
         };
         
         // Set initial theme
         applyTheme(getCurrentTheme());
         
         // Toggle theme on button click
-        themeToggle.addEventListener('click', function() {
-            const currentTheme = htmlElement.getAttribute('data-bs-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            applyTheme(newTheme);
-        });
+        if(themeToggle) {
+            themeToggle.addEventListener('click', function() {
+                const currentTheme = htmlElement.getAttribute('data-bs-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                applyTheme(newTheme);
+            });
+        }
+        
+        // Handle theme radios in settings
+        const themeRadios = document.querySelectorAll('input[name="theme"]');
+        if (themeRadios.length > 0) {
+            themeRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'light') {
+                        applyTheme('light');
+                    } else if (this.value === 'dark') {
+                        applyTheme('dark');
+                    } else {
+                        // System preference
+                        localStorage.removeItem('theme');
+                        applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                    }
+                });
+            });
+        }
         
         // Update theme if device preference changes
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-            const newTheme = e.matches ? 'dark' : 'light';
-            applyTheme(newTheme);
+            // Only apply if "system" is selected or no preference saved
+            if(!localStorage.getItem('theme') || document.getElementById('themeSystem')?.checked) {
+                const newTheme = e.matches ? 'dark' : 'light';
+                applyTheme(newTheme);
+            }
         });
+        
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl, {
+                delay: { show: 500, hide: 100 }
+            });
+        });
+        
+        // Initialize mobile offcanvas menu close on link click
+        const navLinks = document.querySelectorAll('.offcanvas .nav-link');
+        const navbarOffcanvas = document.getElementById('navbarOffcanvas');
+        if (navbarOffcanvas) {
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    const bsOffcanvas = bootstrap.Offcanvas.getInstance(navbarOffcanvas);
+                    if (bsOffcanvas) bsOffcanvas.hide();
+                });
+            });
+        }
     });
+    </script>
+    
+    <!-- Mobile Viewport Height Fix -->
+    <script>
+    // Fix for mobile viewport height issues with 100vh
+    function setMobileHeight() {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+    
+    window.addEventListener('resize', setMobileHeight);
+    window.addEventListener('orientationchange', setMobileHeight);
+    setMobileHeight();
     </script>
 </body>
 </html>
