@@ -19,7 +19,7 @@ GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configura
 # Get current domain dynamically
 import os
 # Use the exact URI from client_secret.json for production
-REDIRECT_URI = "https://toledonick981.repl.co/callback/google"  
+REDIRECT_URI = "https://mynous.replit.app/callback/google"  
 
 # Print information about domains for debugging
 import logging
