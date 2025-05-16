@@ -1,178 +1,296 @@
 """
-Cache helper for storing and retrieving frequently accessed data.
-Helps reduce API calls and database queries for better performance.
+Cache Helper module for improved cost efficiency
+Provides caching mechanisms to reduce redundant AI API calls
 """
 
-import time
-import functools
-import logging
-import threading
-import hashlib
+import os
 import json
-import pickle
-from typing import Any, Callable, Dict, Optional, Tuple, TypeVar, Union, cast
+import time
+import logging
+import hashlib
+import functools
+from datetime import datetime, timedelta
 
-# Type variable for generic return type
-T = TypeVar('T')
+# Try to use SQLAlchemy to get the database
+try:
+    from app import db
+    DB_AVAILABLE = True
+except ImportError:
+    DB_AVAILABLE = False
+    logging.warning("Cache helper couldn't import database, will use local file cache")
 
-# Cache storage - using dictionaries for simplicity, could be replaced with Redis in production
-_result_cache: Dict[str, Tuple[Any, float]] = {}
-_embedding_cache: Dict[str, Tuple[Any, float]] = {}
+# Define paths for file-based cache
+CACHE_DIR = os.path.join(os.getcwd(), "cache")
+os.makedirs(CACHE_DIR, exist_ok=True)
 
-# Lock for thread safety
-_cache_lock = threading.RLock()
+# Cache models
+if DB_AVAILABLE:
+    from models import CacheEntry
 
-# Cache settings - tuned for optimal performance
-MAX_RESULT_CACHE_SIZE = 2000  # Regular function results 
-MAX_EMBEDDING_CACHE_SIZE = 750  # Embeddings cache (more expensive to regenerate)
+    class CacheManager:
+        """Database-backed cache manager"""
+        
+        @staticmethod
+        def get(cache_key):
+            """Get a value from the cache"""
+            try:
+                entry = CacheEntry.query.filter_by(key=cache_key).first()
+                if not entry:
+                    return None
+                    
+                # Check expiration
+                if entry.expires_at and entry.expires_at < datetime.utcnow():
+                    # Delete expired entry
+                    db.session.delete(entry)
+                    db.session.commit()
+                    return None
+                    
+                return json.loads(entry.value)
+            except Exception as e:
+                logging.error(f"Error reading from cache: {str(e)}")
+                return None
+        
+        @staticmethod
+        def set(cache_key, value, ttl_seconds=3600):
+            """Set a value in the cache"""
+            try:
+                # Serialize value to JSON
+                json_value = json.dumps(value)
+                
+                # Calculate expiration time
+                expires_at = datetime.utcnow() + timedelta(seconds=ttl_seconds)
+                
+                # Check if entry exists
+                entry = CacheEntry.query.filter_by(key=cache_key).first()
+                if entry:
+                    # Update existing entry
+                    entry.value = json_value
+                    entry.expires_at = expires_at
+                    entry.updated_at = datetime.utcnow()
+                else:
+                    # Create new entry
+                    entry = CacheEntry(
+                        key=cache_key,
+                        value=json_value,
+                        expires_at=expires_at,
+                        created_at=datetime.utcnow(),
+                        updated_at=datetime.utcnow()
+                    )
+                    db.session.add(entry)
+                    
+                db.session.commit()
+                return True
+            except Exception as e:
+                logging.error(f"Error writing to cache: {str(e)}")
+                db.session.rollback()
+                return False
+                
+        @staticmethod
+        def delete(cache_key):
+            """Delete a value from the cache"""
+            try:
+                entry = CacheEntry.query.filter_by(key=cache_key).first()
+                if entry:
+                    db.session.delete(entry)
+                    db.session.commit()
+                return True
+            except Exception as e:
+                logging.error(f"Error deleting from cache: {str(e)}")
+                db.session.rollback()
+                return False
+                
+        @staticmethod
+        def clear_expired():
+            """Clear all expired cache entries"""
+            try:
+                expired = CacheEntry.query.filter(
+                    CacheEntry.expires_at < datetime.utcnow()
+                ).all()
+                
+                if expired:
+                    for entry in expired:
+                        db.session.delete(entry)
+                    db.session.commit()
+                    logging.info(f"Cleared {len(expired)} expired cache entries")
+                return True
+            except Exception as e:
+                logging.error(f"Error clearing expired cache: {str(e)}")
+                db.session.rollback()
+                return False
 
-# Cache time-to-live defaults
-DEFAULT_RESULT_TTL = 1800  # 30 minutes for regular results
-DEFAULT_EMBEDDING_TTL = 86400  # 24 hours for embeddings
-DEFAULT_API_RESULT_TTL = 3600  # 1 hour for API results
-HIGH_VALUE_RESULT_TTL = 7200  # 2 hours for complex computations
+else:
+    class FileCacheManager:
+        """File-based cache manager as fallback"""
+        
+        @staticmethod
+        def get(cache_key):
+            """Get a value from the file cache"""
+            try:
+                # Generate a file path from the key
+                file_path = os.path.join(CACHE_DIR, f"{cache_key}.json")
+                
+                # Check if file exists
+                if not os.path.exists(file_path):
+                    return None
+                    
+                # Read the file
+                with open(file_path, 'r') as f:
+                    data = json.load(f)
+                    
+                # Check expiration
+                if 'expires_at' in data and data['expires_at'] < time.time():
+                    # Delete expired entry
+                    os.remove(file_path)
+                    return None
+                    
+                return data['value']
+            except Exception as e:
+                logging.error(f"Error reading from file cache: {str(e)}")
+                return None
+        
+        @staticmethod
+        def set(cache_key, value, ttl_seconds=3600):
+            """Set a value in the file cache"""
+            try:
+                # Generate a file path from the key
+                file_path = os.path.join(CACHE_DIR, f"{cache_key}.json")
+                
+                # Prepare data
+                data = {
+                    'value': value,
+                    'expires_at': time.time() + ttl_seconds,
+                    'created_at': time.time(),
+                    'updated_at': time.time()
+                }
+                
+                # Write to file
+                with open(file_path, 'w') as f:
+                    json.dump(data, f)
+                    
+                return True
+            except Exception as e:
+                logging.error(f"Error writing to file cache: {str(e)}")
+                return False
+                
+        @staticmethod
+        def delete(cache_key):
+            """Delete a value from the file cache"""
+            try:
+                # Generate a file path from the key
+                file_path = os.path.join(CACHE_DIR, f"{cache_key}.json")
+                
+                # Delete file if it exists
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    
+                return True
+            except Exception as e:
+                logging.error(f"Error deleting from file cache: {str(e)}")
+                return False
+                
+        @staticmethod
+        def clear_expired():
+            """Clear all expired cache entries"""
+            try:
+                cleared = 0
+                current_time = time.time()
+                
+                # Check all cache files
+                for filename in os.listdir(CACHE_DIR):
+                    if filename.endswith(".json"):
+                        file_path = os.path.join(CACHE_DIR, filename)
+                        try:
+                            with open(file_path, 'r') as f:
+                                data = json.load(f)
+                                
+                            # Check expiration
+                            if 'expires_at' in data and data['expires_at'] < current_time:
+                                os.remove(file_path)
+                                cleared += 1
+                        except Exception:
+                            # If file is corrupted, delete it
+                            os.remove(file_path)
+                            cleared += 1
+                            
+                if cleared > 0:
+                    logging.info(f"Cleared {cleared} expired file cache entries")
+                return True
+            except Exception as e:
+                logging.error(f"Error clearing expired file cache: {str(e)}")
+                return False
 
-def cache_result(ttl_seconds: int = None, cache_type: str = "default"):
+    # Use the file-based cache manager
+    CacheManager = FileCacheManager
+
+
+def cache_result(ttl_seconds=3600, prefix=None):
     """
-    Decorator to cache function results for a specified time.
+    Decorator to cache function results to reduce redundant API calls
     
     Args:
-        ttl_seconds: Time to live in seconds for cache entries (optional)
-        cache_type: Type of cache to use ("default", "api", "embedding", "high_value")
+        ttl_seconds (int): Time-to-live in seconds
+        prefix (str, optional): Custom prefix for cache key
         
     Returns:
-        Decorated function with caching
+        function: Decorated function with caching
     """
-    # Determine TTL based on cache type if not explicitly provided
-    if ttl_seconds is None:
-        if cache_type == "api":
-            ttl_seconds = DEFAULT_API_RESULT_TTL
-        elif cache_type == "embedding":
-            ttl_seconds = DEFAULT_EMBEDDING_TTL
-        elif cache_type == "high_value":
-            ttl_seconds = HIGH_VALUE_RESULT_TTL
-        else:
-            ttl_seconds = DEFAULT_RESULT_TTL
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            # Generate cache key based on function name and arguments
-            cache_key = _generate_cache_key(func.__name__, args, kwargs)
+            # Generate a cache key from function name, args, and kwargs
+            key_parts = [func.__name__]
             
-            # Check if result is in cache and not expired
-            cached_result = _get_from_cache(cache_key, _result_cache)
+            # Add custom prefix if provided
+            if prefix:
+                key_parts.insert(0, prefix)
+                
+            # Add args and kwargs to key
+            for arg in args:
+                key_parts.append(str(arg))
+            
+            for key, value in sorted(kwargs.items()):
+                key_parts.append(f"{key}={value}")
+                
+            # Create an MD5 hash of the key
+            key_string = ":".join(key_parts)
+            cache_key = hashlib.md5(key_string.encode()).hexdigest()
+            
+            # Try to get from cache
+            cached_result = CacheManager.get(cache_key)
             if cached_result is not None:
-                logging.debug(f"Cache hit for {func.__name__}")
+                logging.info(f"Cache hit for {func.__name__}")
                 return cached_result
                 
-            # Execute function and cache result
+            # If not in cache, call the function
+            logging.info(f"Cache miss for {func.__name__}, executing function")
             result = func(*args, **kwargs)
-            _store_in_cache(cache_key, result, ttl_seconds, _result_cache, MAX_RESULT_CACHE_SIZE)
             
+            # Store in cache if result is not None
+            if result is not None:
+                CacheManager.set(cache_key, result, ttl_seconds)
+                
             return result
         return wrapper
     return decorator
 
-def cache_embedding(text: str, embedding: Any, ttl_seconds: int = 86400):
-    """
-    Cache an embedding vector for a text string.
+# Periodically clear expired cache entries
+def schedule_cache_cleanup():
+    """Schedule periodic cleanup of expired cache entries"""
+    import threading
     
-    Args:
-        text: The original text
-        embedding: The embedding vector to cache
-        ttl_seconds: Time to live in seconds
-    """
-    cache_key = _hash_text(text)
-    _store_in_cache(cache_key, embedding, ttl_seconds, _embedding_cache, MAX_EMBEDDING_CACHE_SIZE)
-    
-def get_cached_embedding(text: str) -> Optional[Any]:
-    """
-    Get a cached embedding for text if available.
-    
-    Args:
-        text: The text to get embedding for
-        
-    Returns:
-        The cached embedding or None if not found
-    """
-    cache_key = _hash_text(text)
-    return _get_from_cache(cache_key, _embedding_cache)
-
-def clear_caches():
-    """Clear all caches."""
-    with _cache_lock:
-        _result_cache.clear()
-        _embedding_cache.clear()
-    logging.info("All caches cleared")
-
-def _generate_cache_key(func_name: str, args: Tuple, kwargs: Dict) -> str:
-    """Generate a deterministic cache key for function call."""
-    try:
-        # Convert args and kwargs to JSON-serializable format
-        serializable_args = _make_serializable(args)
-        serializable_kwargs = _make_serializable(kwargs)
-        
-        # Combine into a string
-        key_parts = [func_name, str(serializable_args), str(serializable_kwargs)]
-        combined = json.dumps(key_parts, sort_keys=True)
-        
-        # Hash the string to get a fixed-length key
-        return hashlib.md5(combined.encode('utf-8')).hexdigest()
-    except Exception as e:
-        logging.warning(f"Error generating cache key: {e}. Using fallback method.")
-        # Fallback: Use function name and object IDs
-        return f"{func_name}_{hash(args)}_{hash(frozenset(kwargs.items() if kwargs else []))}"
-
-def _hash_text(text: str) -> str:
-    """Create a hash for text content."""
-    return hashlib.md5(text.encode('utf-8')).hexdigest()
-
-def _make_serializable(obj: Any) -> Any:
-    """Attempt to make an object JSON-serializable."""
-    if isinstance(obj, (str, int, float, bool, type(None))):
-        return obj
-    elif isinstance(obj, (list, tuple)):
-        return [_make_serializable(item) for item in obj]
-    elif isinstance(obj, dict):
-        return {str(k): _make_serializable(v) for k, v in obj.items()}
-    elif hasattr(obj, '__dict__'):
-        # For custom objects, use a string representation or specific attributes
-        return str(obj)
-    else:
-        # Just convert to string for non-serializable types
-        return str(obj)
-
-def _get_from_cache(key: str, cache: Dict[str, Tuple[Any, float]]) -> Optional[Any]:
-    """Get an item from cache if it exists and is not expired."""
-    with _cache_lock:
-        if key in cache:
-            value, expiry = cache[key]
-            if expiry > time.time():
-                return value
-            else:
-                # Remove expired entry
-                del cache[key]
-    return None
-
-def _store_in_cache(key: str, value: Any, ttl_seconds: int, 
-                   cache: Dict[str, Tuple[Any, float]], max_size: int):
-    """Store an item in cache with expiry time."""
-    with _cache_lock:
-        # Check if cache is full and remove oldest entry if needed
-        if len(cache) >= max_size:
-            # Find and remove oldest entry (lowest expiry time)
-            oldest_key = min(cache.keys(), key=lambda k: cache[k][1])
-            del cache[oldest_key]
+    def cleanup_job():
+        while True:
+            try:
+                CacheManager.clear_expired()
+            except Exception as e:
+                logging.error(f"Error in cache cleanup job: {str(e)}")
             
-        # Calculate expiry time and store
-        expiry = time.time() + ttl_seconds
-        
-        # Use pickle to store more complex objects
-        try:
-            # Attempt to pickle to verify serializability
-            pickle.dumps(value)
-            cache[key] = (value, expiry)
-        except (pickle.PickleError, TypeError) as e:
-            logging.warning(f"Value not cache-able: {str(e)}")
-            # For non-serializable objects, don't cache
-            return
+            # Sleep for 1 hour before next cleanup
+            time.sleep(3600)
+    
+    # Start cleanup thread
+    threading.Thread(target=cleanup_job, daemon=True).start()
+    logging.info("Scheduled cache cleanup job")
+
+# Initialize cache cleanup on module import
+schedule_cache_cleanup()

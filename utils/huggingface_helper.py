@@ -168,19 +168,151 @@ def hf_entity_extraction(text, model="dslim/bert-base-NER"):
         logging.error(f"Error calling Hugging Face API: {str(e)}")
         return {"error": str(e)}
 
-def hf_chat_completion(messages, model="HuggingFaceH4/zephyr-7b-beta"):
-    """Generate chat completion using Hugging Face's free chat models"""
-    if not HF_TOKEN:
-        logging.error("No Hugging Face access token available")
-        return None
+def hf_chat_completion(messages, model="HuggingFaceH4/zephyr-7b-beta", max_tokens=512, temperature=0.7):
+    """
+    Generate chat completion using Hugging Face's free chat models
+    
+    Args:
+        messages: List of message objects with role and content
+        model: Hugging Face model ID to use
+        max_tokens: Maximum number of tokens to generate
+        temperature: Controls randomness (0-1)
         
-    headers = {
-        "Authorization": f"Bearer {HF_TOKEN}"
-    }
-    
-    api_url = f"https://api-inference.huggingface.co/models/{model}"
-    
-    # Convert messages to a prompt format that Hugging Face models can understand
+    Returns:
+        str: Generated response text or None if failed
+    """
+    # Check for cache first to save API calls
+    try:
+        from utils.cache_helper import cache_result
+        
+        # Create a unique signature for this request
+        import hashlib
+        request_str = f"{model}:{str(messages)}:{max_tokens}:{temperature}"
+        request_hash = hashlib.md5(request_str.encode()).hexdigest()
+        
+        # Function to be cached
+        @cache_result(ttl_seconds=3600)  # Cache for 1 hour since model outputs are deterministic with same inputs
+        def _get_hf_chat_response(req_hash, msg, mdl, mx_tokens, temp):
+            if not HF_TOKEN:
+                logging.error("No Hugging Face access token available")
+                return None
+                
+            headers = {
+                "Authorization": f"Bearer {HF_TOKEN}"
+            }
+            
+            api_url = f"https://api-inference.huggingface.co/models/{mdl}"
+            
+            # Model-specific prompt formats
+            if "zephyr" in mdl.lower():
+                # Zephyr format
+                prompt = _format_zephyr_prompt(msg)
+            elif "mixtral" in mdl.lower():
+                # Mixtral format
+                prompt = _format_mixtral_prompt(msg)
+            elif "llama" in mdl.lower():
+                # Llama format
+                prompt = _format_llama_prompt(msg)
+            else:
+                # Default format
+                prompt = _format_default_prompt(msg)
+            
+            try:
+                # Add parameters to control generation quality
+                params = {
+                    "max_new_tokens": mx_tokens,
+                    "temperature": temp,
+                    "return_full_text": False,  # Only return generated text without prompt
+                    "top_p": 0.95,  # Nucleus sampling for more coherent outputs
+                    "do_sample": temp > 0  # Use sampling for temperature > 0
+                }
+                
+                response = requests.post(
+                    api_url,
+                    headers=headers,
+                    json={"inputs": prompt, "parameters": params},
+                    timeout=30  # Set reasonable timeout
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    # Extract the generated text
+                    if isinstance(result, list) and len(result) > 0:
+                        generated_text = result[0].get("generated_text", "")
+                        # Some models might still return the prompt, remove it
+                        if generated_text.startswith(prompt):
+                            generated_text = generated_text[len(prompt):]
+                        return generated_text.strip()
+                    return result.get("generated_text", "")
+                else:
+                    logging.error(f"Hugging Face API error: {response.status_code} - {response.text}")
+                    return None
+            except Exception as e:
+                logging.error(f"Error calling Hugging Face API: {str(e)}")
+                return None
+        
+        # Call the cached function
+        return _get_hf_chat_response(request_hash, messages, model, max_tokens, temperature)
+        
+    except ImportError:
+        # If caching is unavailable, do a direct call
+        if not HF_TOKEN:
+            logging.error("No Hugging Face access token available")
+            return None
+            
+        headers = {
+            "Authorization": f"Bearer {HF_TOKEN}"
+        }
+        
+        api_url = f"https://api-inference.huggingface.co/models/{model}"
+        
+        # Convert messages to a prompt format that Hugging Face models can understand
+        prompt = ""
+        for message in messages:
+            role = message.get("role", "")
+            content = message.get("content", "")
+            
+            if role == "system":
+                prompt += f"<|system|>\n{content}\n"
+            elif role == "user":
+                prompt += f"<|user|>\n{content}\n"
+            elif role == "assistant":
+                prompt += f"<|assistant|>\n{content}\n"
+        
+        prompt += "<|assistant|>\n"  # Add the assistant prefix for the response
+        
+        try:
+            params = {
+                "max_new_tokens": max_tokens,
+                "temperature": temperature,
+                "return_full_text": False
+            }
+            
+            response = requests.post(
+                api_url,
+                headers=headers,
+                json={"inputs": prompt, "parameters": params}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                # Extract the generated text
+                if isinstance(result, list) and len(result) > 0:
+                    generated_text = result[0].get("generated_text", "")
+                    # Remove the prompt to get only the new generated content
+                    if generated_text.startswith(prompt):
+                        generated_text = generated_text[len(prompt):]
+                    return generated_text.strip()
+                return result.get("generated_text", "")
+            else:
+                logging.error(f"Hugging Face API error: {response.status_code} - {response.text}")
+                return None
+        except Exception as e:
+            logging.error(f"Error calling Hugging Face API: {str(e)}")
+            return None
+            
+def _format_zephyr_prompt(messages):
+    """Format a prompt for Zephyr models"""
     prompt = ""
     for message in messages:
         role = message.get("role", "")
@@ -194,30 +326,86 @@ def hf_chat_completion(messages, model="HuggingFaceH4/zephyr-7b-beta"):
             prompt += f"<|assistant|>\n{content}\n"
     
     prompt += "<|assistant|>\n"  # Add the assistant prefix for the response
+    return prompt
     
-    try:
-        response = requests.post(
-            api_url,
-            headers=headers,
-            json={"inputs": prompt, "parameters": {"max_new_tokens": 512}}
-        )
+def _format_mixtral_prompt(messages):
+    """Format a prompt for Mixtral models"""
+    prompt = ""
+    for message in messages:
+        role = message.get("role", "")
+        content = message.get("content", "")
         
-        if response.status_code == 200:
-            result = response.json()
-            # Extract the generated text
-            if isinstance(result, list) and len(result) > 0:
-                generated_text = result[0].get("generated_text", "")
-                # Remove the prompt to get only the new generated content
-                if generated_text.startswith(prompt):
-                    generated_text = generated_text[len(prompt):]
-                return generated_text.strip()
-            return result.get("generated_text", "")
-        else:
-            logging.error(f"Hugging Face API error: {response.status_code} - {response.text}")
-            return None
-    except Exception as e:
-        logging.error(f"Error calling Hugging Face API: {str(e)}")
-        return None
+        if role == "system":
+            prompt += f"<s>[INST] System: {content} [/INST]\n"
+        elif role == "user":
+            prompt += f"<s>[INST] {content} [/INST]\n"
+        elif role == "assistant":
+            prompt += f"{content}</s>\n"
+    
+    prompt += "<s>"  # Add the start token for the response
+    return prompt
+    
+def _format_llama_prompt(messages):
+    """Format a prompt for Llama models"""
+    prompt = ""
+    system_content = ""
+    
+    # Extract system message first if it exists
+    for message in messages:
+        if message.get("role") == "system":
+            system_content = message.get("content", "")
+            break
+    
+    # Build conversation in Llama format
+    for i, message in enumerate(messages):
+        role = message.get("role", "")
+        content = message.get("content", "")
+        
+        if role == "system":
+            continue  # Already handled
+        elif role == "user":
+            if i == 0 or messages[i-1].get("role") != "assistant":
+                if system_content:
+                    prompt += f"<s>[INST] <<SYS>>\n{system_content}\n<</SYS>>\n\n{content} [/INST]"
+                    system_content = ""  # Only include system message once
+                else:
+                    prompt += f"<s>[INST] {content} [/INST]"
+            else:
+                prompt += f"<s>[INST] {content} [/INST]"
+        elif role == "assistant":
+            prompt += f" {content} </s>"
+    
+    return prompt
+    
+def _format_default_prompt(messages):
+    """Default prompt format for models without specific formatting"""
+    prompt = ""
+    has_system = False
+    
+    # Check if there's a system message
+    for message in messages:
+        if message.get("role") == "system":
+            has_system = True
+            break
+    
+    # Add a generic system instruction if none exists
+    if not has_system:
+        prompt += "You are a helpful, respectful assistant. Answer the following questions accurately and concisely.\n\n"
+    
+    # Add messages
+    for message in messages:
+        role = message.get("role", "")
+        content = message.get("content", "")
+        
+        if role == "system":
+            prompt += f"Instructions: {content}\n\n"
+        elif role == "user":
+            prompt += f"User: {content}\n"
+        elif role == "assistant":
+            prompt += f"Assistant: {content}\n"
+    
+    prompt += "Assistant: "  # Add prefix for the response
+    return prompt
 
 def hf_image_caption(image_path, model="Salesforce/blip-image-captioning-base"):
     """Generate a caption for an image using Hugging Face's free vision models"""
