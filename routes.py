@@ -148,6 +148,12 @@ def test_google_auth():
 def help_page():
     """Display help page"""
     return render_template('help.html', user=current_user)
+    
+# User guide
+@app.route('/user-guide')
+def user_guide():
+    """Display comprehensive user guide for all NOUS features"""
+    return render_template('user_guide.html', user=current_user)
 
 # Settings routes
 @app.route('/settings')

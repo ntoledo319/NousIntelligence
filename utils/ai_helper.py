@@ -10,20 +10,13 @@ from datetime import datetime
 from openai import OpenAI
 # Import knowledge base functions at runtime to avoid circular imports
 
-# Initialize OpenAI client with key directly from .env file
-env_path = '.env'
-openai_api_key = ""
-if os.path.exists(env_path):
-    with open(env_path, 'r') as f:
-        for line in f:
-            if line.strip().startswith('OPENAI_API_KEY='):
-                openai_api_key = line.strip().split('=', 1)[1]
-                break
+# Initialize OpenAI client with key from environment variable
+openai_api_key = os.environ.get("OPENAI_API_KEY", "")
 
 if openai_api_key:
-    logging.info(f"Using OpenAI API key (first 8 chars): {openai_api_key[:8]}")
+    logging.info(f"Using OpenAI API key from environment variables")
 else:
-    logging.warning("OpenAI API key not found in .env file")
+    logging.warning("OpenAI API key not found in environment variables")
 
 openai = OpenAI(api_key=openai_api_key)
 

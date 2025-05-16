@@ -1,0 +1,1015 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-10 text-center">
+            <h1 class="display-4" style="color: var(--nous-primary);">NOUS Personal Assistant Guide</h1>
+            <p class="lead">Your comprehensive guide to using all features of your AI-powered personal assistant.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <nav id="guide-nav" class="sticky-top pt-3">
+                <div class="list-group">
+                    <a class="list-group-item list-group-item-action active" href="#getting-started">Getting Started</a>
+                    <a class="list-group-item list-group-item-action" href="#chat-interface">Chat Interface</a>
+                    <a class="list-group-item list-group-item-action" href="#voice-commands">Voice Commands</a>
+                    <a class="list-group-item list-group-item-action" href="#calendar-tasks">Calendar & Tasks</a>
+                    <a class="list-group-item list-group-item-action" href="#health-management">Health Management</a>
+                    <a class="list-group-item list-group-item-action" href="#shopping-lists">Shopping Lists</a>
+                    <a class="list-group-item list-group-item-action" href="#finance-tracking">Finance Tracking</a>
+                    <a class="list-group-item list-group-item-action" href="#travel-planning">Travel Planning</a>
+                    <a class="list-group-item list-group-item-action" href="#media-integration">Media Integration</a>
+                    <a class="list-group-item list-group-item-action" href="#ai-features">AI Features</a>
+                    <a class="list-group-item list-group-item-action" href="#all-commands">All Commands</a>
+                </div>
+            </nav>
+        </div>
+
+        <div class="col-md-9">
+            <!-- Getting Started -->
+            <section id="getting-started" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="mb-4">Getting Started</h2>
+                        <p>NOUS is your AI-powered personal assistant designed to help you manage your daily life through a natural conversation interface. Here's how to get started:</p>
+                        
+                        <h5 class="mt-4">1. Connect Your Accounts</h5>
+                        <p>To unlock NOUS's full potential, connect your accounts:</p>
+                        <ul>
+                            <li><strong>Google Account</strong>: For calendar, tasks, and email integration</li>
+                            <li><strong>Spotify</strong>: For music controls and recommendations</li>
+                        </ul>
+                        
+                        <h5 class="mt-4">2. Explore the Interface</h5>
+                        <p>NOUS has a simple and intuitive chat interface. You can:</p>
+                        <ul>
+                            <li>Type commands or questions</li>
+                            <li>Use voice commands by clicking the microphone icon</li>
+                            <li>View your conversation history</li>
+                            <li>Access quick reference guide for commands</li>
+                        </ul>
+                        
+                        <h5 class="mt-4">3. Try Basic Commands</h5>
+                        <p>Start with these simple commands to explore NOUS's capabilities:</p>
+                        <ul>
+                            <li><code>help</code> - Show available commands</li>
+                            <li><code>what's my day</code> - View today's calendar</li>
+                            <li><code>add task: buy groceries</code> - Add a new task</li>
+                            <li><code>weather</code> - Get current weather</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Chat Interface -->
+            <section id="chat-interface" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="mb-4">Chat Interface</h2>
+                        <p>NOUS's chat interface is designed for natural conversations. You can interact in several ways:</p>
+                        
+                        <h5 class="mt-4">Natural Language</h5>
+                        <p>You can use natural language to ask questions or give commands. NOUS will understand your intent and respond appropriately. Examples:</p>
+                        <ul>
+                            <li>"What appointments do I have tomorrow?"</li>
+                            <li>"I need to add a dentist appointment next Tuesday at 2pm"</li>
+                            <li>"Show me my shopping list for groceries"</li>
+                            <li>"How much have I spent on dining this month?"</li>
+                        </ul>
+                        
+                        <h5 class="mt-4">Structured Commands</h5>
+                        <p>For specific functions, you can use structured commands for more precise control:</p>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Command</th>
+                                        <th>Description</th>
+                                        <th>Example</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>add [event] at [time]</code></td>
+                                        <td>Create calendar event</td>
+                                        <td><code>add meeting with John at tomorrow 3pm</code></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>add task: [task]</code></td>
+                                        <td>Add task to Google Tasks</td>
+                                        <td><code>add task: finish report</code></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>add note: [note]</code></td>
+                                        <td>Add note to Google Keep</td>
+                                        <td><code>add note: Ideas for project</code></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <h5 class="mt-4">Context-Aware Conversations</h5>
+                        <p>NOUS remembers your conversation context, so you can have more natural follow-up interactions:</p>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <p class="mb-1"><strong>You:</strong> What's the weather like today?</p>
+                                <p class="mb-1"><strong>NOUS:</strong> Today in [Your Location] it's 72°F and sunny.</p>
+                                <p class="mb-1"><strong>You:</strong> How about tomorrow?</p>
+                                <p class="mb-1"><strong>NOUS:</strong> Tomorrow will be 68°F with a 30% chance of rain in the afternoon.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Voice Commands -->
+            <section id="voice-commands" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="mb-4">Voice Commands</h2>
+                        <p>Speak directly to NOUS using the voice interface:</p>
+                        
+                        <h5 class="mt-4">Using Voice Commands</h5>
+                        <ol>
+                            <li>Click the microphone icon in the command input area</li>
+                            <li>Wait for the "Listening..." indicator</li>
+                            <li>Speak your command clearly</li>
+                            <li>NOUS will process your speech and respond accordingly</li>
+                        </ol>
+                        
+                        <div class="alert alert-info">
+                            <strong>Tip:</strong> For best results, speak clearly and use the same command structures as you would when typing.
+                        </div>
+                        
+                        <h5 class="mt-4">Voice Response</h5>
+                        <p>You can enable voice responses in settings so NOUS will speak its responses along with displaying them:</p>
+                        <ol>
+                            <li>Go to Settings</li>
+                            <li>Enable the "Voice Responses" toggle</li>
+                            <li>Select your preferred voice type and language</li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Calendar & Tasks -->
+            <section id="calendar-tasks" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="mb-4">Calendar & Tasks</h2>
+                        <p>NOUS integrates with Google Calendar and Tasks to help you stay organized:</p>
+                        
+                        <h5 class="mt-4">Calendar Management</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Command</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>add [event] at [time]</code></td>
+                                        <td>Create a calendar event</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>what's my day</code></td>
+                                        <td>Show today's calendar events</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show calendar [date]</code></td>
+                                        <td>Display calendar for a specific date</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>next meeting</code></td>
+                                        <td>Show your next scheduled meeting</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <h5 class="mt-4">Task Management</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Command</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>add task: [task]</code></td>
+                                        <td>Add a task to Google Tasks</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show tasks</code></td>
+                                        <td>Display your current tasks</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>complete task [task_id]</code></td>
+                                        <td>Mark a task as completed</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <h5 class="mt-4">Notes</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Command</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>add note: [note]</code></td>
+                                        <td>Add a note to Google Keep</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show notes</code></td>
+                                        <td>Display your saved notes</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Health Management -->
+            <section id="health-management" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="mb-4">Health Management</h2>
+                        <p>Keep track of your health appointments, medications, and wellness:</p>
+                        
+                        <h5 class="mt-4">Doctor Appointments</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Command</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>add doctor [name]</code></td>
+                                        <td>Add a new doctor to your records</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show doctors</code></td>
+                                        <td>Display all your saved doctors</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>add appointment with [doctor]</code></td>
+                                        <td>Schedule a new doctor appointment</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show appointments</code></td>
+                                        <td>List your upcoming appointments</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <h5 class="mt-4">Medication Tracking</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Command</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>add medication [name]</code></td>
+                                        <td>Add a new medication to track</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show medications</code></td>
+                                        <td>List all your medications</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>refill medication [name]</code></td>
+                                        <td>Record a medication refill</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show medications to refill</code></td>
+                                        <td>List medications that need to be refilled</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <h5 class="mt-4">Wellness Tracking</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Command</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>log workout: [details]</code></td>
+                                        <td>Log your workout details</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>log mood: [mood] [details]</code></td>
+                                        <td>Track your mood and related notes</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>pain forecast</code></td>
+                                        <td>Get a pain forecast based on weather conditions</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Shopping Lists -->
+            <section id="shopping-lists" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="mb-4">Shopping Lists</h2>
+                        <p>Manage your shopping lists and track products to order:</p>
+                        
+                        <h5 class="mt-4">Shopping Lists</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Command</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>create list [name]</code></td>
+                                        <td>Create a new shopping list</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show shopping lists</code></td>
+                                        <td>Display all your shopping lists</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>add item [item] to list [list]</code></td>
+                                        <td>Add an item to a shopping list</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>view list [list_id/name]</code></td>
+                                        <td>View items in a specific list</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>mark list [list] as ordered</code></td>
+                                        <td>Mark a shopping list as ordered</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>set list [list] as recurring</code></td>
+                                        <td>Set a shopping list to recur automatically</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <h5 class="mt-4">Product Tracking</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Command</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>add product [name]</code></td>
+                                        <td>Add a new product to track</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show products</code></td>
+                                        <td>Display all tracked products</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>set product [name] as recurring</code></td>
+                                        <td>Set a product for recurring purchase</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>mark product [name] as ordered</code></td>
+                                        <td>Record a product order</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show products to order</code></td>
+                                        <td>List products that need to be ordered</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Finance Tracking -->
+            <section id="finance-tracking" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="mb-4">Finance Tracking</h2>
+                        <p>Monitor your budgets, expenses, and recurring payments:</p>
+                        
+                        <h5 class="mt-4">Budget Management</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Command</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>create budget [name] [amount]</code></td>
+                                        <td>Create a new budget category</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show budgets</code></td>
+                                        <td>Display all your budget categories</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>budget summary</code></td>
+                                        <td>Show overall budget status</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <h5 class="mt-4">Expense Tracking</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Command</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>add expense [amount] for [category]</code></td>
+                                        <td>Record a new expense</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show expenses</code></td>
+                                        <td>List recent expenses</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show expenses for [category]</code></td>
+                                        <td>List expenses in a specific category</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <h5 class="mt-4">Recurring Payments</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Command</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>show recurring payments</code></td>
+                                        <td>List all recurring payments</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show upcoming payments</code></td>
+                                        <td>List payments due in the next 30 days</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>mark payment [name] as paid</code></td>
+                                        <td>Record a payment as completed</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Travel Planning -->
+            <section id="travel-planning" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="mb-4">Travel Planning</h2>
+                        <p>Plan and organize your trips:</p>
+                        
+                        <h5 class="mt-4">Trip Management</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Command</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>create trip [name]</code></td>
+                                        <td>Create a new trip</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show trips</code></td>
+                                        <td>Display all your trips</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show upcoming trips</code></td>
+                                        <td>List trips in the next 30 days</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show active trip</code></td>
+                                        <td>Display details of your current trip</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>get trip cost [trip_id/name]</code></td>
+                                        <td>Calculate the total cost of a trip</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <h5 class="mt-4">Itinerary & Accommodations</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Command</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>show itinerary [trip_id/name]</code></td>
+                                        <td>View itinerary for a specific trip</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>add itinerary item to [trip]</code></td>
+                                        <td>Add an activity to the itinerary</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show accommodations [trip_id/name]</code></td>
+                                        <td>List accommodations for a trip</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>add accommodation to [trip]</code></td>
+                                        <td>Add lodging information to a trip</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <h5 class="mt-4">Travel Documents & Packing</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Command</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>show travel documents [trip]</code></td>
+                                        <td>List travel documents for a trip</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>add travel document to [trip]</code></td>
+                                        <td>Add document information to a trip</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show packing list [trip]</code></td>
+                                        <td>Display packing list for a trip</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>generate packing list for [trip]</code></td>
+                                        <td>Auto-generate a standard packing list</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>add packing item to [trip]</code></td>
+                                        <td>Add an item to the packing list</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>toggle packed [item_id]</code></td>
+                                        <td>Mark an item as packed/unpacked</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Media Integration -->
+            <section id="media-integration" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="mb-4">Media Integration</h2>
+                        <p>Control Spotify and enjoy media features:</p>
+                        
+                        <h5 class="mt-4">Spotify Control</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Command</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>play [song/artist/album]</code></td>
+                                        <td>Play music on Spotify</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>pause</code></td>
+                                        <td>Pause music playback</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>resume</code> or <code>continue</code></td>
+                                        <td>Resume music playback</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>next</code> or <code>skip</code></td>
+                                        <td>Skip to next track</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>previous</code> or <code>back</code></td>
+                                        <td>Go to previous track</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>volume [0-100]</code></td>
+                                        <td>Adjust playback volume</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>now playing</code></td>
+                                        <td>Show currently playing track</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <h5 class="mt-4">Playlists</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Command</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>play playlist [name]</code></td>
+                                        <td>Play a specific playlist</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>create playlist [name]</code></td>
+                                        <td>Create a new playlist</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>add to playlist [playlist] - [track]</code></td>
+                                        <td>Add a track to a playlist</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>create ai playlist</code></td>
+                                        <td>Generate an AI-curated playlist based on your preferences</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI Features -->
+            <section id="ai-features" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="mb-4">AI Features</h2>
+                        <p>Advanced AI capabilities to enhance your experience:</p>
+                        
+                        <h5 class="mt-4">Image Analysis & Generation</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Command</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>analyze image</code></td>
+                                        <td>Open the image analysis panel to upload and analyze an image</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>detect objects</code></td>
+                                        <td>Detect and identify objects in an image</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>generate image</code></td>
+                                        <td>Create an AI-generated image based on your description</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <h5 class="mt-4">Email Analysis</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Command</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>analyze email: [subject]</code></td>
+                                        <td>Get AI analysis of emails matching the subject</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>summarize emails</code></td>
+                                        <td>Summarize recent important emails</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <h5 class="mt-4">Knowledge Learning</h5>
+                        <p>NOUS features a self-learning knowledge base that gets smarter the more you use it:</p>
+                        <ul>
+                            <li>Remembers your preferences and past conversations</li>
+                            <li>Learns from your interaction patterns</li>
+                            <li>Provides more personalized responses over time</li>
+                        </ul>
+                        
+                        <div class="alert alert-info">
+                            <strong>Note:</strong> You can simply chat with NOUS about any topic using natural language. The AI will respond based on its knowledge and learn from your interactions.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- All Commands Reference -->
+            <section id="all-commands" class="mb-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="mb-4">All Commands Reference</h2>
+                        <p>This is a comprehensive list of all available commands:</p>
+                        
+                        <div class="alert alert-primary">
+                            <i class="fas fa-lightbulb me-2"></i> The command interface supports both structured commands (shown below) and natural language. Feel free to speak or type naturally, and NOUS will understand your intent.
+                        </div>
+                        
+                        <div class="input-group mb-3">
+                            <input type="text" id="commandSearch" class="form-control" placeholder="Search commands...">
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered" id="commandTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40%">Command</th>
+                                        <th>Description</th>
+                                        <th>Category</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- General -->
+                                    <tr>
+                                        <td><code>help</code></td>
+                                        <td>Show help page</td>
+                                        <td>General</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>clear</code></td>
+                                        <td>Clear command log</td>
+                                        <td>General</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>dashboard</code></td>
+                                        <td>Go to dashboard view</td>
+                                        <td>General</td>
+                                    </tr>
+                                    
+                                    <!-- Calendar & Tasks -->
+                                    <tr>
+                                        <td><code>add [event] at [time]</code></td>
+                                        <td>Create calendar event</td>
+                                        <td>Calendar</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>what's my day</code></td>
+                                        <td>Show today's events</td>
+                                        <td>Calendar</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show calendar</code></td>
+                                        <td>Display upcoming events</td>
+                                        <td>Calendar</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>add task: [task]</code></td>
+                                        <td>Add task to Google Tasks</td>
+                                        <td>Tasks</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show tasks</code></td>
+                                        <td>Display current tasks</td>
+                                        <td>Tasks</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>complete task [task_id]</code></td>
+                                        <td>Mark task as completed</td>
+                                        <td>Tasks</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>add note: [note]</code></td>
+                                        <td>Add note to Google Keep</td>
+                                        <td>Notes</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show notes</code></td>
+                                        <td>Display saved notes</td>
+                                        <td>Notes</td>
+                                    </tr>
+                                    
+                                    <!-- Health -->
+                                    <tr>
+                                        <td><code>add doctor [name]</code></td>
+                                        <td>Add doctor to records</td>
+                                        <td>Health</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show doctors</code></td>
+                                        <td>Display saved doctors</td>
+                                        <td>Health</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>add appointment with [doctor]</code></td>
+                                        <td>Schedule doctor appointment</td>
+                                        <td>Health</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show appointments</code></td>
+                                        <td>List upcoming appointments</td>
+                                        <td>Health</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>add medication [name]</code></td>
+                                        <td>Add medication to track</td>
+                                        <td>Health</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show medications</code></td>
+                                        <td>List all medications</td>
+                                        <td>Health</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>refill medication [name]</code></td>
+                                        <td>Record medication refill</td>
+                                        <td>Health</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>log workout: [details]</code></td>
+                                        <td>Log workout details</td>
+                                        <td>Health</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>log mood: [mood] [details]</code></td>
+                                        <td>Track mood and notes</td>
+                                        <td>Health</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>pain forecast</code></td>
+                                        <td>Get pain forecast</td>
+                                        <td>Health</td>
+                                    </tr>
+                                    
+                                    <!-- Shopping -->
+                                    <tr>
+                                        <td><code>create list [name]</code></td>
+                                        <td>Create shopping list</td>
+                                        <td>Shopping</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>show shopping lists</code></td>
+                                        <td>Display all shopping lists</td>
+                                        <td>Shopping</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>add item [item] to list [list]</code></td>
+                                        <td>Add item to shopping list</td>
+                                        <td>Shopping</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>mark list [list] as ordered</code></td>
+                                        <td>Mark list as ordered</td>
+                                        <td>Shopping</td>
+                                    </tr>
+                                    
+                                    <!-- Media -->
+                                    <tr>
+                                        <td><code>play [song/artist/album]</code></td>
+                                        <td>Play music on Spotify</td>
+                                        <td>Media</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>pause</code></td>
+                                        <td>Pause music playback</td>
+                                        <td>Media</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>resume</code></td>
+                                        <td>Resume music playback</td>
+                                        <td>Media</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>now playing</code></td>
+                                        <td>Show currently playing track</td>
+                                        <td>Media</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<script>
+// Command search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('commandSearch');
+    const commandTable = document.getElementById('commandTable');
+    const rows = commandTable.getElementsByTagName('tr');
+    
+    searchInput.addEventListener('keyup', function() {
+        const query = searchInput.value.toLowerCase();
+        
+        for (let i = 1; i < rows.length; i++) {
+            const command = rows[i].getElementsByTagName('td')[0].textContent.toLowerCase();
+            const description = rows[i].getElementsByTagName('td')[1].textContent.toLowerCase();
+            const category = rows[i].getElementsByTagName('td')[2].textContent.toLowerCase();
+            
+            if (command.includes(query) || description.includes(query) || category.includes(query)) {
+                rows[i].style.display = '';
+            } else {
+                rows[i].style.display = 'none';
+            }
+        }
+    });
+    
+    // Scroll spy for navigation
+    const sections = document.querySelectorAll('section');
+    const navLinks = document.querySelectorAll('#guide-nav a');
+    
+    window.addEventListener('scroll', function() {
+        let current = '';
+        
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop - 100;
+            const sectionHeight = section.clientHeight;
+            if (pageYOffset >= sectionTop) {
+                current = section.getAttribute('id');
+            }
+        });
+        
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href').substring(1) === current) {
+                link.classList.add('active');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
