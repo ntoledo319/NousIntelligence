@@ -14,6 +14,11 @@ from PIL import Image
 # Access Hugging Face token from environment variables
 HF_TOKEN = os.environ.get("HF_ACCESS_TOKEN")
 
+# Define get_embedding to match import in knowledge_helper.py
+def get_embedding(text, model="BAAI/bge-small-en-v1.5"):
+    """Function alias for compatibility with knowledge_helper.py import"""
+    return hf_text_embeddings(text, model)
+    
 def hf_text_embeddings(text, model="BAAI/bge-small-en-v1.5"):
     """Generate text embeddings using Hugging Face's free embedding models"""
     if not HF_TOKEN:

@@ -28,16 +28,19 @@ except ImportError:
 # Use environment variables for API keys directly
 openai_api_key = os.environ.get("OPENAI_API_KEY", "")
 openrouter_api_key = os.environ.get("OPENROUTER_API_KEY", "")
+hf_api_key = os.environ.get("HF_ACCESS_TOKEN", "")
 
-# Log API key status
+# Log API key status and handle key cleanup
 if openai_api_key:
     # Check if it's an OpenRouter key mistakenly set as OpenAI (starts with sk-or)
     if openai_api_key.startswith("sk-or-"):
-        logging.warning("Found OpenRouter key format in OPENAI_API_KEY. This may cause issues.")
+        logging.warning("Found OpenRouter key in OPENAI_API_KEY environment variable. Clearing to avoid errors.")
+        # Clear the invalid key to avoid API errors
+        openai_api_key = ""
     else:
         logging.info("OpenAI API key available")
 else:
-    logging.warning("OpenAI API key not found in environment variables")
+    logging.warning("OpenAI API key not found")
 
 # Check OpenRouter key
 if openrouter_api_key:
@@ -45,7 +48,14 @@ if openrouter_api_key:
 else:
     logging.warning("OpenRouter API key not found in environment variables")
 
-openai = OpenAI(api_key=openai_api_key)
+# Only set up OpenAI client if we have a valid API key
+openai = OpenAI(api_key=openai_api_key) if openai_api_key else None
+
+# Log Hugging Face API status - this will be our preferred provider for cost savings
+if hf_api_key:
+    logging.info("Hugging Face API token available - will prioritize for cost savings")
+else:
+    logging.warning("No Hugging Face API token found - will rely on fallbacks")
 
 # Cache the model in memory
 _embedding_dimension = 1536  # Default for text-embedding-ada-002
@@ -453,14 +463,14 @@ def get_completion_via_huggingface(messages, max_tokens=1000, temperature=0.7):
     """
     # Import the Hugging Face helper function if available
     try:
-        from utils.huggingface_helper import generate_chat_response
+        from utils.huggingface_helper import hf_chat_completion
     except ImportError:
         logging.error("Hugging Face helper not available for chat completion")
         return None
     
     try:
         logging.info("Attempting to use Hugging Face for chat completion as fallback")
-        response = generate_chat_response(messages, max_length=max_tokens)
+        response = hf_chat_completion(messages, model="HuggingFaceH4/zephyr-7b-beta")
         
         if response:
             logging.info("Successfully generated completion via Hugging Face")
