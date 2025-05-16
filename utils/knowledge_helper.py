@@ -110,8 +110,8 @@ def get_embedding_via_openrouter(text):
 
 def get_embedding_for_text(text):
     """
-    Generate an embedding for the given text using OpenAI's embedding model.
-    With caching to reduce API calls and OpenRouter fallback.
+    Generate an embedding for the given text prioritizing Hugging Face's free embedding models
+    with OpenAI as fallback. This approach reduces costs without sacrificing quality.
     
     Args:
         text (str): The text to embed
@@ -131,10 +131,23 @@ def get_embedding_for_text(text):
         logging.warning(f"Truncating text from {len(cleaned_text)} to 8000 chars")
         cleaned_text = cleaned_text[:8000]
     
-    # First try OpenAI
+    # First try Hugging Face (cost-effective solution)
+    if hf_get_embedding:
+        try:
+            logging.info("Generating embedding using Hugging Face (primary option)")
+            hf_embedding = hf_get_embedding(cleaned_text)
+            if hf_embedding is not None:
+                logging.info(f"Successfully generated embedding via Hugging Face (size: {len(hf_embedding)})")
+                # Cache the embedding for future use (24 hour TTL)
+                cache_embedding(text, hf_embedding, ttl_seconds=86400)
+                return hf_embedding
+        except Exception as hf_error:
+            logging.error(f"Error generating embedding with Hugging Face: {str(hf_error)}")
+    
+    # Fall back to OpenAI if Hugging Face fails
     try:
         if openai_api_key:
-            logging.info("Generating embedding using OpenAI API")
+            logging.info("Falling back to OpenAI API for embedding generation")
             
             # Use OpenAI API to generate the embedding
             response = openai.embeddings.create(
@@ -163,19 +176,6 @@ def get_embedding_for_text(text):
                 # Cache the embedding for future use (12 hour TTL)
                 cache_embedding(text, openrouter_embedding, ttl_seconds=43200)
                 return openrouter_embedding
-    
-    # Try Hugging Face if OpenAI and OpenRouter both failed
-    if hf_get_embedding:
-        try:
-            logging.info("Trying Hugging Face for embedding generation as fallback")
-            hf_embedding = hf_get_embedding(cleaned_text)
-            if hf_embedding is not None:
-                logging.info(f"Successfully generated embedding via Hugging Face (size: {len(hf_embedding)})")
-                # Cache the embedding for future use (12 hour TTL)
-                cache_embedding(text, hf_embedding, ttl_seconds=43200)
-                return hf_embedding
-        except Exception as hf_error:
-            logging.error(f"Error generating embedding with Hugging Face: {str(hf_error)}")
     
     # If we get here, all external services failed (or weren't available)
     # Create a deterministic fallback embedding as last resort
