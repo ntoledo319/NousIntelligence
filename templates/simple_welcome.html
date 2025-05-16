@@ -22,8 +22,15 @@
         }
         
         .hero-logo {
-            max-width: 150px;
+            max-width: 180px;
             height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .hero-logo:hover {
+            transform: scale(1.05);
         }
         
         .feature-icon {
@@ -40,6 +47,23 @@
         .btn-primary:hover {
             background-color: #5a37a0;
             border-color: #5a37a0;
+        }
+        
+        .btn-nous-primary {
+            background-color: var(--nous-primary);
+            border-color: var(--nous-primary);
+            color: white;
+            border-radius: 5px;
+            padding: 0.5rem 1.5rem;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-nous-primary:hover {
+            background-color: #5a37a0;
+            border-color: #5a37a0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            color: white;
         }
         
         .card {
@@ -88,32 +112,44 @@
                         <div class="row g-4">
                             <div class="col-md-6">
                                 <div class="card h-100">
-                                    <div class="card-body">
-                                        <h5 class="card-title"><i class="fas fa-brain text-primary me-2"></i>Therapy Support</h5>
+                                    <div class="card-body text-center">
+                                        <div class="mb-3">
+                                            <img src="{{ url_for('static', filename='img/IMG_4875.jpeg') }}" alt="Therapy Icon" class="img-fluid mb-2" style="max-width: 70px; border-radius: 8px;">
+                                        </div>
+                                        <h5 class="card-title">Therapy Support</h5>
                                         <p class="card-text">Access DBT and CBT techniques to help manage emotions, develop coping skills, and challenge negative thought patterns.</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="card h-100">
-                                    <div class="card-body">
-                                        <h5 class="card-title"><i class="fas fa-users text-primary me-2"></i>AA Recovery Support</h5>
+                                    <div class="card-body text-center">
+                                        <div class="mb-3">
+                                            <img src="{{ url_for('static', filename='img/IMG_4875.jpeg') }}" alt="AA Support Icon" class="img-fluid mb-2" style="max-width: 70px; border-radius: 8px;">
+                                        </div>
+                                        <h5 class="card-title">AA Recovery Support</h5>
                                         <p class="card-text">Track sobriety milestones, access recovery resources, and get support with twelve-step program principles.</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6 mt-3">
                                 <div class="card h-100">
-                                    <div class="card-body">
-                                        <h5 class="card-title"><i class="fab fa-google text-primary me-2"></i>Google Suite Integration</h5>
+                                    <div class="card-body text-center">
+                                        <div class="mb-3">
+                                            <img src="{{ url_for('static', filename='img/IMG_4875.jpeg') }}" alt="Google Suite Icon" class="img-fluid mb-2" style="max-width: 70px; border-radius: 8px;">
+                                        </div>
+                                        <h5 class="card-title">Google Suite Integration</h5>
                                         <p class="card-text">Seamlessly connect with Google Calendar, Gmail, Drive, and other Google services to manage your digital life.</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6 mt-3">
                                 <div class="card h-100">
-                                    <div class="card-body">
-                                        <h5 class="card-title"><i class="fas fa-robot text-primary me-2"></i>Advanced AI Assistant</h5>
+                                    <div class="card-body text-center">
+                                        <div class="mb-3">
+                                            <img src="{{ url_for('static', filename='img/IMG_4875.jpeg') }}" alt="AI Assistant Icon" class="img-fluid mb-2" style="max-width: 70px; border-radius: 8px;">
+                                        </div>
+                                        <h5 class="card-title">Advanced AI Assistant</h5>
                                         <p class="card-text">Enjoy natural conversations with a sophisticated AI that learns your preferences and helps with daily tasks.</p>
                                     </div>
                                 </div>
