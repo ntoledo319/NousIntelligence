@@ -75,17 +75,107 @@ body {
     transform: scale(1.05);
 }
 
+/* Hero section styling */
+.hero-section {
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120%;
+    height: 300px;
+    background: radial-gradient(circle, rgba(67, 97, 238, 0.05) 0%, rgba(46, 196, 182, 0.02) 50%, rgba(255, 255, 255, 0) 70%);
+    z-index: -1;
+    border-radius: 50%;
+}
+
 .hero-logo {
     max-width: 100%;
     height: auto;
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    filter: drop-shadow(0 8px 24px rgba(67, 97, 238, 0.15));
 }
 
 .hero-logo:hover {
-    transform: translateY(-5px);
+    transform: translateY(-5px) rotate(5deg);
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.hero-title {
+    font-weight: 800;
+    font-size: 2.5rem;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+    margin-bottom: 1rem;
+}
+
+.hero-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.text-gradient {
+    background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+}
+
+.hero-badges {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* New badge styles */
+.badge {
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+}
+
+.badge:hover {
+    transform: translateY(-2px);
+}
+
+.bg-primary-soft {
+    background-color: rgba(67, 97, 238, 0.15);
+    color: var(--primary-dark);
+}
+
+.bg-success-soft {
+    background-color: rgba(46, 196, 182, 0.15);
+    color: #21988d;
+}
+
+.bg-warning-soft {
+    background-color: rgba(255, 159, 28, 0.15);
+    color: #e08200;
+}
+
+.bg-danger-soft {
+    background-color: rgba(239, 71, 111, 0.15);
+    color: #d62d58;
+}
+
+.bg-info-soft {
+    background-color: rgba(61, 169, 252, 0.15);
+    color: #0e88e5;
 }
 
 /* Navbar styling */

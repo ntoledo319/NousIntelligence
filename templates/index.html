@@ -2,16 +2,24 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-lg-12 mb-3 text-center">
-        <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" alt="NOUS Logo" class="hero-logo mb-2" style="max-height: 130px;">
-        <h2 class="mb-2" style="color: var(--nous-primary);">Your Personal Assistant</h2>
+    <div class="col-lg-12 mb-4 text-center">
+        <div class="hero-section">
+            <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" alt="NOUS Logo" class="hero-logo mb-3" style="max-height: 150px;">
+            <h1 class="hero-title mb-2">Your AI-Powered <span class="text-gradient">Personal Assistant</span></h1>
+            <p class="hero-subtitle mb-4">Organize your life with intelligent automation and customized support</p>
+            <div class="hero-badges mb-2">
+                <span class="badge rounded-pill bg-primary-soft"><i class="fas fa-robot me-1"></i>AI Powered</span>
+                <span class="badge rounded-pill bg-success-soft"><i class="fas fa-shield-alt me-1"></i>Secure</span>
+                <span class="badge rounded-pill bg-info-soft"><i class="fas fa-sync me-1"></i>Always Updated</span>
+            </div>
+        </div>
     </div>
     <div class="col-lg-9 col-md-11 col-sm-12">
-        <div class="card mb-3">
-            <div class="card-header text-white">
+        <div class="card card-modern mb-4">
+            <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
-                    <h3 class="mb-0 me-2">
-                        <i class="fas fa-terminal me-1"></i>NOUS Interface
+                    <h3 class="card-title mb-0 me-2">
+                        <i class="fas fa-terminal me-2"></i>NOUS Interface
                     </h3>
                     <!-- Mobile connection status -->
                     <div class="d-flex d-md-none my-1 connection-status-mobile">
