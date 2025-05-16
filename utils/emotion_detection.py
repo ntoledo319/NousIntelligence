@@ -174,23 +174,33 @@ def analyze_voice_audio(audio_data, user_id: str) -> Dict:
     Returns:
         Dict containing emotion analysis results
     """
-    # In a real implementation, this would use audio processing libraries
-    # like librosa, pyAudioAnalysis, or cloud APIs like Google's Speech-to-Text
-    # with sentiment analysis or Azure's Speech Services
-    
-    # This is a placeholder implementation that defaults to a neutral detection
-    # A real implementation would analyze pitch, tone, speed, volume variations, etc.
-    
-    # For demonstration, we'll return a default result
-    return {
-        "emotion": "neutral",
-        "confidence": 0.5,
-        "audio_features": {
-            "pitch": "medium",
-            "speed": "normal",
-            "volume": "medium"
+    # Use our new voice emotion detector
+    try:
+        # Import our advanced voice emotion detector
+        from utils.voice_emotion_detector import detect_emotion_from_audio, get_tone_feedback
+        
+        # Run the detection
+        emotion_result = detect_emotion_from_audio(audio_data)
+        
+        # Add user-friendly feedback
+        emotion_result["feedback"] = get_tone_feedback(emotion_result)
+        
+        return emotion_result
+    except Exception as e:
+        logging.error(f"Error analyzing voice audio: {str(e)}")
+        
+        # Fallback to basic result if the advanced detection fails
+        return {
+            "emotion": "neutral",
+            "confidence": 0.5,
+            "audio_features": {
+                "pitch": "medium",
+                "speech_rate": "normal",
+                "energy": "medium",
+                "pitch_variance": "medium"
+            },
+            "source": "fallback"
         }
-    }
 
 def log_emotion(user_id: str, emotion: str, confidence: float, source: str, details: Optional[str] = None):
     """

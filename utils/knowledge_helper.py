@@ -12,7 +12,7 @@ import requests
 from datetime import datetime
 from openai import OpenAI
 from sqlalchemy import desc
-from utils.cache_helper import cache_result, get_cached_embedding, cache_embedding
+from utils.cache_helper import cache_result, get_cached_embedding, store_cached_embedding as cache_embedding
 
 # Import Hugging Face helper for fallback functionality
 # This is an additional layer between OpenRouter and local fallbacks

@@ -55,6 +55,20 @@ VISION_MODELS = {
     }
 }
 
+# ===== AUDIO/VOICE MODELS =====
+
+# Audio processing models in order of cost preference (lowest to highest)
+AUDIO_MODELS = {
+    "huggingface": {
+        "audio_emotion": "ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition",
+        "audio_classification": "superb/wav2vec2-base-superb-ks",
+        "speech_recognition": "facebook/wav2vec2-base-960h"
+    },
+    "openai": {
+        "speech_recognition": "whisper-1"
+    }
+}
+
 # ===== TASK-SPECIFIC MODEL SELECTION =====
 
 def get_model_for_task(task, quality_level="default", provider=None):
@@ -62,7 +76,7 @@ def get_model_for_task(task, quality_level="default", provider=None):
     Select the appropriate model for a given task based on cost and quality requirements.
     
     Args:
-        task (str): The AI task (e.g., "embedding", "chat", "caption")
+        task (str): The AI task (e.g., "embedding", "chat", "caption", "audio_emotion")
         quality_level (str): Quality level needed ("default", "high_quality", "lightweight")
         provider (str, optional): Force a specific provider
         

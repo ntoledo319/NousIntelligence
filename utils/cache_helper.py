@@ -294,3 +294,58 @@ def schedule_cache_cleanup():
 
 # Initialize cache cleanup on module import
 schedule_cache_cleanup()
+
+# Compatibility functions for existing code
+def get_cached_embedding(text, model="BAAI/bge-small-en-v1.5"):
+    """
+    Compatibility function for existing code that uses get_cached_embedding
+    
+    Args:
+        text (str): Text to get embedding for
+        model (str): Model name
+        
+    Returns:
+        numpy array: The embedding vector
+    """
+    cache_key = f"embedding:{model}:{hashlib.md5(text.encode()).hexdigest()}"
+    cached = CacheManager.get(cache_key)
+    
+    if cached is not None:
+        # Convert back to numpy array if needed
+        if isinstance(cached, list):
+            import numpy as np
+            return np.array(cached, dtype=np.float32)
+        return cached
+        
+    # Not in cache - return None and let the caller handle getting the embedding
+    return None
+
+def store_cached_embedding(text, embedding, model="BAAI/bge-small-en-v1.5", ttl_seconds=86400):
+    """
+    Store an embedding in the cache
+    
+    Args:
+        text (str): The original text
+        embedding: The embedding vector (numpy array or list)
+        model (str): Model name
+        ttl_seconds (int): Time-to-live in seconds
+        
+    Returns:
+        bool: Success status
+    """
+    # Convert numpy arrays to lists for JSON serialization
+    import numpy as np
+    if isinstance(embedding, np.ndarray):
+        embedding_list = embedding.tolist()
+    else:
+        embedding_list = embedding
+        
+    cache_key = f"embedding:{model}:{hashlib.md5(text.encode()).hexdigest()}"
+    return CacheManager.set(cache_key, embedding_list, ttl_seconds)
+
+def clear_caches():
+    """Compatibility function for existing code that uses clear_caches"""
+    return CacheManager.clear_expired()
+    
+# Define for backwards compatibility
+cache_embedding = store_cached_embedding
