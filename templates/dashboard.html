@@ -2,70 +2,92 @@
 
 {% block content %}
 <div class="dashboard">
-    <div class="row mb-4">
-        <div class="col-lg-12 text-center">
-            <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" alt="NOUS Logo" class="hero-logo mb-3" style="max-height: 130px;">
-        </div>
-    </div>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="mb-0" style="color: var(--nous-primary);">
-            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-        </h1>
-        <div>
-            <a href="{{ url_for('index') }}" class="btn btn-primary">
-                <i class="fas fa-terminal me-1"></i> Command Interface
-            </a>
+    <div class="dashboard-hero mb-5">
+        <div class="row align-items-center">
+            <div class="col-lg-3 col-md-4 text-center text-md-start mb-4 mb-md-0">
+                <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" alt="NOUS Logo" class="hero-logo mb-3" style="max-height: 150px;">
+            </div>
+            <div class="col-lg-6 col-md-8">
+                <h1 class="dashboard-title mb-2">
+                    <i class="fas fa-tachometer-alt me-2"></i>Your <span class="text-gradient">Dashboard</span>
+                </h1>
+                <p class="dashboard-subtitle mb-3">View all your important data in one place with quick access to your most-used features</p>
+                <div class="dashboard-actions">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-terminal me-1"></i> Command Interface
+                    </a>
+                    <a href="{{ url_for('settings_page') }}" class="btn btn-outline-primary ms-2">
+                        <i class="fas fa-cog me-1"></i> Settings
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-3 d-none d-lg-block">
+                <div class="dashboard-date-card">
+                    <div class="date-card-inner">
+                        <div class="date-month">{{ now.strftime('%b') }}</div>
+                        <div class="date-day">{{ now.strftime('%d') }}</div>
+                        <div class="date-year">{{ now.strftime('%Y') }}</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
     <!-- Quick Access Tiles -->
-    <div class="row mb-4">
-        <div class="col-6 col-md-3 mb-3">
-            <div class="quick-access-tile health-tile">
-                <a href="#health-section" class="text-decoration-none">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="card-body text-center p-3">
-                            <i class="fas fa-heartbeat fa-2x mb-2 text-danger"></i>
-                            <h5 class="mb-0">Health</h5>
+    <div class="quick-access-section mb-5">
+        <h4 class="section-label mb-3"><i class="fas fa-bolt me-2"></i>Quick Access</h4>
+        <div class="row">
+            <div class="col-6 col-md-3 mb-4">
+                <div class="quick-access-tile">
+                    <a href="#health-section" class="tile-link">
+                        <div class="tile-icon tile-health">
+                            <i class="fas fa-heartbeat"></i>
                         </div>
-                    </div>
-                </a>
+                        <div class="tile-content">
+                            <h5>Health</h5>
+                            <span class="tile-description">Appointments & medications</span>
+                        </div>
+                    </a>
+                </div>
             </div>
-        </div>
-        <div class="col-6 col-md-3 mb-3">
-            <div class="quick-access-tile shopping-tile">
-                <a href="#shopping-section" class="text-decoration-none">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="card-body text-center p-3">
-                            <i class="fas fa-shopping-cart fa-2x mb-2 text-success"></i>
-                            <h5 class="mb-0">Shopping</h5>
+            <div class="col-6 col-md-3 mb-4">
+                <div class="quick-access-tile">
+                    <a href="#shopping-section" class="tile-link">
+                        <div class="tile-icon tile-shopping">
+                            <i class="fas fa-shopping-cart"></i>
                         </div>
-                    </div>
-                </a>
+                        <div class="tile-content">
+                            <h5>Shopping</h5>
+                            <span class="tile-description">Lists & product tracking</span>
+                        </div>
+                    </a>
+                </div>
             </div>
-        </div>
-        <div class="col-6 col-md-3 mb-3">
-            <div class="quick-access-tile finance-tile">
-                <a href="#finance-section" class="text-decoration-none">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="card-body text-center p-3">
-                            <i class="fas fa-chart-line fa-2x mb-2 text-primary"></i>
-                            <h5 class="mb-0">Finance</h5>
+            <div class="col-6 col-md-3 mb-4">
+                <div class="quick-access-tile">
+                    <a href="#finance-section" class="tile-link">
+                        <div class="tile-icon tile-finance">
+                            <i class="fas fa-chart-line"></i>
                         </div>
-                    </div>
-                </a>
+                        <div class="tile-content">
+                            <h5>Finance</h5>
+                            <span class="tile-description">Budgets & expenses</span>
+                        </div>
+                    </a>
+                </div>
             </div>
-        </div>
-        <div class="col-6 col-md-3 mb-3">
-            <div class="quick-access-tile travel-tile">
-                <a href="#travel-section" class="text-decoration-none">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="card-body text-center p-3">
-                            <i class="fas fa-plane-departure fa-2x mb-2 text-info"></i>
-                            <h5 class="mb-0">Travel</h5>
+            <div class="col-6 col-md-3 mb-4">
+                <div class="quick-access-tile">
+                    <a href="#travel-section" class="tile-link">
+                        <div class="tile-icon tile-travel">
+                            <i class="fas fa-plane-departure"></i>
                         </div>
-                    </div>
-                </a>
+                        <div class="tile-content">
+                            <h5>Travel</h5>
+                            <span class="tile-description">Trips & itineraries</span>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -73,19 +95,27 @@
     <div class="row">
         <!-- Welcome Card -->
         <div class="col-lg-12 mb-4">
-            <div class="card border-0 bg-primary bg-opacity-10">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-user-circle fa-2x me-3 text-primary"></i>
+            <div class="welcome-card">
+                <div class="welcome-card-bg"></div>
+                <div class="welcome-card-content">
+                    <div class="d-flex align-items-center flex-wrap">
+                        <div class="welcome-icon">
+                            <i class="fas fa-user-circle"></i>
                         </div>
-                        <div class="flex-grow-1">
-                            <h2 class="card-title h5 mb-1">
-                                Welcome back!
-                            </h2>
-                            <p class="card-text mb-0">
-                                This dashboard provides a quick overview of your data across various categories.
+                        <div class="welcome-text">
+                            <h2 class="welcome-title">Welcome back!</h2>
+                            <p class="welcome-message mb-0">
+                                This dashboard provides a quick overview of your data across various categories. 
+                                Find what you need quickly or use the command interface for detailed interactions.
                             </p>
+                        </div>
+                        <div class="welcome-actions ms-auto mt-3 mt-md-0">
+                            <a href="{{ url_for('help_page') }}" class="btn btn-light btn-sm me-2">
+                                <i class="fas fa-question-circle me-1"></i> Help
+                            </a>
+                            <a href="{{ url_for('user_guide') }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-book me-1"></i> User Guide
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -199,22 +229,28 @@
     
     <!-- Health Section -->
     <section id="health-section" class="mb-5">
-        <div class="dashboard-section-header mb-4">
-            <h2 class="h4">
-                <i class="fas fa-heartbeat me-2 text-danger"></i>Health
-            </h2>
-            <hr>
+        <div class="section-header-modern mb-4">
+            <div class="section-icon health-icon">
+                <i class="fas fa-heartbeat"></i>
+            </div>
+            <div class="section-title">
+                <h2>Health</h2>
+                <p class="section-subtitle">Manage your appointments and medications</p>
+            </div>
         </div>
         
         <div class="row">
             <!-- Upcoming Appointments -->
             <div class="col-lg-6 mb-4">
-                <div class="card border-0 h-100">
+                <div class="card card-modern h-100">
                     <div class="card-header">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i class="fas fa-calendar-check me-2"></i>Upcoming Appointments
-                            </h5>
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon-wrapper health-soft me-2">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                                <h5 class="card-title mb-0">Upcoming Appointments</h5>
+                            </div>
                             <a href="#" onclick="submitCommand('show appointments');return false;" class="btn btn-sm btn-outline-primary">View All</a>
                         </div>
                     </div>
@@ -242,12 +278,15 @@
             
             <!-- Medications to Refill -->
             <div class="col-lg-6 mb-4">
-                <div class="card border-0 h-100">
+                <div class="card card-modern h-100">
                     <div class="card-header">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i class="fas fa-pills me-2"></i>Medications to Refill
-                            </h5>
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon-wrapper health-soft me-2">
+                                    <i class="fas fa-pills"></i>
+                                </div>
+                                <h5 class="card-title mb-0">Medications to Refill</h5>
+                            </div>
                             <a href="#" onclick="submitCommand('show medications');return false;" class="btn btn-sm btn-outline-primary">View All</a>
                         </div>
                     </div>
@@ -277,22 +316,28 @@
     
     <!-- Shopping Section -->
     <section id="shopping-section" class="mb-5">
-        <div class="dashboard-section-header mb-4">
-            <h2 class="h4">
-                <i class="fas fa-shopping-cart me-2 text-success"></i>Shopping
-            </h2>
-            <hr>
+        <div class="section-header-modern mb-4">
+            <div class="section-icon shopping-icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="section-title">
+                <h2>Shopping</h2>
+                <p class="section-subtitle">Manage your shopping lists and product tracking</p>
+            </div>
         </div>
         
         <div class="row">
             <!-- Shopping Lists -->
             <div class="col-lg-6 mb-4">
-                <div class="card border-0 h-100">
+                <div class="card card-modern h-100">
                     <div class="card-header">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i class="fas fa-list me-2"></i>Shopping Lists
-                            </h5>
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon-wrapper shopping-soft me-2">
+                                    <i class="fas fa-list"></i>
+                                </div>
+                                <h5 class="card-title mb-0">Shopping Lists</h5>
+                            </div>
                             <a href="#" onclick="submitCommand('show shopping lists');return false;" class="btn btn-sm btn-outline-primary">View All</a>
                         </div>
                     </div>
@@ -371,11 +416,14 @@
     
     <!-- Finance Section -->
     <section id="finance-section" class="mb-5">
-        <div class="dashboard-section-header mb-4">
-            <h2 class="h4">
-                <i class="fas fa-chart-line me-2 text-primary"></i>Finance
-            </h2>
-            <hr>
+        <div class="section-header-modern mb-4">
+            <div class="section-icon finance-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="section-title">
+                <h2>Finance</h2>
+                <p class="section-subtitle">Track your budgets and manage expenses</p>
+            </div>
         </div>
         
         <div class="row">
@@ -538,11 +586,14 @@
     
     <!-- Travel Section -->
     <section id="travel-section" class="mb-5">
-        <div class="dashboard-section-header mb-4">
-            <h2 class="h4">
-                <i class="fas fa-plane-departure me-2 text-info"></i>Travel
-            </h2>
-            <hr>
+        <div class="section-header-modern mb-4">
+            <div class="section-icon travel-icon">
+                <i class="fas fa-plane-departure"></i>
+            </div>
+            <div class="section-title">
+                <h2>Travel</h2>
+                <p class="section-subtitle">Plan trips and manage your itineraries</p>
+            </div>
         </div>
         
         <div class="row">
