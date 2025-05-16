@@ -76,7 +76,7 @@ def get_embedding_via_openrouter(text):
         headers = {
             "Authorization": f"Bearer {openrouter_api_key}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "https://nous.replit.app/",  # Add proper referer for OpenRouter
+            "HTTP-Referer": "https://mynous.replit.app/",  # Updated referer URL for OpenRouter
             "X-Title": "Nous AI Assistant"  # Add a title for tracking in OpenRouter
         }
         
@@ -375,7 +375,7 @@ def get_completion_via_openrouter(messages, max_tokens=1000, temperature=0.7):
         headers = {
             "Authorization": f"Bearer {openrouter_api_key}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "https://nous.replit.app/",  # Add proper referer for OpenRouter
+            "HTTP-Referer": "https://mynous.replit.app/",  # Updated referer URL for OpenRouter
             "X-Title": "Nous AI Assistant"  # Add a title for tracking in OpenRouter
         }
         
