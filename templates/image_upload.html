@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}AI Image Analysis{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>AI Image Analysis</h3>
+                    <p class="text-muted mb-0">Use Hugging Face's free models to analyze your images</p>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 
+                        This feature uses Hugging Face's free AI services instead of more expensive alternatives,
+                        saving costs while still providing high-quality image analysis.
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h5>Analyze a Single Image</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form action="{{ url_for('image_routes.analyze_image') }}" method="post" enctype="multipart/form-data">
+                                        <div class="mb-3">
+                                            <label for="image" class="form-label">Select an image to analyze</label>
+                                            <input type="file" class="form-control" id="image" name="image" accept=".jpg,.jpeg,.png,.gif" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="analysis_type" class="form-label">Analysis Type</label>
+                                            <select class="form-select" id="analysis_type" name="analysis_type">
+                                                <option value="describe">Generate description</option>
+                                                <option value="classify">Classify image contents</option>
+                                                <option value="detect">Detect objects</option>
+                                                <option value="travel">Travel photo analysis</option>
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-image"></i> Analyze Image
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Organize Multiple Images</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form action="{{ url_for('image_routes.organize_images') }}" method="post" enctype="multipart/form-data">
+                                        <div class="mb-3">
+                                            <label for="images" class="form-label">Select multiple images to organize</label>
+                                            <input type="file" class="form-control" id="images" name="images" multiple accept=".jpg,.jpeg,.png,.gif" required>
+                                        </div>
+                                        <p class="text-muted">
+                                            Upload multiple photos to automatically categorize them by content (nature, urban, food, etc.)
+                                        </p>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-folder-open"></i> Upload & Organize
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Features Using Hugging Face's Free AI</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="feature-box text-center p-3 border rounded h-100">
+                                <i class="fas fa-comment fa-2x mb-3 text-primary"></i>
+                                <h5>Image Description</h5>
+                                <p>Generate descriptive captions for any image automatically</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="feature-box text-center p-3 border rounded h-100">
+                                <i class="fas fa-tags fa-2x mb-3 text-success"></i>
+                                <h5>Object Detection</h5>
+                                <p>Identify multiple objects in images with confidence scores</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="feature-box text-center p-3 border rounded h-100">
+                                <i class="fas fa-cubes fa-2x mb-3 text-warning"></i>
+                                <h5>Photo Organization</h5>
+                                <p>Automatically sort your travel photos by content type</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

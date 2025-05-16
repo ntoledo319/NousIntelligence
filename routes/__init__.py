@@ -9,6 +9,7 @@ from routes.crisis_routes import crisis_bp
 from routes.admin_routes import admin_bp, initialize_admin
 from routes.beta_routes import beta_bp
 from routes.setup_routes import setup_bp
+from routes.image_routes import image_routes
 
 def register_blueprints(app):
     """Register all blueprints with the Flask app"""
@@ -19,6 +20,7 @@ def register_blueprints(app):
     app.register_blueprint(admin_bp)
     app.register_blueprint(beta_bp)
     app.register_blueprint(setup_bp)
+    app.register_blueprint(image_routes)
     
     # Configure beta mode if enabled
     if app.config.get('ENABLE_BETA_MODE', False):
