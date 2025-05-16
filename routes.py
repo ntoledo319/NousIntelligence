@@ -89,6 +89,57 @@ def login_page():
     # Render the login page
     return render_template('login.html')
 
+# Test endpoint for Google OAuth configuration
+@app.route('/test-google-auth')
+def test_google_auth():
+    """Diagnostic endpoint for testing Google OAuth configuration"""
+    import json
+    import os
+    
+    # Get information about the environment
+    test_results = {
+        "environment": {
+            "domain": request.host,
+            "protocol": request.scheme,
+            "base_url": request.url_root,
+            "full_url": request.url,
+            "replit_dev_domain": os.environ.get('REPLIT_DEV_DOMAIN', 'Not set')
+        }
+    }
+    
+    # Read Google client configuration
+    try:
+        with open('client_secret.json', 'r') as f:
+            client_config = json.load(f)['web']
+            
+        # Add OAuth configuration to test results
+        test_results["google_oauth"] = {
+            "client_id": client_config['client_id'],
+            "redirect_uris": client_config['redirect_uris'],
+            "javascript_origins": client_config.get('javascript_origins', [])
+        }
+        
+        # Generate the expected callback URLs based on current domain
+        test_results["expected_callback_url"] = request.url_root.rstrip('/') + "/callback/google"
+        test_results["registered_callback_matches"] = test_results["expected_callback_url"] in client_config['redirect_uris']
+        
+    except Exception as e:
+        test_results["error"] = str(e)
+    
+    # Return results as formatted HTML
+    from flask import Markup
+    html_result = "<h1>Google OAuth Configuration Test</h1>"
+    html_result += "<pre>" + json.dumps(test_results, indent=2) + "</pre>"
+    
+    # Add recommendation if there's a mismatch
+    if test_results.get("registered_callback_matches") is False:
+        html_result += "<h2>Configuration Issue Detected</h2>"
+        html_result += f"<p>The callback URL for your current domain does not match what's registered in Google Cloud Console.</p>"
+        html_result += f"<p>Please add this URL to your authorized redirect URIs in Google Cloud Console:</p>"
+        html_result += f"<code>{test_results['expected_callback_url']}</code>"
+    
+    return Markup(html_result)
+
 # Help page
 @app.route('/help')
 def help_page():

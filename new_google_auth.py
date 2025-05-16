@@ -27,11 +27,19 @@ SCOPES = [
 @google_auth.route('/login')
 def login():
     """Start the Google OAuth login flow."""
+    # Print diagnostic information
+    print("===== GOOGLE AUTH DIAGNOSTIC INFO =====")
+    print(f"Registered redirect URI: {client_config['web']['redirect_uris'][0]}")
+    print(f"Current request URL: {request.url}")
+    print(f"Current app URL root: {request.url_root}")
+    print("=======================================")
+    
     # Create a flow instance with client credentials and scopes
+    redirect_uri = client_config['web']['redirect_uris'][0]
     flow = Flow.from_client_config(
         client_config,
         scopes=SCOPES,
-        redirect_uri=client_config['web']['redirect_uris'][0]
+        redirect_uri=redirect_uri
     )
     
     # Generate a secure state token for CSRF protection
