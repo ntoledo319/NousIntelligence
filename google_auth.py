@@ -1,5 +1,5 @@
 """
-Simple Google OAuth implementation for Flask
+Minimal Google OAuth implementation for Flask
 """
 import os
 import json
@@ -8,8 +8,8 @@ from datetime import datetime
 import uuid
 
 import requests
-from flask import Blueprint, redirect, request, url_for, flash, session, current_app
-from flask_login import login_user, logout_user, login_required, current_user
+from flask import Blueprint, redirect, request, url_for, flash, session
+from flask_login import login_user, logout_user, login_required
 from oauthlib.oauth2 import WebApplicationClient
 
 from models import User, db
@@ -24,14 +24,15 @@ try:
         client_config = json.load(f)['web']
     GOOGLE_CLIENT_ID = client_config['client_id']
     GOOGLE_CLIENT_SECRET = client_config['client_secret']
-    REDIRECT_URIS = client_config['redirect_uris']
+    # Use the exact redirect URI from client_secret.json
+    GOOGLE_REDIRECT_URI = "https://mynous.replit.app/callback/google"
     logger.info(f"Loaded Google OAuth configuration from client_secret.json")
-    logger.info(f"Registered redirect URIs: {REDIRECT_URIS}")
+    logger.info(f"Using redirect URI: {GOOGLE_REDIRECT_URI}")
 except Exception as e:
     logger.error(f"Error loading client_secret.json: {str(e)}")
     GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
     GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
-    REDIRECT_URIS = [os.environ.get("GOOGLE_REDIRECT_URI", "")]
+    GOOGLE_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI", "")
     logger.info("Using Google OAuth configuration from environment variables")
 
 # Google's OAuth endpoints
@@ -45,34 +46,25 @@ google_auth = Blueprint("google_auth", __name__)
 
 @google_auth.route("/login")
 def login():
-    """Start Google OAuth flow - simplest possible version"""
+    """Start Google OAuth flow with minimal scopes"""
     try:
         # Get Google's OAuth endpoints
         google_provider_cfg = requests.get(GOOGLE_DISCOVERY_URL).json()
         authorization_endpoint = google_provider_cfg["authorization_endpoint"]
         
-        # Find an appropriate redirect URI that matches our domain
-        callback_uri = url_for('google_auth.callback', _external=True).replace('http://', 'https://')
+        # Get current host for logging
+        current_host = request.host
+        logger.info(f"Current host: {current_host}")
+        logger.info(f"Using fixed redirect URI: {GOOGLE_REDIRECT_URI}")
         
-        # Log for debugging
-        logger.info(f"Callback URI: {callback_uri}")
-        
-        # If our callback doesn't match any registered URI, find the best match
-        matching_uri = None
-        for uri in REDIRECT_URIS:
-            if uri.endswith('/callback/google'):
-                matching_uri = uri
-                break
-        
-        if matching_uri:
-            logger.info(f"Using registered callback URI: {matching_uri}")
-            
-        # Create OAuth request URL with basic scopes only
+        # Create OAuth request URL with minimal scopes
         request_uri = client.prepare_request_uri(
             authorization_endpoint,
-            redirect_uri=matching_uri or callback_uri,
+            redirect_uri=GOOGLE_REDIRECT_URI,  # Use the hard-coded URI
             scope=["openid", "email", "profile"],  # Minimal scopes
         )
+        
+        logger.info(f"Authorization request URI: {request_uri}")
         
         # Redirect to Google's authorization server
         return redirect(request_uri)
@@ -84,7 +76,7 @@ def login():
 
 @google_auth.route("/callback/google")
 def callback():
-    """Process the Google OAuth callback - simplest possible version"""
+    """Process the Google OAuth callback"""
     try:
         # Get the authorization code from the callback
         code = request.args.get("code")
@@ -97,24 +89,19 @@ def callback():
         google_provider_cfg = requests.get(GOOGLE_DISCOVERY_URL).json()
         token_endpoint = google_provider_cfg["token_endpoint"]
         
-        # Prepare the token request
-        # Use the exact same URI as in the authorization request
-        matching_uri = None
-        for uri in REDIRECT_URIS:
-            if uri.endswith('/callback/google'):
-                matching_uri = uri
-                break
+        # Get current request URL for logging
+        current_url = request.url
+        logger.info(f"Current callback URL: {current_url}")
         
-        callback_uri = url_for('google_auth.callback', _external=True).replace('http://', 'https://')
-        redirect_uri = matching_uri or callback_uri
-        
-        # Create the token request
+        # Create the token request with fixed redirect URI
         token_url, headers, body = client.prepare_token_request(
             token_endpoint,
             authorization_response=request.url.replace('http://', 'https://'),
-            redirect_url=redirect_uri,
+            redirect_url=GOOGLE_REDIRECT_URI,  # Use the same hard-coded URI
             code=code
         )
+        
+        logger.info(f"Token request URL: {token_url}")
         
         # Send the request to get tokens
         token_response = requests.post(
@@ -124,6 +111,13 @@ def callback():
             auth=(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET),
         )
         
+        # Check for token errors
+        if 'error' in token_response.json():
+            error = token_response.json().get('error')
+            logger.error(f"Token error: {error}")
+            flash(f"Authentication error: {error}", "error")
+            return redirect(url_for('index'))
+        
         # Parse the response
         client.parse_request_body_response(json.dumps(token_response.json()))
         
@@ -132,12 +126,6 @@ def callback():
         uri, headers, body = client.add_token(userinfo_endpoint)
         userinfo_response = requests.get(uri, headers=headers, data=body)
         userinfo = userinfo_response.json()
-        
-        # Make sure their email is verified
-        if not userinfo.get("email_verified"):
-            logger.error("User email not verified by Google")
-            flash("Email not verified. Please verify your email with Google.", "error")
-            return redirect(url_for('index'))
         
         # Get user information
         email = userinfo["email"]
