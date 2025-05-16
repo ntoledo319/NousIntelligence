@@ -12,17 +12,19 @@ import logging
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.exceptions import HTTPException
 
-# Import Google auth blueprint - using the new implementation
-from google_oauth import google_oauth as google_auth_bp
-
 # Import other blueprints
 from routes.beta_routes import beta_bp
 from routes.aa_routes import aa_bp
 from routes.amazon_routes import amazon_bp
 from routes.setup_routes import setup_bp
 
+# Setup Google OAuth with Flask-Dance
+from flask_google_oauth import create_google_blueprint
+from models import User, OAuth
+google_bp = create_google_blueprint(db, User, OAuth)
+
 # Register the blueprints
-app.register_blueprint(google_auth_bp)  # This has no prefix to match Google Cloud config
+app.register_blueprint(google_bp, url_prefix="/login")  # This is the Google login blueprint
 app.register_blueprint(beta_bp, url_prefix="/beta")
 app.register_blueprint(aa_bp, url_prefix="/aa") 
 app.register_blueprint(amazon_bp, url_prefix="/amazon")
