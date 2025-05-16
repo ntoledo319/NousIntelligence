@@ -14,10 +14,15 @@ from openai import OpenAI
 openai_api_key = os.environ.get("OPENAI_API_KEY", "")
 
 if openai_api_key:
-    logging.info(f"Using OpenAI API key from environment variables")
+    # Check if it's an OpenRouter key that was incorrectly set as OpenAI key
+    if openai_api_key.startswith("sk-or-"):
+        logging.warning("Found OpenRouter key in OPENAI_API_KEY. This needs to be a valid OpenAI key.")
+    else:
+        logging.info("Using OpenAI API key from environment variables")
 else:
     logging.warning("OpenAI API key not found in environment variables")
 
+# Create the OpenAI client with the key
 openai = OpenAI(api_key=openai_api_key)
 
 def parse_natural_language(command_text):

@@ -75,7 +75,9 @@ def get_embedding_via_openrouter(text):
     Returns:
         numpy.ndarray or None: The embedding vector, or None on failure
     """
-    if not openrouter_api_key:
+    # Use the environment variable directly for the latest format
+    openrouter_key = os.environ.get("OPENROUTER_API_KEY")
+    if not openrouter_key:
         logging.error("No OpenRouter API key available for fallback")
         return None
     
@@ -83,10 +85,10 @@ def get_embedding_via_openrouter(text):
         logging.info("Attempting to use OpenRouter for embeddings as fallback")
         
         headers = {
-            "Authorization": f"Bearer {openrouter_api_key}",
+            "Authorization": f"Bearer {openrouter_key}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "https://mynous.replit.app/",  # Updated referer URL for OpenRouter
-            "X-Title": "Nous AI Assistant"  # Add a title for tracking in OpenRouter
+            "HTTP-Referer": "https://nous.replit.app/",  # Updated referer URL for OpenRouter
+            "X-Title": "NOUS Personal Assistant"  # Add a title for tracking in OpenRouter
         }
         
         payload = {
