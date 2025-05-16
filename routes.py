@@ -22,7 +22,7 @@ from routes.setup_routes import setup_bp
 from new_google_auth import google_auth as google_bp
 
 # Register the blueprints
-app.register_blueprint(google_bp)  # No prefix, so callbacks match exactly what's registered in Google Cloud
+# Removed google_bp registration to fix authentication conflicts
 app.register_blueprint(beta_bp, url_prefix="/beta")
 app.register_blueprint(aa_bp, url_prefix="/aa") 
 app.register_blueprint(amazon_bp, url_prefix="/amazon")

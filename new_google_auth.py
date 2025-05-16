@@ -140,11 +140,12 @@ def callback():
         # Check if user exists, create if new
         user = User.query.filter_by(email=user_email).first()
         if not user:
-            # Create a new user
-            user = User(
-                username=user_name,
-                email=user_email
-            )
+            # Create a new user with UUID as ID
+            import uuid
+            user = User()
+            user.id = str(uuid.uuid4())
+            user.email = user_email
+            user.first_name = user_name
             db.session.add(user)
             db.session.commit()
             logger.info(f"Created new user: {user_email}")
