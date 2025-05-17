@@ -38,32 +38,30 @@ def stop_maintenance_scheduler():
 
 def _maintenance_worker():
     """Background worker that runs maintenance tasks at scheduled intervals."""
-    from flask import current_app
-    
     while _should_run:
         try:
-            # Use current_app instead of importing app directly
-            # This works when called within an application context
-            # Sleep for a short while to ensure app is fully initialized
+            # Sleep for a short while before starting tasks
             time.sleep(2)
             
-            # Run with app context from current_app if possible
-            from flask import has_app_context, current_app
-            
-            if has_app_context():
-                # We're already in an app context, use it
-                context = None
-            else:
-                # Try to get app from current_app proxy if possible
-                try:
-                    context = current_app.app_context()
-                    context.__enter__()
-                except RuntimeError:
-                    # If that fails, we'll run without app context and log tasks will handle their own errors
-                    context = None
-                    logging.warning("Running maintenance tasks without app context")
+            # Initialize context variable
+            context = None
             
             try:
+                # Try to import flask components
+                from flask import current_app, has_app_context
+                
+                if has_app_context():
+                    # We're already in an app context
+                    pass
+                else:
+                    try:
+                        # Try to get app context from current_app
+                        context = current_app.app_context()
+                        context.__enter__()
+                    except RuntimeError:
+                        # Can't get a Flask app context
+                        logging.warning("Running maintenance tasks without app context")
+                        
                 # Check each task and run if due
                 now = datetime.utcnow()
                 
@@ -82,15 +80,16 @@ def _maintenance_worker():
                 # Task 5: Optimize database (every 72 hours) 
                 _run_task_if_due('optimize_database', now, hours=72, func=_optimize_database)
                 
+            except Exception as e:
+                logging.error(f"Error running scheduled tasks: {str(e)}")
             finally:
                 # Clean up the app context if we created one
                 if context is not None:
                     context.__exit__(None, None, None)
-                    
         except Exception as e:
             logging.error(f"Error in maintenance worker: {str(e)}")
             
-        # Sleep for a while before checking again
+        # Sleep before checking again
         time.sleep(60 * 30)  # Check every 30 minutes
 
 def _run_task_if_due(task_name: str, now: datetime, hours: int, func) -> bool:
@@ -116,9 +115,12 @@ def _prune_knowledge_base():
 
 def _clean_caches():
     """Clean up all in-memory caches."""
-    from utils.cache_helper import clear_caches
-    clear_caches()
-    logging.info("Cleared all in-memory caches")
+    try:
+        from utils.cache_helper import clear_caches
+        clear_caches()
+        logging.info("Cleared all in-memory caches")
+    except ImportError:
+        logging.warning("Cache helper not available")
 
 def _run_self_reflection():
     """Run self-reflection to improve knowledge base quality."""
@@ -134,47 +136,70 @@ def _compress_embeddings():
 
 def _optimize_database():
     """Run database optimization operations."""
-    from models import db
-    from sqlalchemy import text
-    
-    # To properly run VACUUM, we need to run it outside a transaction
     try:
-        # Commit any pending transactions
-        db.session.commit()
-        
-        # Connect with autocommit mode
-        connection = db.engine.connect()
-        connection.execution_options(isolation_level="AUTOCOMMIT")
-        
-        # Run vacuum
-        connection.execute(text("VACUUM ANALYZE"))
-        logging.info("Database VACUUM ANALYZE completed")
-        
-        # Close the connection
-        connection.close()
+        # We need a Flask app context to access the database
+        from flask import has_app_context
+        if not has_app_context():
+            logging.info("Database optimization skipped - no application context available")
+            return
+            
+        # Now we can safely import db
+        try:
+            from models import db
+            from sqlalchemy import text
+            
+            # Check if db is initialized properly
+            if not hasattr(db, 'engine') or db.engine is None:
+                logging.info("Database optimization skipped - database not initialized")
+                return
+            
+            # To properly run VACUUM, we need to run it outside a transaction
+            try:
+                # Commit any pending transactions
+                db.session.commit()
+                
+                # Connect with autocommit mode
+                connection = db.engine.connect()
+                connection.execution_options(isolation_level="AUTOCOMMIT")
+                
+                # Run vacuum
+                connection.execute(text("VACUUM ANALYZE"))
+                logging.info("Database VACUUM ANALYZE completed")
+                
+                # Close the connection
+                connection.close()
+            except Exception as e:
+                logging.error(f"Error running VACUUM: {str(e)}")
+            
+            # Additional PostgreSQL optimizations
+            try:
+                # Create a new connection for other operations
+                with db.engine.connect() as conn:
+                    # Update statistics
+                    conn.execute(text("ANALYZE"))
+                    
+                    # Optimize specific tables that may have a lot of updates/deletes
+                    # Get existing tables to avoid errors from non-existent tables
+                    table_query = text("SELECT tablename FROM pg_tables WHERE schemaname = 'public'")
+                    existing_tables = [row[0] for row in conn.execute(table_query)]
+                    
+                    # Only reindex tables that exist
+                    for table in ['knowledge_base']:
+                        if table in existing_tables:
+                            try:
+                                conn.execute(text(f"REINDEX TABLE {table}"))
+                            except Exception as e:
+                                logging.warning(f"Could not reindex table {table}: {str(e)}")
+                    
+                    conn.commit()
+                    
+                logging.info("Database optimization tasks completed")
+            except Exception as e:
+                logging.error(f"Error optimizing database: {str(e)}")
+        except ImportError:
+            logging.warning("Database models not available")
     except Exception as e:
-        logging.error(f"Error running VACUUM: {str(e)}")
-    
-    # Additional PostgreSQL optimizations
-    try:
-        # Create a new connection for other operations
-        with db.engine.connect() as conn:
-            # Update statistics
-            conn.execute(text("ANALYZE"))
-            
-            # Optimize specific tables that may have a lot of updates/deletes
-            # Check if tables exist before reindexing
-            for table in ['knowledge_base']:
-                try:
-                    conn.execute(text(f"REINDEX TABLE {table}"))
-                except Exception as e:
-                    logging.warning(f"Could not reindex table {table}: {str(e)}")
-            
-            conn.commit()
-            
-        logging.info("Database optimization tasks completed")
-    except Exception as e:
-        logging.error(f"Error optimizing database: {str(e)}")
+        logging.error(f"Error in database optimization: {str(e)}")
 
 # Start the maintenance scheduler when the module is imported
 start_maintenance_scheduler()
