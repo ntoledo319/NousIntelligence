@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="light">
+<html lang="en" data-bs-theme="{{ current_user.settings.theme if current_user.is_authenticated and current_user.settings else session.get('theme', 'light') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -562,6 +562,28 @@
             </div>
         </div>
     </footer>
+
+    <!-- Mobile Bottom Navigation - Visible on small screens only -->
+    {% if current_user.is_authenticated %}
+    <nav class="bottom-nav d-lg-none">
+        <a href="{{ url_for('index') }}" class="bottom-nav-item {% if request.endpoint == 'index' %}active{% endif %}">
+            <i class="fas fa-home bottom-nav-icon"></i>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('dashboard') }}" class="bottom-nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+            <i class="fas fa-tachometer-alt bottom-nav-icon"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="{{ url_for('settings_page') }}" class="bottom-nav-item {% if request.endpoint == 'settings_page' %}active{% endif %}">
+            <i class="fas fa-cog bottom-nav-icon"></i>
+            <span>Settings</span>
+        </a>
+        <a href="{{ url_for('user_guide') }}" class="bottom-nav-item {% if request.endpoint == 'user_guide' %}active{% endif %}">
+            <i class="fas fa-book bottom-nav-icon"></i>
+            <span>Guide</span>
+        </a>
+    </nav>
+    {% endif %}
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
