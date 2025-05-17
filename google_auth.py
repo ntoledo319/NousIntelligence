@@ -25,19 +25,19 @@ GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET", "")
 # Discovery URL for Google provider
 GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
 
-# Construct the redirect URI based on the request domain
+# Explicitly define redirect URI to match exactly what's in Google Cloud Console
 def get_redirect_uri():
+    # First try to get the current domain from the request
     try:
-        if request:
-            base_url = request.url_root.rstrip('/')
-            if base_url.startswith('http://'):
-                base_url = base_url.replace('http://', 'https://', 1)
-            return f"{base_url}/callback/google"
-    except RuntimeError:
-        # This happens when called outside of a request context
-        pass
+        host = request.host
+        logger.info(f"Request host: {host}")
+        # Use HTTPS for the redirect URI
+        scheme = "https"
+        return f"{scheme}://{host}/callback/google"
+    except Exception as e:
+        logger.error(f"Error getting host from request: {e}")
     
-    # Get the domain from Replit environment
+    # Fallback to environment variables
     replit_domain = os.environ.get("REPLIT_DEV_DOMAIN") or os.environ.get("REPL_SLUG", "mynous") + ".replit.app"
     return f"https://{replit_domain}/callback/google"
 
@@ -68,7 +68,7 @@ def login():
         redirect_uri = get_redirect_uri()
         current_host = request.host
         logger.info(f"Current host: {current_host}")
-        logger.info(f"Using dynamic redirect URI: {redirect_uri}")
+        logger.info(f"Using redirect URI: {redirect_uri}")
         
         # Create OAuth request URL with minimal scopes
         request_uri = client.prepare_request_uri(
@@ -84,7 +84,7 @@ def login():
     
     except Exception as e:
         logger.error(f"Error in login: {str(e)}")
-        flash("An error occurred during authentication. Please try again.", "error")
+        flash(f"An error occurred during authentication: {e}", "error")
         return redirect(url_for('index'))
 
 @google_auth.route("/callback/google")

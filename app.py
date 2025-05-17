@@ -130,9 +130,7 @@ def load_user(user_id):
     from models import User
     return User.query.get(user_id)
 
-# Import Google authentication blueprint
-from google_auth import google_auth
-app.register_blueprint(google_auth)
+# Google authentication will be handled in routes.py to prevent duplicate registration
 
 # Configure beta testing mode
 from utils.beta_test_helper import configure_beta_mode
