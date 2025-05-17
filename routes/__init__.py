@@ -56,10 +56,8 @@ def register_blueprints(app):
         except ImportError:
             pass
             
-        try:
-            from routes.api.weather import weather_bp
-        except ImportError:
-            pass
+        # API weather already imported as api_weather_bp
+        pass
         
         # View blueprints
         try:
@@ -100,6 +98,10 @@ def register_blueprints(app):
             app.register_blueprint(shopping_bp)
         if weather_bp:
             app.register_blueprint(weather_bp)
+        if finance_bp:
+            app.register_blueprint(finance_bp)
+        if travel_bp:
+            app.register_blueprint(travel_bp)
         
         # Register view blueprints if they exist
         if user_bp:

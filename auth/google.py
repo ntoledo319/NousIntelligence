@@ -94,8 +94,7 @@ def create_blueprint():
             cache=True
         ),
         # Set offline access to get refresh token
-        reprompt_select_account=True,
-        prompt="select_account"
+        reprompt_select_account=True
     )
     
     return blueprint
