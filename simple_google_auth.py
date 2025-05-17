@@ -1,14 +1,14 @@
 """
-Ultra-minimalist Google OAuth implementation for Flask
+Simple Google OAuth implementation for Flask applications
 """
 import os
 import json
 import logging
-from datetime import datetime
 import uuid
+from datetime import datetime
 
 import requests
-from flask import Blueprint, redirect, request, url_for, flash, session
+from flask import Blueprint, redirect, request, url_for, flash, session, current_app
 from flask_login import login_user, logout_user, login_required
 from oauthlib.oauth2 import WebApplicationClient
 
@@ -18,190 +18,149 @@ from models import User, db
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Load client configuration from client_secret.json
-try:
-    with open('client_secret.json', 'r') as f:
-        client_config = json.load(f)['web']
-    GOOGLE_CLIENT_ID = client_config['client_id']
-    GOOGLE_CLIENT_SECRET = client_config['client_secret']
-    # Get registered redirect URIs
-    REGISTERED_REDIRECT_URIS = client_config['redirect_uris']
-    logger.info(f"Loaded Google OAuth configuration")
-    logger.info(f"Registered redirect URIs: {REGISTERED_REDIRECT_URIS}")
-except Exception as e:
-    logger.error(f"Error loading client_secret.json: {str(e)}")
-    GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
-    GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
-    REGISTERED_REDIRECT_URIS = []
-    logger.info("Using Google OAuth configuration from environment variables")
+# Load Google OAuth credentials from environment variables
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET", "")
 
 # Google's OAuth endpoints
 GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
 
-# Create blueprint
+# Initialize OAuth client
+client = WebApplicationClient(GOOGLE_CLIENT_ID)
+
+# Create blueprint for routes
 google_auth = Blueprint("google_auth", __name__)
 
 @google_auth.route("/login")
 def login():
-    """Start Google OAuth flow with minimal approach"""
-    # Get current domain
-    current_domain = request.host
+    """Start Google OAuth flow"""
+    # Find out what URL to hit for Google login
+    google_provider_cfg = requests.get(GOOGLE_DISCOVERY_URL).json()
+    authorization_endpoint = google_provider_cfg["authorization_endpoint"]
 
-    # Find a matching redirect URI based on current domain
-    redirect_uri = None
-    for uri in REGISTERED_REDIRECT_URIS:
-        if current_domain in uri and "/callback/google" in uri:
-            redirect_uri = uri
-            break
-    
-    # If no matching domain found, use the first one
-    if not redirect_uri and REGISTERED_REDIRECT_URIS:
-        redirect_uri = REGISTERED_REDIRECT_URIS[0]
-    
-    if not redirect_uri:
-        logger.error("No valid redirect URI found")
-        flash("Authentication configuration error", "error")
-        return redirect(url_for('index'))
-    
+    # Use the current domain for the redirect URI
+    domain = request.host
+    redirect_uri = f"https://{domain}/callback/google"
     logger.info(f"Using redirect URI: {redirect_uri}")
-    
-    # Store the redirect URI in session for callback verification
-    session['google_oauth_redirect_uri'] = redirect_uri
-    
-    try:
-        # Get Google's authorization endpoint
-        google_provider_cfg = requests.get(GOOGLE_DISCOVERY_URL).json()
-        authorization_endpoint = google_provider_cfg["authorization_endpoint"]
-        
-        # Initialize OAuth client
-        client = WebApplicationClient(GOOGLE_CLIENT_ID)
-        
-        # Create OAuth request URL with basic scopes
-        request_uri = client.prepare_request_uri(
-            authorization_endpoint,
-            redirect_uri=redirect_uri,
-            scope=["openid", "email", "profile"],
-        )
-        
-        logger.info(f"Auth request: {request_uri}")
-        
-        # Redirect to Google's authorization page
-        return redirect(request_uri)
-    
-    except Exception as e:
-        logger.error(f"Error in login: {str(e)}")
-        flash("Authentication error. Please try again.", "error")
-        return redirect(url_for('index'))
+
+    # Request access to user's profile info
+    request_uri = client.prepare_request_uri(
+        authorization_endpoint,
+        redirect_uri=redirect_uri,
+        scope=["openid", "email", "profile"],
+    )
+
+    return redirect(request_uri)
 
 @google_auth.route("/callback/google")
 def callback():
-    """Process Google OAuth callback"""
-    # Retrieve the redirect URI from session
-    redirect_uri = session.get('google_oauth_redirect_uri')
-    if not redirect_uri:
-        logger.error("No redirect URI found in session")
-        flash("Authentication session expired. Please try again.", "error")
-        return redirect(url_for('index'))
-    
+    """Process the Google OAuth callback"""
     try:
-        # Get the authorization code
+        # Get authorization code from Google
         code = request.args.get("code")
         if not code:
-            logger.error("No authorization code received")
             flash("Authentication failed. Please try again.", "error")
-            return redirect(url_for('index'))
-        
-        # Initialize OAuth client
-        client = WebApplicationClient(GOOGLE_CLIENT_ID)
-        
-        # Get token endpoint
+            return redirect(url_for("index"))
+
+        # Get token endpoint from Google
         google_provider_cfg = requests.get(GOOGLE_DISCOVERY_URL).json()
         token_endpoint = google_provider_cfg["token_endpoint"]
+
+        # Prepare token request
+        domain = request.host
+        redirect_uri = f"https://{domain}/callback/google"
         
-        # Get token
+        # Ensure URL has https protocol for security
+        auth_response = request.url
+        if auth_response.startswith('http:'):
+            auth_response = auth_response.replace('http:', 'https:', 1)
+
+        # Exchange code for tokens
         token_url, headers, body = client.prepare_token_request(
             token_endpoint,
-            authorization_response=request.url.replace('http://', 'https://'),
+            authorization_response=auth_response,
             redirect_url=redirect_uri,
             code=code
         )
         
-        logger.info(f"Token request: {token_url}")
-        
-        # Exchange code for token
         token_response = requests.post(
             token_url,
             headers=headers,
             data=body,
             auth=(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET),
         )
-        
-        # Check for token errors
-        if token_response.status_code != 200:
-            logger.error(f"Token error: {token_response.text}")
-            flash("Authentication failed. Please try again.", "error")
-            return redirect(url_for('index'))
-        
-        # Parse token response
+
+        # Parse the tokens
         client.parse_request_body_response(json.dumps(token_response.json()))
-        
-        # Get user info
+
+        # Get user info with token
         userinfo_endpoint = google_provider_cfg["userinfo_endpoint"]
         uri, headers, body = client.add_token(userinfo_endpoint)
         userinfo_response = requests.get(uri, headers=headers, data=body)
         userinfo = userinfo_response.json()
-        
+
+        # Verify user email
+        if not userinfo.get("email_verified", False):
+            flash("Email not verified with Google. Please verify your email first.", "warning")
+            return redirect(url_for("index"))
+
         # Get user data
-        email = userinfo.get("email")
-        if not email:
-            logger.error("No email in user info")
-            flash("Could not get email from Google. Please try again.", "error")
-            return redirect(url_for('index'))
-            
-        name = userinfo.get("given_name", "User")
+        email = userinfo["email"]
         
-        # Check if user exists
+        # Find or create user
         user = User.query.filter_by(email=email).first()
-        
-        # Create new user if needed
         if not user:
+            # Create new user
             user = User()
-            user.id = str(uuid.uuid4())
+            user.id = str(uuid.uuid4())  # Generate a UUID string for user ID
             user.email = email
-            user.first_name = name
-            user.created_at = datetime.utcnow()
+            user.first_name = userinfo.get("given_name", "User")
+            user.last_name = userinfo.get("family_name", "")
+            user.profile_image_url = userinfo.get("picture", "")
+            
             db.session.add(user)
             db.session.commit()
             logger.info(f"Created new user: {email}")
-        
-        # Log in user
+            
+            # Check beta access if in beta mode
+            if current_app.config.get('BETA_MODE', False):
+                from utils.beta_test_helper import is_beta_tester, auto_register_beta_tester
+                
+                # Auto-register users from approved domains
+                beta_domains = os.environ.get("BETA_EMAIL_DOMAINS", "").split(",")
+                is_beta_domain = any(email.lower().endswith(f"@{domain.lower()}") for domain in beta_domains if domain)
+                
+                if is_beta_domain:
+                    try:
+                        auto_register_beta_tester(user.id, f"Auto-registered from {email}")
+                        flash("You've been automatically registered for our beta program!", "success")
+                    except Exception as e:
+                        logger.error(f"Error auto-registering beta tester: {str(e)}")
+                
+                # If not auto-registered and beta access required, redirect to request page
+                elif not is_beta_tester(email):
+                    session['pending_email'] = email
+                    flash("You need beta access to use this application", "warning")
+                    return redirect(url_for('beta.request_access'))
+
+        # Log the user in
         login_user(user)
+        session['user_id'] = str(user.id)
         
-        # Save user info to session
-        session['user_id'] = user.id
-        session['user_email'] = email
-        session['user_name'] = name
-        
-        # Clear OAuth session data
-        session.pop('google_oauth_redirect_uri', None)
-        
-        # Success!
-        flash(f"Welcome, {name}!", "success")
-        return redirect(url_for('index'))
+        # Redirect to dashboard
+        flash(f"Welcome, {user.first_name}!", "success")
+        return redirect(url_for("dashboard"))
         
     except Exception as e:
         logger.error(f"Error in callback: {str(e)}")
-        flash("Authentication error. Please try again.", "error")
-        return redirect(url_for('index'))
+        flash(f"Authentication error: {str(e)}", "error")
+        return redirect(url_for("index"))
 
 @google_auth.route("/logout")
 @login_required
 def logout():
-    """Log user out"""
+    """Log the user out"""
     logout_user()
-    
-    # Clear all session data
     session.clear()
-    
-    flash("You have been logged out.", "info")
-    return redirect(url_for('index'))
+    flash("You have been logged out successfully.", "success")
+    return redirect(url_for("index"))
