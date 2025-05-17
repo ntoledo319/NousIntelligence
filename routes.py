@@ -1,47 +1,51 @@
-from flask import session, render_template, redirect, url_for, flash
-from app import app, db
-from flask_login import current_user, login_required
-from simple_google_auth import google_auth
-from utils.beta_test_helper import is_beta_tester, configure_beta_mode
+"""
+Routes Module (Legacy)
 
-# Register the simplified Google Authentication blueprint
-app.register_blueprint(google_auth)
+This module serves as a compatibility layer for the old routes system.
+New code should use the organized routes in the routes/ directory.
 
-# Configure beta testing mode
-configure_beta_mode(app)
+This file will be removed in a future version.
 
-# Make session permanent
-@app.before_request
-def make_session_permanent():
-    session.permanent = True
+@module routes
+@author NOUS Development Team
+"""
 
-@app.route('/')
-def index():
-    # Use flask_login.current_user to check if current user is logged in or anonymous.
-    user = current_user
-    if user.is_authenticated:
-        return render_template('dashboard.html', user=user)
-    else:
-        return render_template('simple_welcome.html')
+import logging
+from flask import Flask, redirect, url_for
+from flask_login import current_user
 
-@app.route('/dashboard')
-@login_required
-def dashboard():
-    user = current_user
-    # Check if user is a beta tester
-    is_beta = is_beta_tester(user.id)
-    return render_template('dashboard.html', user=user, is_beta=is_beta)
-
-@app.route('/settings')
-@login_required
-def settings_page():
-    user = current_user
-    return f"Settings for {user.first_name or 'User'}"
-
-@app.route('/user_guide')
-def user_guide():
-    return "User Guide for NOUS Personal Assistant"
-
-@app.route('/help')
-def help_page():
-    return "Help for NOUS Personal Assistant"
+def register_routes(app: Flask):
+    """
+    Register compatibility routes for redirecting to the new route structure.
+    
+    Args:
+        app: Flask application instance
+    """
+    # Set up logging
+    logger = logging.getLogger(__name__)
+    logger.info("Registering compatibility routes")
+    
+    @app.route('/')
+    def index():
+        """Redirect to the new index blueprint"""
+        return redirect(url_for('index.index'))
+    
+    @app.route('/dashboard')
+    def dashboard():
+        """Redirect to the new dashboard blueprint"""
+        return redirect(url_for('dashboard.dashboard'))
+    
+    @app.route('/settings')
+    def settings_page():
+        """Redirect to the new settings blueprint"""
+        return redirect(url_for('settings.settings_page'))
+    
+    @app.route('/user_guide')
+    def user_guide():
+        """Redirect to help page"""
+        return redirect(url_for('index.help_page'))
+    
+    @app.route('/help')
+    def help_page():
+        """Redirect to new help page"""
+        return redirect(url_for('index.help_page'))

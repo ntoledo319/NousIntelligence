@@ -11,15 +11,29 @@
                 
                 <!-- Quick action buttons -->
                 <div class="d-flex flex-wrap gap-2">
-                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary" data-shortcut-key="c">
                         <i class="fas fa-comment-dots me-2"></i>Talk to NOUS
                     </a>
-                    <a href="{{ url_for('voice_emotion.voice_emotion_page') }}" class="btn btn-info">
+                    <a href="{{ url_for('voice_emotion.voice_emotion_page') }}" class="btn btn-info" data-shortcut-key="v">
                         <i class="fas fa-microphone me-2"></i>Voice Analysis
                     </a>
-                    <a href="{{ url_for('image_routes.image_upload') }}" class="btn btn-success">
+                    <a href="{{ url_for('image_routes.image_upload') }}" class="btn btn-success" data-shortcut-key="i">
                         <i class="fas fa-image me-2"></i>Image Analysis
                     </a>
+                    <button id="refreshDashboard" class="btn btn-secondary" data-shortcut-key="r">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                    </button>
+                </div>
+                
+                <!-- Keyboard shortcuts reference -->
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <i class="fas fa-keyboard me-1"></i> Keyboard shortcuts: 
+                        Press <kbd>C</kbd> to talk to NOUS, 
+                        <kbd>V</kbd> for Voice Analysis, 
+                        <kbd>I</kbd> for Image Analysis, 
+                        <kbd>R</kbd> to refresh the dashboard
+                    </small>
                 </div>
             </div>
             <div class="col-lg-4 d-none d-lg-block">
@@ -112,40 +126,8 @@
         </div>
     </section>
     
-    <!-- Welcome Card -->
-    <section class="section-container mb-4">
-        <div class="card card-modern">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h3 class="mb-3">Welcome to NOUS Personal Assistant</h3>
-                        <p>NOUS is an advanced AI personal assistant designed to help you organize your life, find information, and complete tasks through natural conversation.</p>
-                        
-                        <div class="mt-4">
-                            <h5 class="mb-3">What would you like to do?</h5>
-                            <div class="d-flex flex-wrap gap-2">
-                                <a href="{{ url_for('spotify_viz.spotify_report_page') }}" class="btn btn-sm btn-outline-success">
-                                    <i class="fab fa-spotify me-1"></i>Connect Spotify
-                                </a>
-                                <a href="{{ url_for('authorize_google') }}" class="btn btn-sm btn-outline-primary">
-                                    <i class="fab fa-google me-1"></i>Connect Google
-                                </a>
-                                <a href="{{ url_for('user_guide') }}" class="btn btn-sm btn-outline-secondary">
-                                    <i class="fas fa-book me-1"></i>View User Guide
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 d-none d-md-block text-center">
-                        <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" class="img-fluid rounded-circle" style="max-width: 160px;">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    
     <!-- Health Section -->
-    <section class="mb-4">
+    <section id="health-section" class="mb-4">
         <div class="section-header">
             <div>
                 <h2 class="section-title text-gradient">Health</h2>
@@ -161,56 +143,26 @@
             <div class="col-md-6">
                 <div class="card card-modern h-100">
                     <div class="card-header">
-                        <div class="d-flex align-items-center">
-                            <div class="card-icon-wrapper success-soft me-3">
-                                <i class="fas fa-calendar-check"></i>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon-wrapper success-soft me-3">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                                <h3 class="card-title mb-0">Upcoming Appointments</h3>
                             </div>
-                            <h3 class="card-title mb-0">Upcoming Appointments</h3>
+                            <div class="loading-indicator">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body">
                         <div id="appointment-list">
-                            <!-- This would be populated from Flask with actual data -->
-                            <div class="appointment-card">
-                                <div class="appointment-date">
-                                    <i class="far fa-calendar-alt"></i> May 20, 2025
-                                </div>
-                                <div class="doctor-info">
-                                    <div class="doctor-avatar">
-                                        <i class="fas fa-user-md"></i>
-                                    </div>
-                                    <div>
-                                        <div class="doctor-name">Dr. Sarah Johnson</div>
-                                        <div class="doctor-specialty">Cardiologist</div>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span class="badge bg-info-soft">
-                                        <i class="far fa-clock me-1"></i>10:30 AM
-                                    </span>
-                                    <a href="#" class="btn btn-sm btn-outline-primary">Details</a>
-                                </div>
-                            </div>
-                            
-                            <div class="appointment-card">
-                                <div class="appointment-date">
-                                    <i class="far fa-calendar-alt"></i> June 5, 2025
-                                </div>
-                                <div class="doctor-info">
-                                    <div class="doctor-avatar">
-                                        <i class="fas fa-user-md"></i>
-                                    </div>
-                                    <div>
-                                        <div class="doctor-name">Dr. Michael Chen</div>
-                                        <div class="doctor-specialty">Neurologist</div>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span class="badge bg-info-soft">
-                                        <i class="far fa-clock me-1"></i>2:15 PM
-                                    </span>
-                                    <a href="#" class="btn btn-sm btn-outline-primary">Details</a>
-                                </div>
+                            <div class="placeholder-content">
+                                <div class="placeholder-item"></div>
+                                <div class="placeholder-item"></div>
+                                <div class="placeholder-item"></div>
                             </div>
                         </div>
                         
@@ -227,53 +179,27 @@
             <div class="col-md-6">
                 <div class="card card-modern h-100">
                     <div class="card-header">
-                        <div class="d-flex align-items-center">
-                            <div class="card-icon-wrapper warning-soft me-3">
-                                <i class="fas fa-pills"></i>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon-wrapper warning-soft me-3">
+                                    <i class="fas fa-pills"></i>
+                                </div>
+                                <h3 class="card-title mb-0">Medications</h3>
                             </div>
-                            <h3 class="card-title mb-0">Medications</h3>
+                            <div class="loading-indicator">
+                                <div class="spinner-border spinner-border-sm text-warning" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body">
-                        <ul class="medication-list">
-                            <li class="medication-item">
-                                <div class="medication-icon">
-                                    <i class="fas fa-capsules"></i>
-                                </div>
-                                <div>
-                                    <div class="medication-name">Lisinopril</div>
-                                    <div class="medication-dosage">10mg, once daily</div>
-                                </div>
-                                <div class="medication-meta">
-                                    <div class="remaining-pills pill-medium">15 left</div>
-                                </div>
-                            </li>
-                            
-                            <li class="medication-item">
-                                <div class="medication-icon">
-                                    <i class="fas fa-tablets"></i>
-                                </div>
-                                <div>
-                                    <div class="medication-name">Metformin</div>
-                                    <div class="medication-dosage">500mg, twice daily</div>
-                                </div>
-                                <div class="medication-meta">
-                                    <div class="remaining-pills pill-high">30 left</div>
-                                </div>
-                            </li>
-                            
-                            <li class="medication-item">
-                                <div class="medication-icon">
-                                    <i class="fas fa-prescription-bottle"></i>
-                                </div>
-                                <div>
-                                    <div class="medication-name">Atorvastatin</div>
-                                    <div class="medication-dosage">20mg, once daily</div>
-                                </div>
-                                <div class="medication-meta">
-                                    <div class="remaining-pills pill-low">5 left</div>
-                                </div>
-                            </li>
+                        <ul id="medication-list" class="medication-list">
+                            <div class="placeholder-content">
+                                <div class="placeholder-item"></div>
+                                <div class="placeholder-item"></div>
+                                <div class="placeholder-item"></div>
+                            </div>
                         </ul>
                         
                         <div class="text-center mt-3">
@@ -288,7 +214,7 @@
     </section>
     
     <!-- Shopping Section -->
-    <section class="mb-4">
+    <section id="shopping-section" class="mb-4">
         <div class="section-header">
             <div>
                 <h2 class="section-title text-gradient-success">Shopping</h2>
@@ -304,47 +230,27 @@
             <div class="col-md-6">
                 <div class="card card-modern h-100">
                     <div class="card-header">
-                        <div class="d-flex align-items-center">
-                            <div class="card-icon-wrapper success-soft me-3">
-                                <i class="fas fa-shopping-basket"></i>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon-wrapper success-soft me-3">
+                                    <i class="fas fa-shopping-basket"></i>
+                                </div>
+                                <h3 class="card-title mb-0">Shopping Lists</h3>
                             </div>
-                            <h3 class="card-title mb-0">Shopping Lists</h3>
+                            <div class="loading-indicator">
+                                <div class="spinner-border spinner-border-sm text-success" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body">
-                        <ul class="shopping-list">
-                            <li class="shopping-item">
-                                <input type="checkbox" class="form-check-input item-checkbox">
-                                <span class="item-name">Organic Apples</span>
-                                <span class="item-category">Produce</span>
-                                <div class="item-actions">
-                                    <button class="item-action-btn" title="Remove item">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                            </li>
-                            
-                            <li class="shopping-item checked">
-                                <input type="checkbox" class="form-check-input item-checkbox" checked>
-                                <span class="item-name">Whole Wheat Bread</span>
-                                <span class="item-category">Bakery</span>
-                                <div class="item-actions">
-                                    <button class="item-action-btn" title="Remove item">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                            </li>
-                            
-                            <li class="shopping-item">
-                                <input type="checkbox" class="form-check-input item-checkbox">
-                                <span class="item-name">Greek Yogurt</span>
-                                <span class="item-category">Dairy</span>
-                                <div class="item-actions">
-                                    <button class="item-action-btn" title="Remove item">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                            </li>
+                        <ul id="shopping-list" class="shopping-list">
+                            <div class="placeholder-content">
+                                <div class="placeholder-item"></div>
+                                <div class="placeholder-item"></div>
+                                <div class="placeholder-item"></div>
+                            </div>
                         </ul>
                         
                         <div class="text-center mt-3">
@@ -360,41 +266,27 @@
             <div class="col-md-6">
                 <div class="card card-modern h-100">
                     <div class="card-header">
-                        <div class="d-flex align-items-center">
-                            <div class="card-icon-wrapper warning-soft me-3">
-                                <i class="fas fa-box"></i>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon-wrapper warning-soft me-3">
+                                    <i class="fas fa-box"></i>
+                                </div>
+                                <h3 class="card-title mb-0">Tracked Products</h3>
                             </div>
-                            <h3 class="card-title mb-0">Tracked Products</h3>
+                            <div class="loading-indicator">
+                                <div class="spinner-border spinner-border-sm text-warning" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Product</th>
-                                        <th>Price</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Wireless Headphones</td>
-                                        <td>$89.99</td>
-                                        <td><span class="badge bg-success-soft">Available</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Coffee Maker</td>
-                                        <td>$129.99</td>
-                                        <td><span class="badge bg-warning-soft">Price Drop</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Smart Watch</td>
-                                        <td>$249.99</td>
-                                        <td><span class="badge bg-primary-soft">Watched</span></td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div id="products-container">
+                            <div class="placeholder-content">
+                                <div class="placeholder-item"></div>
+                                <div class="placeholder-item"></div>
+                                <div class="placeholder-item"></div>
+                            </div>
                         </div>
                         
                         <div class="text-center mt-3">
@@ -409,7 +301,7 @@
     </section>
     
     <!-- Finance Section -->
-    <section class="mb-4">
+    <section id="finance-section" class="mb-4">
         <div class="section-header">
             <div>
                 <h2 class="section-title text-gradient-warning">Finance</h2>
@@ -425,54 +317,31 @@
             <div class="col-md-6">
                 <div class="card card-modern h-100">
                     <div class="card-header">
-                        <div class="d-flex align-items-center">
-                            <div class="card-icon-wrapper warning-soft me-3">
-                                <i class="fas fa-chart-pie"></i>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon-wrapper warning-soft me-3">
+                                    <i class="fas fa-chart-pie"></i>
+                                </div>
+                                <h3 class="card-title mb-0">Budget Summary</h3>
                             </div>
-                            <h3 class="card-title mb-0">Budget Summary</h3>
+                            <div class="loading-indicator">
+                                <div class="spinner-border spinner-border-sm text-warning" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-sm-6">
-                                <div class="stat-card">
-                                    <div class="stat-title">MONTHLY INCOME</div>
-                                    <div class="stat-value">$5,250</div>
-                                    <div class="stat-change positive">
-                                        <i class="fas fa-arrow-up me-1"></i>5.2% from last month
-                                    </div>
-                                </div>
+                        <div id="budget-summary">
+                            <div class="placeholder-content">
+                                <div class="placeholder-item"></div>
+                                <div class="placeholder-item"></div>
+                                <div class="placeholder-item"></div>
                             </div>
-                            
-                            <div class="col-sm-6">
-                                <div class="stat-card">
-                                    <div class="stat-title">MONTHLY EXPENSES</div>
-                                    <div class="stat-value">$3,840</div>
-                                    <div class="stat-change negative">
-                                        <i class="fas fa-arrow-up me-1"></i>2.8% from last month
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="col-sm-6">
-                                <div class="stat-card">
-                                    <div class="stat-title">SAVINGS RATE</div>
-                                    <div class="stat-value">26.9%</div>
-                                    <div class="stat-change positive">
-                                        <i class="fas fa-arrow-up me-1"></i>1.4% from last month
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="col-sm-6">
-                                <div class="stat-card">
-                                    <div class="stat-title">UPCOMING BILLS</div>
-                                    <div class="stat-value">$1,280</div>
-                                    <div class="stat-change">
-                                        Due in next 7 days
-                                    </div>
-                                </div>
-                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <canvas id="budget-chart" width="100%" height="200"></canvas>
                         </div>
                         
                         <div class="text-center mt-3">
@@ -488,66 +357,31 @@
             <div class="col-md-6">
                 <div class="card card-modern h-100">
                     <div class="card-header">
-                        <div class="d-flex align-items-center">
-                            <div class="card-icon-wrapper danger-soft me-3">
-                                <i class="fas fa-receipt"></i>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon-wrapper danger-soft me-3">
+                                    <i class="fas fa-receipt"></i>
+                                </div>
+                                <h3 class="card-title mb-0">Recent Expenses</h3>
                             </div>
-                            <h3 class="card-title mb-0">Recent Expenses</h3>
+                            <div class="loading-indicator">
+                                <div class="spinner-border spinner-border-sm text-danger" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Category</th>
-                                        <th>Amount</th>
-                                        <th>Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <span class="badge bg-primary-soft me-2">
-                                                    <i class="fas fa-home"></i>
-                                                </span>
-                                                Housing
-                                            </div>
-                                        </td>
-                                        <td>$1,500.00</td>
-                                        <td>May 15, 2025</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <span class="badge bg-success-soft me-2">
-                                                    <i class="fas fa-shopping-cart"></i>
-                                                </span>
-                                                Groceries
-                                            </div>
-                                        </td>
-                                        <td>$245.32</td>
-                                        <td>May 12, 2025</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <span class="badge bg-info-soft me-2">
-                                                    <i class="fas fa-car"></i>
-                                                </span>
-                                                Transportation
-                                            </div>
-                                        </td>
-                                        <td>$120.00</td>
-                                        <td>May 10, 2025</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div id="expenses-container">
+                            <div class="placeholder-content">
+                                <div class="placeholder-item"></div>
+                                <div class="placeholder-item"></div>
+                                <div class="placeholder-item"></div>
+                            </div>
                         </div>
                         
                         <div class="text-center mt-3">
-                            <a href="{{ url_for('process_command') }}?cmd=Show%20all%20expenses" class="btn btn-sm btn-outline-danger">
+                            <a href="{{ url_for('process_command') }}?cmd=Show%20recent%20expenses" class="btn btn-sm btn-outline-danger">
                                 View All Expenses
                             </a>
                         </div>
@@ -556,215 +390,553 @@
             </div>
         </div>
     </section>
-    
-    <!-- Travel Section -->
-    <section class="mb-4">
-        <div class="section-header">
-            <div>
-                <h2 class="section-title text-gradient-info">Travel</h2>
-                <p class="section-subtitle">Plan and manage your trips</p>
-            </div>
-            <a href="{{ url_for('process_command') }}?cmd=What%20travel%20features%20do%20you%20offer" class="btn btn-sm btn-outline-info">
-                <i class="fas fa-plus me-1"></i>Explore More
-            </a>
-        </div>
-        
-        <div class="row g-4">
-            <!-- Upcoming Trips Card -->
-            <div class="col-md-6">
-                <div class="card card-modern h-100">
-                    <div class="card-header">
-                        <div class="d-flex align-items-center">
-                            <div class="card-icon-wrapper info-soft me-3">
-                                <i class="fas fa-plane-departure"></i>
-                            </div>
-                            <h3 class="card-title mb-0">Upcoming Trips</h3>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="card mb-3 border-0 shadow-sm">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h5 class="mb-0">San Francisco Vacation</h5>
-                                    <span class="badge bg-primary-soft">Upcoming</span>
-                                </div>
-                                <p class="text-secondary mb-2">June 15 - June 22, 2025</p>
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="me-3">
-                                        <i class="fas fa-map-marker-alt text-danger"></i>
-                                        <span class="ms-1">San Francisco, CA</span>
-                                    </div>
-                                    <div>
-                                        <i class="fas fa-users text-primary"></i>
-                                        <span class="ms-1">2 travelers</span>
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <div class="small text-secondary">Total Budget</div>
-                                        <div>$2,500</div>
-                                    </div>
-                                    <a href="#" class="btn btn-sm btn-outline-primary">View Details</a>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="card border-0 shadow-sm">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h5 class="mb-0">Tokyo Business Trip</h5>
-                                    <span class="badge bg-primary-soft">Upcoming</span>
-                                </div>
-                                <p class="text-secondary mb-2">July 8 - July 15, 2025</p>
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="me-3">
-                                        <i class="fas fa-map-marker-alt text-danger"></i>
-                                        <span class="ms-1">Tokyo, Japan</span>
-                                    </div>
-                                    <div>
-                                        <i class="fas fa-user text-primary"></i>
-                                        <span class="ms-1">1 traveler</span>
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <div class="small text-secondary">Total Budget</div>
-                                        <div>$3,800</div>
-                                    </div>
-                                    <a href="#" class="btn btn-sm btn-outline-primary">View Details</a>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="text-center mt-3">
-                            <a href="{{ url_for('process_command') }}?cmd=Show%20all%20trips" class="btn btn-sm btn-outline-info">
-                                View All Trips
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Weather Card -->
-            <div class="col-md-6">
-                <div class="card card-modern h-100">
-                    <div class="card-header">
-                        <div class="d-flex align-items-center">
-                            <div class="card-icon-wrapper primary-soft me-3">
-                                <i class="fas fa-cloud-sun"></i>
-                            </div>
-                            <h3 class="card-title mb-0">Weather Forecast</h3>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="text-center mb-4">
-                            <h4 class="mb-1">New York, NY</h4>
-                            <p class="text-secondary mb-3">May 16, 2025</p>
-                            
-                            <div class="d-flex justify-content-center align-items-center mb-3">
-                                <i class="fas fa-sun fs-1 text-warning me-3"></i>
-                                <span class="fs-1 fw-bold">72°F</span>
-                            </div>
-                            
-                            <p>Sunny with clear skies</p>
-                        </div>
-                        
-                        <div class="row g-2 text-center">
-                            <div class="col">
-                                <div class="p-2 bg-light rounded">
-                                    <div class="small text-secondary">Humidity</div>
-                                    <div>45%</div>
-                                </div>
-                            </div>
-                            
-                            <div class="col">
-                                <div class="p-2 bg-light rounded">
-                                    <div class="small text-secondary">Wind</div>
-                                    <div>8 mph</div>
-                                </div>
-                            </div>
-                            
-                            <div class="col">
-                                <div class="p-2 bg-light rounded">
-                                    <div class="small text-secondary">Feels Like</div>
-                                    <div>74°F</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <hr>
-                        
-                        <h5 class="mb-3">5-Day Forecast</h5>
-                        <div class="row g-2 text-center">
-                            <div class="col">
-                                <div class="p-2 bg-light rounded">
-                                    <div>Mon</div>
-                                    <i class="fas fa-sun text-warning"></i>
-                                    <div>75°F</div>
-                                </div>
-                            </div>
-                            
-                            <div class="col">
-                                <div class="p-2 bg-light rounded">
-                                    <div>Tue</div>
-                                    <i class="fas fa-cloud-sun text-secondary"></i>
-                                    <div>72°F</div>
-                                </div>
-                            </div>
-                            
-                            <div class="col">
-                                <div class="p-2 bg-light rounded">
-                                    <div>Wed</div>
-                                    <i class="fas fa-cloud text-secondary"></i>
-                                    <div>68°F</div>
-                                </div>
-                            </div>
-                            
-                            <div class="col">
-                                <div class="p-2 bg-light rounded">
-                                    <div>Thu</div>
-                                    <i class="fas fa-cloud-showers-heavy text-info"></i>
-                                    <div>65°F</div>
-                                </div>
-                            </div>
-                            
-                            <div class="col">
-                                <div class="p-2 bg-light rounded">
-                                    <div>Fri</div>
-                                    <i class="fas fa-sun text-warning"></i>
-                                    <div>70°F</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 </div>
 
-<!-- Mobile Bottom Navigation -->
-<div class="bottom-nav d-md-none">
-    <a href="{{ url_for('index') }}" class="bottom-nav-item">
-        <i class="fas fa-home bottom-nav-icon"></i>
-        <span>Home</span>
-    </a>
-    <a href="{{ url_for('dashboard') }}" class="bottom-nav-item active">
-        <i class="fas fa-tachometer-alt bottom-nav-icon"></i>
-        <span>Dashboard</span>
-    </a>
-    <a href="{{ url_for('user_guide') }}" class="bottom-nav-item">
-        <i class="fas fa-book bottom-nav-icon"></i>
-        <span>Guide</span>
-    </a>
-    <a href="{{ url_for('settings_page') }}" class="bottom-nav-item">
-        <i class="fas fa-cog bottom-nav-icon"></i>
-        <span>Settings</span>
-    </a>
-</div>
-
-<!-- Add body class for bottom nav spacing -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.body.classList.add('has-bottom-nav');
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the dashboard
+    initializeDashboard();
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Only process if no input field is focused
+        if (document.activeElement.tagName !== 'INPUT' && 
+            document.activeElement.tagName !== 'TEXTAREA' &&
+            !document.activeElement.isContentEditable) {
+            
+            // Convert to lowercase for case-insensitive matching
+            const key = e.key.toLowerCase();
+            
+            // Find any element with matching shortcut
+            const elements = document.querySelectorAll('[data-shortcut-key="' + key + '"]');
+            if (elements.length > 0) {
+                e.preventDefault();
+                
+                // If it's a button, click it
+                if (elements[0].tagName === 'BUTTON') {
+                    elements[0].click();
+                } 
+                // If it's a link, navigate to it
+                else if (elements[0].tagName === 'A') {
+                    window.location.href = elements[0].href;
+                }
+            }
+        }
+    });
+    
+    // Refresh dashboard button
+    document.getElementById('refreshDashboard').addEventListener('click', function() {
+        refreshDashboard();
+    });
+});
+
+function initializeDashboard() {
+    // Show loading indicators
+    document.querySelectorAll('.loading-indicator').forEach(function(el) {
+        el.style.display = 'block';
+    });
+    
+    // Load data for each section
+    loadHealthData();
+    loadShoppingData();
+    loadFinanceData();
+    
+    // Load all data at once (alternative approach)
+    loadDashboardSummary();
+}
+
+function refreshDashboard() {
+    // Show loading indicators
+    document.querySelectorAll('.loading-indicator').forEach(function(el) {
+        el.style.display = 'block';
+    });
+    
+    // Clear existing data
+    document.getElementById('appointment-list').innerHTML = '<div class="placeholder-content"><div class="placeholder-item"></div><div class="placeholder-item"></div><div class="placeholder-item"></div></div>';
+    document.getElementById('medication-list').innerHTML = '<div class="placeholder-content"><div class="placeholder-item"></div><div class="placeholder-item"></div><div class="placeholder-item"></div></div>';
+    document.getElementById('shopping-list').innerHTML = '<div class="placeholder-content"><div class="placeholder-item"></div><div class="placeholder-item"></div><div class="placeholder-item"></div></div>';
+    document.getElementById('products-container').innerHTML = '<div class="placeholder-content"><div class="placeholder-item"></div><div class="placeholder-item"></div><div class="placeholder-item"></div></div>';
+    document.getElementById('budget-summary').innerHTML = '<div class="placeholder-content"><div class="placeholder-item"></div><div class="placeholder-item"></div><div class="placeholder-item"></div></div>';
+    document.getElementById('expenses-container').innerHTML = '<div class="placeholder-content"><div class="placeholder-item"></div><div class="placeholder-item"></div><div class="placeholder-item"></div></div>';
+    
+    // Reload all data
+    initializeDashboard();
+}
+
+function loadDashboardSummary() {
+    fetch('/dashboard/api/summary')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Process each section data
+                const sections = data.sections;
+                
+                // Load health data if available
+                if (sections.appointments || sections.medications) {
+                    renderHealthData(sections.appointments, sections.medications);
+                }
+                
+                // Load shopping data if available
+                if (sections.shopping) {
+                    renderShoppingData(sections.shopping);
+                }
+                
+                // Load budget data if available
+                if (sections.budget) {
+                    renderBudgetData(sections.budget);
+                }
+                
+                // Hide loading indicators
+                document.querySelectorAll('.loading-indicator').forEach(function(el) {
+                    el.style.display = 'none';
+                });
+            } else {
+                console.error("Error loading dashboard data:", data.error);
+                showErrorMessage("Could not load dashboard data. Please try again later.");
+            }
+        })
+        .catch(error => {
+            console.error("Dashboard loading error:", error);
+            showErrorMessage("Could not load dashboard data. Please try again later.");
+            
+            // Hide loading indicators
+            document.querySelectorAll('.loading-indicator').forEach(function(el) {
+                el.style.display = 'none';
+            });
+        });
+}
+
+function loadHealthData() {
+    fetch('/dashboard/api/health-status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderHealthData(data.appointments, data.medications);
+            } else {
+                console.error("Error loading health data:", data.error);
+                document.getElementById('health-section').innerHTML = '<div class="alert alert-warning">Could not load health data. Please try again later.</div>';
+            }
+            
+            // Hide loading indicators in health section
+            document.querySelectorAll('#health-section .loading-indicator').forEach(function(el) {
+                el.style.display = 'none';
+            });
+        })
+        .catch(error => {
+            console.error("Health data loading error:", error);
+            document.getElementById('health-section').innerHTML = '<div class="alert alert-warning">Could not load health data. Please try again later.</div>';
+            
+            // Hide loading indicators in health section
+            document.querySelectorAll('#health-section .loading-indicator').forEach(function(el) {
+                el.style.display = 'none';
+            });
+        });
+}
+
+function loadShoppingData() {
+    fetch('/dashboard/api/shopping-status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderShoppingData(data);
+            } else {
+                console.error("Error loading shopping data:", data.error);
+                document.getElementById('shopping-section').innerHTML = '<div class="alert alert-warning">Could not load shopping data. Please try again later.</div>';
+            }
+            
+            // Hide loading indicators in shopping section
+            document.querySelectorAll('#shopping-section .loading-indicator').forEach(function(el) {
+                el.style.display = 'none';
+            });
+        })
+        .catch(error => {
+            console.error("Shopping data loading error:", error);
+            document.getElementById('shopping-section').innerHTML = '<div class="alert alert-warning">Could not load shopping data. Please try again later.</div>';
+            
+            // Hide loading indicators in shopping section
+            document.querySelectorAll('#shopping-section .loading-indicator').forEach(function(el) {
+                el.style.display = 'none';
+            });
+        });
+}
+
+function loadFinanceData() {
+    // This would call the finance API endpoint
+    // For now, we'll use placeholder data
+    
+    setTimeout(() => {
+        // This simulates loading data from an API
+        const budgetData = {
+            income: 5250,
+            expenses: 3840,
+            savings_rate: 26.9,
+            upcoming_bills: 1280,
+            categories: {
+                'Housing': 1200,
+                'Food': 600,
+                'Transportation': 400,
+                'Entertainment': 300,
+                'Utilities': 250,
+                'Other': 450
+            }
+        };
+        
+        renderBudgetData(budgetData);
+        
+        // Hide loading indicators in finance section
+        document.querySelectorAll('#finance-section .loading-indicator').forEach(function(el) {
+            el.style.display = 'none';
+        });
+    }, 1000);
+}
+
+function renderHealthData(appointments, medications) {
+    // Render appointments
+    const appointmentList = document.getElementById('appointment-list');
+    
+    if (appointments && appointments.length > 0) {
+        let appointmentHtml = '';
+        
+        appointments.forEach(appointment => {
+            const appointmentDate = new Date(appointment.date);
+            const formattedDate = appointmentDate.toLocaleDateString('en-US', { 
+                month: 'long', 
+                day: 'numeric', 
+                year: 'numeric'
+            });
+            
+            const formattedTime = appointmentDate.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit'
+            });
+            
+            appointmentHtml += `
+                <div class="appointment-card">
+                    <div class="appointment-date">
+                        <i class="far fa-calendar-alt"></i> ${formattedDate}
+                    </div>
+                    <div class="doctor-info">
+                        <div class="doctor-avatar">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        <div>
+                            <div class="doctor-name">${appointment.doctor_name || 'Doctor'}</div>
+                            <div class="doctor-specialty">${appointment.reason || 'Checkup'}</div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="badge bg-info-soft">
+                            <i class="far fa-clock me-1"></i>${formattedTime}
+                        </span>
+                        <a href="#" class="btn btn-sm btn-outline-primary">Details</a>
+                    </div>
+                </div>
+            `;
+        });
+        
+        appointmentList.innerHTML = appointmentHtml;
+    } else {
+        appointmentList.innerHTML = '<div class="alert alert-info">No upcoming appointments.</div>';
+    }
+    
+    // Render medications
+    const medicationList = document.getElementById('medication-list');
+    
+    if (medications && medications.length > 0) {
+        let medicationHtml = '';
+        
+        medications.forEach(medication => {
+            // Determine pill class based on quantity
+            let pillClass = 'pill-high';
+            if (medication.quantity_remaining < 5) {
+                pillClass = 'pill-low';
+            } else if (medication.quantity_remaining < 15) {
+                pillClass = 'pill-medium';
+            }
+            
+            medicationHtml += `
+                <li class="medication-item">
+                    <div class="medication-icon">
+                        <i class="fas fa-capsules"></i>
+                    </div>
+                    <div>
+                        <div class="medication-name">${medication.name}</div>
+                        <div class="medication-dosage">${medication.dosage || ''}, ${medication.instructions || ''}</div>
+                    </div>
+                    <div class="medication-meta">
+                        <div class="remaining-pills ${pillClass}">${medication.quantity_remaining} left</div>
+                    </div>
+                </li>
+            `;
+        });
+        
+        medicationList.innerHTML = medicationHtml;
+    } else {
+        medicationList.innerHTML = '<div class="alert alert-info">No medications to track.</div>';
+    }
+}
+
+function renderShoppingData(data) {
+    // Render shopping lists
+    const shoppingList = document.getElementById('shopping-list');
+    
+    if (data.lists && data.lists.length > 0) {
+        // Get the first list's items to display
+        const firstList = data.lists[0];
+        
+        if (firstList.items && firstList.items.length > 0) {
+            let listHtml = '';
+            
+            firstList.items.forEach(item => {
+                listHtml += `
+                    <li class="shopping-item ${item.is_checked ? 'checked' : ''}">
+                        <input type="checkbox" class="form-check-input item-checkbox" ${item.is_checked ? 'checked' : ''}>
+                        <span class="item-name">${item.name}</span>
+                        <span class="item-category">${item.category || 'Uncategorized'}</span>
+                        <div class="item-actions">
+                            <button class="item-action-btn" title="Remove item">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </li>
+                `;
+            });
+            
+            shoppingList.innerHTML = listHtml;
+        } else {
+            shoppingList.innerHTML = '<div class="alert alert-info">No items in your shopping list.</div>';
+        }
+    } else {
+        shoppingList.innerHTML = '<div class="alert alert-info">No shopping lists available.</div>';
+    }
+    
+    // Render products
+    const productsContainer = document.getElementById('products-container');
+    
+    if (data.products_to_order && data.products_to_order.length > 0) {
+        let productsHtml = `
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        data.products_to_order.forEach(product => {
+            productsHtml += `
+                <tr>
+                    <td>${product.name}</td>
+                    <td>${product.price ? '$' + product.price.toFixed(2) : 'N/A'}</td>
+                    <td><span class="badge bg-warning-soft">Reorder Soon</span></td>
+                </tr>
+            `;
+        });
+        
+        productsHtml += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        productsContainer.innerHTML = productsHtml;
+    } else {
+        productsContainer.innerHTML = '<div class="alert alert-info">No products need reordering.</div>';
+    }
+}
+
+function renderBudgetData(data) {
+    // Render budget summary
+    const budgetSummary = document.getElementById('budget-summary');
+    
+    if (data) {
+        let budgetHtml = `
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <div class="stat-card">
+                        <div class="stat-title">MONTHLY INCOME</div>
+                        <div class="stat-value">$${data.income.toLocaleString()}</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up me-1"></i>5.2% from last month
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-sm-6">
+                    <div class="stat-card">
+                        <div class="stat-title">MONTHLY EXPENSES</div>
+                        <div class="stat-value">$${data.expenses.toLocaleString()}</div>
+                        <div class="stat-change negative">
+                            <i class="fas fa-arrow-up me-1"></i>2.8% from last month
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-sm-6">
+                    <div class="stat-card">
+                        <div class="stat-title">SAVINGS RATE</div>
+                        <div class="stat-value">${data.savings_rate}%</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up me-1"></i>1.4% from last month
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-sm-6">
+                    <div class="stat-card">
+                        <div class="stat-title">UPCOMING BILLS</div>
+                        <div class="stat-value">$${data.upcoming_bills.toLocaleString()}</div>
+                        <div class="stat-change">
+                            Due in next 7 days
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        budgetSummary.innerHTML = budgetHtml;
+        
+        // Render budget chart
+        if (data.categories) {
+            const ctx = document.getElementById('budget-chart').getContext('2d');
+            
+            // Extract labels and data from categories
+            const labels = Object.keys(data.categories);
+            const values = Object.values(data.categories);
+            
+            // Generate colors for each category
+            const colors = generateChartColors(labels.length);
+            
+            const chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: colors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 15,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `$${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    } else {
+        budgetSummary.innerHTML = '<div class="alert alert-info">No budget data available.</div>';
+    }
+    
+    // Render expenses
+    const expensesContainer = document.getElementById('expenses-container');
+    
+    // Placeholder for now
+    expensesContainer.innerHTML = `
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Category</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>May 15</td>
+                        <td>Grocery Shopping</td>
+                        <td>$78.45</td>
+                        <td>Food</td>
+                    </tr>
+                    <tr>
+                        <td>May 14</td>
+                        <td>Gas Station</td>
+                        <td>$42.50</td>
+                        <td>Transportation</td>
+                    </tr>
+                    <tr>
+                        <td>May 12</td>
+                        <td>Online Subscription</td>
+                        <td>$14.99</td>
+                        <td>Entertainment</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function generateChartColors(count) {
+    const colors = [
+        '#4361ee', '#3a0ca3', '#7209b7', '#f72585', '#4cc9f0',
+        '#4895ef', '#560bad', '#b5179e', '#f15bb5', '#00b4d8',
+        '#0077b6', '#023e8a', '#0096c7', '#48cae4', '#90e0ef'
+    ];
+    
+    if (count <= colors.length) {
+        return colors.slice(0, count);
+    }
+    
+    // If we need more colors than available, generate random ones
+    const result = [...colors];
+    const remaining = count - colors.length;
+    
+    for (let i = 0; i < remaining; i++) {
+        const randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16);
+        result.push(randomColor);
+    }
+    
+    return result;
+}
+
+function showErrorMessage(message) {
+    // Create alert
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+    alertDiv.role = 'alert';
+    
+    alertDiv.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            ${message}
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    
+    // Insert at top of container
+    const container = document.querySelector('.container');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        alertDiv.classList.remove('show');
+        setTimeout(() => alertDiv.remove(), 150);
+    }, 5000);
+}
 </script>
 {% endblock %}

@@ -1,39 +1,53 @@
 """
-@module error_handler
-@description Standardized error handling for consistent error responses
-@author AI Assistant
+Error Handler Module
+
+This module provides standardized error handling for the application.
+It registers error handlers for common HTTP errors and provides utility
+functions for creating consistent error responses.
+
+@module utils.error_handler
+@author NOUS Development Team
 """
 
 import logging
 import traceback
 from typing import Dict, Any, Optional, Union
-from flask import jsonify, request
+from flask import jsonify, request, render_template
 from werkzeug.exceptions import HTTPException
 
 # Configure logger
 logger = logging.getLogger(__name__)
 
 class APIError(Exception):
-    """Custom API error class with status code and error details"""
-    
-    def __init__(self, 
-                 message: str, 
-                 status_code: int = 400, 
-                 error_code: Optional[str] = None,
-                 details: Optional[Dict[str, Any]] = None):
+    """
+    Custom exception for API errors that can be raised from anywhere in the application.
+    Will be caught by the error handler and converted to a proper API response.
+    """
+    def __init__(self, message, status_code=400, error_code=None, title=None, details=None):
         """
-        Initialize API error
+        Initialize API error with provided information.
         
         Args:
-            message: Human-readable error message
-            status_code: HTTP status code
-            error_code: Application-specific error code
-            details: Additional error details
+            message: Error message
+            status_code: HTTP status code (default: 400)
+            error_code: Application-specific error code (default: derived from status_code)
+            title: Error title (default: derived from status code)
+            details: Additional error details (default: None)
         """
         self.message = message
         self.status_code = status_code
         self.error_code = error_code or f"ERR_{status_code}"
+        self.title = title or {
+            400: "Bad Request",
+            401: "Unauthorized",
+            403: "Forbidden",
+            404: "Not Found",
+            405: "Method Not Allowed",
+            429: "Too Many Requests",
+            500: "Internal Server Error"
+        }.get(status_code, "Error")
         self.details = details
+        
         super().__init__(self.message)
 
 def handle_error(error: Union[APIError, HTTPException, Exception]) -> tuple:
@@ -50,30 +64,56 @@ def handle_error(error: Union[APIError, HTTPException, Exception]) -> tuple:
     ip_address = request.headers.getlist("X-Forwarded-For")[0].split(',')[0].strip() \
         if request.headers.getlist("X-Forwarded-For") else request.remote_addr
     
+    # Check if this is an API request
+    is_api_request = request.path.startswith('/api/') or request.headers.get('Accept') == 'application/json'
+    
     # Handle our custom API errors
     if isinstance(error, APIError):
         logger.warning(f"API Error ({error.status_code}): {error.message} - IP: {ip_address}")
-        response = {
-            "success": False,
-            "error": error.error_code,
-            "message": error.message
-        }
         
-        # Add details if available
-        if error.details:
-            response["details"] = error.details
+        if is_api_request:
+            response = {
+                "success": False,
+                "error": error.error_code,
+                "message": error.message
+            }
             
-        return jsonify(response), error.status_code
+            # Add details if available
+            if error.details:
+                response["details"] = error.details
+                
+            return jsonify(response), error.status_code
+        else:
+            return render_template('errors/error.html', 
+                                  status_code=error.status_code,
+                                  title=error.title,
+                                  message=error.message), error.status_code
     
     # Handle Werkzeug HTTP exceptions
     if isinstance(error, HTTPException):
         logger.warning(f"HTTP Error ({error.code}): {error.description} - IP: {ip_address}")
-        response = {
-            "success": False,
-            "error": f"HTTP_{error.code}",
-            "message": error.description
-        }
-        return jsonify(response), error.code
+        
+        if is_api_request:
+            response = {
+                "success": False,
+                "error": f"HTTP_{error.code}",
+                "message": error.description
+            }
+            return jsonify(response), error.code
+        else:
+            title = {
+                400: "Bad Request",
+                401: "Unauthorized",
+                403: "Forbidden",
+                404: "Not Found",
+                405: "Method Not Allowed",
+                429: "Too Many Requests",
+                500: "Internal Server Error"
+            }.get(error.code, "Error")
+            return render_template('errors/error.html', 
+                                  status_code=error.code,
+                                  title=title,
+                                  message=error.description), error.code
     
     # Handle unexpected exceptions
     logger.error(f"Unexpected Error: {str(error)} - IP: {ip_address}")
@@ -82,37 +122,77 @@ def handle_error(error: Union[APIError, HTTPException, Exception]) -> tuple:
     # In production, don't expose internal error details
     is_production = request.headers.get('X-Environment') == 'production'
     
-    response = {
-        "success": False,
-        "error": "INTERNAL_ERROR",
-        "message": "An internal server error occurred"
-    }
-    
-    # Add error details in non-production environments
-    if not is_production:
-        response["details"] = {
-            "exception": str(error),
-            "traceback": traceback.format_exc().split("\n")
+    if is_api_request:
+        response = {
+            "success": False,
+            "error": "INTERNAL_ERROR",
+            "message": "An internal server error occurred"
         }
         
-    return jsonify(response), 500
+        # Add error details in non-production environments
+        if not is_production:
+            response["details"] = {
+                "exception": str(error),
+                "traceback": traceback.format_exc().split("\n")
+            }
+            
+        return jsonify(response), 500
+    else:
+        return render_template('errors/error.html', 
+                              status_code=500,
+                              title="Internal Server Error",
+                              message="An unexpected error occurred on the server."), 500
 
 def register_error_handlers(app):
     """
-    Register error handlers with a Flask application
+    Register error handlers with the Flask application.
     
     Args:
-        app: The Flask application
+        app: Flask application instance
     """
-    # Register handler for our custom API errors
-    app.register_error_handler(APIError, handle_error)
+    @app.errorhandler(400)
+    def bad_request(error):
+        """Handle 400 Bad Request errors"""
+        return handle_error(error)
     
-    # Register handlers for common HTTP errors
-    for error_code in [400, 401, 403, 404, 405, 429, 500]:
-        app.register_error_handler(error_code, handle_error)
+    @app.errorhandler(401)
+    def unauthorized(error):
+        """Handle 401 Unauthorized errors"""
+        return handle_error(error)
     
-    # Register catch-all handler for other exceptions
-    app.register_error_handler(Exception, handle_error)
+    @app.errorhandler(403)
+    def forbidden(error):
+        """Handle 403 Forbidden errors"""
+        return handle_error(error)
+    
+    @app.errorhandler(404)
+    def not_found(error):
+        """Handle 404 Not Found errors"""
+        return handle_error(error)
+    
+    @app.errorhandler(405)
+    def method_not_allowed(error):
+        """Handle 405 Method Not Allowed errors"""
+        return handle_error(error)
+    
+    @app.errorhandler(429)
+    def too_many_requests(error):
+        """Handle 429 Too Many Requests errors"""
+        return handle_error(error)
+    
+    @app.errorhandler(500)
+    def server_error(error):
+        """Handle 500 Internal Server Error errors"""
+        # Log the error with traceback for debugging
+        logger.error(f"Internal server error: {str(error)}")
+        logger.error(traceback.format_exc())
+        
+        return handle_error(error)
+    
+    @app.errorhandler(503)
+    def service_unavailable(error):
+        """Handle 503 Service Unavailable errors"""
+        return handle_error(error)
 
 def validation_error(message: str, field: Optional[str] = None) -> APIError:
     """

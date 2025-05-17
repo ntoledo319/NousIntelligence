@@ -63,7 +63,7 @@ db.init_app(app)
 # Initialize the login manager
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = "auth.login"  # Use our new auth route
+login_manager.login_view = "google_auth.login"  # Use our Google auth route
 login_manager.login_message = "Please sign in to access this page."
 login_manager.login_message_category = "info"
 
@@ -73,8 +73,8 @@ def load_user(user_id):
     return User.query.get(user_id)
 
 # Initialize authentication
-from auth import init_auth
-init_auth(app)
+from fixed_auth import register_auth_blueprint
+register_auth_blueprint(app)
 
 # Create the database tables if they don't exist
 with app.app_context():

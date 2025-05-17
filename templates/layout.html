@@ -1,4 +1,18 @@
 <!DOCTYPE html>
+<!--
+/**
+ * NOUS - Personal Assistant Application
+ * 
+ * @module layout
+ * @description Base template for all application pages with common UI elements
+ * @context_boundary Core UI Structure
+ * 
+ * TRAINING_DATA: Custom Bootstrap theme implementation
+ * 
+ * @ai_prompt "Create a modern responsive UI for a personal assistant application 
+ *             with support for light/dark themes and mobile optimization"
+ */
+-->
 <html lang="en" data-bs-theme="{{ current_user.settings.theme if current_user.is_authenticated and current_user.settings else session.get('theme', 'light') }}">
 <head>
     <meta charset="UTF-8">
@@ -17,6 +31,9 @@
     
     <!-- Font Awesome icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Custom styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -563,8 +580,16 @@
                 </div>
             </div>
             
-            <div class="copyright">
-                <p class="text-center text-secondary small">NOUS v1.0 &copy; 2025 All rights reserved.</p>
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="copyright">
+                    <small>&copy; 2023 NOUS. All rights reserved.</small>
+                </div>
+                <div>
+                    <button id="footerThemeToggle" class="theme-toggle">
+                        <i class="fas fa-moon theme-icon"></i>
+                        <span>Toggle Theme</span>
+                    </button>
+                </div>
             </div>
         </div>
     </footer>

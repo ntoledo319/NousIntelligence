@@ -1,28 +1,44 @@
 {% extends "layout.html" %}
 
-{% block title %}Server Error{% endblock %}
-
 {% block content %}
-<div class="container error-page my-5">
+<div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-8 text-center">
-            <div class="error-icon mb-4">
-                <i class="fas fa-exclamation-triangle display-1 text-warning"></i>
+        <div class="col-lg-8">
+            <div class="text-center mb-5">
+                <h1 class="display-1 fw-bold text-gradient-danger">500</h1>
+                <h2 class="mb-4">Server Error</h2>
+                <p class="lead text-secondary mb-5">Oops! Something went wrong on our end. We're working to fix the issue.</p>
+                <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i>Return to Home
+                    </a>
+                    <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Go Back
+                    </a>
+                </div>
             </div>
-            <h1 class="display-4 mb-4">Server Error</h1>
-            <p class="lead mb-4">Sorry, something went wrong on our end.</p>
-            {% if error_message %}
-            <div class="alert alert-danger">
-                {{ error_message }}
-            </div>
-            {% endif %}
-            <div class="error-actions">
-                <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-home me-2"></i> Go to Home
-                </a>
-                <button onclick="window.location.reload()" class="btn btn-outline-primary btn-lg ms-2">
-                    <i class="fas fa-sync-alt me-2"></i> Try Again
-                </button>
+            
+            <!-- Error Details -->
+            <div class="card card-modern mt-5">
+                <div class="card-body">
+                    <h3 class="mb-3">What happened?</h3>
+                    <p>Our server encountered an unexpected condition that prevented it from fulfilling your request. This is a temporary issue, and we're already working on resolving it.</p>
+                    
+                    <h4 class="mt-4 mb-3">What can you do?</h4>
+                    <ul class="mb-4">
+                        <li>Refresh the page and try again</li>
+                        <li>Clear your browser cache and cookies</li>
+                        <li>Try again in a few minutes</li>
+                        <li>Return to the homepage</li>
+                    </ul>
+                    
+                    <div class="alert alert-info d-flex align-items-center" role="alert">
+                        <i class="fas fa-info-circle fs-4 me-3"></i>
+                        <div>
+                            If you continue to experience this issue, please contact support and provide details about what you were trying to do when the error occurred.
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
