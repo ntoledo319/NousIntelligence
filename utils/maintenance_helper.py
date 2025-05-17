@@ -42,11 +42,28 @@ def _maintenance_worker():
     
     while _should_run:
         try:
-            # Import here to avoid circular imports
-            from main import app
+            # Use current_app instead of importing app directly
+            # This works when called within an application context
+            # Sleep for a short while to ensure app is fully initialized
+            time.sleep(2)
             
-            # Run with app context
-            with app.app_context():
+            # Run with app context from current_app if possible
+            from flask import has_app_context, current_app
+            
+            if has_app_context():
+                # We're already in an app context, use it
+                context = None
+            else:
+                # Try to get app from current_app proxy if possible
+                try:
+                    context = current_app.app_context()
+                    context.__enter__()
+                except RuntimeError:
+                    # If that fails, we'll run without app context and log tasks will handle their own errors
+                    context = None
+                    logging.warning("Running maintenance tasks without app context")
+            
+            try:
                 # Check each task and run if due
                 now = datetime.utcnow()
                 
@@ -65,6 +82,11 @@ def _maintenance_worker():
                 # Task 5: Optimize database (every 72 hours) 
                 _run_task_if_due('optimize_database', now, hours=72, func=_optimize_database)
                 
+            finally:
+                # Clean up the app context if we created one
+                if context is not None:
+                    context.__exit__(None, None, None)
+                    
         except Exception as e:
             logging.error(f"Error in maintenance worker: {str(e)}")
             
