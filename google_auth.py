@@ -18,22 +18,30 @@ from models import User, db
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Load client configuration from client_secret.json
-try:
-    with open('client_secret.json', 'r') as f:
-        client_config = json.load(f)['web']
-    GOOGLE_CLIENT_ID = client_config['client_id']
-    GOOGLE_CLIENT_SECRET = client_config['client_secret']
-    # Use the exact redirect URI from client_secret.json
-    GOOGLE_REDIRECT_URI = "https://mynous.replit.app/callback/google"
-    logger.info(f"Loaded Google OAuth configuration from client_secret.json")
-    logger.info(f"Using redirect URI: {GOOGLE_REDIRECT_URI}")
-except Exception as e:
-    logger.error(f"Error loading client_secret.json: {str(e)}")
-    GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
-    GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
-    GOOGLE_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI", "")
-    logger.info("Using Google OAuth configuration from environment variables")
+# Load Google OAuth credentials from environment variables
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET", "")
+
+# Construct the redirect URI based on the request domain
+def get_redirect_uri():
+    # Use a fixed value for Flask context outside of request
+    try:
+        if request:
+            base_url = request.url_root.rstrip('/')
+            if base_url.startswith('http://'):
+                base_url = base_url.replace('http://', 'https://', 1)
+            return f"{base_url}/auth/callback/google"
+    except RuntimeError:
+        # This happens when called outside of a request context
+        pass
+    
+    return os.environ.get("GOOGLE_REDIRECT_URI", "https://mynous.replit.app/auth/callback/google")
+
+if GOOGLE_CLIENT_ID:
+    logger.info(f"Using Google OAuth credentials from environment variables")
+    logger.info(f"Client ID: {GOOGLE_CLIENT_ID[:10]}..." if GOOGLE_CLIENT_ID else "Not set")
+else:
+    logger.warning("Google OAuth credentials not found in environment variables!")
 
 # Google's OAuth endpoints
 GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
@@ -52,15 +60,16 @@ def login():
         google_provider_cfg = requests.get(GOOGLE_DISCOVERY_URL).json()
         authorization_endpoint = google_provider_cfg["authorization_endpoint"]
         
-        # Get current host for logging
+        # Get current host and dynamic redirect URI
+        redirect_uri = get_redirect_uri()
         current_host = request.host
         logger.info(f"Current host: {current_host}")
-        logger.info(f"Using fixed redirect URI: {GOOGLE_REDIRECT_URI}")
+        logger.info(f"Using dynamic redirect URI: {redirect_uri}")
         
         # Create OAuth request URL with minimal scopes
         request_uri = client.prepare_request_uri(
             authorization_endpoint,
-            redirect_uri=GOOGLE_REDIRECT_URI,  # Use the hard-coded URI
+            redirect_uri=redirect_uri,
             scope=["openid", "email", "profile"],  # Minimal scopes
         )
         
@@ -89,26 +98,31 @@ def callback():
         google_provider_cfg = requests.get(GOOGLE_DISCOVERY_URL).json()
         token_endpoint = google_provider_cfg["token_endpoint"]
         
-        # Get current request URL for logging
+        # Get current request URL and dynamic redirect URI
         current_url = request.url
+        redirect_uri = get_redirect_uri()
         logger.info(f"Current callback URL: {current_url}")
+        logger.info(f"Using redirect URI: {redirect_uri}")
         
-        # Create the token request with fixed redirect URI
+        # Create the token request with dynamic redirect URI
         token_url, headers, body = client.prepare_token_request(
             token_endpoint,
             authorization_response=request.url.replace('http://', 'https://'),
-            redirect_url=GOOGLE_REDIRECT_URI,  # Use the same hard-coded URI
+            redirect_url=redirect_uri,
             code=code
         )
         
         logger.info(f"Token request URL: {token_url}")
         
-        # Send the request to get tokens
+        # Send the request to get tokens (explicitly cast to str to satisfy type checker)
+        client_id = str(GOOGLE_CLIENT_ID) if GOOGLE_CLIENT_ID else ""
+        client_secret = str(GOOGLE_CLIENT_SECRET) if GOOGLE_CLIENT_SECRET else ""
+        
         token_response = requests.post(
             token_url,
             headers=headers,
             data=body,
-            auth=(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET),
+            auth=(client_id, client_secret)
         )
         
         # Check for token errors
