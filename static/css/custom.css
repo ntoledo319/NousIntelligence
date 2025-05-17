@@ -1,7 +1,58 @@
 /* 
  * NOUS - Custom Styles 
  * Additional specific styles for NOUS application
+ * Modern UI with dark mode support
  */
+
+:root {
+  /* Brand Colors */
+  --nous-primary: #6f42c1;
+  --nous-secondary: #20c997;
+  --nous-accent: #fd7e14;
+  --nous-dark: #343a40;
+  --nous-light: #f8f9fa;
+  
+  /* Light Theme Variables */
+  --bg-primary-light: #ffffff;
+  --bg-secondary-light: #f8f9fa;
+  --text-primary-light: #212529;
+  --text-secondary-light: #6c757d;
+  --border-light: rgba(0,0,0,0.1);
+  
+  /* Dark Theme Variables */
+  --bg-primary-dark: #212529;
+  --bg-secondary-dark: #2c3034;
+  --text-primary-dark: #f8f9fa;
+  --text-secondary-dark: #adb5bd;
+  --border-dark: rgba(255,255,255,0.1);
+  
+  /* Common Variables */
+  --gradient-primary: linear-gradient(135deg, var(--nous-primary), #5a37a0);
+  --gradient-secondary: linear-gradient(135deg, var(--nous-secondary), #0ca678);
+  --gradient-accent: linear-gradient(135deg, var(--nous-accent), #e96b02);
+  --gradient-danger: linear-gradient(135deg, #e74c3c, #c0392b);
+  
+  --radius: 0.5rem;
+  --radius-sm: 0.25rem;
+  --radius-lg: 1rem;
+  
+  --shadow-sm: 0 .125rem .25rem rgba(0,0,0,.075);
+  --shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+  --shadow-lg: 0 1rem 3rem rgba(0,0,0,.175);
+  
+  --transition-fast: 0.15s ease;
+  --transition: 0.3s ease;
+  
+  /* Brand-specific Variables */
+  --brand-primary: var(--nous-primary);
+  --primary-soft: rgba(111, 66, 193, 0.1);
+  --success: #20c997;
+  --success-soft: rgba(32, 201, 151, 0.1);
+  --warning: #ffc107;
+  --warning-soft: rgba(255, 193, 7, 0.1);
+  --danger: #dc3545;
+  --danger-soft: rgba(220, 53, 69, 0.1);
+}
 
 /* Command Log Styling */
 .command-log {
@@ -520,10 +571,15 @@ body.has-bottom-nav {
   padding: 0.5rem 0;
   box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
   z-index: 1030;
+  border-top: 1px solid var(--border-light);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 [data-bs-theme="dark"] .bottom-nav {
   box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+  border-top: 1px solid var(--border-dark);
+  background-color: rgba(33, 37, 41, 0.95);
 }
 
 .bottom-nav-item {
@@ -534,6 +590,8 @@ body.has-bottom-nav {
   color: var(--text-secondary);
   font-size: 0.75rem;
   text-decoration: none;
+  position: relative;
+  transition: color var(--transition-fast), transform var(--transition-fast);
 }
 
 .bottom-nav-icon {
@@ -543,6 +601,20 @@ body.has-bottom-nav {
 
 .bottom-nav-item.active {
   color: var(--brand-primary);
+}
+
+.bottom-nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  width: 40%;
+  height: 3px;
+  background: var(--gradient-primary);
+  border-radius: 3px;
+}
+
+.bottom-nav-item:active {
+  transform: scale(0.95);
 }
 
 /* Theme toggle button */
@@ -558,9 +630,118 @@ body.has-bottom-nav {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
-  transition: background-color var(--transition-fast);
+  transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.theme-toggle-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--primary-soft);
+  transform: scale(0);
+  border-radius: 50%;
+  transition: transform var(--transition-fast);
+  z-index: -1;
+}
+
+.theme-toggle-btn:hover::before {
+  transform: scale(1);
 }
 
 .theme-toggle-btn:hover {
-  background-color: var(--bg-secondary);
+  color: var(--brand-primary);
+}
+
+.theme-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+/* Modern UI Card Styles */
+.nous-card {
+  border: none;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
+  overflow: hidden;
+  background-color: var(--bg-primary-light);
+}
+
+[data-bs-theme="dark"] .nous-card {
+  background-color: var(--bg-secondary-dark);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.nous-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow);
+}
+
+.card-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+}
+
+/* Text gradient effect */
+.text-gradient-primary {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-secondary {
+  background: var(--gradient-secondary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-accent {
+  background: var(--gradient-accent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Badge styles */
+.nous-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35em 0.65em;
+  font-size: 0.75em;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 50rem;
+  background: var(--gradient-primary);
+  box-shadow: 0 2px 5px rgba(111, 66, 193, 0.3);
+}
+
+.nous-badge-success {
+  background: var(--gradient-secondary);
+  box-shadow: 0 2px 5px rgba(32, 201, 151, 0.3);
+}
+
+.nous-badge-warning {
+  background: var(--gradient-accent);
+  box-shadow: 0 2px 5px rgba(253, 126, 20, 0.3);
+}
+
+.nous-badge-danger {
+  background: var(--gradient-danger);
+  box-shadow: 0 2px 5px rgba(231, 76, 60, 0.3);
 }

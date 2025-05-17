@@ -131,6 +131,41 @@
         .z-1 {
             z-index: 1;
         }
+        
+        .text-gradient {
+            background: linear-gradient(135deg, var(--nous-primary), var(--nous-accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+        
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, var(--nous-primary), #5a37a0);
+        }
+        
+        .fs-sm {
+            font-size: 0.8rem;
+        }
+        
+        .transform-translate {
+            transform: translate(25%, 25%);
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 576px) {
+            .hero-logo {
+                max-width: 120px;
+            }
+            
+            .display-4 {
+                font-size: calc(1.375rem + 1.5vw);
+            }
+            
+            .card-body {
+                padding: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
