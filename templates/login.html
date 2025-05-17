@@ -41,6 +41,10 @@
                             </span>
                             <div class="btn-gradient-overlay" style="background: linear-gradient(135deg, rgba(66,133,244,0.1) 0%, rgba(66,133,244,0) 100%);"></div>
                         </a>
+                        
+                        <div class="small text-muted mt-3">
+                            <i class="fas fa-lock me-1"></i> Secure Google authentication
+                        </div>
                     </div>
                     
                     <div class="text-center mt-4">
@@ -50,11 +54,27 @@
             </div>
             
             {% if config.get('BETA_MODE', True) %}
-            <div class="mt-4 text-center">
-                <div class="badge bg-warning text-dark p-2">
-                    <i class="fas fa-flask me-1"></i> Beta Testing Mode
+            <div class="mt-4 nous-card p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="badge bg-warning text-dark p-2 me-2">
+                        <i class="fas fa-flask me-1"></i> Beta Program
+                    </div>
+                    <div class="badge bg-info text-white p-2">
+                        <i class="fas fa-users me-1"></i> Limited Spots
+                    </div>
                 </div>
-                <p class="mt-2 small text-muted">NOUS is currently in beta testing. <a href="{{ url_for('beta.request_access') }}">Learn more</a>.</p>
+                
+                <h5 class="mb-2">Join Our Beta Testing Program</h5>
+                <p class="mb-3">Experience our cutting-edge features before anyone else and help shape the future of NOUS.</p>
+                
+                <div class="d-flex flex-column flex-md-row gap-2">
+                    <a href="{{ url_for('beta.features') }}" class="btn btn-outline-primary btn-sm flex-grow-1">
+                        <i class="fas fa-star me-1"></i> Beta Features
+                    </a>
+                    <a href="{{ url_for('beta.request_access') }}" class="btn btn-success btn-sm flex-grow-1">
+                        <i class="fas fa-user-plus me-1"></i> Request Access
+                    </a>
+                </div>
             </div>
             {% endif %}
         </div>

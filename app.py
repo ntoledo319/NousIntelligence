@@ -118,10 +118,10 @@ if database_url:
 else:
     print("No DATABASE_URL found in environment variables")
     
-# Initialize LoginManager
+# Initialize LoginManager with Google Authentication
 login_manager = LoginManager(app)
 login_manager.login_view = "google_auth.login"
-login_manager.login_message = "Please log in to access this page."
+login_manager.login_message = "Please sign in with Google to access this page."
 login_manager.login_message_category = "info"
 
 # Import Google authentication blueprint
