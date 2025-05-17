@@ -29,6 +29,7 @@ def register_blueprints(app):
     from routes.view.index import index_bp
     from routes.view.dashboard import dashboard_bp
     from routes.view.settings import settings_bp
+    from routes.view.auth import auth_bp
     
     # Import API blueprints
     from routes.api.v1.settings import settings_bp as api_settings_bp
@@ -64,6 +65,7 @@ def register_blueprints(app):
     app.register_blueprint(index_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(settings_bp)
+    app.register_blueprint(auth_bp)
     
     # Register API blueprints
     app.register_blueprint(api_settings_bp)
