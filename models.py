@@ -195,9 +195,15 @@ class UserSettings(db.Model):
 
 # OAuth model for token storage
 class OAuth(OAuthConsumerMixin, db.Model):
+    """Model for storing OAuth tokens from providers like Google"""
+    __tablename__ = 'oauth_tokens'
     user_id = db.Column(db.String(255), db.ForeignKey(User.id))
     browser_session_key = db.Column(db.String, nullable=False)
-    user = db.relationship(User)
+    user = db.relationship(User, backref=db.backref('oauth_tokens', lazy='dynamic'))
+    
+    # Add created/updated timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     __table_args__ = (UniqueConstraint(
         'user_id',

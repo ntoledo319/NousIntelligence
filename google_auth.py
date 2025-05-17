@@ -35,8 +35,9 @@ def get_redirect_uri():
         # This happens when called outside of a request context
         pass
     
-    # Use environment variable or fallback
-    return os.environ.get("GOOGLE_REDIRECT_URI", "https://mynous.replit.app/auth/callback/google")
+    # Get the domain from Replit environment
+    replit_domain = os.environ.get("REPLIT_DEV_DOMAIN") or os.environ.get("REPL_SLUG", "mynous") + ".replit.app"
+    return f"https://{replit_domain}/auth/callback/google"
 
 if GOOGLE_CLIENT_ID:
     logger.info(f"Using Google OAuth credentials from environment variables")

@@ -120,9 +120,15 @@ else:
     
 # Initialize LoginManager with Google Authentication
 login_manager = LoginManager(app)
-login_manager.login_view = "google_auth.login"
+login_manager.login_view = "google_auth.login"  # Route function name in the blueprint
 login_manager.login_message = "Please sign in with Google to access this page."
 login_manager.login_message_category = "info"
+
+@login_manager.user_loader
+def load_user(user_id):
+    """Load user by ID for Flask-Login"""
+    from models import User
+    return User.query.get(user_id)
 
 # Import Google authentication blueprint
 from google_auth import google_auth
