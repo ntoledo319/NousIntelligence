@@ -24,7 +24,6 @@ GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET", "")
 
 # Construct the redirect URI based on the request domain
 def get_redirect_uri():
-    # Use a fixed value for Flask context outside of request
     try:
         if request:
             base_url = request.url_root.rstrip('/')
@@ -54,7 +53,7 @@ client = WebApplicationClient(GOOGLE_CLIENT_ID)
 # Create blueprint for routes
 google_auth = Blueprint("google_auth", __name__)
 
-@google_auth.route("/auth/login")
+@google_auth.route("/login")
 def login():
     """Start Google OAuth flow with minimal scopes"""
     try:
@@ -85,7 +84,7 @@ def login():
         flash("An error occurred during authentication. Please try again.", "error")
         return redirect(url_for('index'))
 
-@google_auth.route("/auth/callback/google")
+@google_auth.route("/callback/google")
 def callback():
     """Process the Google OAuth callback"""
     try:
@@ -196,7 +195,7 @@ def callback():
         flash("An error occurred during authentication. Please try again.", "error")
         return redirect(url_for('index'))
 
-@google_auth.route("/auth/logout")
+@google_auth.route("/logout")
 @login_required
 def logout():
     """Log the user out"""
