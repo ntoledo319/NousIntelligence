@@ -15,6 +15,7 @@ from routes.health_check import health_check
 from routes.auth_api import auth_api
 from routes.two_factor_routes import two_factor_bp
 from routes.api_key_routes import api_key_bp
+from routes.beta_routes import beta
 
 def register_blueprints(app):
     """Register all blueprint modules with the Flask application"""
@@ -25,3 +26,4 @@ def register_blueprints(app):
     app.register_blueprint(auth_api)
     app.register_blueprint(two_factor_bp)
     app.register_blueprint(api_key_bp)
+    app.register_blueprint(beta)

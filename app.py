@@ -120,13 +120,17 @@ else:
     
 # Initialize LoginManager
 login_manager = LoginManager(app)
-login_manager.login_view = "replit_auth.login"
+login_manager.login_view = "google_auth.login"
 login_manager.login_message = "Please log in to access this page."
 login_manager.login_message_category = "info"
 
-# Import and setup Replit authentication
-from replit_auth import make_replit_blueprint
-app.register_blueprint(make_replit_blueprint(), url_prefix="/auth")
+# Import Google authentication blueprint
+from google_auth import google_auth
+app.register_blueprint(google_auth, url_prefix="/auth")
+
+# Configure beta testing mode
+from utils.beta_test_helper import configure_beta_mode
+configure_beta_mode(app)
 
 # Import and register the routes from routes package
 from routes import register_blueprints
@@ -320,12 +324,15 @@ def process_command(cmd):
 
 
 @app.route("/dashboard")
+@login_required
 def dashboard():
     """Show dashboard with data visualizations and summaries"""
-    # Check if user is authenticated
-    if not current_user.is_authenticated:
-        flash("Please log in to access the dashboard", "warning")
-        return redirect(url_for("google_auth.login"))
+    # Check for beta access if beta mode is enabled
+    if app.config.get('BETA_MODE', False):
+        from utils.beta_test_helper import is_beta_tester
+        if not is_beta_tester(current_user.id):
+            flash("The dashboard is currently available only to beta testers.", "warning")
+            return redirect(url_for('beta.request_access'))
     
     # Check for Google services connection
     if "google_creds" not in session:
