@@ -83,7 +83,7 @@ def login():
         flash("An error occurred during authentication. Please try again.", "error")
         return redirect(url_for('index'))
 
-@google_auth.route("/callback/google")
+@google_auth.route("/auth/callback/google")
 def callback():
     """Process the Google OAuth callback"""
     try:

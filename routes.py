@@ -2,10 +2,13 @@ from flask import session, render_template, redirect, url_for, flash
 from app import app, db
 from flask_login import current_user, login_required
 from google_auth import google_auth
-from utils.beta_test_helper import is_beta_tester
+from utils.beta_test_helper import is_beta_tester, configure_beta_mode
 
 # Register Google Authentication blueprint
 app.register_blueprint(google_auth, url_prefix="/auth")
+
+# Configure beta testing mode
+configure_beta_mode(app)
 
 # Make session permanent
 @app.before_request
