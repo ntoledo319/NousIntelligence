@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NOUS Personal Assistant</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --nous-primary: #6f42c1;
@@ -15,10 +15,27 @@
             --nous-light: #f8f9fa;
         }
         
+        [data-bs-theme="light"] {
+            --body-bg: #f8f9fa;
+            --body-color: #212529;
+            --card-bg: #ffffff;
+            --card-border: rgba(0,0,0,0.125);
+            --card-shadow: rgba(0,0,0,0.1);
+        }
+        
+        [data-bs-theme="dark"] {
+            --body-bg: #212529;
+            --body-color: #f8f9fa;
+            --card-bg: #2c3034;
+            --card-border: rgba(255,255,255,0.125);
+            --card-shadow: rgba(0,0,0,0.3);
+        }
+        
         body {
-            background-color: #f5f5f5;
-            color: #333;
+            background-color: var(--body-bg);
+            color: var(--body-color);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
         
         .hero-logo {
@@ -68,38 +85,75 @@
         
         .card {
             border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            box-shadow: 0 4px 12px var(--card-shadow);
+            transition: transform 0.3s, box-shadow 0.3s;
+            overflow: hidden;
         }
         
         .card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 16px var(--card-shadow);
         }
         
         .feature-card {
             height: 100%;
         }
         
+        .card-body {
+            padding: 1.5rem;
+        }
+        
         .welcome-buttons .btn {
             border-radius: 50px;
             padding: 10px 20px;
             font-weight: 500;
+            position: relative;
+        }
+        
+        .btn-gradient-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+        
+        .btn-nous-primary:hover .btn-gradient-overlay {
+            opacity: 1;
+        }
+        
+        .z-1 {
+            z-index: 1;
         }
     </style>
 </head>
 <body>
-    <div class="container py-5">
-        <div class="row justify-content-center mb-5">
+    <div class="container py-4 py-md-5">
+        <div class="row justify-content-center mb-4 mb-md-5">
             <div class="col-lg-8 text-center">
-                <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" alt="NOUS Logo" class="hero-logo mb-3" style="max-height: 130px;">
-                <h1 class="display-4 mb-3" style="color: var(--nous-primary);">
+                <div class="d-flex justify-content-center">
+                    <div class="position-relative">
+                        <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" alt="NOUS Logo" class="hero-logo mb-3" style="max-height: 130px;">
+                        <div class="hero-badge position-absolute end-0 bottom-0 transform-translate bg-gradient-primary text-white px-2 py-1 rounded-pill fs-sm">
+                            <i class="fas fa-shield-alt me-1"></i>Trusted
+                        </div>
+                    </div>
+                </div>
+                <h1 class="display-4 mb-2 fw-bold text-gradient">
                     NOUS
                 </h1>
                 <p class="lead mb-4">Your comprehensive AI-powered personal assistant</p>
                 
-                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-4">
-                    <a href="/auth/login" class="btn btn-nous-primary btn-lg px-4 gap-3">
-                        <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-4 welcome-buttons">
+                    <a href="/auth/login" class="btn btn-nous-primary btn-lg px-4 gap-3 position-relative overflow-hidden">
+                        <span class="position-relative z-1"><i class="fas fa-sign-in-alt me-2"></i>Sign In</span>
+                        <div class="btn-gradient-overlay"></div>
                     </a>
                     <a href="/user-guide" class="btn btn-outline-primary btn-lg px-4 gap-3">
                         <i class="fas fa-book me-2"></i>User Guide
@@ -254,12 +308,66 @@
         </div>
     </div>
     
-    <footer class="bg-light py-4 mt-5">
-        <div class="container text-center">
-            <p class="mb-0">NOUS Personal Assistant &copy; 2025. Your comprehensive digital companion.</p>
+    <footer class="py-4 mt-5" style="background-color: var(--card-bg); border-top: 1px solid var(--card-border);">
+        <div class="container">
+            <div class="row align-items-center justify-content-between">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="mb-0">NOUS Personal Assistant &copy; 2025</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
+                    <button id="themeToggle" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-moon theme-icon-dark d-none"></i>
+                        <i class="fas fa-sun theme-icon-light"></i>
+                        <span class="ms-2 d-none d-sm-inline">Toggle Theme</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </footer>
     
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Theme Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('themeToggle');
+            const htmlElement = document.documentElement;
+            const darkIcon = document.querySelector('.theme-icon-dark');
+            const lightIcon = document.querySelector('.theme-icon-light');
+            
+            // Check for saved theme or use system preference
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            if (savedTheme) {
+                htmlElement.setAttribute('data-bs-theme', savedTheme);
+                updateIcons(savedTheme);
+            } else if (prefersDark) {
+                htmlElement.setAttribute('data-bs-theme', 'dark');
+                updateIcons('dark');
+            }
+            
+            // Update icons based on current theme
+            function updateIcons(theme) {
+                if (theme === 'dark') {
+                    darkIcon.classList.remove('d-none');
+                    lightIcon.classList.add('d-none');
+                } else {
+                    darkIcon.classList.add('d-none');
+                    lightIcon.classList.remove('d-none');
+                }
+            }
+            
+            // Toggle theme on button click
+            themeToggle.addEventListener('click', function() {
+                const currentTheme = htmlElement.getAttribute('data-bs-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                htmlElement.setAttribute('data-bs-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateIcons(newTheme);
+            });
+        });
+    </script>
 </body>
 </html>
