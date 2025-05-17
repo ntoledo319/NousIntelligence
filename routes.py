@@ -17,9 +17,9 @@ def index():
     # Use flask_login.current_user to check if current user is logged in or anonymous.
     user = current_user
     if user.is_authenticated:
-        return f"Hello, {user.first_name or 'User'}! Welcome to the NOUS Personal Assistant."
+        return render_template('dashboard.html', user=user)
     else:
-        return "Welcome to NOUS. Please log in to continue."
+        return render_template('simple_welcome.html')
 
 @app.route('/dashboard')
 @login_required

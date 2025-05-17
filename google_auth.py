@@ -140,10 +140,25 @@ def callback():
             user.id = str(uuid.uuid4())
             user.email = email
             user.first_name = name
+            user.last_name = userinfo.get("family_name", "")
+            user.profile_image_url = userinfo.get("picture", None)
             user.created_at = datetime.utcnow()
             db.session.add(user)
             db.session.commit()
             logger.info(f"Created new user: {email}")
+            
+            # Check if this is a known beta email domain
+            from utils.beta_test_helper import auto_register_beta_tester
+            beta_domains = os.environ.get("BETA_EMAIL_DOMAINS", "replit.com,gmail.com").split(",")
+            is_beta_domain = any(email.lower().endswith(f"@{domain.lower()}") for domain in beta_domains)
+            
+            # Auto-register as beta tester if from approved domain
+            if is_beta_domain:
+                try:
+                    auto_register_beta_tester(user.id, f"Auto-registered from {email}")
+                    logger.info(f"Auto-registered beta tester: {email}")
+                except Exception as e:
+                    logger.error(f"Error auto-registering beta tester: {str(e)}")
         
         # Log in the user
         login_user(user)

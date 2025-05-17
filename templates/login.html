@@ -1,22 +1,62 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-12 mb-4 text-center">
-        <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" alt="NOUS Logo" class="hero-logo mb-3" style="max-height: 150px;">
-        <h2 class="mb-3" style="color: var(--nous-primary);">Your Personal Assistant</h2>
-    </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header text-white">
-                <h3 class="mb-0">Login Required</h3>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-12 mb-4 text-center">
+            <div class="d-flex justify-content-center">
+                <div class="position-relative">
+                    <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" alt="NOUS Logo" class="hero-logo mb-3" style="max-height: 150px;">
+                    <div class="hero-badge position-absolute end-0 bottom-0 transform-translate bg-gradient-primary text-white px-2 py-1 rounded-pill fs-sm">
+                        <i class="fas fa-shield-alt me-1"></i>Secure
+                    </div>
+                </div>
             </div>
-            <div class="card-body text-center py-5">
-                <p class="mb-4">Please login with your Replit account to access this application.</p>
-                <a href="{{ url_for('replit_auth.login') }}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-sign-in-alt me-2"></i> Login with Replit
-                </a>
+            <h1 class="display-4 mb-2 fw-bold text-gradient">NOUS</h1>
+            <p class="lead mb-4">Your comprehensive AI-powered personal assistant</p>
+        </div>
+        <div class="col-md-6">
+            <div class="nous-card">
+                <div class="card-body p-lg-5 p-4">
+                    <h3 class="mb-4 text-center">Sign In</h3>
+                    
+                    <p class="text-center mb-4">Access your personal assistant dashboard and beta features</p>
+                    
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <div class="text-center mb-4">
+                        <a href="{{ url_for('google_auth.login') }}" class="btn btn-lg btn-with-icon position-relative overflow-hidden" style="background-color: #fff; color: #444; border: 1px solid #ddd; width: 100%; padding: 12px;">
+                            <span class="position-relative z-1">
+                                <i class="fab fa-google me-2" style="color: #4285F4;"></i>
+                                Sign in with Google
+                            </span>
+                            <div class="btn-gradient-overlay" style="background: linear-gradient(135deg, rgba(66,133,244,0.1) 0%, rgba(66,133,244,0) 100%);"></div>
+                        </a>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <p class="text-muted">By signing in, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
+                    </div>
+                </div>
             </div>
+            
+            {% if config.get('BETA_MODE', True) %}
+            <div class="mt-4 text-center">
+                <div class="badge bg-warning text-dark p-2">
+                    <i class="fas fa-flask me-1"></i> Beta Testing Mode
+                </div>
+                <p class="mt-2 small text-muted">NOUS is currently in beta testing. <a href="{{ url_for('beta.request_access') }}">Learn more</a>.</p>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

@@ -155,3 +155,44 @@ def validate_beta_access_code(access_code):
     """Validate a beta access code"""
     expected_code = current_app.config.get('BETA_ACCESS_CODE')
     return access_code and expected_code and access_code.strip() == expected_code.strip()
+
+def auto_register_beta_tester(user_id, notes=None):
+    """Auto-register a user as a beta tester with basic validation
+    Used for trusted email domains and pre-approved users."""
+    
+    # Check if user exists
+    user = User.query.get(user_id)
+    if not user:
+        raise ValueError(f"User not found: {user_id}")
+        
+    # Check if already a beta tester
+    existing = BetaTester.query.filter_by(user_id=user_id).first()
+    if existing:
+        if existing.status == 'active':
+            return existing
+        else:
+            # Reactivate
+            existing.status = 'active'
+            existing.activated_at = datetime.utcnow()
+            if notes:
+                existing.notes = notes
+            db.session.commit()
+            return existing
+            
+    # Check if we have room (skip if we're adding a limited number of pre-approved users)
+    current_count = BetaTester.query.filter_by(status='active').count()
+    if current_count >= MAX_BETA_TESTERS:
+        logging.warning(f"Auto-registration failed: Maximum beta testers ({MAX_BETA_TESTERS}) reached")
+        raise ValueError(f"Maximum beta testers ({MAX_BETA_TESTERS}) reached")
+        
+    # Create new beta tester record
+    tester = BetaTester(
+        user_id=user_id,
+        status='active',
+        notes=notes or "Auto-registered user",
+        activated_at=datetime.utcnow()
+    )
+    db.session.add(tester)
+    db.session.commit()
+    
+    return tester
