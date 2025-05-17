@@ -335,8 +335,8 @@ class UserMemoryEntry(db.Model):
     importance = db.Column(db.Integer, default=1)  # 1-5 scale
     embedding = db.Column(db.Text, nullable=True)  # Vector embedding for semantic search
     
-    # Removed backref as it's causing a conflict
-    user = db.relationship(User)
+    # Use overlaps parameter to resolve the conflict with User.memory_entries
+    user = db.relationship(User, overlaps="memory_entries")
     
     __table_args__ = (
         Index('idx_memory_user_timestamp', 'user_id', 'timestamp'),
@@ -355,8 +355,8 @@ class UserTopicInterest(db.Model):
     last_discussed = db.Column(db.DateTime, default=datetime.utcnow)
     engagement_count = db.Column(db.Integer, default=1)  # How many times mentioned
     
-    # No backref to avoid conflict
-    user = db.relationship(User)
+    # Use overlaps parameter to resolve the conflict with User.topic_interests
+    user = db.relationship(User, overlaps="topic_interests")
     
     __table_args__ = (UniqueConstraint(
         'user_id', 
