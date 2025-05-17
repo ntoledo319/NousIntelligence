@@ -56,9 +56,8 @@ def login():
             return redirect(url_for("index"))
 
         # Use the specific redirect URI that matches Google Cloud Console configuration
-        # Note: We're using a hardcoded URI specifically for replit.app since we saw the error message
-        # showing https://mynous.replit.app/auth/callback as the expected URI
-        redirect_uri = "https://mynous.replit.app/auth/callback"
+        # This URI must match one of the redirect URIs configured in the Google Cloud Console
+        redirect_uri = "https://mynous.replit.app/callback/google"
         logger.debug(f"Using redirect URI: {redirect_uri}")
         
         # Request access to user's profile info
@@ -75,7 +74,7 @@ def login():
         flash("Authentication system error. Please try again later.", "danger")
         return redirect(url_for("index"))
 
-@auth_blueprint.route("/callback")
+@auth_blueprint.route("/callback/google")
 def callback():
     """Process the Google OAuth callback"""
     try:
@@ -98,7 +97,7 @@ def callback():
             return redirect(url_for("index"))
 
         # Prepare token request - use the same URI as in the login route
-        redirect_uri = "https://mynous.replit.app/auth/callback"
+        redirect_uri = "https://mynous.replit.app/callback/google"
         
         # Ensure URL has https protocol for security
         auth_response = request.url
