@@ -20,11 +20,11 @@ def register_auth_providers(app: Flask) -> None:
     Args:
         app: Flask application instance
     """
-    # Try to register Google OAuth
+    # Try to register Google OAuth using the standardized implementation
     try:
-        from auth.google import register_auth_blueprint as register_google
-        register_google(app)
-        logger.info("Registered Google authentication provider")
+        from auth.standard_google_auth import google_auth, init_app
+        init_app(app)
+        logger.info("Registered Google authentication provider using standard implementation")
     except Exception as e:
         logger.warning(f"Failed to register Google authentication: {str(e)}")
     
