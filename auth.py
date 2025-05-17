@@ -55,26 +55,21 @@ def login():
             flash("Could not connect to Google authentication service. Please try again later.", "warning")
             return redirect(url_for("index"))
 
-        # Use the current domain for the redirect URI
-        if request.host:
-            domain = request.host
-            # Force HTTPS for the callback
-            redirect_uri = f"https://{domain}/auth/callback"
-            logger.debug(f"Using redirect URI: {redirect_uri}")
-            
-            # Request access to user's profile info
-            request_uri = google_client.prepare_request_uri(
-                authorization_endpoint,
-                redirect_uri=redirect_uri,
-                scope=["openid", "email", "profile"],
-            )
-            
-            return redirect(request_uri)
-        else:
-            logger.error("Could not determine host from request")
-            flash("Authentication error: Could not determine application URL", "danger")
-            return redirect(url_for("index"))
-            
+        # Use the specific redirect URI that matches Google Cloud Console configuration
+        # Note: We're using a hardcoded URI specifically for replit.app since we saw the error message
+        # showing https://mynous.replit.app/auth/callback as the expected URI
+        redirect_uri = "https://mynous.replit.app/auth/callback"
+        logger.debug(f"Using redirect URI: {redirect_uri}")
+        
+        # Request access to user's profile info
+        request_uri = google_client.prepare_request_uri(
+            authorization_endpoint,
+            redirect_uri=redirect_uri,
+            scope=["openid", "email", "profile"],
+        )
+        
+        return redirect(request_uri)
+        
     except Exception as e:
         logger.error(f"Unexpected error in login route: {str(e)}")
         flash("Authentication system error. Please try again later.", "danger")
@@ -102,9 +97,8 @@ def callback():
             flash("Could not connect to Google authentication service. Please try again later.", "warning")
             return redirect(url_for("index"))
 
-        # Prepare token request
-        domain = request.host
-        redirect_uri = f"https://{domain}/auth/callback"
+        # Prepare token request - use the same URI as in the login route
+        redirect_uri = "https://mynous.replit.app/auth/callback"
         
         # Ensure URL has https protocol for security
         auth_response = request.url
