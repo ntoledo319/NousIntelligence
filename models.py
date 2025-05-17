@@ -118,8 +118,8 @@ class TwoFactorBackupCode(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     used_at = db.Column(db.DateTime, nullable=True)  # When the code was used
     
-    # No backref to avoid conflict
-    user = db.relationship(User)
+    # Use overlaps parameter to resolve the conflict
+    user = db.relationship(User, overlaps="backup_codes")
     
     __table_args__ = (
         Index('idx_backup_codes_user_id', 'user_id'),
@@ -196,7 +196,6 @@ class UserSettings(db.Model):
 # OAuth model for token storage
 class OAuth(OAuthConsumerMixin, db.Model):
     """Model for storing OAuth tokens from providers like Google"""
-    __tablename__ = 'oauth_tokens'
     user_id = db.Column(db.String(255), db.ForeignKey(User.id))
     browser_session_key = db.Column(db.String, nullable=False)
     user = db.relationship(User, backref=db.backref('oauth_tokens', lazy='dynamic'))
@@ -204,13 +203,6 @@ class OAuth(OAuthConsumerMixin, db.Model):
     # Add created/updated timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    __table_args__ = (UniqueConstraint(
-        'user_id',
-        'browser_session_key',
-        'provider',
-        name='uq_user_browser_session_key_provider',
-    ),)
 
 # AssistantProfile model for customizing the assistant
 class AssistantProfile(db.Model):
@@ -378,8 +370,8 @@ class UserEntityMemory(db.Model):
     last_mentioned = db.Column(db.DateTime, default=datetime.utcnow)
     mention_count = db.Column(db.Integer, default=1)
     
-    # No backref to avoid conflict
-    user = db.relationship(User)
+    # Use overlaps parameter to resolve the conflict
+    user = db.relationship(User, overlaps="entity_memories")
     
     __table_args__ = (UniqueConstraint(
         'user_id', 
