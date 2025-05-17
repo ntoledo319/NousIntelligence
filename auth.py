@@ -62,10 +62,10 @@ def login():
             flash("Could not connect to Google authentication service. Please try again later.", "warning")
             return redirect(url_for("index"))
 
-        # Get the Replit domain from environment or use the current request domain
-        replit_domain = os.environ.get("REPLIT_DOMAIN") or request.host
-        # Use dynamic redirect URI based on the current domain
-        # Important: Path must match exactly what's registered in Google Cloud Console
+        # For Google OAuth, we need to use the public Replit domain
+        # Local host/port won't work with Google OAuth
+        replit_domain = os.environ.get("REPLIT_SLUG", request.host.split(':')[0]) + ".replit.app"
+        # Use the public domain with the correct path registered in Google Cloud Console
         redirect_uri = f"https://{replit_domain}/callback/google"
         logger.debug(f"Using redirect URI: {redirect_uri}")
         
@@ -106,10 +106,10 @@ def callback():
             flash("Could not connect to Google authentication service. Please try again later.", "warning")
             return redirect(url_for("index"))
 
-        # Get the Replit domain from environment or use the current request domain
-        replit_domain = os.environ.get("REPLIT_DOMAIN") or request.host
-        # Use the same dynamic redirect URI as in the login route
-        # Important: Path must match exactly what's registered in Google Cloud Console
+        # For Google OAuth, we need to use the public Replit domain
+        # Local host/port won't work with Google OAuth
+        replit_domain = os.environ.get("REPLIT_SLUG", request.host.split(':')[0]) + ".replit.app"
+        # Use the public domain with the correct path registered in Google Cloud Console
         redirect_uri = f"https://{replit_domain}/callback/google"
         logger.debug(f"Using callback redirect URI: {redirect_uri}")
         

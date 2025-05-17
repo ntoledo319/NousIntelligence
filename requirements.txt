@@ -32,3 +32,5 @@ oauthlib
 pyjwt
 flask-login
 oauthlib
+flask-login
+oauthlib
