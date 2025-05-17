@@ -251,7 +251,7 @@ class BetaTester(db.Model):
     """Model for managing beta testers"""
     __tablename__ = 'beta_testers'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False, unique=True)
+    user_id = db.Column(db.String(255), db.ForeignKey(User.id), nullable=False, unique=True)
     status = db.Column(db.String(20), default='active')  # 'active', 'inactive'
     notes = db.Column(db.Text, nullable=True)
     feedback_count = db.Column(db.Integer, default=0)  # Count of feedback submissions
