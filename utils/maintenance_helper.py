@@ -38,10 +38,13 @@ def stop_maintenance_scheduler():
 
 def _maintenance_worker():
     """Background worker that runs maintenance tasks at scheduled intervals."""
-    from app import app
+    from flask import current_app
     
     while _should_run:
         try:
+            # Import here to avoid circular imports
+            from main import app
+            
             # Run with app context
             with app.app_context():
                 # Check each task and run if due
@@ -93,9 +96,8 @@ def _prune_knowledge_base():
         logging.info(f"Pruned {result or 0} global knowledge entries")
         
         # Get list of active users - use specific columns to avoid non-existent columns
-        from models import User
+        from models import User, db
         from sqlalchemy import select
-        from app import db
         
         # Only select the columns we know exist in the database
         stmt = select(User.id).where(User.account_active == True)
@@ -126,8 +128,7 @@ def _compress_embeddings():
     """Find and compress any uncompressed embeddings."""
     import zlib
     import numpy as np
-    from app import db
-    from models import KnowledgeBase
+    from models import db, KnowledgeBase
     
     # Get all knowledge entries
     entries = KnowledgeBase.query.all()

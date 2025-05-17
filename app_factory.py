@@ -49,7 +49,7 @@ def create_app(config_object=None):
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
     
     # Set up login manager
-    login_manager.login_view = "auth.login"
+    login_manager.login_view = "auth.login"  # type: ignore
     login_manager.login_message = "Please sign in to access this page."
     login_manager.login_message_category = "info"
     
