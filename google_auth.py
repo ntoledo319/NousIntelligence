@@ -35,6 +35,7 @@ def get_redirect_uri():
         # This happens when called outside of a request context
         pass
     
+    # Use environment variable or fallback
     return os.environ.get("GOOGLE_REDIRECT_URI", "https://mynous.replit.app/auth/callback/google")
 
 if GOOGLE_CLIENT_ID:
@@ -50,7 +51,7 @@ GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configura
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
 # Create blueprint for routes
-google_auth = Blueprint("google_auth", __name__)
+google_auth = Blueprint("google_auth", __name__, url_prefix="/auth")
 
 @google_auth.route("/login")
 def login():
@@ -83,7 +84,7 @@ def login():
         flash("An error occurred during authentication. Please try again.", "error")
         return redirect(url_for('index'))
 
-@google_auth.route("/auth/callback/google")
+@google_auth.route("/callback/google")
 def callback():
     """Process the Google OAuth callback"""
     try:

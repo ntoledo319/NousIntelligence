@@ -27,3 +27,5 @@ def register_blueprints(app):
     app.register_blueprint(two_factor_bp)
     app.register_blueprint(api_key_bp)
     app.register_blueprint(beta)
+    
+    # Google auth blueprint is registered in app.py
