@@ -1,22 +1,45 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8 mt-5">
-        <div class="card border-danger">
-            <div class="card-header bg-danger text-white">
-                <h3 class="mb-0">Access Denied</h3>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 mt-4">
+            <div class="nous-card error-card">
+                <div class="card-body p-5 text-center">
+                    <div class="error-icon mb-4">
+                        <i class="fas fa-exclamation-circle fa-5x text-danger"></i>
+                    </div>
+                    <h2 class="fw-bold mb-3 text-gradient">Access Denied</h2>
+                    <p class="lead mb-4">You don't have permission to access this page. This could be due to:</p>
+                    
+                    <ul class="list-group list-group-flush text-start mb-4">
+                        <li class="list-group-item bg-transparent d-flex align-items-center">
+                            <i class="fas fa-times-circle text-danger me-3"></i>
+                            <span>Authentication error or expired session</span>
+                        </li>
+                        <li class="list-group-item bg-transparent d-flex align-items-center">
+                            <i class="fas fa-times-circle text-danger me-3"></i>
+                            <span>Missing beta tester access</span>
+                        </li>
+                        <li class="list-group-item bg-transparent d-flex align-items-center">
+                            <i class="fas fa-times-circle text-danger me-3"></i>
+                            <span>Insufficient permissions for this resource</span>
+                        </li>
+                    </ul>
+                    
+                    <div class="d-grid gap-3 d-md-flex justify-content-md-center mt-4">
+                        <a href="{{ url_for('index') }}" class="btn btn-lg btn-outline-primary px-4">
+                            <i class="fas fa-home me-2"></i> Back to Home
+                        </a>
+                        <a href="{{ url_for('google_auth.login') }}" class="btn btn-lg btn-primary px-4">
+                            <i class="fas fa-sign-in-alt me-2"></i> Sign In Again
+                        </a>
+                    </div>
+                </div>
             </div>
-            <div class="card-body text-center py-5">
-                <i class="fas fa-exclamation-triangle fa-5x text-danger mb-4"></i>
-                <h4 class="mb-3">Authentication Error</h4>
-                <p class="mb-4">There was a problem with your authentication. Please try logging in again.</p>
-                <a href="{{ url_for('index') }}" class="btn btn-primary me-2">
-                    <i class="fas fa-home me-2"></i> Home
-                </a>
-                <a href="{{ url_for('replit_auth.login') }}" class="btn btn-success">
-                    <i class="fas fa-sign-in-alt me-2"></i> Login
-                </a>
+            
+            <div class="text-center mt-4">
+                <p class="text-muted">If you believe this is an error, please contact support.</p>
             </div>
         </div>
     </div>

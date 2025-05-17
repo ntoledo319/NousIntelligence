@@ -96,12 +96,11 @@ def register_beta_tester(user_id, access_code=None, notes=None):
             }
     
     # Create new beta tester record
-    tester = BetaTester(
-        user_id=user_id,
-        status='active',
-        notes=notes,
-        activated_at=datetime.utcnow()
-    )
+    tester = BetaTester()
+    tester.user_id = user_id
+    tester.status = 'active'
+    tester.notes = notes
+    tester.activated_at = datetime.utcnow()
     db.session.add(tester)
     db.session.commit()
     
@@ -186,12 +185,11 @@ def auto_register_beta_tester(user_id, notes=None):
         raise ValueError(f"Maximum beta testers ({MAX_BETA_TESTERS}) reached")
         
     # Create new beta tester record
-    tester = BetaTester(
-        user_id=user_id,
-        status='active',
-        notes=notes or "Auto-registered user",
-        activated_at=datetime.utcnow()
-    )
+    tester = BetaTester()
+    tester.user_id = user_id
+    tester.status = 'active'
+    tester.notes = notes or "Auto-registered user"
+    tester.activated_at = datetime.utcnow()
     db.session.add(tester)
     db.session.commit()
     
