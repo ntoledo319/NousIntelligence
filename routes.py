@@ -1,9 +1,11 @@
-from flask import session
+from flask import session, render_template, redirect, url_for, flash
 from app import app, db
-from replit_auth import make_replit_blueprint, require_login
-from flask_login import current_user
+from flask_login import current_user, login_required
+from google_auth import google_auth
+from utils.beta_test_helper import is_beta_tester
 
-app.register_blueprint(make_replit_blueprint(), url_prefix="/auth")
+# Register Google Authentication blueprint
+app.register_blueprint(google_auth, url_prefix="/auth")
 
 # Make session permanent
 @app.before_request
@@ -20,13 +22,15 @@ def index():
         return "Welcome to NOUS. Please log in to continue."
 
 @app.route('/dashboard')
-@require_login  # protected by Replit Auth
+@login_required
 def dashboard():
     user = current_user
-    return f"Dashboard for {user.first_name or 'User'}"
+    # Check if user is a beta tester
+    is_beta = is_beta_tester(user.id)
+    return render_template('dashboard.html', user=user, is_beta=is_beta)
 
 @app.route('/settings')
-@require_login  # protected by Replit Auth
+@login_required
 def settings_page():
     user = current_user
     return f"Settings for {user.first_name or 'User'}"
