@@ -22,8 +22,15 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # Load Google OAuth credentials from environment variables
-GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
-GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET", "")
+# Check multiple possible environment variable names
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", os.environ.get("GOOGLE_OAUTH_CLIENT_ID", ""))
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET", ""))
+
+# Log whether credentials are available
+if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
+    logger.info("Google OAuth credentials found in environment variables")
+else:
+    logger.warning("Google OAuth credentials missing from environment variables")
 
 # Google's OAuth endpoints
 GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
@@ -55,9 +62,10 @@ def login():
             flash("Could not connect to Google authentication service. Please try again later.", "warning")
             return redirect(url_for("index"))
 
-        # Use the specific redirect URI that matches Google Cloud Console configuration
-        # This URI must match one of the redirect URIs configured in the Google Cloud Console
-        redirect_uri = "https://mynous.replit.app/callback/google"
+        # Get the Replit domain from environment or use the current request domain
+        replit_domain = os.environ.get("REPLIT_DOMAIN") or request.host
+        # Use dynamic redirect URI based on the current domain
+        redirect_uri = f"https://{replit_domain}/auth/callback/google"
         logger.debug(f"Using redirect URI: {redirect_uri}")
         
         # Request access to user's profile info
@@ -96,8 +104,11 @@ def callback():
             flash("Could not connect to Google authentication service. Please try again later.", "warning")
             return redirect(url_for("index"))
 
-        # Prepare token request - use the same URI as in the login route
-        redirect_uri = "https://mynous.replit.app/callback/google"
+        # Get the Replit domain from environment or use the current request domain
+        replit_domain = os.environ.get("REPLIT_DOMAIN") or request.host
+        # Use the same dynamic redirect URI as in the login route
+        redirect_uri = f"https://{replit_domain}/auth/callback/google"
+        logger.debug(f"Using callback redirect URI: {redirect_uri}")
         
         # Ensure URL has https protocol for security
         auth_response = request.url
