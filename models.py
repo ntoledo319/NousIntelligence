@@ -31,13 +31,13 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # These fields are in the model but not in the database (commented out to match actual DB)
-    # password_hash = db.Column(db.String(256), nullable=False)
-    # last_login = db.Column(db.DateTime, nullable=True)
-    # 
-    # # Two-factor authentication fields
-    # two_factor_enabled = db.Column(db.Boolean, default=False)
-    # two_factor_secret = db.Column(db.String(32), nullable=True)
+    # Authentication fields
+    password_hash = db.Column(db.String(256), nullable=True)
+    last_login = db.Column(db.DateTime, nullable=True)
+    
+    # Two-factor authentication fields
+    two_factor_enabled = db.Column(db.Boolean, default=False)
+    two_factor_secret = db.Column(db.String(32), nullable=True)
     
     # Relationship with user settings
     settings = db.relationship('UserSettings', backref='user', uselist=False, cascade="all, delete-orphan")

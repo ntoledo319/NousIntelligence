@@ -36,19 +36,39 @@ def register_blueprints(app):
     from routes.api.v1.weather import weather_bp as api_weather_bp
     
     # Try to import other organized blueprints if available
+    # Initialize all blueprint variables to None
+    health_bp = None
+    shopping_bp = None
+    finance_bp = None 
+    travel_bp = None
+    weather_bp = None
+    user_bp = None
+    
     try:
         # API blueprints
-        from routes.api.health import health_bp
-        from routes.api.shopping import shopping_bp
-        from routes.api.finance import finance_bp
-        from routes.api.travel import travel_bp
-        from routes.api.weather import weather_bp
+        try:
+            from routes.api.health import health_bp
+        except ImportError:
+            pass
+            
+        try:
+            from routes.api.shopping import shopping_bp
+        except ImportError:
+            pass
+            
+        try:
+            from routes.api.weather import weather_bp
+        except ImportError:
+            pass
         
         # View blueprints
-        from routes.view.user import user_bp
+        try:
+            from routes.view.user import user_bp
+        except ImportError:
+            pass
         
-        has_organized_blueprints = True
-    except ImportError:
+        has_organized_blueprints = any([health_bp, shopping_bp, weather_bp, user_bp])
+    except Exception:
         has_organized_blueprints = False
     
     # Register flat structure blueprints
@@ -73,12 +93,14 @@ def register_blueprints(app):
     
     # Register organized blueprints if available
     if has_organized_blueprints:
-        # Register API blueprints
-        app.register_blueprint(health_bp)
-        app.register_blueprint(shopping_bp)
-        app.register_blueprint(finance_bp)
-        app.register_blueprint(travel_bp)
-        app.register_blueprint(weather_bp)
+        # Register API blueprints if they exist
+        if health_bp:
+            app.register_blueprint(health_bp)
+        if shopping_bp:
+            app.register_blueprint(shopping_bp)
+        if weather_bp:
+            app.register_blueprint(weather_bp)
         
-        # Register view blueprints
-        app.register_blueprint(user_bp)
+        # Register view blueprints if they exist
+        if user_bp:
+            app.register_blueprint(user_bp)
