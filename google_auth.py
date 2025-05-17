@@ -22,6 +22,9 @@ logger = logging.getLogger(__name__)
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET", "")
 
+# Discovery URL for Google provider
+GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
+
 # Construct the redirect URI based on the request domain
 def get_redirect_uri():
     try:
@@ -29,14 +32,14 @@ def get_redirect_uri():
             base_url = request.url_root.rstrip('/')
             if base_url.startswith('http://'):
                 base_url = base_url.replace('http://', 'https://', 1)
-            return f"{base_url}/auth/callback/google"
+            return f"{base_url}/callback/google"
     except RuntimeError:
         # This happens when called outside of a request context
         pass
     
     # Get the domain from Replit environment
     replit_domain = os.environ.get("REPLIT_DEV_DOMAIN") or os.environ.get("REPL_SLUG", "mynous") + ".replit.app"
-    return f"https://{replit_domain}/auth/callback/google"
+    return f"https://{replit_domain}/callback/google"
 
 if GOOGLE_CLIENT_ID:
     logger.info(f"Using Google OAuth credentials from environment variables")
