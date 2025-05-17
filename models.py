@@ -138,7 +138,7 @@ class TwoFactorBackupCode(db.Model):
 class UserSettings(db.Model):
     __tablename__ = 'user_settings'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True)
+    user_id = db.Column(db.String(255), db.ForeignKey('users.id'), unique=True)
     conversation_difficulty = db.Column(db.String(20), default=ConversationDifficulty.INTERMEDIATE.value)
     enable_voice_responses = db.Column(db.Boolean, default=False)
     preferred_language = db.Column(db.String(10), default='en-US')
@@ -195,7 +195,7 @@ class UserSettings(db.Model):
 
 # OAuth model for token storage
 class OAuth(OAuthConsumerMixin, db.Model):
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    user_id = db.Column(db.String(255), db.ForeignKey(User.id))
     browser_session_key = db.Column(db.String, nullable=False)
     user = db.relationship(User)
 
@@ -210,7 +210,7 @@ class OAuth(OAuthConsumerMixin, db.Model):
 class AssistantProfile(db.Model):
     __tablename__ = 'assistant_profiles'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Nullable for default profile
+    user_id = db.Column(db.String(255), db.ForeignKey('users.id'), nullable=True)  # Nullable for default profile
     
     # Basic information
     name = db.Column(db.String(50), nullable=False, default="NOUS")  # Internal name
