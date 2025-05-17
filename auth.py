@@ -65,7 +65,8 @@ def login():
         # Get the Replit domain from environment or use the current request domain
         replit_domain = os.environ.get("REPLIT_DOMAIN") or request.host
         # Use dynamic redirect URI based on the current domain
-        redirect_uri = f"https://{replit_domain}/auth/callback/google"
+        # Important: Path must match exactly what's registered in Google Cloud Console
+        redirect_uri = f"https://{replit_domain}/callback/google"
         logger.debug(f"Using redirect URI: {redirect_uri}")
         
         # Request access to user's profile info
@@ -82,7 +83,8 @@ def login():
         flash("Authentication system error. Please try again later.", "danger")
         return redirect(url_for("index"))
 
-@auth_blueprint.route("/callback/google")
+# This route must exactly match what's registered in Google OAuth
+@auth_blueprint.route("/callback/google", methods=["GET", "POST"])
 def callback():
     """Process the Google OAuth callback"""
     try:
@@ -107,7 +109,8 @@ def callback():
         # Get the Replit domain from environment or use the current request domain
         replit_domain = os.environ.get("REPLIT_DOMAIN") or request.host
         # Use the same dynamic redirect URI as in the login route
-        redirect_uri = f"https://{replit_domain}/auth/callback/google"
+        # Important: Path must match exactly what's registered in Google Cloud Console
+        redirect_uri = f"https://{replit_domain}/callback/google"
         logger.debug(f"Using callback redirect URI: {redirect_uri}")
         
         # Ensure URL has https protocol for security
@@ -251,4 +254,13 @@ def logout():
 
 def init_auth(app):
     """Initialize authentication with the Flask app"""
+    # First register the blueprint with a prefix for regular routes
     app.register_blueprint(auth_blueprint, url_prefix="/auth")
+    
+    # Then manually add the callback route at the root level
+    # This is needed to match the redirect URI in Google OAuth settings
+    @app.route("/callback/google", methods=["GET", "POST"])
+    def google_callback_root():
+        """Root-level handler for Google OAuth callback"""
+        logger.debug("Received callback at root level (/callback/google)")
+        return callback()

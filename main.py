@@ -63,7 +63,7 @@ db.init_app(app)
 # Initialize the login manager
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = "auth.login"  # Use our new auth route
+login_manager.login_view = "auth.login"  # Route to our login function in the auth blueprint
 login_manager.login_message = "Please sign in to access this page."
 login_manager.login_message_category = "info"
 
