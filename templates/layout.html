@@ -299,13 +299,13 @@
                         </button>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}" data-bs-toggle="tooltip" title="View dashboard">
+                        <a class="nav-link" href="{{ url_for('dashboard.dashboard') }}" data-bs-toggle="tooltip" title="View dashboard">
                             <i class="fas fa-tachometer-alt me-1"></i>
                             <span>Dashboard</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('settings') }}" data-bs-toggle="tooltip" title="Manage settings">
+                        <a class="nav-link" href="{{ url_for('settings.settings_page') }}" data-bs-toggle="tooltip" title="Manage settings">
                             <i class="fas fa-cog me-1"></i>
                             <span>Settings</span>
                         </a>
@@ -565,7 +565,7 @@
                     
                     <div class="d-grid gap-2">
                         {% if current_user.is_authenticated %}
-                            <a href="{{ url_for('settings') }}" class="btn btn-outline-primary">
+                            <a href="{{ url_for('settings.settings_page') }}" class="btn btn-outline-primary">
                                 <i class="fas fa-cog me-2"></i>Settings
                             </a>
                             <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger">
@@ -601,11 +601,11 @@
             <i class="fas fa-home bottom-nav-icon"></i>
             <span>Home</span>
         </a>
-        <a href="{{ url_for('dashboard') }}" class="bottom-nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+        <a href="{{ url_for('dashboard.dashboard') }}" class="bottom-nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
             <i class="fas fa-tachometer-alt bottom-nav-icon"></i>
             <span>Dashboard</span>
         </a>
-        <a href="{{ url_for('settings') }}" class="bottom-nav-item {% if request.endpoint == 'settings' %}active{% endif %}">
+        <a href="{{ url_for('settings.settings_page') }}" class="bottom-nav-item {% if request.endpoint == 'settings' %}active{% endif %}">
             <i class="fas fa-cog bottom-nav-icon"></i>
             <span>Settings</span>
         </a>
