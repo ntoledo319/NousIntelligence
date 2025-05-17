@@ -44,14 +44,17 @@ def login():
     google_provider_cfg = requests.get(GOOGLE_DISCOVERY_URL).json()
     authorization_endpoint = google_provider_cfg["authorization_endpoint"]
     
-    # Use the current application's domain to construct the callback URL
-    # This ensures it matches what's registered in Google Cloud Console
-    # Get domain from either environment variable or default to the canonical domain
-    domain = request.host
-    
-    # Make the URL path absolute (for Google's verification)
-    base_url = request.url_root.rstrip('/')
-    redirect_uri = f"{base_url}/google_login/callback"
+    # Use the callback URL registered in the Google Cloud Console
+    # This ensures the exact match required for OAuth verification
+    # First check if we're in a Replit environment
+    if 'REPLIT_SLUG' in os.environ:
+        # Use the Replit domain
+        replit_domain = os.environ.get("REPLIT_SLUG", "mynous") + ".replit.app"
+        redirect_uri = f"https://{replit_domain}/callback/google"
+    else:
+        # Fall back to constructing from the request
+        base_url = request.url_root.rstrip('/')
+        redirect_uri = f"{base_url}/callback/google"
     
     # Prepare the OAuth request
     request_uri = client.prepare_request_uri(
@@ -62,7 +65,7 @@ def login():
     return redirect(request_uri)
 
 
-@google_auth.route("/google_login/callback")
+@google_auth.route("/callback/google")
 def callback():
     """Handle the OAuth callback from Google."""
     # Get the authorization code from the callback request
@@ -74,9 +77,15 @@ def callback():
     google_provider_cfg = requests.get(GOOGLE_DISCOVERY_URL).json()
     token_endpoint = google_provider_cfg["token_endpoint"]
     
-    # Construct the full callback URL that matches what was used in the request
-    base_url = request.url_root.rstrip('/')
-    redirect_uri = f"{base_url}/google_login/callback"
+    # Use the same redirect URI as in the login route
+    if 'REPLIT_SLUG' in os.environ:
+        # Use the Replit domain
+        replit_domain = os.environ.get("REPLIT_SLUG", "mynous") + ".replit.app"
+        redirect_uri = f"https://{replit_domain}/callback/google"
+    else:
+        # Fall back to constructing from the request
+        base_url = request.url_root.rstrip('/')
+        redirect_uri = f"{base_url}/callback/google"
     
     # Prepare the token request
     token_url, headers, body = client.prepare_token_request(
