@@ -126,7 +126,7 @@ login_manager.login_message_category = "info"
 
 # Import Google authentication blueprint
 from google_auth import google_auth
-app.register_blueprint(google_auth, url_prefix="/auth")
+app.register_blueprint(google_auth)
 
 # Configure beta testing mode
 from utils.beta_test_helper import configure_beta_mode

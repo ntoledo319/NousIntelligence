@@ -51,9 +51,9 @@ GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configura
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
 # Create blueprint for routes
-google_auth = Blueprint("google_auth", __name__, url_prefix="/auth")
+google_auth = Blueprint("google_auth", __name__)
 
-@google_auth.route("/login")
+@google_auth.route("/auth/login")
 def login():
     """Start Google OAuth flow with minimal scopes"""
     try:
@@ -84,7 +84,7 @@ def login():
         flash("An error occurred during authentication. Please try again.", "error")
         return redirect(url_for('index'))
 
-@google_auth.route("/callback/google")
+@google_auth.route("/auth/callback/google")
 def callback():
     """Process the Google OAuth callback"""
     try:
@@ -195,7 +195,7 @@ def callback():
         flash("An error occurred during authentication. Please try again.", "error")
         return redirect(url_for('index'))
 
-@google_auth.route("/logout")
+@google_auth.route("/auth/logout")
 @login_required
 def logout():
     """Log the user out"""
