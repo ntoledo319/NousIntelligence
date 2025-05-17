@@ -74,10 +74,6 @@ def create_app(config_object=None):
         from routes import register_blueprints
         register_blueprints(app)
         
-        # Register legacy compatibility routes
-        from routes import register_routes
-        register_routes(app)
-        
         # Import and register error handlers
         from utils.error_handler import register_error_handlers
         register_error_handlers(app)
