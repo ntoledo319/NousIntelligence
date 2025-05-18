@@ -134,8 +134,8 @@ def callback():
     # Log in the user
     login_user(user)
     
-    # Redirect to the index page
-    return redirect(url_for("index.index"))
+    # Redirect to the dashboard page after successful login
+    return redirect(url_for("dashboard.index"))
 
 
 @google_auth.route("/logout")
