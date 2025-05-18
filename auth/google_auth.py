@@ -243,23 +243,31 @@ def callback():
     next_url = session.pop('next', None)
     
     # Redirect to dashboard or next URL
-    if next_url:
-        try:
-            flash(f"Welcome back, {user.first_name}!", "success")
-            logger.info(f"Redirecting to next URL: {next_url}")
-            return redirect(next_url)
-        except Exception as e:
-            logger.error(f"Error redirecting to next URL: {str(e)}")
-            return redirect(url_for("index.index"))
-    else:
-        try:
-            flash(f"Welcome, {user.first_name}!", "success")
+    try:
+        if user.first_name:
+            welcome_message = f"Welcome back, {user.first_name}!"
+        else:
+            welcome_message = "Welcome back!"
+        
+        flash(welcome_message, "success")
+        logger.info(f"User successfully authenticated: {user.email}")
+        
+        if next_url:
+            # Make sure next_url is a valid relative URL
+            if next_url.startswith('/'):
+                logger.info(f"Redirecting to: {next_url}")
+                return redirect(next_url)
+            else:
+                logger.warning(f"Invalid next_url: {next_url}")
+                return redirect('/')
+        else:
+            # Use absolute URL to avoid routing issues
             logger.info("Redirecting to dashboard")
-            # Try with absolute URL first to diagnose routing issues
-            return redirect("/dashboard")
-        except Exception as e:
-            logger.error(f"Error redirecting to dashboard: {str(e)}")
-            return redirect("/")
+            return redirect('/dashboard')
+    except Exception as e:
+        logger.error(f"Error during post-authentication redirect: {str(e)}")
+        # Fall back to home page on any error
+        return redirect('/')
 
 @google_bp.route("/logout")
 @login_required

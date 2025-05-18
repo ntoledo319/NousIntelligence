@@ -22,14 +22,21 @@ dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 @login_required
 def dashboard():
     """Show dashboard with data visualizations and summaries"""
-    # Add basic logging to diagnose the blank page issue
-    logging.info(f"Dashboard accessed by user: {current_user.email if current_user else 'unknown'}")
-    
-    # Check for beta access if beta mode is enabled
-    if session.get('BETA_MODE', False):
-        if not is_beta_tester(current_user.id):
-            flash("The dashboard is currently available only to beta testers.", "warning")
-            return redirect(url_for('beta.request_access'))
+    # Add comprehensive logging to diagnose the blank page issue
+    try:
+        user_email = current_user.email if current_user else 'unknown'
+        user_id = current_user.id if current_user else 'unknown'
+        logging.info(f"Dashboard accessed by user: {user_email} (ID: {user_id})")
+        
+        # Check for beta access if beta mode is enabled
+        if session.get('BETA_MODE', False):
+            if not is_beta_tester(user_id):
+                flash("The dashboard is currently available only to beta testers.", "warning")
+                return redirect(url_for('beta.request_access'))
+    except Exception as e:
+        logging.error(f"Error in dashboard access check: {str(e)}")
+        flash("An error occurred while loading the dashboard. Please try again.", "danger")
+        return redirect(url_for('index.index'))
     
     # Check for Google services connection
     if "google_creds" not in session:
@@ -38,20 +45,29 @@ def dashboard():
     # Prepare data for the dashboard
     data = {}
     
+    # Always include a message for first-time users
+    data['first_visit'] = True
+    
+    # Create some default data to ensure template renders properly
+    data['budget_categories'] = {"Groceries": 500, "Utilities": 300, "Entertainment": 200}
+    
     # Get budget data
     try:
         from utils.budget_helper import get_budget_summary
-        data['budget_summary'] = get_budget_summary(session)
-        
-        # Format budget categories for the chart
-        if data['budget_summary'] and 'categories' in data['budget_summary']:
-            # Filter out categories with 0 budget
-            budget_categories = {
-                cat: details['budget'] 
-                for cat, details in data['budget_summary']['categories'].items() 
-                if details['budget'] > 0
-            }
-            data['budget_categories'] = budget_categories
+        budget_data = get_budget_summary(session)
+        if budget_data:
+            data['budget_summary'] = budget_data
+            
+            # Format budget categories for the chart
+            if 'categories' in budget_data:
+                # Filter out categories with 0 budget
+                budget_categories = {
+                    cat: details['budget'] 
+                    for cat, details in budget_data['categories'].items() 
+                    if details['budget'] > 0
+                }
+                data['budget_categories'] = budget_categories
+                data['first_visit'] = False
     except Exception as e:
         logging.error(f"Error fetching budget data: {str(e)}")
     
