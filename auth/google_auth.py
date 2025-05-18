@@ -66,11 +66,11 @@ def login():
     if 'REPLIT_SLUG' in os.environ:
         # Use the Replit domain
         replit_domain = os.environ.get("REPLIT_SLUG", "mynous") + ".replit.app"
-        redirect_uri = f"https://{replit_domain}/auth/callback"
+        redirect_uri = f"https://{replit_domain}/auth/callback/google"
     else:
         # Fall back to constructing from the request
         base_url = request.url_root.rstrip('/')
-        redirect_uri = f"{base_url}/auth/callback"
+        redirect_uri = f"{base_url}/auth/callback/google"
     
     logger.info(f"Using redirect URI: {redirect_uri}")
     
@@ -83,7 +83,7 @@ def login():
     
     return redirect(request_uri)
 
-@google_bp.route("/callback")
+@google_bp.route("/callback/google")
 def callback():
     """
     Handle OAuth callback from Google
@@ -118,10 +118,10 @@ def callback():
     # Build the redirect URI (must match the one used in the login route)
     if 'REPLIT_SLUG' in os.environ:
         replit_domain = os.environ.get("REPLIT_SLUG", "mynous") + ".replit.app"
-        redirect_uri = f"https://{replit_domain}/auth/callback"
+        redirect_uri = f"https://{replit_domain}/auth/callback/google"
     else:
         base_url = request.url_root.rstrip('/')
-        redirect_uri = f"{base_url}/auth/callback"
+        redirect_uri = f"{base_url}/auth/callback/google"
     
     # Prepare the token request
     try:
@@ -244,10 +244,15 @@ def callback():
     
     # Redirect to dashboard or next URL
     if next_url:
+        flash(f"Welcome back, {user.first_name}!", "success")
         return redirect(next_url)
     else:
         flash(f"Welcome, {user.first_name}!", "success")
-        return redirect(url_for("dashboard.dashboard"))
+        try:
+            return redirect(url_for("dashboard.dashboard"))
+        except:
+            # Fallback if dashboard route is not available
+            return redirect(url_for("index.index"))
 
 @google_bp.route("/logout")
 @login_required
