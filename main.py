@@ -14,7 +14,7 @@ and starts the development server.
 import os
 import logging
 
-# Set up logging before importing app modules
+# Set up logging before importing any modules
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -23,6 +23,14 @@ logging.basicConfig(
         logging.FileHandler('app.log')
     ]
 )
+logger = logging.getLogger(__name__)
+
+# Load environment variables before any other imports
+try:
+    import load_env
+    logger.info("Environment variables loaded")
+except ImportError:
+    logger.warning("load_env.py not found, using existing environment variables")
 
 # Import the application factory
 from app_factory import create_app
@@ -38,8 +46,8 @@ if __name__ == "__main__":
     debug = os.environ.get("FLASK_ENV") == "development"
     
     # Additional startup logging
-    logging.info(f"Starting NOUS application on port {port}")
-    logging.info(f"Debug mode: {debug}")
+    logger.info(f"Starting NOUS application on port {port}")
+    logger.info(f"Debug mode: {debug}")
     
     # Start the server
     app.run(host="0.0.0.0", port=port, debug=debug)
