@@ -37,7 +37,7 @@ client = WebApplicationClient(GOOGLE_CLIENT_ID)
 google_auth = Blueprint("google_auth", __name__)
 
 
-@google_auth.route("/google_login")
+@google_auth.route("/login")
 def login():
     """Initiate Google OAuth login flow."""
     # Get discovery document
