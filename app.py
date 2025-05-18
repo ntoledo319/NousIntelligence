@@ -1,16 +1,11 @@
 import os
 
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+# Import the db instance from models to avoid multiple SQLAlchemy instances
+from models import db
 
-class Base(DeclarativeBase):
-    pass
-
-
-db = SQLAlchemy(model_class=Base)
 # create the app
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET")
@@ -26,7 +21,8 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 db.init_app(app)
 
 with app.app_context():
-    # Make sure to import the models here or their tables won't be created
+    # Import all model files here to ensure they're registered with SQLAlchemy
     import models  # noqa: F401
 
+    # Create all tables
     db.create_all()
