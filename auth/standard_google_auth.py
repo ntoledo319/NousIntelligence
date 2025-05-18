@@ -135,7 +135,7 @@ def callback():
     login_user(user)
     
     # Redirect to the dashboard page after successful login
-    return redirect(url_for("dashboard.index"))
+    return redirect(url_for("dashboard.dashboard"))
 
 
 @google_auth.route("/logout")
@@ -143,7 +143,7 @@ def callback():
 def logout():
     """Log out the current user."""
     logout_user()
-    return redirect(url_for("index.index"))
+    return redirect(url_for("index.index", _external=True))
 
 
 def init_app(app):
