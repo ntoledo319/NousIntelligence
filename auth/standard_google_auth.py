@@ -155,5 +155,5 @@ def init_app(app):
 To make Google authentication work:
 1. Ensure you have a client_secret.json file from Google Cloud Console
 2. Make sure the redirect URI is added in Google Cloud Console:
-   - {your-domain}/google_login/callback
+   - {your-domain}/callback/google
 """)

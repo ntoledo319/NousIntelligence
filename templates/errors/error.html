@@ -1,0 +1,52 @@
+{% extends 'layout.html' %}
+
+{% block title %}Error - {{ code }} - NOUS{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Error {{ code }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
+                        <h2>{{ message }}</h2>
+                        <p class="lead">{{ description }}</p>
+                    </div>
+                    <div class="mt-4">
+                        <p>Please try one of the following:</p>
+                        <ul>
+                            <li>Check the URL and try again</li>
+                            <li>Return to the <a href="{{ url_for('index.index') }}">home page</a></li>
+                            <li>If you believe this is a bug, please <a href="{{ url_for('index.help') }}">report it</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('index.index') }}" class="btn btn-primary">
+                            <i class="fas fa-home me-2"></i> Home
+                        </a>
+                        <a href="javascript:history.back()" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i> Go Back
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% if debug and traceback %}
+            <div class="card mt-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Debug Information</h5>
+                </div>
+                <div class="card-body">
+                    <pre class="bg-light p-3 rounded"><code>{{ traceback }}</code></pre>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
