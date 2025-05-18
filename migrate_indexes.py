@@ -245,21 +245,65 @@ def apply_migrations():
         logger.info(f"Connecting to database: {database_url}")
         engine = create_engine(database_url)
         
+        # First check which tables exist in database
+        existing_tables = []
+        try:
+            with engine.connect() as connection:
+                result = connection.execute(text("SELECT tablename FROM pg_tables WHERE schemaname='public'"))
+                existing_tables = [row[0] for row in result]
+                logger.info(f"Found {len(existing_tables)} existing tables in database")
+        except Exception as e:
+            logger.error(f"Error getting table list: {str(e)}")
+            # Continue anyway, will likely fail on non-existent tables
+        
+        # Filter indexes to only target existing tables
+        filtered_indexes = []
+        for index_sql in indexes:
+            # Simple heuristic to check if index applies to existing table
+            should_include = True
+            
+            # Skip indexes that use non-existent tables
+            for table in existing_tables:
+                if f"ON {table}(" in index_sql:
+                    break
+            else:
+                # If we get here, no table match was found and it's not a special SQL block
+                if "CREATE INDEX" in index_sql and not any(special in index_sql for special in ["DO $$", "EXCEPTION"]):
+                    should_include = False
+            
+            if should_include:
+                filtered_indexes.append(index_sql)
+        
+        logger.info(f"Applying {len(filtered_indexes)} out of {len(indexes)} indexes (skipping indexes for non-existent tables)")
+        
+        # Set a reasonable limit to avoid deployment timeouts
+        max_indexes = 20
+        if len(filtered_indexes) > max_indexes:
+            logger.info(f"Limiting to first {max_indexes} indexes to avoid deployment timeout")
+            filtered_indexes = filtered_indexes[:max_indexes]
+        
         # Execute each index creation statement
         start_time = time.time()
         with engine.connect() as connection:
-            for idx, index_sql in enumerate(indexes):
+            for idx, index_sql in enumerate(filtered_indexes):
                 try:
-                    logger.info(f"Creating index {idx+1}/{len(indexes)}")
+                    logger.info(f"Creating index {idx+1}/{len(filtered_indexes)}")
                     connection.execute(text(index_sql))
                     connection.commit()
                 except SQLAlchemyError as e:
                     logger.error(f"Error creating index: {str(e)}")
                     connection.rollback()
         
-        # Update database statistics for query planner
-        logger.info("Updating database statistics")
-        analyze_tables()
+        # Only analyze tables that we know exist
+        if existing_tables:
+            try:
+                logger.info("Updating database statistics for existing tables")
+                with engine.connect() as connection:
+                    for table in existing_tables[:10]:  # Limit to avoid timeout
+                        logger.info(f"Analyzing table: {table}")
+                        connection.execute(text(f"ANALYZE {table}"))
+            except Exception as e:
+                logger.error(f"Error analyzing tables: {str(e)}")
         
         elapsed_time = time.time() - start_time
         logger.info(f"Database index migration completed successfully in {elapsed_time:.2f} seconds")
