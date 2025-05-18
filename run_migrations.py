@@ -38,7 +38,7 @@ MIGRATIONS = [
     },
     {
         "module": "migrate_missing_columns",
-        "function": "apply_migrations",
+        "function": "add_missing_columns",
         "description": "Adding any missing database columns",
         "required": True
     },
