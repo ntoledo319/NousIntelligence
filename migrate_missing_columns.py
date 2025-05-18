@@ -38,7 +38,7 @@ def get_db_connection():
         logger.error(f"Failed to connect to database: {str(e)}")
         return None
 
-def apply_migrations():
+def apply_migration():
     """Add any missing columns to database tables."""
     logger.info("Starting database migration for missing columns")
     
