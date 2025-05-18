@@ -279,6 +279,26 @@ class BetaTester(db.Model):
         }
 
 # Beta feedback model
+# Cache Entry model for database caching
+class CacheEntry(db.Model):
+    """Model for storing cache entries in the database"""
+    __tablename__ = 'cache_entries'
+    
+    key = db.Column(db.String(255), primary_key=True)
+    value = db.Column(db.Text, nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Add index for faster lookup/cleanup
+    __table_args__ = (
+        Index('idx_cache_entries_expires_at', 'expires_at'),
+    )
+    
+    def __repr__(self):
+        return f"<CacheEntry {self.key} expires: {self.expires_at}>"
+
+
 class BetaFeedback(db.Model):
     """Model for feedback from beta testers"""
     __tablename__ = 'beta_feedback'
