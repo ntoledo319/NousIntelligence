@@ -9,7 +9,7 @@ including login, logout and registration.
 """
 
 import logging
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session
 
 # Create blueprint
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
@@ -27,6 +27,10 @@ def login():
     """
     # Get the next URL if it exists
     next_url = request.args.get('next', '')
+    
+    # Store next URL in session for post-login redirect
+    if next_url:
+        session['next'] = next_url
     
     # Log access to login page
     client_ip = request.remote_addr

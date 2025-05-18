@@ -49,12 +49,10 @@ def create_app(config_object=None):
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
     
     # Set up login manager
-    login_manager.login_view = "auth.login"  # Route to redirect for login
+    # Configure using attributes to avoid type issues
+    setattr(login_manager, "_login_view", "auth.login")  # Route to redirect for login
     login_manager.login_message = "Please sign in to access this page."
     login_manager.login_message_category = "info"
-    
-    # Fix login_view type issue by setting it after initialization
-    setattr(login_manager, "_login_view", "auth.login")
     
     @login_manager.user_loader
     def load_user(user_id):

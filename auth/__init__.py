@@ -22,7 +22,7 @@ def register_auth_providers(app: Flask) -> None:
     """
     # Try to register Google OAuth using the standardized implementation
     try:
-        from auth.standard_google_auth import google_auth, init_app
+        from auth.google_auth import google_bp, init_app
         init_app(app)
         logger.info("Registered Google authentication provider using standard implementation")
     except Exception as e:
@@ -37,4 +37,4 @@ def register_auth_providers(app: Flask) -> None:
     # except Exception as e:
     #     logger.warning(f"Failed to register GitHub authentication: {str(e)}")
     
-    logger.info("Authentication providers registration complete") 
+    logger.info("Authentication providers registration complete")
