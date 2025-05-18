@@ -7,7 +7,7 @@ from sqlalchemy import text
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def add_missing_columns():
+def apply_migrations():
     """Add any missing columns to database tables."""
     logger.info("Starting database migration for missing columns")
     
@@ -61,4 +61,4 @@ def add_missing_columns():
         raise
 
 if __name__ == "__main__":
-    add_missing_columns()
+    apply_migrations()
