@@ -11,7 +11,7 @@
                 
                 <!-- Quick action buttons -->
                 <div class="d-flex flex-wrap gap-2">
-                    <a href="{{ url_for('index') }}" class="btn btn-primary" data-shortcut-key="c">
+                    <a href="{{ url_for('index.index') }}" class="btn btn-primary" data-shortcut-key="c">
                         <i class="fas fa-comment-dots me-2"></i>Talk to NOUS
                     </a>
                     <a href="{{ url_for('voice_emotion.voice_emotion_page') }}" class="btn btn-info" data-shortcut-key="v">
@@ -54,7 +54,7 @@
         </div>
         
         <div class="quick-access-grid">
-            <a href="{{ url_for('process_command') }}?cmd=Show%20my%20doctors" class="quick-access-tile text-decoration-none">
+            <a href="{{ url_for('index.index') }}?cmd=Show%20my%20doctors" class="quick-access-tile text-decoration-none">
                 <div class="tile-icon text-primary">
                     <i class="fas fa-user-md"></i>
                 </div>

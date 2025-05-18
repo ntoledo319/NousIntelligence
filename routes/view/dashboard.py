@@ -18,9 +18,13 @@ dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 
 
 @dashboard_bp.route('', methods=['GET'])
+@dashboard_bp.route('/', methods=['GET'])
 @login_required
 def dashboard():
     """Show dashboard with data visualizations and summaries"""
+    # Add basic logging to diagnose the blank page issue
+    logging.info(f"Dashboard accessed by user: {current_user.email if current_user else 'unknown'}")
+    
     # Check for beta access if beta mode is enabled
     if session.get('BETA_MODE', False):
         if not is_beta_tester(current_user.id):

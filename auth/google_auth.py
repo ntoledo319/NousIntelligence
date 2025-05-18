@@ -244,15 +244,22 @@ def callback():
     
     # Redirect to dashboard or next URL
     if next_url:
-        flash(f"Welcome back, {user.first_name}!", "success")
-        return redirect(next_url)
-    else:
-        flash(f"Welcome, {user.first_name}!", "success")
         try:
-            return redirect(url_for("dashboard.dashboard"))
-        except:
-            # Fallback if dashboard route is not available
+            flash(f"Welcome back, {user.first_name}!", "success")
+            logger.info(f"Redirecting to next URL: {next_url}")
+            return redirect(next_url)
+        except Exception as e:
+            logger.error(f"Error redirecting to next URL: {str(e)}")
             return redirect(url_for("index.index"))
+    else:
+        try:
+            flash(f"Welcome, {user.first_name}!", "success")
+            logger.info("Redirecting to dashboard")
+            # Try with absolute URL first to diagnose routing issues
+            return redirect("/dashboard")
+        except Exception as e:
+            logger.error(f"Error redirecting to dashboard: {str(e)}")
+            return redirect("/")
 
 @google_bp.route("/logout")
 @login_required
