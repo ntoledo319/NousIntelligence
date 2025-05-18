@@ -20,10 +20,10 @@ logger = logging.getLogger(__name__)
 @auth_bp.route('/login', methods=['GET'])
 def login():
     """
-    Display login page with authentication options
+    Unified login handler - redirects to Google authentication
     
     Returns:
-        Rendered login template with available authentication providers
+        Redirects to the Google OAuth login route
     """
     # Get the next URL if it exists
     next_url = request.args.get('next', '')
@@ -34,7 +34,7 @@ def login():
     
     # Log access to login page
     client_ip = request.remote_addr
-    logger.info(f"Login page accessed from IP: {client_ip}")
+    logger.info(f"Login page accessed from IP: {client_ip}, redirecting to Google auth")
     
-    # Render the login template
-    return render_template("login.html", next=next_url)
+    # Redirect to Google auth login to maintain a single sign-in flow
+    return redirect(url_for("google_auth.login"))

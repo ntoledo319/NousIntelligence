@@ -50,8 +50,8 @@ def create_app(config_object=None):
     
     # Set up login manager
     # Configure using attributes to avoid type issues
-    setattr(login_manager, "_login_view", "auth.login")  # Route to redirect for login
-    login_manager.login_message = "Please sign in to access this page."
+    setattr(login_manager, "_login_view", "google_auth.login")  # Route to redirect for login
+    login_manager.login_message = "Please sign in with Google to access this page."
     login_manager.login_message_category = "info"
     
     @login_manager.user_loader
