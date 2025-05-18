@@ -49,6 +49,49 @@ def login():
     # Check if we have Google credentials
     if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
         logger.error("Google OAuth credentials not configured")
+        
+        # For development only - create a test user and login
+        if current_app.config.get('DEBUG', False):
+            try:
+                # Check if our test user exists
+                test_user = User.query.filter_by(email="test@example.com").first()
+                
+                if not test_user:
+                    # Create a test user for development
+                    test_user = User(
+                        id=str(uuid.uuid4()),
+                        email="test@example.com",
+                        first_name="Test",
+                        last_name="User",
+                        profile_image_url="https://ui-avatars.com/api/?name=Test+User",
+                        account_active=True
+                    )
+                    
+                    # Create default settings
+                    settings = UserSettings(
+                        user_id=test_user.id,
+                        theme="light",
+                        conversation_difficulty=ConversationDifficulty.INTERMEDIATE,
+                        enable_notifications=True,
+                        default_location=None
+                    )
+                    
+                    # Save to database
+                    db.session.add(test_user)
+                    db.session.add(settings)
+                    db.session.commit()
+                    
+                    logger.info("Created test user for development")
+                
+                # Log the test user in
+                login_user(test_user)
+                flash("Logged in with test account (Google credentials not configured)", "warning")
+                return redirect("/dashboard")
+            
+            except Exception as e:
+                logger.error(f"Failed to create test user: {str(e)}")
+                
+        # Show proper error for production environment
         flash("Google authentication is not properly configured. Please contact the administrator.", "danger")
         return redirect(url_for("index.index"))
     
