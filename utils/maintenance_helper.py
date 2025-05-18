@@ -116,11 +116,54 @@ def _prune_knowledge_base():
 def _clean_caches():
     """Clean up all in-memory caches."""
     try:
-        from utils.cache_helper import clear_caches
-        clear_caches()
-        logging.info("Cleared all in-memory caches")
-    except ImportError:
-        logging.warning("Cache helper not available")
+        # We need to handle app context for database caches
+        try:
+            # Try to get a Flask app context directly
+            from flask import current_app, has_app_context
+            if has_app_context():
+                from utils.cache_helper import clear_caches
+                clear_caches()
+                logging.info("Cleared all in-memory caches with existing app context")
+                return
+            
+            # No current app context, try to create one
+            try:
+                # Try first import pattern
+                from app import app
+                with app.app_context():
+                    from utils.cache_helper import clear_caches
+                    clear_caches()
+                    logging.info("Cleared all in-memory caches with new app context")
+                    return
+            except ImportError:
+                # Try alternate import pattern
+                try:
+                    from main import app
+                    with app.app_context():
+                        from utils.cache_helper import clear_caches
+                        clear_caches()
+                        logging.info("Cleared all in-memory caches with alternate app context")
+                        return
+                except ImportError:
+                    logging.warning("Could not import Flask app, falling back to file-based cache")
+                    # Fall back to manually clearing file cache
+                    import os
+                    cache_dir = os.path.join(os.getcwd(), "cache")
+                    if os.path.exists(cache_dir):
+                        count = 0
+                        for filename in os.listdir(cache_dir):
+                            if filename.endswith(".json"):
+                                os.remove(os.path.join(cache_dir, filename))
+                                count += 1
+                        logging.info(f"Cleared {count} file cache entries")
+                    return
+        except ImportError:
+            # Flask not available, try to use cache_helper directly
+            from utils.cache_helper import clear_caches
+            clear_caches()
+            logging.info("Cleared all in-memory caches without app context")
+    except Exception as e:
+        logging.error(f"Error in cache cleanup: {str(e)}")
 
 def _run_self_reflection():
     """Run self-reflection to improve knowledge base quality."""

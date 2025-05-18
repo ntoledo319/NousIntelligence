@@ -926,7 +926,43 @@ def schedule_cache_cleanup() -> None:
         while True:
             try:
                 logger.info("Running scheduled cache cleanup")
-                CacheManager.clear_expired()
+                
+                # Handle app context for database operations
+                if DB_AVAILABLE:
+                    try:
+                        # Try to import Flask app
+                        from flask import current_app
+                        
+                        # Check if we're already in an app context
+                        try:
+                            if current_app:
+                                # Already in app context, just run the cleanup
+                                CacheManager.clear_expired()
+                            else:
+                                raise RuntimeError("No current app")
+                        except RuntimeError:
+                            # Not in app context, create one
+                            try:
+                                from app import app
+                                with app.app_context():
+                                    CacheManager.clear_expired()
+                            except ImportError:
+                                # Try alternate app import
+                                try:
+                                    from main import app
+                                    with app.app_context():
+                                        CacheManager.clear_expired()
+                                except ImportError:
+                                    logger.warning("Could not import Flask app for context, falling back to file cache")
+                                    # Fall back to file cache
+                                    FileCacheManager.clear_expired()
+                    except Exception as e:
+                        logger.error(f"Error with app context during cache cleanup: {str(e)}")
+                        # Fall back to file cache
+                        FileCacheManager.clear_expired()
+                else:
+                    # Not using database, just run the cleanup
+                    CacheManager.clear_expired()
                 
                 # Sleep for the cleanup interval
                 time.sleep(CLEANUP_INTERVAL)
@@ -953,22 +989,69 @@ def clear_caches() -> bool:
             keys = redis_client.keys("*")
             if keys:
                 redis_client.delete(*keys)
+                logger.info(f"Cleared {len(keys)} Redis cache entries")
+            return True
         elif DB_AVAILABLE:
-            # For database, delete all entries
-            CacheEntry.query.delete()
-            db.session.commit()
+            # For database, we need to handle the app context
+            try:
+                # Try to import Flask app
+                from flask import current_app
+                
+                # Check if we're already in an app context
+                try:
+                    if current_app:
+                        # Already in app context, just run the cleanup
+                        CacheEntry.query.delete()
+                        db.session.commit()
+                        logger.info("Cleared all database cache entries")
+                    else:
+                        raise RuntimeError("No current app")
+                except RuntimeError:
+                    # Not in app context, create one
+                    try:
+                        from app import app
+                        with app.app_context():
+                            CacheEntry.query.delete()
+                            db.session.commit()
+                            logger.info("Cleared all database cache entries")
+                    except ImportError:
+                        # Try alternate app import
+                        try:
+                            from main import app
+                            with app.app_context():
+                                CacheEntry.query.delete()
+                                db.session.commit()
+                                logger.info("Cleared all database cache entries")
+                        except ImportError:
+                            logger.warning("Could not import Flask app for context, falling back to file cache")
+                            # Fall back to file cache
+                            file_cache_fallback = True
+            except Exception as e:
+                logger.error(f"Error with app context during cache cleanup: {str(e)}")
+                # Fall back to file cache
+                file_cache_fallback = True
         else:
-            # For file cache, delete all files
+            # Using file cache by default
+            file_cache_fallback = True
+            
+        # File cache fallback or if specified
+        if 'file_cache_fallback' in locals() and file_cache_fallback:
+            count = 0
             for filename in os.listdir(CACHE_DIR):
                 if filename.endswith(".json"):
                     os.remove(os.path.join(CACHE_DIR, filename))
+                    count += 1
+            logger.info(f"Cleared {count} file cache entries")
         
         logger.info("All caches cleared successfully")
         return True
     except Exception as e:
         logger.error(f"Error clearing caches: {str(e)}")
         if DB_AVAILABLE:
-            db.session.rollback()
+            try:
+                db.session.rollback()
+            except:
+                pass
         return False
 
 # Start the cache cleanup scheduler
