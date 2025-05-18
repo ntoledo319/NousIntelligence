@@ -154,39 +154,57 @@ def run_migrations():
     """Run essential database migrations"""
     logger.info("Running database migrations...")
     
-    # Get a list of migration scripts to run
-    migrations = [
-        ('Creating cache_entries table', 'migrate_cache_table', 'apply_migration'),
-        ('Adding database indexes for performance', 'migrate_indexes', 'apply_migrations'),
-        ('Adding color_theme column to UserSettings', 'migrate_color_theme', 'add_color_theme_column'),
-    ]
-    
-    # Run each migration
-    for name, module_name, function_name in migrations:
-        try:
-            logger.info(f"Processing migration: {name} ({module_name}.{function_name})")
-            start_time = time.time()
+    try:
+        # Try to use the new unified migration system
+        import run_migrations
+        logger.info("Using unified migration system")
+        
+        # Run all migrations in sequence using the unified manager
+        success = run_migrations.run_all_migrations()
+        
+        if success:
+            logger.info("All migrations completed successfully")
+        else:
+            logger.warning("Some migrations failed, check logs for details")
             
-            # Try to import the module and run the migration function
-            module = __import__(module_name)
-            migration_function = getattr(module, function_name)
-            success = migration_function()
-            
-            elapsed_time = time.time() - start_time
-            if success:
-                logger.info(f"  Migration status: success ({elapsed_time:.2f}s)")
-            else:
-                logger.warning(f"  Migration status: skipped ({elapsed_time:.2f}s)")
+        return success
+        
+    except ImportError:
+        logger.warning("Unified migration system not found, falling back to direct migration")
+        
+        # Run each migration script directly as fallback
+        migrations = [
+            ('Creating cache_entries table', 'migrate_cache_table', 'apply_migration'),
+            ('Adding database indexes for performance', 'migrate_indexes', 'apply_migrations'),
+            ('Adding color_theme column to UserSettings', 'migrate_color_theme', 'add_color_theme_column'),
+        ]
+        
+        # Run each migration
+        for name, module_name, function_name in migrations:
+            try:
+                logger.info(f"Processing migration: {name} ({module_name}.{function_name})")
+                start_time = time.time()
                 
-        except ImportError as e:
-            logger.warning(f"  Migration status: skipped (module not found: {str(e)})")
-        except AttributeError as e:
-            logger.warning(f"  Migration status: skipped (function not found: {str(e)})")
-        except Exception as e:
-            logger.error(f"  Migration status: failed ({str(e)})")
-            # Continue anyway, try the next migration
-    
-    return True
+                # Try to import the module and run the migration function
+                module = __import__(module_name)
+                migration_function = getattr(module, function_name)
+                success = migration_function()
+                
+                elapsed_time = time.time() - start_time
+                if success:
+                    logger.info(f"  Migration status: success ({elapsed_time:.2f}s)")
+                else:
+                    logger.warning(f"  Migration status: skipped ({elapsed_time:.2f}s)")
+                    
+            except ImportError as e:
+                logger.warning(f"  Migration status: skipped (module not found: {str(e)})")
+            except AttributeError as e:
+                logger.warning(f"  Migration status: skipped (function not found: {str(e)})")
+            except Exception as e:
+                logger.error(f"  Migration status: failed ({str(e)})")
+                # Continue anyway, try the next migration
+        
+        return True
 
 def create_deployment_report():
     """Generate a deployment report"""
