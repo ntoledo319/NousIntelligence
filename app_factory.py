@@ -49,8 +49,8 @@ def create_app(config_object=None):
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
     
     # Set up login manager
-    # Configure using attributes to avoid type issues
-    setattr(login_manager, "_login_view", "google_auth.login")  # Route to redirect for login
+    # Use auth blueprint for login to maintain consistent entry point
+    login_manager.login_view = "auth.login"  # Unified login entry point
     login_manager.login_message = "Please sign in with Google to access this page."
     login_manager.login_message_category = "info"
     

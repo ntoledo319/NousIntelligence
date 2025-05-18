@@ -10,6 +10,7 @@ including login, logout and registration.
 
 import logging
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session
+from flask_login import login_required, logout_user, current_user
 
 # Create blueprint
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
@@ -25,6 +26,10 @@ def login():
     Returns:
         Redirects to the Google OAuth login route
     """
+    # If user is already logged in, redirect to dashboard
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard.dashboard'))
+        
     # Get the next URL if it exists
     next_url = request.args.get('next', '')
     
@@ -38,3 +43,28 @@ def login():
     
     # Redirect to Google auth login to maintain a single sign-in flow
     return redirect(url_for("google_auth.login"))
+
+@auth_bp.route('/logout', methods=['GET'])
+@login_required
+def logout():
+    """
+    Logout the current user and redirect to home page
+    
+    Returns:
+        Redirect to the home page after logout
+    """
+    # Get user info for logging
+    user_email = current_user.email if current_user.is_authenticated else 'unknown'
+    logger.info(f"User logged out: {user_email}")
+    
+    # Log the user out
+    logout_user()
+    
+    # Clear session data
+    session.clear()
+    
+    # Flash message
+    flash("You have been successfully logged out.", "success")
+    
+    # Redirect to home page
+    return redirect(url_for('index.index'))
