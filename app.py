@@ -1,28 +1,35 @@
+"""
+NOUS Application Instance
+
+This module provides a singleton Flask application instance for use by scripts
+that need to access the Flask app outside of the main application run context.
+It uses the application factory pattern to ensure consistency.
+
+Note: This approach maintains backward compatibility with scripts that
+import directly from app while using the more flexible factory pattern.
+"""
+
 import os
+import logging
+from app_factory import create_app
 
-from flask import Flask
-from werkzeug.middleware.proxy_fix import ProxyFix
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-# Import the db instance from models to avoid multiple SQLAlchemy instances
-from models import db
+# Create the application instance using the factory
+app = create_app()
 
-# create the app
-app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET")
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1) # needed for url_for to generate with https
-
-# configure the database, relative to the app instance folder
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
-# initialize the app with the extension, flask-sqlalchemy >= 3.0.x
-db.init_app(app)
-
+# Make sure to import models after app is created to avoid circular imports
 with app.app_context():
-    # Import all model files here to ensure they're registered with SQLAlchemy
-    import models  # noqa: F401
-
-    # Create all tables
-    db.create_all()
+    from models import db
+    
+    # This is redundant with app_factory but kept for backward compatibility
+    try:
+        db.create_all()
+        logger.info("Database tables created (if they didn't exist already)")
+    except Exception as e:
+        logger.error(f"Error creating database tables: {str(e)}")
