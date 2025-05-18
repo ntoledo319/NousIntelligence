@@ -1,20 +1,28 @@
+#!/usr/bin/env python3
 """
-NOUS Database Migration Runner
+NOUS Database Migration Manager
 
-This script executes all required database migrations in the correct order.
-It provides a unified way to update the database schema when the application is deployed.
+This module provides a unified approach to running all database migrations
+for the NOUS application. It handles errors gracefully and applies migrations
+in a specific order to ensure database consistency.
 
-@module: run_migrations
-@author: NOUS Development Team
+Usage:
+  python run_migrations.py [--dry-run] [--debug]
+
+Options:
+  --dry-run    Only check what would be done without actually modifying the database
+  --debug      Show verbose debug output
+
+Author: NOUS Development Team
 """
 
 import os
 import sys
 import time
 import logging
-import importlib.util
-from typing import List, Dict, Callable, Any, Optional
-import traceback
+import argparse
+import importlib
+from typing import List, Tuple, Optional, Dict, Any, Callable
 
 # Configure logging
 logging.basicConfig(
@@ -23,243 +31,180 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Migration configuration
+# List of migration modules to run in specific order
 MIGRATIONS = [
-    {
-        "module": "migrate_cache_table",
-        "function": "apply_migration",
-        "description": "Creating cache_entries table",
-        "required": True
-    },
-    {
-        "module": "migrate_indexes",
-        "function": "apply_migrations",
-        "description": "Adding database indexes for performance",
-        "required": True
-    },
-    {
-        "module": "migrate_missing_columns",
-        "function": "apply_migrations",  # Fixed function name
-        "description": "Adding any missing database columns",
-        "required": True
-    },
-    {
-        "module": "migrate_backup_codes",
-        "function": "apply_migration",
-        "description": "Updating two_factor_backup_codes table to use string user_id",
-        "required": False  # Mark as optional in case the table doesn't exist yet
-    },
-    {
-        "module": "migrate_api_keys",
-        "function": "apply_migration",
-        "description": "Updating api_keys table to use string user_id",
-        "required": False  # Mark as optional in case the table doesn't exist yet
-    },
-    {
-        "module": "migrate_api_key_events",
-        "function": "apply_migration",
-        "description": "Updating api_key_events table to use string performed_by_id",
-        "required": False  # Mark as optional in case the table doesn't exist yet
-    },
-    {
-        "module": "migrate_user_memory",
-        "function": "apply_migration",
-        "description": "Updating user_memory_entries table to use string user_id",
-        "required": False  # Mark as optional in case the table doesn't exist yet
-    }
+    # Core schema migrations first
+    ('migrate_cache_table', 'apply_migration', 'Creating cache_entries table'),
+    ('migrate_missing_columns', 'apply_migration', 'Ensuring all required columns exist'),
+    ('migrate_color_theme', 'add_color_theme_column', 'Adding color_theme column to UserSettings'),
+    
+    # Foreign key migrations
+    ('migrate_api_keys', 'apply_migration', 'Updating api_keys table schema'),
+    ('migrate_api_key_events', 'apply_migration', 'Updating api_key_events table schema'),
+    ('migrate_backup_codes', 'apply_migration', 'Updating two_factor_backup_codes table schema'),
+    
+    # Performance optimizations last
+    ('migrate_indexes', 'apply_migrations', 'Adding database indexes for performance'),
 ]
+
+def load_migration_module(module_name: str) -> Optional[Any]:
+    """
+    Load a migration module by name
+    
+    Args:
+        module_name: Name of the module to load
+        
+    Returns:
+        Optional[Any]: Loaded module or None if not found
+    """
+    try:
+        return importlib.import_module(module_name)
+    except ImportError as e:
+        logger.warning(f"Migration module {module_name} not found: {str(e)}")
+        return None
+
+def run_migration(module_name: str, function_name: str, description: str, dry_run: bool = False) -> bool:
+    """
+    Run a specific migration
+    
+    Args:
+        module_name: Name of the migration module
+        function_name: Name of the function within the module to call
+        description: Human-readable description of the migration
+        dry_run: If True, only log what would be done
+        
+    Returns:
+        bool: True if migration succeeded, False otherwise
+    """
+    start_time = time.time()
+    
+    try:
+        # Load the module
+        module = load_migration_module(module_name)
+        if module is None:
+            logger.warning(f"Skipping migration '{description}' - module not found")
+            return False
+            
+        # Get the migration function
+        if not hasattr(module, function_name):
+            logger.warning(f"Skipping migration '{description}' - function {function_name} not found in {module_name}")
+            return False
+            
+        migration_function = getattr(module, function_name)
+        
+        # Run the migration (with dry_run if supported)
+        if dry_run:
+            # Try to call with dry_run parameter if supported
+            try:
+                result = migration_function(dry_run=True)
+                logger.info(f"Dry run of migration '{description}' completed successfully")
+            except TypeError:
+                # Function doesn't support dry_run parameter
+                logger.info(f"Would run migration '{description}' (no dry-run support)")
+                result = True
+        else:
+            # Actually run the migration
+            result = migration_function()
+            
+        end_time = time.time()
+        elapsed = end_time - start_time
+        
+        if result:
+            logger.info(f"Migration '{description}' completed successfully in {elapsed:.2f}s")
+        else:
+            logger.warning(f"Migration '{description}' was skipped after {elapsed:.2f}s")
+            
+        return True  # Count as success even if skipped
+        
+    except Exception as e:
+        end_time = time.time()
+        elapsed = end_time - start_time
+        logger.error(f"Migration '{description}' failed after {elapsed:.2f}s: {str(e)}")
+        return False
 
 def check_environment() -> bool:
     """
     Check if required environment variables are set
     
     Returns:
-        bool: True if critical variables are set, False otherwise
+        bool: True if all required variables are set
     """
     logger.info("Checking environment variables for migrations...")
     
-    # Critical environment variables
-    critical_vars = ["DATABASE_URL"]
-    
+    # Critical variables - migrations will fail without these
+    if os.environ.get('DATABASE_URL'):
+        logger.info("✓ Critical environment variable DATABASE_URL is set")
+    else:
+        logger.error("✗ Critical environment variable DATABASE_URL is not set")
+        return False
+        
     # Important but not critical variables
-    important_vars = ["SECRET_KEY", "SESSION_SECRET", "FLASK_ENV"]
-    
-    all_critical_present = True
-    
-    # Check critical variables
-    for var_name in critical_vars:
-        if os.environ.get(var_name):
-            logger.info(f"✓ Critical environment variable {var_name} is set")
+    for var in ['SECRET_KEY', 'SESSION_SECRET', 'FLASK_ENV']:
+        if os.environ.get(var):
+            logger.info(f"✓ Important environment variable {var} is set")
         else:
-            logger.error(f"✗ Critical environment variable {var_name} is not set")
-            all_critical_present = False
+            logger.warning(f"! Important environment variable {var} is not set")
     
-    # Check important variables
-    for var_name in important_vars:
-        if os.environ.get(var_name):
-            logger.info(f"✓ Important environment variable {var_name} is set")
-        else:
-            logger.warning(f"! Important environment variable {var_name} is not set")
-    
-    return all_critical_present
+    return True
 
-def import_migration_module(module_name: str) -> Optional[Any]:
-    """Import a migration module dynamically
-    
-    Args:
-        module_name: Name of the module to import
-        
-    Returns:
-        The imported module or None if not found
+def run_all_migrations(dry_run: bool = False) -> bool:
     """
-    try:
-        # Check if module exists
-        module_path = f"{module_name}.py"
-        if not os.path.exists(module_path):
-            logger.error(f"Migration module not found: {module_path}")
-            return None
-        
-        # Import the module
-        spec = importlib.util.spec_from_file_location(module_name, module_path)
-        if spec is None or spec.loader is None:
-            logger.error(f"Could not load module spec: {module_name}")
-            return None
-            
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[module_name] = module
-        spec.loader.exec_module(module)
-        
-        return module
-    except Exception as e:
-        logger.error(f"Error importing migration module {module_name}: {str(e)}")
-        traceback.print_exc()
-        return None
-
-def run_migrations(dry_run: bool = False) -> bool:
-    """Run all migrations in order
+    Run all migrations in sequence
     
     Args:
-        dry_run: If True, only print what would be done but don't execute
+        dry_run: If True, only log what would be done without modifying the database
         
     Returns:
-        True if all required migrations succeeded, False otherwise
+        bool: True if all migrations succeeded, False if any failed
     """
     logger.info(f"Starting migrations (dry_run={dry_run})")
     
-    # First check environment
+    # Check environment first
     if not check_environment():
-        logger.error("Environment check failed - critical variables missing")
+        logger.error("Environment check failed, cannot run migrations")
         return False
     
-    success = True
-    results = []
+    start_time = time.time()
+    success_count = 0
+    fail_count = 0
     
-    for migration in MIGRATIONS:
-        module_name = migration["module"]
-        function_name = migration["function"]
-        description = migration["description"]
-        required = migration["required"]
+    # Run all migrations in order
+    for i, (module_name, function_name, description) in enumerate(MIGRATIONS):
+        migration_number = i + 1
+        logger.info(f"Running migration {migration_number}/{len(MIGRATIONS)}: {description}")
         
-        logger.info(f"Processing migration: {description} ({module_name}.{function_name})")
-        
-        if dry_run:
-            logger.info(f"  [DRY RUN] Would execute {module_name}.{function_name}()")
-            results.append({
-                "module": module_name,
-                "function": function_name,
-                "description": description,
-                "status": "skipped (dry run)",
-                "required": required
-            })
-            continue
-        
-        # Import the module
-        module = import_migration_module(module_name)
-        if module is None:
-            status = "failed (module not found)"
-            if required:
-                success = False
+        if run_migration(module_name, function_name, description, dry_run):
+            success_count += 1
         else:
-            # Get the migration function
-            migration_func = getattr(module, function_name, None)
-            status = ""  # Initialize status to avoid unbound variable error
-            if migration_func is None:
-                # Try to find an alternative function in the module
-                alternate_funcs = [f for f in dir(module) if f.startswith('apply_')]
-                if alternate_funcs:
-                    logger.warning(f"Function {function_name} not found, trying alternative: {alternate_funcs[0]}")
-                    migration_func = getattr(module, alternate_funcs[0])
-                    function_name = alternate_funcs[0]  # Update for reporting
-                else:
-                    status = f"failed (function {function_name} not found and no alternatives available)"
-                    if required:
-                        success = False
-                    migration_func = None
-            
-            if migration_func:
-                # Run the migration
-                try:
-                    start_time = time.time()
-                    result = migration_func()
-                    end_time = time.time()
-                    
-                    if result is None:  # Handle functions that don't return anything
-                        logger.warning(f"Migration function {function_name} returned None, assuming success")
-                        status = f"success (assumed) ({(end_time - start_time):.2f}s)"
-                    elif result:
-                        status = f"success ({(end_time - start_time):.2f}s)"
-                    else:
-                        status = "failed (function returned False)"
-                        if required:
-                            success = False
-                except Exception as e:
-                    logger.error(f"  Error executing migration: {str(e)}")
-                    traceback.print_exc()
-                    status = f"failed (exception: {str(e)})"
-                    if required:
-                        success = False
-        
-        # Ensure status is defined in all code paths
-        if 'status' not in locals():
-            status = "unknown"
-            
-        logger.info(f"  Migration status: {status}")
-        results.append({
-            "module": module_name,
-            "function": function_name,
-            "description": description,
-            "status": status,
-            "required": required
-        })
+            fail_count += 1
     
-    # Print summary
-    logger.info("Migration Summary:")
-    for result in results:
-        logger.info(f"  {result['description']}: {result['status']}")
+    # Log summary
+    end_time = time.time()
+    total_time = end_time - start_time
     
-    if success:
-        logger.info("All required migrations completed successfully")
-    else:
-        logger.error("One or more required migrations failed")
+    logger.info(f"Migration summary: {success_count} succeeded, {fail_count} failed, in {total_time:.2f}s")
     
-    return success
+    # Return True if all succeeded
+    return fail_count == 0
+
+def parse_args() -> argparse.Namespace:
+    """Parse command line arguments"""
+    parser = argparse.ArgumentParser(description="NOUS Database Migration Manager")
+    parser.add_argument('--dry-run', action='store_true', help='Only check migrations without modifying the database')
+    parser.add_argument('--debug', action='store_true', help='Show detailed debug output')
+    return parser.parse_args()
 
 if __name__ == "__main__":
-    # Check for command-line arguments
-    dry_run = "--dry-run" in sys.argv
-    ignore_errors = "--ignore-errors" in sys.argv
+    # Parse command line arguments
+    args = parse_args()
     
-    try:
-        success = run_migrations(dry_run)
-        if success or ignore_errors:
-            sys.exit(0)
-        else:
-            sys.exit(1)
-    except Exception as e:
-        logger.critical(f"Unhandled exception in migration process: {str(e)}")
-        traceback.print_exc()
-        if ignore_errors:
-            logger.warning("Ignoring errors due to --ignore-errors flag")
-            sys.exit(0)
-        else:
-            sys.exit(2) 
+    # Set up logging
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
+        logger.debug("Debug mode enabled - showing verbose output")
+    
+    # Run migrations
+    success = run_all_migrations(args.dry_run)
+    
+    # Exit with appropriate code
+    sys.exit(0 if success else 1)

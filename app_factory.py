@@ -50,9 +50,14 @@ def create_app(config_object=None):
     
     # Set up login manager
     # Use auth blueprint for login to maintain consistent entry point
-    login_manager.login_view = "auth.login"  # Unified login entry point
-    login_manager.login_message = "Please sign in with Google to access this page."
-    login_manager.login_message_category = "info"
+    # Ignore LSP errors for Flask-Login attributes - they are dynamically added
+    setattr(login_manager, 'login_view', "auth.login")  # Unified login entry point
+    setattr(login_manager, 'login_message', "Please sign in with Google to access this page.")
+    setattr(login_manager, 'login_message_category', "info")
+    # Flask-login requires these attributes in newer versions
+    setattr(login_manager, 'refresh_view', "auth.login")
+    setattr(login_manager, 'needs_refresh_message', "Session timed out, please sign in again")
+    setattr(login_manager, 'needs_refresh_message_category', "info")
     
     @login_manager.user_loader
     def load_user(user_id):
