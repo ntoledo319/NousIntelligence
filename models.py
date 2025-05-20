@@ -27,66 +27,106 @@ logger = logging.getLogger(__name__)
 # Type variable for generic model operations
 T = TypeVar('T')
 
-class QueryMixin:
+# Create model helper functions instead of using a mixin
+# This avoids potential issues with class attribute access
+
+def get_by_id(model_class, id):
     """
-    Mixin class that adds query optimization methods to models
+    Get a database object by ID with query timing
+    
+    Args:
+        model_class: SQLAlchemy model class
+        id: Object ID
+        
+    Returns:
+        Model instance or None if not found
     """
+    start_time = time.time()
+    result = model_class.query.get(id)
+    query_time = time.time() - start_time
     
-    @classmethod
-    def get_by_id(cls, id):
-        """Get an object by ID with optimal query"""
-        start_time = time.time()
-        result = cls.query.get(id)
-        query_time = time.time() - start_time
+    # Log slow queries for optimization
+    if query_time > 0.1:  # Log queries taking more than 100ms
+        logger.warning(f"Slow query in {model_class.__name__}.get_by_id(): {query_time:.3f}s")
         
-        # Log slow queries for optimization
-        if query_time > 0.1:  # Log queries taking more than 100ms
-            logger.warning(f"Slow query in {cls.__name__}.get_by_id(): {query_time:.3f}s")
-            
-        return result
+    return result
+
+def get_all(model_class):
+    """
+    Get all objects with query timing
     
-    @classmethod
-    def get_all(cls):
-        """Get all objects with optimal query"""
-        start_time = time.time()
-        result = cls.query.all()
-        query_time = time.time() - start_time
+    Args:
+        model_class: SQLAlchemy model class
         
-        # Log slow queries for optimization
-        if query_time > 0.2:  # Log queries taking more than 200ms
-            logger.warning(f"Slow query in {cls.__name__}.get_all(): {query_time:.3f}s")
-            
-        return result
+    Returns:
+        List of model instances
+    """
+    start_time = time.time()
+    result = model_class.query.all()
+    query_time = time.time() - start_time
     
-    @classmethod
-    def create(cls, **kwargs):
-        """Create a new object and return it"""
-        obj = cls(**kwargs)
-        db.session.add(obj)
-        db.session.commit()
-        return obj
-    
-    def update(self, **kwargs):
-        """Update object attributes and save to database"""
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-        db.session.commit()
-        return self
-    
-    def delete(self):
-        """Delete object from database"""
-        db.session.delete(self)
-        db.session.commit()
+    # Log slow queries for optimization
+    if query_time > 0.2:  # Log queries taking more than 200ms
+        logger.warning(f"Slow query in {model_class.__name__}.get_all(): {query_time:.3f}s")
         
-    def to_dict(self) -> Dict[str, Any]:
-        """
-        Convert model to dictionary representation
+    return result
+
+def create_object(model_class, **kwargs):
+    """
+    Create a new database object
+    
+    Args:
+        model_class: SQLAlchemy model class
+        **kwargs: Object attributes
         
-        Returns:
-            Dict with model attributes
-        """
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+    Returns:
+        Created model instance
+    """
+    obj = model_class(**kwargs)
+    db.session.add(obj)
+    db.session.commit()
+    return obj
+
+def update_object(obj, **kwargs):
+    """
+    Update a database object
+    
+    Args:
+        obj: Model instance
+        **kwargs: Attributes to update
+        
+    Returns:
+        Updated model instance
+    """
+    for key, value in kwargs.items():
+        if hasattr(obj, key):
+            setattr(obj, key, value)
+    db.session.commit()
+    return obj
+
+def delete_object(obj):
+    """
+    Delete a database object
+    
+    Args:
+        obj: Model instance
+    """
+    db.session.delete(obj)
+    db.session.commit()
+
+def model_to_dict(obj):
+    """
+    Convert a model instance to a dictionary
+    
+    Args:
+        obj: Model instance
+        
+    Returns:
+        Dictionary with model attributes
+    """
+    if not hasattr(obj, '__table__'):
+        return {}
+    return {c.name: getattr(obj, c.name) for c in obj.__table__.columns}
 
 class User(UserMixin, db.Model):
     """
