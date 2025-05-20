@@ -37,30 +37,6 @@
                             <a href="#" class="text-decoration-none">Privacy Policy</a>
                         </p>
                     </div>
-                    
-                    {% if config.get('ENABLE_LOCAL_AUTH', False) %}
-                    <div class="divider d-flex align-items-center my-4">
-                        <p class="text-center mx-3 mb-0 text-muted">OR</p>
-                    </div>
-                    
-                    <form method="POST" action="{{ url_for('auth.login') }}">
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email address</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
-                        </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-outline-secondary">Sign In with Email</button>
-                        </div>
-                    </form>
-                    
-                    <div class="mt-4 text-center">
-                        <p class="mb-0">Don't have an account? <a href="{{ url_for('auth.register') }}">Register</a></p>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
