@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}{{ recording.title }} - {{ recording.speaker_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">AA Content</h5>
+                </div>
+                <div class="card-body">
+                    {% include 'includes/aa_menu.html' %}
+                </div>
+            </div>
+            
+            {% if current_user.is_authenticated %}
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h5 class="mb-0">Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <button id="addToFavorites" class="btn btn-outline-primary mb-2 w-100">
+                            <i class="fas fa-heart"></i> Add to Favorites
+                        </button>
+                        
+                        <a href="{{ url_for('aa.aa_content.speakers') }}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-arrow-left"></i> Back to All Speakers
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Main content area -->
+        <div class="col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-1">{{ recording.title }}</h2>
+                        <h5 class="text-muted">{{ recording.speaker_name }}</h5>
+                    </div>
+                    
+                    <div>
+                        {% if recording.year_recorded %}
+                            <span class="badge bg-secondary me-1">{{ recording.year_recorded }}</span>
+                        {% endif %}
+                        {% if recording.location %}
+                            <span class="badge bg-info">{{ recording.location }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    {% if recording.description %}
+                        <div class="mb-4">
+                            <h5>Description</h5>
+                            <p>{{ recording.description }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-4">
+                        <h5>Audio Recording</h5>
+                        <div class="audio-player mb-3">
+                            <audio controls class="w-100">
+                                <source src="{{ url_for('aa.aa_content.speaker_audio', recording_id=recording.id) }}" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+                        <div class="d-flex justify-content-between text-muted small">
+                            <span>{{ recording.format|upper }} | {{ recording.duration_seconds//60 }}:{{ '%02d'|format(recording.duration_seconds%60) }}</span>
+                            <a href="{{ url_for('aa.aa_content.speaker_audio', recording_id=recording.id) }}" download>
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                        </div>
+                    </div>
+                    
+                    {% if recording.tags %}
+                        <div class="mb-4">
+                            <h5>Topics</h5>
+                            <div>
+                                {% for tag in recording.tags.split(',') %}
+                                    <span class="badge bg-light text-dark me-1 mb-1">{{ tag }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">AI-Assisted Understanding</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Ask questions about this recording to deepen your understanding.</p>
+                    
+                    <form id="aiQuestionForm">
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" id="aiQuestion" placeholder="Ask a question about this speaker or topic...">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-brain"></i> Ask
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div id="aiResponse" class="p-3 rounded bg-light mt-3" style="display: none;">
+                        <div class="mb-2 text-muted small">Response:</div>
+                        <div id="aiResponseContent"></div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if current_user.is_authenticated %}
+                <div class="card shadow-sm mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Notes</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="notesForm">
+                            <div class="mb-3">
+                                <textarea class="form-control" id="userNotes" rows="3" placeholder="Add your personal notes about this recording here..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Notes</button>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add to Favorites Modal -->
+<div class="modal fade" id="favoritesModal" tabindex="-1" aria-labelledby="favoritesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="favoritesModalLabel">Add to Favorites</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="favoriteForm">
+                    <div class="mb-3">
+                        <label for="favoriteNotes" class="form-label">Notes (optional)</label>
+                        <textarea class="form-control" id="favoriteNotes" rows="3" placeholder="Add personal notes about why this recording is meaningful to you..."></textarea>
+                    </div>
+                    <input type="hidden" id="contentType" value="speaker">
+                    <input type="hidden" id="contentId" value="{{ recording.id }}">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveFavoriteBtn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add to favorites functionality
+    const addToFavorites = document.getElementById('addToFavorites');
+    if (addToFavorites) {
+        const favoritesModal = new bootstrap.Modal(document.getElementById('favoritesModal'));
+        const saveFavoriteBtn = document.getElementById('saveFavoriteBtn');
+        
+        addToFavorites.addEventListener('click', function() {
+            favoritesModal.show();
+        });
+        
+        saveFavoriteBtn.addEventListener('click', function() {
+            const notes = document.getElementById('favoriteNotes').value;
+            const contentType = document.getElementById('contentType').value;
+            const contentId = document.getElementById('contentId').value;
+            
+            fetch('{{ url_for("aa.aa_content.add_favorite") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: new URLSearchParams({
+                    'content_type': contentType,
+                    'content_id': contentId,
+                    'notes': notes
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    favoritesModal.hide();
+                    alert('Added to favorites!');
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        });
+    }
+    
+    // AI Question functionality
+    const aiQuestionForm = document.getElementById('aiQuestionForm');
+    if (aiQuestionForm) {
+        const aiResponse = document.getElementById('aiResponse');
+        const aiResponseContent = document.getElementById('aiResponseContent');
+        
+        aiQuestionForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const question = document.getElementById('aiQuestion').value;
+            if (!question) return;
+            
+            aiResponseContent.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div> Processing your question...';
+            aiResponse.style.display = 'block';
+            
+            // Get recording context
+            const speakerName = "{{ recording.speaker_name }}";
+            const title = "{{ recording.title }}";
+            const description = "{{ recording.description|default('') }}";
+            
+            fetch('{{ url_for("aa.api.ai_ask") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    question: question,
+                    context: {
+                        source: 'aa_speaker',
+                        speaker: speakerName,
+                        title: title,
+                        description: description
+                    }
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Format the response with paragraphs
+                    const formattedResponse = data.response.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
+                    aiResponseContent.innerHTML = `<p>${formattedResponse}</p>`;
+                    
+                    // Add model info if available
+                    if (data.model) {
+                        aiResponseContent.innerHTML += `<p class="mt-3 text-muted small">Powered by: ${data.model}</p>`;
+                    }
+                } else {
+                    aiResponseContent.innerHTML = '<div class="alert alert-warning">Sorry, I couldn\'t process your question. Please try again.</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                aiResponseContent.innerHTML = '<div class="alert alert-danger">An error occurred. Please try again.</div>';
+            });
+        });
+    }
+    
+    // User notes functionality
+    const notesForm = document.getElementById('notesForm');
+    if (notesForm) {
+        notesForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const notes = document.getElementById('userNotes').value;
+            // Here you would normally save the notes to the user's profile
+            // For now, we just show a confirmation
+            alert('Notes saved successfully!');
+        });
+    }
+});
+</script>
+{% endblock %}

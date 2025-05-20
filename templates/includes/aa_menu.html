@@ -1,0 +1,29 @@
+<nav class="nav flex-column">
+    <div class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'aa.aa_content.index' %}active{% endif %}" href="{{ url_for('aa.aa_content.index') }}">
+            <i class="fas fa-home"></i> AA Home
+        </a>
+    </div>
+    <div class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'aa.aa_content.big_book' %}active{% endif %}" href="{{ url_for('aa.aa_content.big_book') }}">
+            <i class="fas fa-book"></i> Big Book
+        </a>
+    </div>
+    <div class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'aa.aa_content.speakers' %}active{% endif %}" href="{{ url_for('aa.aa_content.speakers') }}">
+            <i class="fas fa-microphone"></i> Speaker Recordings
+        </a>
+    </div>
+    {% if current_user.is_authenticated %}
+    <div class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'aa.aa_content.favorites' %}active{% endif %}" href="{{ url_for('aa.aa_content.favorites') }}">
+            <i class="fas fa-heart"></i> My Favorites
+        </a>
+    </div>
+    {% endif %}
+    <div class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'aa.aa_content.search' %}active{% endif %}" href="{{ url_for('aa.aa_content.search') }}">
+            <i class="fas fa-search"></i> Search
+        </a>
+    </div>
+</nav>
