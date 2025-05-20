@@ -3,6 +3,7 @@ Database Models
 
 This module defines the database models for the application.
 It contains SQLAlchemy model classes for users, settings, and other core entities.
+Optimized for better performance with model mixins and efficient querying.
 
 @module models
 @description SQLAlchemy database models
@@ -10,10 +11,82 @@ It contains SQLAlchemy model classes for users, settings, and other core entitie
 """
 
 import uuid
+import time
+import logging
 from datetime import datetime
+from typing import Dict, Any, List, Optional, Type, TypeVar, Generic, Union
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy import func, and_, or_
 from app_factory import db
+
+logger = logging.getLogger(__name__)
+
+# Type variable for generic model operations
+T = TypeVar('T')
+
+class QueryMixin:
+    """
+    Mixin class that adds query optimization methods to models
+    """
+    
+    @classmethod
+    def get_by_id(cls, id):
+        """Get an object by ID with optimal query"""
+        start_time = time.time()
+        result = cls.query.get(id)
+        query_time = time.time() - start_time
+        
+        # Log slow queries for optimization
+        if query_time > 0.1:  # Log queries taking more than 100ms
+            logger.warning(f"Slow query in {cls.__name__}.get_by_id(): {query_time:.3f}s")
+            
+        return result
+    
+    @classmethod
+    def get_all(cls):
+        """Get all objects with optimal query"""
+        start_time = time.time()
+        result = cls.query.all()
+        query_time = time.time() - start_time
+        
+        # Log slow queries for optimization
+        if query_time > 0.2:  # Log queries taking more than 200ms
+            logger.warning(f"Slow query in {cls.__name__}.get_all(): {query_time:.3f}s")
+            
+        return result
+    
+    @classmethod
+    def create(cls, **kwargs):
+        """Create a new object and return it"""
+        obj = cls(**kwargs)
+        db.session.add(obj)
+        db.session.commit()
+        return obj
+    
+    def update(self, **kwargs):
+        """Update object attributes and save to database"""
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+        db.session.commit()
+        return self
+    
+    def delete(self):
+        """Delete object from database"""
+        db.session.delete(self)
+        db.session.commit()
+        
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert model to dictionary representation
+        
+        Returns:
+            Dict with model attributes
+        """
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 class User(UserMixin, db.Model):
     """

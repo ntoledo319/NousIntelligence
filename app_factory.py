@@ -11,11 +11,14 @@ It centralizes app creation and configuration.
 import os
 import logging
 import time
-from flask import Flask, render_template
+from flask import Flask, render_template, g
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_session import Session
 from werkzeug.middleware.proxy_fix import ProxyFix
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
+import sqlite3
 
 # Create extensions
 db = SQLAlchemy()
@@ -24,6 +27,14 @@ session = Session()
 
 # Store a timestamp for startup performance measurement
 _start_time = time.time()
+
+# Enable SQLite foreign keys if using SQLite
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    if isinstance(dbapi_connection, sqlite3.Connection):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 def create_app(config_class=None):
     """Create and configure the Flask application

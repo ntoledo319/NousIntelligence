@@ -23,14 +23,20 @@ class Config:
         database_url = database_url.replace("postgres://", "postgresql://", 1)
     SQLALCHEMY_DATABASE_URI = database_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    # Optimized database connection pool settings
     SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_pre_ping': True,
-        'pool_recycle': 600,
-        'pool_size': 20,
-        'max_overflow': 10,
-        'pool_timeout': 30,
-        'echo_pool': False,
-        'pool_use_lifo': True,
+        'pool_pre_ping': True,          # Test connections before use to prevent stale connections
+        'pool_recycle': 300,            # Recycle connections after 5 minutes (reduced from 10)
+        'pool_size': 10,                # Default pool size (reduced from 20 for better resource usage)
+        'max_overflow': 20,             # Allow more overflow connections when needed (increased from 10)
+        'pool_timeout': 20,             # Timeout for getting connection from pool (reduced from 30)
+        'echo_pool': False,             # Don't echo pool events (optimization)
+        'pool_use_lifo': True,          # Use LIFO to reuse recently used connections (improved performance)
+        'connect_args': {               # Connection arguments
+            'connect_timeout': 10,      # Connection timeout
+            'application_name': 'NOUS', # Application name for monitoring
+        },
     }
 
     # Security settings
