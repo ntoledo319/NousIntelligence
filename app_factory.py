@@ -121,6 +121,15 @@ def create_app(config_class=None):
                 def index():
                     return render_template('index.html')
                 logger.info("Root route registered")
+                
+            # Register Google OAuth callback at root level
+            if 'callback_google' not in app.view_functions:
+                @app.route('/callback/google')
+                def callback_google():
+                    """Root-level Google OAuth callback handler"""
+                    logger.info("Google OAuth callback received at root level")
+                    # Redirect to the proper callback handler in google_bp
+                    return redirect(url_for('google_auth.callback'))
             
             # Create database tables if they don't exist
             if app.config.get('AUTO_CREATE_TABLES', True):
