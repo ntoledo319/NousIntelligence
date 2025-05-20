@@ -331,7 +331,7 @@ class SystemSettings(db.Model):
     __tablename__ = 'system_settings'
     
     id = db.Column(db.Integer, primary_key=True)
-    key = db.Column(db.String(64), unique=True, nullable=False)
+    key = db.Column(db.String(64), unique=True, nullable=False, index=True)  # Added index for faster lookups
     value = db.Column(db.Text, nullable=True)
     description = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

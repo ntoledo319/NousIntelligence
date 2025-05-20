@@ -93,9 +93,26 @@ def after_cursor_execute(conn, cursor, statement, parameters, context, executema
     start_time = conn.info['query_start_time'].pop(-1)
     query_time = time.time() - start_time
     
-    # Log queries taking more than 100ms
-    if query_time > 0.1:
-        logger.warning(f"Slow SQL query: {query_time:.3f}s\n{statement}")
+    # Track query statistics in Flask g object if available
+    try:
+        from flask import g
+        if hasattr(g, 'db_query_count'):
+            g.db_query_count += 1
+        if hasattr(g, 'db_query_time'):
+            g.db_query_time += query_time
+    except (RuntimeError, ImportError):
+        pass
+    
+    # Log queries taking more than 150ms (increased threshold to reduce noise)
+    if query_time > 0.15:
+        # Extract the table name for better log filtering
+        table_name = "unknown"
+        if "FROM" in statement:
+            parts = statement.split("FROM")
+            if len(parts) > 1 and len(parts[1].strip().split()) > 0:
+                table_name = parts[1].strip().split()[0]
+                
+        logger.warning(f"Slow SQL query on {table_name}: {query_time:.3f}s")
 
 def get_or_create(model: Type[T], **kwargs) -> tuple[T, bool]:
     """
