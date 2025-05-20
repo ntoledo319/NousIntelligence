@@ -141,42 +141,64 @@ def callback():
             
         user = User.query.filter_by(email=email).first()
         
+        # Store Google credentials in session for all features
+        session['google_creds'] = {
+            'access_token': token_json.get('access_token'),
+            'refresh_token': token_json.get('refresh_token'),
+            'id_token': token_json.get('id_token'),
+            'user_info': user_info
+        }
+        
+        # Store Google ID for linking
+        google_id = user_info.get('sub')
+        
         if not user:
             # Create new user
             logger.info(f"Creating new user from Google OAuth: {email}")
-            user = User(
-                id=str(uuid.uuid4()),
-                email=email,
-                first_name=user_info.get('given_name', ''),
-                last_name=user_info.get('family_name', ''),
-                profile_image_url=user_info.get('picture'),
-                account_active=True,
-                email_verified=user_info.get('email_verified', False)
-            )
+            # Create user object manually to avoid constructor issues
+            username = email.split('@')[0]
+            # Ensure username is unique by adding random suffix if needed
+            original_username = username
+            suffix = 1
+            while User.query.filter_by(username=username).first():
+                username = f"{original_username}{suffix}"
+                suffix += 1
+                
+            user = User()
+            user.id = str(uuid.uuid4())
+            user.email = email
+            user.username = username
+            user.first_name = user_info.get('given_name', '')
+            user.last_name = user_info.get('family_name', '')
+            user.google_id = google_id  # Set Google ID for linking
+            user.active = True
             
             # Add user to database
             db.session.add(user)
+            db.session.commit()
             
             # Create default settings for the user
-            settings = UserSettings(user_id=user.id)
+            settings = UserSettings()
+            settings.user_id = user.id
             db.session.add(settings)
             db.session.commit()
             
             # Log user creation
             logger.info(f"New user created via Google OAuth: {email}")
             
-            # Redirect to welcome page after first login
+            # Redirect to dashboard page after first login
             login_user(user)
-            flash('Welcome! Your account has been created.', 'success')
-            return redirect(url_for('welcome'))
+            flash('Welcome! Your account has been created and linked with Google.', 'success')
+            return redirect(url_for('dashboard.dashboard'))
         else:
-            # Update existing user info
+            # Update existing user info and link Google account
             logger.info(f"User logged in via Google OAuth: {email}")
             user.first_name = user_info.get('given_name', user.first_name)
             user.last_name = user_info.get('family_name', user.last_name)
             user.profile_image_url = user_info.get('picture', user.profile_image_url)
             user.last_login = datetime.utcnow()
             user.email_verified = user_info.get('email_verified', user.email_verified)
+            user.google_id = google_id  # Update Google ID for linking
             db.session.commit()
             
             # Log in existing user
