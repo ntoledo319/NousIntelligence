@@ -89,20 +89,6 @@ def apply_security_middleware(app: Flask):
         except Exception as e:
             logger.error(f"Error in security middleware: {str(e)}")
 
-def apply_performance_middleware(app: Flask):
-    """Apply performance optimization middleware
-    
-    Args:
-        app: Flask application instance
-    """
-    try:
-        # Use our optimized performance middleware
-        from utils.performance_middleware import setup_performance_middleware
-        setup_performance_middleware(app)
-        logger.info("Performance middleware applied")
-    except ImportError:
-        logger.info("Performance middleware not available")
-
 def register_middleware(app: Flask):
     """Register all middleware with the Flask application
     

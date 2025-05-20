@@ -18,7 +18,7 @@ from typing import Dict, Callable, List, Tuple, Any
 
 logger = logging.getLogger(__name__)
 
-# Import blueprints directly for backwards compatibility
+# Import blueprints directly to maintain compatibility
 from routes.index import index_bp
 from routes.dashboard import dashboard_bp
 from routes.settings import settings_bp
@@ -37,83 +37,27 @@ from routes.smart_shopping_routes import smart_shopping_bp
 from routes.price_routes import price_tracking_bp
 from routes.voice_routes import voice_bp
 
-# Define blueprint import paths and priorities
-# Higher priority (lower number) blueprints are loaded first
-BLUEPRINT_IMPORTS = [
-    # Core blueprints (Priority 1) - loaded immediately
-    (1, 'routes.index', 'index_bp'),
-    (1, 'routes.dashboard', 'dashboard_bp'),
-    
-    # Essential services (Priority 2)
-    (2, 'routes.api', 'api_bp'),
-    (2, 'routes.settings', 'settings_bp'),
-    (2, 'routes.user_routes', 'user_bp'),
-    
-    # Feature blueprints (Priority 3)
-    (3, 'routes.spotify_visualization', 'spotify_viz'),
-    (3, 'routes.spotify_commands', 'spotify_commands'),
-    (3, 'routes.spotify_routes', 'spotify_bp'),
-    (3, 'routes.voice_routes', 'voice_bp'),
-    
-    # Health & wellness features (Priority 4)
-    (4, 'routes.aa_routes', 'aa_bp'),
-    (4, 'routes.dbt_routes', 'dbt_bp'),
-    (4, 'routes.crisis_routes', 'crisis_bp'),
-    
-    # Additional services (Priority 5)
-    (5, 'routes.forms_routes', 'forms_bp'),
-    (5, 'routes.meet_routes', 'meet_bp'),
-    (5, 'routes.admin_routes', 'admin_bp'),
-    (5, 'routes.smart_shopping_routes', 'smart_shopping_bp'),
-    (5, 'routes.price_routes', 'price_tracking_bp'),
-]
-
-# Store imported blueprints
-_blueprints_cache: Dict[str, Blueprint] = {}
-
-def _import_blueprint(module_path: str, blueprint_name: str) -> Blueprint:
-    """
-    Import a blueprint lazily (only when needed)
-    
-    Args:
-        module_path: Import path for the module
-        blueprint_name: Name of the blueprint variable in the module
-        
-    Returns:
-        Imported blueprint
-    """
-    cache_key = f"{module_path}.{blueprint_name}"
-    
-    # Return from cache if already imported
-    if cache_key in _blueprints_cache:
-        return _blueprints_cache[cache_key]
-    
-    # Import the module and get the blueprint
-    try:
-        start_time = time.time()
-        module = importlib.import_module(module_path)
-        blueprint = getattr(module, blueprint_name)
-        import_time = time.time() - start_time
-        
-        # Cache the blueprint for future use
-        _blueprints_cache[cache_key] = blueprint
-        
-        # Log slow imports to help identify optimization opportunities
-        if import_time > 0.1:  # Log imports taking more than 100ms
-            logger.warning(f"Slow blueprint import: {cache_key} took {import_time:.3f}s")
-        else:
-            logger.debug(f"Blueprint imported: {cache_key} in {import_time:.3f}s")
-            
-        return blueprint
-    except (ImportError, AttributeError) as e:
-        logger.error(f"Failed to import blueprint {cache_key}: {str(e)}")
-        raise
+# Blueprint module organization
+# This comment serves as documentation for the blueprint structure
+# The blueprints are organized into the following categories:
+#
+# 1. Core blueprints:
+#    - index_bp (/)
+#    - dashboard_bp (/dashboard)
+#    - settings_bp (/settings)
+#    - api_bp (/api)
+#
+# 2. Feature-specific blueprints:
+#    - Spotify integration (spotify_viz, spotify_commands, spotify_bp)
+#    - Health & wellness (aa_bp, dbt_bp, crisis_bp)
+#    - Google Workspace (forms_bp, meet_bp)
+#    - User management (user_bp, admin_bp)
+#    - Shopping features (smart_shopping_bp, price_tracking_bp)
+#    - Voice interfaces (voice_bp)
 
 def register_blueprints(app: Flask):
     """
     Register all blueprint routes with the application
-    
-    This function maintains backward compatibility while offering performance improvements
     
     Args:
         app: Flask application instance
@@ -127,6 +71,7 @@ def register_blueprints(app: Flask):
     # Register Spotify blueprints
     app.register_blueprint(spotify_viz)
     app.register_blueprint(spotify_commands)
+    app.register_blueprint(spotify_bp)
     
     # Register AA and DBT feature blueprints
     app.register_blueprint(aa_bp)
@@ -140,7 +85,6 @@ def register_blueprints(app: Flask):
     # Register user and admin blueprints
     app.register_blueprint(user_bp)
     app.register_blueprint(admin_bp)
-    app.register_blueprint(spotify_bp)
     
     # Register smart shopping and price tracking blueprints
     app.register_blueprint(smart_shopping_bp)
@@ -148,6 +92,8 @@ def register_blueprints(app: Flask):
     
     # Register voice interface blueprint
     app.register_blueprint(voice_bp)
+    
+    logger.info("All blueprints registered successfully")
     
     # Add welcome route
     @app.route('/welcome')
