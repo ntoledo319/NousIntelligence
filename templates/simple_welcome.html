@@ -155,7 +155,7 @@
         /* Mobile optimizations */
         @media (max-width: 576px) {
             .hero-logo {
-                max-width: 120px;
+                max-width: 100px;
             }
             
             .display-4 {
@@ -164,6 +164,37 @@
             
             .card-body {
                 padding: 1rem;
+            }
+            
+            .welcome-buttons {
+                display: grid !important;
+                gap: 0.5rem !important;
+            }
+            
+            .welcome-buttons .btn {
+                width: 100%;
+            }
+            
+            .row.g-4 {
+                margin-top: 0 !important;
+            }
+            
+            .row.g-4 > div {
+                margin-bottom: 1rem;
+            }
+            
+            footer {
+                text-align: center;
+            }
+            
+            footer .text-md-end,
+            footer .text-md-start {
+                text-align: center !important;
+            }
+            
+            .py-4 {
+                padding-top: 1.5rem !important;
+                padding-bottom: 1.5rem !important;
             }
         }
     </style>
@@ -183,7 +214,7 @@
                 <h1 class="display-4 mb-2 fw-bold text-gradient">
                     NOUS
                 </h1>
-                <p class="lead mb-4">Your comprehensive AI-powered personal assistant</p>
+                <p class="lead mb-4">Your AI-powered personal assistant</p>
                 
                 <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-4 welcome-buttons">
                     <a href="{{ url_for('auth.login') }}" class="btn btn-nous-primary btn-lg px-4 gap-3 position-relative overflow-hidden">
