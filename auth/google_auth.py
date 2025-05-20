@@ -76,7 +76,11 @@ def login():
     state = secrets.token_hex(16)
     session['oauth_state'] = state
     
-    # Build the authorization URL
+    # Detect if request is from mobile
+    user_agent = request.headers.get('User-Agent', '').lower()
+    is_mobile = any(mobile_keyword in user_agent for mobile_keyword in ['android', 'iphone', 'ipad', 'mobile'])
+    
+    # Build the authorization URL with mobile-friendly parameters
     auth_params = {
         'client_id': CLIENT_ID,
         'redirect_uri': REDIRECT_URI,
@@ -84,8 +88,17 @@ def login():
         'scope': 'openid profile email',
         'state': state,
         'prompt': 'select_account',
-        'access_type': 'offline'  # For refresh token
+        'access_type': 'offline',  # For refresh token
+        'hl': 'en',                # Language
     }
+    
+    # Add mobile specific parameters
+    if is_mobile:
+        # For mobile devices, use a cleaner display mode and do not force select_account
+        # which can cause problems on some mobile browsers
+        auth_params['display'] = 'touch'
+        auth_params['prompt'] = 'consent'
+        logger.info("Mobile device detected, using mobile-optimized OAuth flow")
     
     # Convert params to URL query string
     auth_url = f"{AUTH_URI}?{'&'.join(f'{k}={v}' for k, v in auth_params.items())}"
