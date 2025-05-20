@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+
+{% block title %}AA Big Book Reader{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Sidebar with chapters -->
+        <div class="col-md-3">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Big Book Chapters</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for chapter in chapters %}
+                            <a href="{{ url_for('aa_content.big_book', chapter=chapter.id) }}" 
+                               class="list-group-item list-group-item-action {% if current_chapter and current_chapter.id == chapter.id %}active{% endif %}">
+                                {% if chapter.is_foreword %}
+                                    <span class="badge bg-secondary me-2">Foreword</span>
+                                {% elif chapter.is_appendix %}
+                                    <span class="badge bg-info me-2">Appendix</span>
+                                {% else %}
+                                    <span class="badge bg-primary me-2">Ch {{ chapter.chapter_number }}</span>
+                                {% endif %}
+                                {{ chapter.chapter_title }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            {% if current_user.is_authenticated %}
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h5 class="mb-0">Reading Tools</h5>
+                    </div>
+                    <div class="card-body">
+                        <button id="addToFavorites" class="btn btn-outline-primary mb-2 w-100">
+                            <i class="fas fa-heart"></i> Add to Favorites
+                        </button>
+                        
+                        <div class="mb-3">
+                            <label for="fontSize" class="form-label">Font Size</label>
+                            <input type="range" class="form-range" min="14" max="24" step="2" value="18" id="fontSize">
+                        </div>
+                        
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="darkMode">
+                            <label class="form-check-label" for="darkMode">Dark Mode</label>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Main content area -->
+        <div class="col-md-9">
+            {% if error %}
+                <div class="alert alert-warning">
+                    {{ error }}
+                </div>
+            {% endif %}
+            
+            {% if current_chapter %}
+                <div class="card shadow-sm" id="chapterContent">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h2>{{ current_chapter.chapter_title }}</h2>
+                        
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-secondary" id="shareButton" title="Share">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" id="printButton" title="Print">
+                                <i class="fas fa-print"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    {% if audio %}
+                        <div class="card-body bg-light">
+                            <div class="audio-player mb-3">
+                                <audio controls class="w-100">
+                                    <source src="{{ url_for('aa_content.big_book_audio', audio_id=audio.id) }}" type="audio/mpeg">
+                                    Your browser does not support the audio element.
+                                </audio>
+                            </div>
+                            <div class="d-flex justify-content-between text-muted small">
+                                <span>{{ audio.format|upper }} | {{ audio.duration_seconds//60 }}:{{ '%02d'|format(audio.duration_seconds%60) }}</span>
+                                {% if audio.narrator %}
+                                    <span>Narrator: {{ audio.narrator }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="card-body chapter-text">
+                        {{ current_chapter.content|safe }}
+                    </div>
+                    
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between">
+                            {% set prev_index = chapters.index(current_chapter) - 1 if chapters.index(current_chapter) > 0 else none %}
+                            {% set next_index = chapters.index(current_chapter) + 1 if chapters.index(current_chapter) < chapters|length - 1 else none %}
+                            
+                            {% if prev_index is not none %}
+                                <a href="{{ url_for('aa_content.big_book', chapter=chapters[prev_index].id) }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-arrow-left"></i> Previous
+                                </a>
+                            {% else %}
+                                <div></div>
+                            {% endif %}
+                            
+                            {% if next_index is not none %}
+                                <a href="{{ url_for('aa_content.big_book', chapter=chapters[next_index].id) }}" class="btn btn-outline-primary">
+                                    Next <i class="fas fa-arrow-right"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                {% if current_user.is_authenticated %}
+                    <div class="card shadow-sm mt-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Notes</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="notesForm">
+                                <div class="mb-3">
+                                    <textarea class="form-control" id="userNotes" rows="3" placeholder="Add your personal notes about this chapter here..."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Notes</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <div class="card shadow-sm mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">AI-Assisted Understanding</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">Ask questions about this chapter to deepen your understanding.</p>
+                        
+                        <form id="aiQuestionForm">
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" id="aiQuestion" placeholder="Ask a question about this chapter...">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-brain"></i> Ask
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <div id="aiResponse" class="p-3 rounded bg-light mt-3" style="display: none;">
+                            <div class="mb-2 text-muted small">Response:</div>
+                            <div id="aiResponseContent"></div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    Please select a chapter from the sidebar to begin reading.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add to Favorites Modal -->
+<div class="modal fade" id="favoritesModal" tabindex="-1" aria-labelledby="favoritesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="favoritesModalLabel">Add to Favorites</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="favoriteForm">
+                    <div class="mb-3">
+                        <label for="favoriteNotes" class="form-label">Notes (optional)</label>
+                        <textarea class="form-control" id="favoriteNotes" rows="3" placeholder="Add personal notes about why this chapter is meaningful to you..."></textarea>
+                    </div>
+                    <input type="hidden" id="contentType" value="big_book">
+                    <input type="hidden" id="contentId" value="{{ current_chapter.id if current_chapter else '' }}">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveFavoriteBtn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Font size control
+    const fontSize = document.getElementById('fontSize');
+    const chapterContent = document.querySelector('.chapter-text');
+    
+    if (fontSize && chapterContent) {
+        fontSize.addEventListener('input', function() {
+            chapterContent.style.fontSize = this.value + 'px';
+            localStorage.setItem('bigBookFontSize', this.value);
+        });
+        
+        // Load saved font size
+        const savedSize = localStorage.getItem('bigBookFontSize');
+        if (savedSize) {
+            fontSize.value = savedSize;
+            chapterContent.style.fontSize = savedSize + 'px';
+        }
+    }
+    
+    // Dark mode toggle
+    const darkMode = document.getElementById('darkMode');
+    const contentCard = document.getElementById('chapterContent');
+    
+    if (darkMode && contentCard) {
+        darkMode.addEventListener('change', function() {
+            if (this.checked) {
+                contentCard.classList.add('bg-dark', 'text-white');
+                localStorage.setItem('bigBookDarkMode', 'true');
+            } else {
+                contentCard.classList.remove('bg-dark', 'text-white');
+                localStorage.setItem('bigBookDarkMode', 'false');
+            }
+        });
+        
+        // Load saved dark mode setting
+        const savedDarkMode = localStorage.getItem('bigBookDarkMode');
+        if (savedDarkMode === 'true') {
+            darkMode.checked = true;
+            contentCard.classList.add('bg-dark', 'text-white');
+        }
+    }
+    
+    // Print functionality
+    const printButton = document.getElementById('printButton');
+    if (printButton) {
+        printButton.addEventListener('click', function() {
+            window.print();
+        });
+    }
+    
+    // Share functionality
+    const shareButton = document.getElementById('shareButton');
+    if (shareButton) {
+        shareButton.addEventListener('click', function() {
+            if (navigator.share) {
+                navigator.share({
+                    title: document.title,
+                    url: window.location.href
+                })
+                .catch(console.error);
+            } else {
+                // Fallback - copy URL to clipboard
+                const dummy = document.createElement('input');
+                document.body.appendChild(dummy);
+                dummy.value = window.location.href;
+                dummy.select();
+                document.execCommand('copy');
+                document.body.removeChild(dummy);
+                
+                alert('URL copied to clipboard!');
+            }
+        });
+    }
+    
+    // Add to favorites
+    const addToFavorites = document.getElementById('addToFavorites');
+    const favoritesModal = new bootstrap.Modal(document.getElementById('favoritesModal'));
+    const saveFavoriteBtn = document.getElementById('saveFavoriteBtn');
+    
+    if (addToFavorites && saveFavoriteBtn) {
+        addToFavorites.addEventListener('click', function() {
+            favoritesModal.show();
+        });
+        
+        saveFavoriteBtn.addEventListener('click', function() {
+            const notes = document.getElementById('favoriteNotes').value;
+            const contentType = document.getElementById('contentType').value;
+            const contentId = document.getElementById('contentId').value;
+            
+            fetch('{{ url_for("aa_content.add_favorite") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: new URLSearchParams({
+                    'content_type': contentType,
+                    'content_id': contentId,
+                    'notes': notes
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    favoritesModal.hide();
+                    alert('Added to favorites!');
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        });
+    }
+    
+    // AI Question functionality
+    const aiQuestionForm = document.getElementById('aiQuestionForm');
+    const aiResponse = document.getElementById('aiResponse');
+    const aiResponseContent = document.getElementById('aiResponseContent');
+    
+    if (aiQuestionForm) {
+        aiQuestionForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const question = document.getElementById('aiQuestion').value;
+            if (!question) return;
+            
+            aiResponseContent.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div> Processing your question...';
+            aiResponse.style.display = 'block';
+            
+            // Get current chapter content
+            const chapterTitle = "{{ current_chapter.chapter_title if current_chapter else '' }}";
+            const chapterContent = "{{ current_chapter.content|striptags|truncate(1000) if current_chapter else '' }}";
+            
+            fetch('/api/ai/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    question: question,
+                    context: {
+                        source: 'aa_big_book',
+                        chapter: chapterTitle,
+                        content: chapterContent
+                    }
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    aiResponseContent.innerHTML = data.response;
+                } else {
+                    aiResponseContent.innerHTML = '<div class="alert alert-warning">Sorry, I couldn\'t process your question. Please try again.</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                aiResponseContent.innerHTML = '<div class="alert alert-danger">An error occurred. Please try again.</div>';
+            });
+        });
+    }
+});
+</script>
+{% endblock %}
