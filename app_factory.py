@@ -119,6 +119,15 @@ def create_app(config_class=None):
             if app.config.get('AUTO_CREATE_TABLES', True):
                 db.create_all()
                 logger.info("Database tables created/verified")
+                
+            # Setup database optimization utilities if enabled
+            if app.config.get('DB_OPTIMIZE', True):
+                try:
+                    from utils.db_optimizations import setup_db_optimizations
+                    setup_db_optimizations(app)
+                    logger.info("Database optimizations enabled")
+                except ImportError:
+                    logger.info("Database optimizations not available")
             
             # Initialize cache if available
             try:
