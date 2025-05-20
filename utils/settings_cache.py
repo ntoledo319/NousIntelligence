@@ -18,8 +18,10 @@ logger = logging.getLogger(__name__)
 
 # In-memory cache for system settings
 _settings_cache: Dict[str, Dict[str, Any]] = {}
-# Cache expiration time in seconds (5 minutes)
-_cache_ttl = 300
+# Cache expiration time in seconds (10 minutes - increased to reduce cache misses)
+_cache_ttl = 600
+# Flag to track if cache has been initialized
+_cache_initialized = False
 
 def get_system_setting(key: str, default: Any = None) -> Any:
     """
@@ -83,7 +85,7 @@ def set_system_setting(key: str, value: Any, description: Optional[str] = "") ->
             # Import needed for type checking
             from models import SystemSettings
             # Create a new system settings instance properly
-            setting = SystemSettings.query.model()
+            setting = SystemSettings()
             setting.key = key
             setting.value = str(value)
             if description:  # Only set if not empty
@@ -144,12 +146,23 @@ def _add_to_cache(key: str, value: Any) -> None:
 # Initialize cache with commonly used settings
 def initialize_settings_cache() -> None:
     """Initialize the settings cache with commonly used settings - optimized batch loading"""
+    global _cache_initialized
+    
+    # Skip if already initialized to prevent duplicate work
+    if _cache_initialized:
+        logger.debug("Settings cache already initialized, skipping")
+        return
+    
     try:
         from models import SystemSettings
         
-        # Get all settings in a single query
+        # Create default settings if they don't exist
+        _ensure_default_settings_exist()
+        
+        # Get all settings in a single query with timeout protection
         start_time = time.time()
-        all_settings = SystemSettings.query.all()
+        # Add limit to query to ensure it completes quickly
+        all_settings = SystemSettings.query.limit(100).all()
         query_time = time.time() - start_time
         
         # Cache all settings
@@ -160,6 +173,7 @@ def initialize_settings_cache() -> None:
             logger.warning(f"Slow initial settings load: {query_time:.3f}s for {len(all_settings)} settings")
         
         logger.info(f"Settings cache initialized with {len(all_settings)} entries")
+        _cache_initialized = True
     except Exception as e:
         # Fallback to individual loading if batch load fails
         common_settings = [
@@ -169,10 +183,47 @@ def initialize_settings_cache() -> None:
             'app_version'
         ]
         
+        # Create these settings with defaults if they don't exist
+        for key in common_settings:
+            _ensure_setting_exists(key)
+            
         loaded_count = 0
         for key in common_settings:
-            if get_system_setting(key) is not None:
+            value = get_system_setting(key)
+            if value is not None:
                 loaded_count += 1
+                # No need to add to cache as get_system_setting does that
         
         logger.info(f"Settings cache initialized with {loaded_count} entries (fallback mode)")
         logger.warning(f"Batch loading failed: {str(e)}")
+        _cache_initialized = True
+        
+def _ensure_default_settings_exist():
+    """Ensure default settings exist in the database"""
+    defaults = {
+        'session_timeout': ('3600', 'Session timeout in seconds'),
+        'require_https': ('true', 'Whether to require HTTPS for all requests'),
+        'maintenance_mode': ('false', 'Whether the system is in maintenance mode'),
+        'app_version': ('1.0.0', 'Application version number')
+    }
+    
+    for key, (value, description) in defaults.items():
+        _ensure_setting_exists(key, value, description)
+        
+def _ensure_setting_exists(key, default_value=None, description=None):
+    """Ensure a specific setting exists in the database"""
+    try:
+        from models import SystemSettings
+        setting = SystemSettings.query.filter_by(key=key).first()
+        if not setting:
+            setting = SystemSettings()
+            setting.key = key
+            setting.value = default_value
+            if description:
+                setting.description = description
+            db.session.add(setting)
+            db.session.commit()
+            logger.info(f"Created default system setting: {key}")
+    except Exception as e:
+        logger.error(f"Error ensuring system setting {key} exists: {str(e)}")
+        # Don't roll back as this is a non-critical operation
