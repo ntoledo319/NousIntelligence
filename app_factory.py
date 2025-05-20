@@ -147,6 +147,21 @@ def create_app(config_class=None):
                 except Exception as e:
                     logger.warning(f"Failed to apply custom query optimizations: {str(e)}")
             
+            # Load AA content if enabled
+            if app.config.get('LOAD_AA_CONTENT', True):
+                try:
+                    from utils.aa_content_loader import load_aa_content
+                    logger.info("Loading AA content...")
+                    result = load_aa_content()
+                    if all(result.values()):
+                        logger.info("AA content loaded successfully")
+                    else:
+                        logger.warning(f"Some AA content failed to load: {result}")
+                except ImportError:
+                    logger.info("AA content loader not available")
+                except Exception as e:
+                    logger.warning(f"Failed to load AA content: {str(e)}")
+                
             # Initialize cache if available
             try:
                 from utils.cache_helper import cache_helper

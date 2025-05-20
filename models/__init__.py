@@ -17,6 +17,12 @@ from models.health_models import (
 )
 from models.deal_models import Deal, Product
 
+# Import AI and AA content models
+from models.ai_models import UserAIUsage, AIServiceConfig, AIModelConfig, UserAIPreferences
+from models.aa_content_models import (
+    AABigBook, AABigBookAudio, AASpeakerRecording, AADailyReflection, AAFavorite
+)
+
 # Export all models
 __all__ = [
     'db',
@@ -25,5 +31,7 @@ __all__ = [
     'SystemSettings',
     'DBTSkillRecommendation', 'DBTSkillLog', 'DBTCrisisResource', 'DBTSkillCategory',
     'DBTDiaryCard', 'DBTSkillChallenge', 'DBTEmotionTrack', 'AAAchievement',
-    'Deal', 'Product'
+    'Deal', 'Product',
+    'UserAIUsage', 'AIServiceConfig', 'AIModelConfig', 'UserAIPreferences',
+    'AABigBook', 'AABigBookAudio', 'AASpeakerRecording', 'AADailyReflection', 'AAFavorite'
 ]
