@@ -183,30 +183,8 @@ def configure_app(app):
 
 # Removed configure_error_handlers as we've integrated this directly into create_app
 
-def register_blueprints(app):
-    """
-    Register all blueprint routes
-    
-    Args:
-        app: Flask application instance
-    """
-    logger = logging.getLogger(__name__)
-    
-    # Register route blueprints
-    try:
-        from routes import register_blueprints
-        register_blueprints(app)
-        logger.info("Route blueprints registered")
-    except Exception as e:
-        logger.error(f"Error registering route blueprints: {str(e)}")
-    
-    # Register authentication blueprints
-    try:
-        from auth import register_auth_providers
-        register_auth_providers(app)
-        logger.info("Authentication blueprints registered")
-    except Exception as e:
-        logger.error(f"Error registering authentication blueprints: {str(e)}")
+# The register_blueprints function has been removed as its functionality is
+# already incorporated into the create_app function.
 
 def register_templates(app):
     """

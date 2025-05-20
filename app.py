@@ -1,9 +1,9 @@
 """
-Main application module
-======================
+Application Module for Imports
 
-This module provides a unified interface to create and access the NOUS application.
-The actual application factory is imported from app_factory.py.
+This module exists to provide clean imports for other modules in the application.
+Instead of importing directly from main.py, modules can import from here.
+This helps avoid circular import issues.
 """
 
 from app_factory import create_app, db
@@ -14,8 +14,3 @@ app = create_app()
 
 # Export key components for easy importing
 __all__ = ['app', 'db']
-
-# Add direct execution capability
-if __name__ == '__main__':
-    import os
-    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
