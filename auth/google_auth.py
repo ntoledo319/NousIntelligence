@@ -262,9 +262,11 @@ def callback():
                 session.pop('next_url', None)
                 return redirect(next_page)
             
-            # For mobile users, redirect to mobile optimized entry point
-            if is_mobile and hasattr(current_app, 'config') and current_app.config.get('MOBILE_REDIRECT_AFTER_LOGIN'):
-                return redirect(url_for(current_app.config.get('MOBILE_REDIRECT_AFTER_LOGIN')))
+            # For mobile users, redirect to mobile optimized entry point if configured
+            if is_mobile and hasattr(current_app, 'config'):
+                mobile_redirect = current_app.config.get('MOBILE_REDIRECT_AFTER_LOGIN')
+                if mobile_redirect and isinstance(mobile_redirect, str):
+                    return redirect(url_for(mobile_redirect))
             
             return redirect(url_for('dashboard.dashboard'))
             

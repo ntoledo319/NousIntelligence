@@ -280,8 +280,10 @@
             </div>
         </div>
         
+        <!-- Features section - optimized for mobile -->
         <div class="row g-4 mb-5">
-            <div class="col-lg-4 col-md-6">
+            <!-- Desktop view: all 6 features -->
+            <div class="col-lg-4 col-md-6 d-none d-md-block">
                 <div class="card h-100">
                     <div class="card-body text-center p-4">
                         <i class="fas fa-comment-dots feature-icon"></i>
@@ -291,7 +293,7 @@
                 </div>
             </div>
             
-            <div class="col-lg-4 col-md-6">
+            <div class="col-lg-4 col-md-6 d-none d-md-block">
                 <div class="card h-100">
                     <div class="card-body text-center p-4">
                         <i class="fas fa-calendar-check feature-icon"></i>
@@ -301,7 +303,7 @@
                 </div>
             </div>
             
-            <div class="col-lg-4 col-md-6">
+            <div class="col-lg-4 col-md-6 d-none d-md-block">
                 <div class="card h-100">
                     <div class="card-body text-center p-4">
                         <i class="fas fa-heartbeat feature-icon"></i>
@@ -311,7 +313,7 @@
                 </div>
             </div>
             
-            <div class="col-lg-4 col-md-6">
+            <div class="col-lg-4 col-md-6 d-none d-md-block">
                 <div class="card h-100">
                     <div class="card-body text-center p-4">
                         <i class="fas fa-shopping-cart feature-icon"></i>
@@ -321,7 +323,7 @@
                 </div>
             </div>
             
-            <div class="col-lg-4 col-md-6">
+            <div class="col-lg-4 col-md-6 d-none d-md-block">
                 <div class="card h-100">
                     <div class="card-body text-center p-4">
                         <i class="fas fa-chart-pie feature-icon"></i>
@@ -331,7 +333,7 @@
                 </div>
             </div>
             
-            <div class="col-lg-4 col-md-6">
+            <div class="col-lg-4 col-md-6 d-none d-md-block">
                 <div class="card h-100">
                     <div class="card-body text-center p-4">
                         <i class="fas fa-plane-departure feature-icon"></i>
@@ -340,11 +342,54 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Mobile view: only show top 4 features with simplified content -->
+            <div class="col-6 d-block d-md-none">
+                <div class="card h-100">
+                    <div class="card-body text-center p-3">
+                        <i class="fas fa-comment-dots feature-icon" style="font-size: 1.8rem;"></i>
+                        <h5 class="mt-2 mb-1">Conversations</h5>
+                        <p class="text-muted small mb-0">Voice & text</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-6 d-block d-md-none">
+                <div class="card h-100">
+                    <div class="card-body text-center p-3">
+                        <i class="fas fa-calendar-check feature-icon" style="font-size: 1.8rem;"></i>
+                        <h5 class="mt-2 mb-1">Tasks</h5>
+                        <p class="text-muted small mb-0">Smart reminders</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-6 d-block d-md-none">
+                <div class="card h-100">
+                    <div class="card-body text-center p-3">
+                        <i class="fas fa-heartbeat feature-icon" style="font-size: 1.8rem;"></i>
+                        <h5 class="mt-2 mb-1">Health</h5>
+                        <p class="text-muted small mb-0">Track medications</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-6 d-block d-md-none">
+                <div class="card h-100">
+                    <div class="card-body text-center p-3">
+                        <i class="fas fa-shopping-cart feature-icon" style="font-size: 1.8rem;"></i>
+                        <h5 class="mt-2 mb-1">Shopping</h5>
+                        <p class="text-muted small mb-0">Smart lists</p>
+                    </div>
+                </div>
+            </div>
         </div>
         
+        <!-- Comprehensive Features Section - Mobile Optimized -->
         <div class="row justify-content-center">
             <div class="col-lg-10">
-                <div class="card">
+                <!-- Desktop Version -->
+                <div class="card d-none d-md-block">
                     <div class="card-body p-4">
                         <h3 class="card-title text-center mb-4">Comprehensive Features</h3>
                         
@@ -370,11 +415,69 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Mobile Version with Accordion -->
+                <div class="card d-block d-md-none">
+                    <div class="card-body p-3">
+                        <h4 class="card-title text-center mb-3">Key Features</h4>
+                        
+                        <div class="accordion" id="featuresAccordion">
+                            <div class="accordion-item border-0 mb-2">
+                                <h2 class="accordion-header" id="headingOne">
+                                    <button class="accordion-button collapsed bg-light rounded" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                        <i class="fas fa-calendar-alt me-2 text-primary"></i> Planning & Organization
+                                    </button>
+                                </h2>
+                                <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#featuresAccordion">
+                                    <div class="accordion-body pt-0">
+                                        <ul class="list-unstyled small mb-0">
+                                            <li class="py-1"><i class="fas fa-check-circle me-2 text-success"></i>Calendar integration</li>
+                                            <li class="py-1"><i class="fas fa-check-circle me-2 text-success"></i>Task reminders</li>
+                                            <li class="py-1"><i class="fas fa-check-circle me-2 text-success"></i>Trip planning</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item border-0 mb-2">
+                                <h2 class="accordion-header" id="headingTwo">
+                                    <button class="accordion-button collapsed bg-light rounded" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                        <i class="fas fa-heartbeat me-2 text-danger"></i> Health & Wellness
+                                    </button>
+                                </h2>
+                                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#featuresAccordion">
+                                    <div class="accordion-body pt-0">
+                                        <ul class="list-unstyled small mb-0">
+                                            <li class="py-1"><i class="fas fa-check-circle me-2 text-success"></i>Medication management</li>
+                                            <li class="py-1"><i class="fas fa-check-circle me-2 text-success"></i>Doctor appointments</li>
+                                            <li class="py-1"><i class="fas fa-check-circle me-2 text-success"></i>Pain predictions</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item border-0">
+                                <h2 class="accordion-header" id="headingThree">
+                                    <button class="accordion-button collapsed bg-light rounded" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                        <i class="fas fa-shopping-cart me-2 text-success"></i> Shopping & Finance
+                                    </button>
+                                </h2>
+                                <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#featuresAccordion">
+                                    <div class="accordion-body pt-0">
+                                        <ul class="list-unstyled small mb-0">
+                                            <li class="py-1"><i class="fas fa-check-circle me-2 text-success"></i>Shopping lists</li>
+                                            <li class="py-1"><i class="fas fa-check-circle me-2 text-success"></i>Price tracking</li>
+                                            <li class="py-1"><i class="fas fa-check-circle me-2 text-success"></i>Budget management</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
     
-    <footer class="py-4 mt-5" style="background-color: var(--card-bg); border-top: 1px solid var(--card-border);">
+    <footer class="py-4 mt-4 mt-md-5" style="background-color: var(--card-bg); border-top: 1px solid var(--card-border);">
         <div class="container">
             <div class="row align-items-center justify-content-between">
                 <div class="col-md-6 text-center text-md-start">
@@ -386,6 +489,16 @@
                         <i class="fas fa-sun theme-icon-light"></i>
                         <span class="ms-2 d-none d-sm-inline">Toggle Theme</span>
                     </button>
+                </div>
+            </div>
+            <!-- Mobile quick action links -->
+            <div class="row mt-3 d-block d-md-none">
+                <div class="col-12">
+                    <div class="text-center small">
+                        <a href="/privacy" class="text-decoration-none me-3">Privacy</a>
+                        <a href="/terms" class="text-decoration-none me-3">Terms</a>
+                        <a href="/help" class="text-decoration-none">Help</a>
+                    </div>
                 </div>
             </div>
         </div>
