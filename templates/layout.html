@@ -605,13 +605,9 @@
                                 <span class="text-secondary small">External Services</span>
                             </div>
                             <div class="d-flex flex-wrap gap-2">
-                                <a href="{{ url_for('auth.login') }}" class="btn btn-sm {% if 'google_creds' in session %}btn-outline-success{% else %}btn-outline-primary{% endif %}">
+                                <a href="{{ url_for('auth.login') }}" class="btn btn-sm {% if current_user.is_authenticated %}btn-outline-success{% else %}btn-outline-primary{% endif %}">
                                     <i class="fab fa-google me-1"></i>
-                                    {% if 'google_creds' in session %}Connected{% else %}Connect Google{% endif %}
-                                </a>
-                                <a href="{{ url_for('index.index') }}" class="btn btn-sm {% if 'spotify_user' in session %}btn-outline-success{% else %}btn-outline-primary{% endif %}">
-                                    <i class="fab fa-spotify me-1"></i>
-                                    {% if 'spotify_user' in session %}Connected{% else %}Connect Spotify{% endif %}
+                                    {% if current_user.is_authenticated %}Connected{% else %}Sign in with Google{% endif %}
                                 </a>
                             </div>
                         </div>
