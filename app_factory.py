@@ -131,8 +131,21 @@ def create_app(config_class=None):
                     from utils.db_optimizations import setup_db_optimizations
                     setup_db_optimizations(app)
                     logger.info("Database optimizations enabled")
+                    
+                    # Apply custom query optimizations
+                    if hasattr(db.session, 'execute'):
+                        # Pre-warm system settings cache to reduce repeated queries
+                        try:
+                            from sqlalchemy import text
+                            with db.session.begin():
+                                db.session.execute(text("SELECT key, value FROM system_settings"))
+                            logger.info("System settings pre-warmed")
+                        except Exception as e:
+                            logger.warning(f"Could not pre-warm settings: {str(e)}")
                 except ImportError:
                     logger.info("Database optimizations not available")
+                except Exception as e:
+                    logger.warning(f"Failed to apply custom query optimizations: {str(e)}")
             
             # Initialize cache if available
             try:
