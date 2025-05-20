@@ -27,8 +27,81 @@ if not OPENAI_KEY:
 # Initialize OpenAI client if key is available
 openai_client = None
 if OPENAI_KEY:
+    # Just set the API key but don't create client yet - will be created on demand
     openai.api_key = OPENAI_KEY
-    openai_client = openai.OpenAI(api_key=OPENAI_KEY)
+    try:
+        # Create OpenAI client without proxies argument
+        openai_client = openai.OpenAI(api_key=OPENAI_KEY)
+    except Exception as e:
+        logger.error(f"Failed to initialize OpenAI client: {e}")
+        # Fallback to older API if needed
+        try:
+            openai_client = None
+            # Just use the API key for legacy client
+        except Exception as e2:
+            logger.error(f"Failed to initialize fallback OpenAI client: {e2}")
+
+
+def get_ai_response(prompt: str, conversation_history: Optional[List[Dict[str, str]]] = None) -> str:
+    """
+    Get AI-generated response for the user's prompt
+    
+    Args:
+        prompt: The user's text prompt
+        conversation_history: Optional list of previous messages for context
+        
+    Returns:
+        AI-generated response text
+    """
+    global openai_client
+    
+    # If no conversation history provided, create a new one
+    if conversation_history is None:
+        conversation_history = []
+    
+    try:
+        # Ensure we have an OpenAI client
+        if not openai_client and OPENAI_KEY:
+            openai_client = openai.OpenAI(api_key=OPENAI_KEY)
+        
+        if not openai_client:
+            return "Sorry, I'm unable to generate a response right now. Please check your API settings."
+        
+        # Prepare the messages
+        messages = []
+        
+        # Add system message for context
+        messages.append({
+            "role": "system", 
+            "content": "You are NOUS, a personal assistant focused on helping users with daily tasks, " +
+                       "providing information, and connecting with various services. Be helpful, " +
+                       "concise, and friendly in your responses."
+        })
+        
+        # Add conversation history if available
+        for message in conversation_history:
+            messages.append(message)
+        
+        # Add the current user prompt
+        messages.append({"role": "user", "content": prompt})
+        
+        # Make the API call
+        response = openai_client.chat.completions.create(
+            model="gpt-3.5-turbo",  # You can change this to other models as needed
+            messages=messages,
+            max_tokens=500,
+            temperature=0.7
+        )
+        
+        # Extract and return the response text
+        if response.choices and len(response.choices) > 0:
+            return response.choices[0].message.content
+        else:
+            return "I'm sorry, I couldn't generate a response. Please try again."
+    
+    except Exception as e:
+        logger.error(f"Error generating AI response: {e}")
+        return f"I'm sorry, I encountered an error while generating a response: {str(e)}"
 
 # Rate limiting tracker
 class RateLimitTracker:

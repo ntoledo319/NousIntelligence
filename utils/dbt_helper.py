@@ -9,7 +9,7 @@ from models import (
     db, DBTSkillLog, DBTDiaryCard, DBTSkillCategory, 
     DBTSkillRecommendation, DBTSkillChallenge, DBTCrisisResource, DBTEmotionTrack
 )
-from openai import OpenAI
+import openai
 
 # Helper functions for DBT chatbot functionality
 
@@ -29,10 +29,9 @@ OPENROUTER_API_URL = "https://openrouter.ai/api/v1"
 # Create OpenAI client configured for OpenRouter
 client = None
 if OPENROUTER_KEY:
-    client = OpenAI(
-        api_key=OPENROUTER_KEY,
-        base_url=OPENROUTER_API_URL
-    )
+    # We'll create the client on demand as needed
+    openai.api_key = OPENROUTER_KEY
+    openai.base_url = OPENROUTER_API_URL
 
 # Model configuration for different tasks to balance quality and cost
 MODELS = {

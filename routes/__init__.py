@@ -29,6 +29,7 @@ from routes.admin_routes import admin_bp
 from routes.spotify_routes import spotify_bp
 from routes.smart_shopping_routes import smart_shopping_bp
 from routes.price_routes import price_tracking_bp
+from routes.voice_routes import voice_bp
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +67,9 @@ def register_blueprints(app: Flask):
     # Register smart shopping and price tracking blueprints
     app.register_blueprint(smart_shopping_bp)
     app.register_blueprint(price_tracking_bp)
+    
+    # Register voice interface blueprint
+    app.register_blueprint(voice_bp)
     
     # Add welcome route
     @app.route('/welcome')
