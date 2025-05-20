@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}My AA Favorites{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">AA Content</h5>
+                </div>
+                <div class="card-body">
+                    {% include 'includes/aa_menu.html' %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main content area -->
+        <div class="col-md-9">
+            <h1 class="display-5 mb-4">My Favorites</h1>
+            
+            {% if not favorites %}
+                <div class="alert alert-info">
+                    <p>You haven't saved any favorites yet.</p>
+                    <p>While reading the Big Book or listening to speaker recordings, click "Add to Favorites" to save content that's meaningful to you.</p>
+                </div>
+            {% else %}
+                <div class="row">
+                    <!-- Big Book favorites -->
+                    {% set bb_favorites = favorites|selectattr('type', 'equalto', 'big_book')|list %}
+                    {% if bb_favorites %}
+                        <div class="col-12 mb-4">
+                            <h3>Big Book Chapters</h3>
+                            <div class="list-group mb-3">
+                                {% for favorite in bb_favorites %}
+                                    <div class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h5 class="mb-1">{{ favorite.title }}</h5>
+                                            <div>
+                                                <a href="{{ favorite.url }}" class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-book-reader"></i> Read
+                                                </a>
+                                                <button class="btn btn-sm btn-outline-danger remove-favorite" data-id="{{ favorite.favorite_id }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        {% if favorite.notes %}
+                                            <p class="mb-1 text-muted"><em>{{ favorite.notes }}</em></p>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Speaker favorites -->
+                    {% set speaker_favorites = favorites|selectattr('type', 'equalto', 'speaker')|list %}
+                    {% if speaker_favorites %}
+                        <div class="col-12">
+                            <h3>Speaker Recordings</h3>
+                            <div class="list-group">
+                                {% for favorite in speaker_favorites %}
+                                    <div class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h5 class="mb-1">{{ favorite.title }}</h5>
+                                            <div>
+                                                <a href="{{ favorite.url }}" class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-headphones"></i> Listen
+                                                </a>
+                                                <button class="btn btn-sm btn-outline-danger remove-favorite" data-id="{{ favorite.favorite_id }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        {% if favorite.notes %}
+                                            <p class="mb-1 text-muted"><em>{{ favorite.notes }}</em></p>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Removal Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Remove from Favorites</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove this item from your favorites?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmRemoveBtn">Remove</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set up remove favorite functionality
+    const removeBtns = document.querySelectorAll('.remove-favorite');
+    const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    const confirmRemoveBtn = document.getElementById('confirmRemoveBtn');
+    let favoriteToRemove = null;
+    
+    removeBtns.forEach(button => {
+        button.addEventListener('click', function() {
+            favoriteToRemove = this.dataset.id;
+            confirmModal.show();
+        });
+    });
+    
+    confirmRemoveBtn.addEventListener('click', function() {
+        if (favoriteToRemove) {
+            fetch(`{{ url_for('aa.aa_content.remove_favorite', favorite_id=0) }}`.replace('/0', `/${favoriteToRemove}`), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Close the modal and refresh page to show updated favorites
+                    confirmModal.hide();
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        }
+    });
+});
+</script>
+{% endblock %}
