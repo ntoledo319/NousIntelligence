@@ -93,6 +93,11 @@ def create_app(config_class=None):
     def internal_server_error(e):
         return render_template('errors/500.html'), 500
     
+    # Register other common error handlers
+    @app.errorhandler(403)
+    def forbidden(e):
+        return render_template('errors/403.html'), 403
+    
     logger.info("Error handlers registered")
     
     # Register blueprints, middleware, and other components
@@ -163,16 +168,3 @@ def create_app(config_class=None):
     
     return app
 
-# The configure_app function has been removed as its functionality is
-# already incorporated into the create_app function which uses config classes
-# from config.py instead of direct environment variable access.
-
-# Remove the initialize_extensions function as we've moved this functionality into create_app
-
-# Removed configure_error_handlers as we've integrated this directly into create_app
-
-# The register_blueprints function has been removed as its functionality is
-# already incorporated into the create_app function.
-
-# The register_templates function has been removed as its functionality is
-# now integrated directly into the create_app function for better organization.
