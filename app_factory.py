@@ -73,9 +73,11 @@ def create_app(config_class=None):
     login_manager.init_app(app)
     session.init_app(app)
     
-    # Set up login manager
-    login_manager.login_view = 'index'  # type: ignore # Default to index page if login route isn't available
-    login_manager.login_message_category = 'info'
+    # Set up login manager to use Google authentication
+    # Configure login options manually to avoid type issues
+    login_manager.login_view = 'auth.login'  # type: ignore # Redirect to login page which has Google sign-in
+    login_manager.login_message = 'Please sign in with Google to access this page.'  # type: ignore
+    login_manager.login_message_category = 'info'  # type: ignore
     
     # Configure user loader
     @login_manager.user_loader
