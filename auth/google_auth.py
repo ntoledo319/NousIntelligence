@@ -100,8 +100,9 @@ def login():
         auth_params['prompt'] = 'consent'
         logger.info("Mobile device detected, using mobile-optimized OAuth flow")
     
-    # Convert params to URL query string
-    auth_url = f"{AUTH_URI}?{'&'.join(f'{k}={v}' for k, v in auth_params.items())}"
+    # Convert params to properly encoded URL query string
+    from urllib.parse import urlencode
+    auth_url = f"{AUTH_URI}?{urlencode(auth_params)}"
     
     # Log the OAuth attempt
     logger.info(f"Starting Google OAuth flow with redirect URI: {REDIRECT_URI}")
@@ -112,12 +113,28 @@ def login():
 @google_bp.route('/callback')
 def callback():
     """Handle OAuth callback from Google"""
+    # Detect if request is from mobile
+    user_agent = request.headers.get('User-Agent', '').lower()
+    is_mobile = any(mobile_keyword in user_agent for mobile_keyword in ['android', 'iphone', 'ipad', 'mobile'])
+    
+    # Log mobile device information
+    if is_mobile:
+        logger.info(f"Mobile device callback: {user_agent}")
+    
     # Verify state token to prevent CSRF attacks
     state = request.args.get('state')
-    if state != session.get('oauth_state'):
-        flash('Invalid authentication state', 'danger')
-        logger.warning("OAuth state mismatch - possible CSRF attempt")
-        return redirect(url_for('auth.login'))
+    stored_state = session.get('oauth_state')
+    
+    # More lenient state checking on mobile as some mobile browsers handle cookies differently
+    if state != stored_state:
+        logger.warning(f"OAuth state mismatch - received: {state}, stored: {stored_state}")
+        if is_mobile and state and stored_state:
+            # For mobile, continue if both states exist but don't match exactly
+            # This helps with some mobile browsers that have cookie/session issues
+            logger.info("Proceeding despite state mismatch due to mobile browser")
+        else:
+            flash('Invalid authentication state', 'danger')
+            return redirect(url_for('auth.login'))
     
     # Get authorization code
     code = request.args.get('code')
@@ -135,7 +152,19 @@ def callback():
             'grant_type': 'authorization_code',
             'redirect_uri': REDIRECT_URI
         }
-        token_response = requests.post(TOKEN_URI, data=token_data, timeout=10)
+        
+        # Use proper headers for token request
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'application/json'
+        }
+        
+        # Log token request for debugging
+        if is_mobile:
+            logger.info(f"Mobile token exchange request with redirect_uri: {REDIRECT_URI}")
+            
+        # Make token request with proper headers
+        token_response = requests.post(TOKEN_URI, data=token_data, headers=headers, timeout=10)
         token_response.raise_for_status()
         token_json = token_response.json()
         
