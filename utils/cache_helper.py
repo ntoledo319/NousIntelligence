@@ -146,6 +146,30 @@ class CacheHelper:
                     os.remove(os.path.join(self.cache_dir, filename))
         except Exception as e:
             self.logger.error(f"Error clearing cache directory: {str(e)}")
+            
+    def warmup(self) -> None:
+        """Preload frequently used cached data into memory"""
+        self.logger.info("Warming up cache for frequently accessed data")
+        
+        try:
+            # Load cache files into memory
+            cache_files = [f for f in os.listdir(self.cache_dir) if f.endswith('.json')]
+            
+            # Prioritize most common accessed data
+            common_prefixes = ['user_settings_', 'system_settings_', 'dashboard_stats_']
+            priority_files = []
+            
+            for prefix in common_prefixes:
+                priority_files.extend([f for f in cache_files if f.startswith(prefix)])
+                
+            # Limit to first 10 to avoid excessive loading
+            for filename in priority_files[:10]:
+                key = filename.replace('.json', '')
+                self.get(key)  # This will load into memory cache
+                
+            self.logger.info(f"Cache warmup completed with {len(priority_files[:10])} items")
+        except Exception as e:
+            self.logger.error(f"Error during cache warmup: {str(e)}")
 
 # Create a singleton instance
 cache_helper = CacheHelper()
