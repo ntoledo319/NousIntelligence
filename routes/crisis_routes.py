@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, session
 from flask_login import login_required, current_user
 
-# Import database models
-from app import db
+# Import database from app_factory instead of app to avoid circular imports
+from app_factory import db
 from models import User
 
 # Import DBT crisis helper functions

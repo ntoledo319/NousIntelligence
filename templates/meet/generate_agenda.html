@@ -1,0 +1,169 @@
+{% extends "layout.html" %}
+
+{% block title %}Generate Meeting Agenda{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Generate Meeting Agenda</h1>
+            <p class="lead">Create an AI-powered agenda for your Google Meet meetings.</p>
+            
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('meet.dashboard') }}">Meet Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Generate Agenda</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Agenda Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('meet.generate_agenda') }}">
+                        <div class="mb-3">
+                            <label for="meeting_id" class="form-label">Select Meeting (Optional)</label>
+                            <select class="form-select" id="meeting_id" name="meeting_id">
+                                <option value="">No specific meeting (create generic agenda)</option>
+                                {% if meetings %}
+                                    {% for meeting in meetings %}
+                                        <option value="{{ meeting.meeting_id }}" {% if meeting and meeting.meeting_id == meeting.meeting_id %}selected{% endif %}>
+                                            {{ meeting.title }} - {{ meeting.start_time|replace('T', ' ')|replace('Z', '')|replace('.000', '') }}
+                                        </option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                            <div class="form-text">Select a meeting to generate an agenda specifically for it</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="meeting_type" class="form-label">Meeting Type *</label>
+                            <select class="form-select" id="meeting_type" name="meeting_type" required>
+                                <option value="general">General Meeting</option>
+                                <option value="therapy">Therapy Session</option>
+                                <option value="recovery">Recovery Group</option>
+                                <option value="sponsor">Sponsor Meeting</option>
+                                <option value="mindfulness">Mindfulness Session</option>
+                            </select>
+                            <div class="form-text">Type of meeting to generate an agenda for</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="topic" class="form-label">Meeting Topic/Focus (Optional)</label>
+                            <input type="text" class="form-control" id="topic" name="topic" placeholder="E.g., Step 4 work, Dealing with triggers, Work-life balance, etc.">
+                            <div class="form-text">
+                                Specific topic or focus for the meeting to help generate a more relevant agenda
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('meet.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-magic me-1"></i> Generate Agenda
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">About AI Agendas</h5>
+                </div>
+                <div class="card-body">
+                    <p>Meeting agendas are generated using AI to help you run effective meetings. The agenda will be tailored based on:</p>
+                    <ul>
+                        <li>The type of meeting you select</li>
+                        <li>Any meeting details if you select an existing meeting</li>
+                        <li>The specific topic or focus you provide</li>
+                    </ul>
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i> For best results, select a meeting type and provide a specific topic.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Agenda Types</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <strong class="d-block">Therapy Session</strong>
+                            <small class="text-muted">Includes check-in, review, discussion topics, skills practice, and homework</small>
+                        </li>
+                        <li class="mb-3">
+                            <strong class="d-block">Recovery Group</strong>
+                            <small class="text-muted">Includes readings, check-ins, topic discussion, sharing time, and closing</small>
+                        </li>
+                        <li class="mb-3">
+                            <strong class="d-block">Sponsor Meeting</strong>
+                            <small class="text-muted">Includes personal check-in, program work review, challenges discussion, and action steps</small>
+                        </li>
+                        <li class="mb-3">
+                            <strong class="d-block">Mindfulness Session</strong>
+                            <small class="text-muted">Includes centering practice, technique introduction, guided practice, and reflection</small>
+                        </li>
+                        <li>
+                            <strong class="d-block">General Meeting</strong>
+                            <small class="text-muted">Standard meeting structure with welcome, topics, discussion, and next steps</small>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const meetingIdSelect = document.getElementById('meeting_id');
+        const meetingTypeSelect = document.getElementById('meeting_type');
+        const topicInput = document.getElementById('topic');
+        
+        // Auto-select meeting type based on meeting selection
+        meetingIdSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const meetingTitle = selectedOption.text.toLowerCase();
+            
+            if (this.value) {
+                // Try to determine meeting type from title
+                if (meetingTitle.includes('therapy')) {
+                    meetingTypeSelect.value = 'therapy';
+                } else if (meetingTitle.includes('recovery') || meetingTitle.includes('group')) {
+                    meetingTypeSelect.value = 'recovery';
+                } else if (meetingTitle.includes('sponsor')) {
+                    meetingTypeSelect.value = 'sponsor';
+                } else if (meetingTitle.includes('mindfulness')) {
+                    meetingTypeSelect.value = 'mindfulness';
+                }
+                
+                // Try to extract topic from title
+                const titleParts = meetingTitle.split('-');
+                if (titleParts.length > 1) {
+                    const possibleTopic = titleParts[1].trim();
+                    if (possibleTopic && possibleTopic.length > 3 && !possibleTopic.match(/^\d{4}-\d{2}-\d{2}/)) {
+                        topicInput.value = possibleTopic;
+                    }
+                }
+            }
+        });
+        
+        // Set default values if meeting is provided in URL
+        if (meetingIdSelect.value) {
+            meetingIdSelect.dispatchEvent(new Event('change'));
+        }
+    });
+</script>
+{% endblock %} 

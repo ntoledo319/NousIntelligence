@@ -1,87 +1,68 @@
-{% extends "layout.html" %}
+{% extends "simplified_layout.html" %}
+
+{% block title %}Welcome to NOUS{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row justify-content-center mt-5">
+<div class="container mt-5">
+    <div class="row justify-content-center">
         <div class="col-lg-8 text-center">
-            <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" alt="NOUS Logo" class="img-fluid mb-4" style="max-height: 180px;">
-            <h1 class="display-4 mb-4">Welcome to NOUS</h1>
-            <p class="lead mb-4">Your personal assistant for managing health, finances, shopping, and travel - all in one place.</p>
-        </div>
-    </div>
-
-    <div class="row mt-4 justify-content-center">
-        <div class="col-lg-8">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h2 class="card-title text-center mb-4">What can NOUS do for you?</h2>
+            <h1 class="display-4 mb-4">Welcome to NOUS!</h1>
+            <p class="lead mb-5">Thank you for signing up. We're excited to help you organize your life and boost your productivity.</p>
+            
+            <div class="card mb-5">
+                <div class="card-body p-5">
+                    <i class="fas fa-rocket fa-4x text-primary mb-4"></i>
+                    <h2 class="mb-3">Getting Started</h2>
+                    <p class="mb-4">Complete these quick steps to get the most out of NOUS:</p>
                     
                     <div class="row g-4">
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-start mb-3">
-                                <i class="fas fa-heartbeat text-danger fs-4 me-3 mt-1"></i>
-                                <div>
-                                    <h5>Health Tracking</h5>
-                                    <p class="text-muted">Monitor medications, doctor appointments, and pain levels.</p>
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <span class="badge rounded-pill bg-primary p-2">Step 1</span>
+                                    </div>
+                                    <h5 class="card-title">Complete Your Profile</h5>
+                                    <p class="card-text">Set up your personal information and preferences in your settings.</p>
+                                    <a href="{{ url_for('settings.settings_page') }}" class="btn btn-outline-primary mt-2">Go to Settings</a>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-start mb-3">
-                                <i class="fas fa-shopping-cart text-success fs-4 me-3 mt-1"></i>
-                                <div>
-                                    <h5>Shopping Lists</h5>
-                                    <p class="text-muted">Create and manage recurring shopping needs.</p>
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <span class="badge rounded-pill bg-primary p-2">Step 2</span>
+                                    </div>
+                                    <h5 class="card-title">Explore the Dashboard</h5>
+                                    <p class="card-text">Check out your dashboard to see an overview of your information.</p>
+                                    <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-outline-primary mt-2">Go to Dashboard</a>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-start mb-3">
-                                <i class="fas fa-chart-line text-primary fs-4 me-3 mt-1"></i>
-                                <div>
-                                    <h5>Finance Management</h5>
-                                    <p class="text-muted">Track expenses and monitor your budget.</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-start mb-3">
-                                <i class="fas fa-plane-departure text-info fs-4 me-3 mt-1"></i>
-                                <div>
-                                    <h5>Trip Planning</h5>
-                                    <p class="text-muted">Organize travel itineraries and reservations.</p>
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <span class="badge rounded-pill bg-primary p-2">Step 3</span>
+                                    </div>
+                                    <h5 class="card-title">Learn the Features</h5>
+                                    <p class="card-text">Read the help section to learn about all the features available to you.</p>
+                                    <a href="{{ url_for('index.help_page') }}" class="btn btn-outline-primary mt-2">View Help</a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div class="row justify-content-center mb-4">
-        <div class="col-md-8 col-sm-12 text-center">
-            <div class="card">
-                <div class="card-body py-4">
-                    <h2 class="mb-3">Get Started Now</h2>
-                    <p class="mb-4">Sign in to access all features.</p>
-                    
-                    <div class="d-grid gap-3 col-md-8 col-sm-10 welcome-buttons mx-auto">
-                        <a href="{{ url_for('replit_auth.login') }}" class="btn btn-light btn-lg border">
-                            <img src="{{ url_for('static', filename='img/IMG_4875.jpeg') }}" alt="Replit" height="20" class="me-2">
-                            Sign In with Replit
-                        </a>
-                        
-                        <div class="text-muted my-2">- or -</div>
-                        
-                        <a href="{{ url_for('replit_auth.login') }}" class="btn btn-primary btn-lg">
-                            <i class="fas fa-sign-in-alt me-2"></i>Sign In with Replit
-                        </a>
-                    </div>
-                </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-primary btn-lg px-5">
+                    <i class="fas fa-columns me-2"></i> Go to Dashboard
+                </a>
+                <a href="{{ url_for('index.index') }}" class="btn btn-outline-secondary btn-lg px-5">
+                    <i class="fas fa-home me-2"></i> Return to Home
+                </a>
             </div>
         </div>
     </div>

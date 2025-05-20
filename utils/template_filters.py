@@ -1,140 +1,150 @@
 """
 Template Filters Module
 
-This module provides custom template filters for Jinja2 templates.
-These filters enhance template functionality with common formatting and data manipulation operations.
+This module provides custom template filters for the application templates.
 
 @module utils.template_filters
-@author NOUS Development Team
+@description Custom template filters for Jinja templates
 """
 
-import json
-from datetime import datetime
-from markupsafe import Markup
+import logging
+import datetime
+from flask import Flask
 
+logger = logging.getLogger(__name__)
 
-def register_template_filters(app):
+def register_template_filters(app: Flask):
     """
-    Register all template filters with the Flask application.
+    Register custom template filters for the application
     
     Args:
         app: Flask application instance
     """
-    @app.template_filter('from_json')
-    def from_json(value):
-        """
-        Parse JSON strings into Python objects.
-        
-        Args:
-            value: JSON string to parse
-            
-        Returns:
-            Parsed Python object or empty list on error
-        """
-        if value:
-            try:
-                return json.loads(value)
-            except:
-                return []
-        return []
     
-    @app.template_filter('nl2br')
-    def nl2br(value):
+    @app.template_filter('format_date')
+    def format_date(value, format='%B %d, %Y'):
         """
-        Convert newlines to HTML line breaks.
+        Format a date object or date string to a human-readable format
         
         Args:
-            value: Text with newlines
+            value: datetime object or date string
+            format: date format string
             
         Returns:
-            HTML-safe string with <br> tags
-        """
-        if value:
-            # Ensure value is a string and escape HTML characters
-            value = str(value)
-            value = value.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-            value = value.replace('\n', Markup('<br>'))
-            return Markup(value)
-        return ""
-    
-    @app.template_filter('datetime_format')
-    def datetime_format(value, format='%Y-%m-%d %H:%M'):
-        """
-        Format a datetime object to a string.
-        
-        Args:
-            value: Datetime object
-            format: String format (default: '%Y-%m-%d %H:%M')
-            
-        Returns:
-            Formatted date string or empty string if None
-        """
-        if value:
-            return value.strftime(format)
-        return ""
-    
-    @app.template_filter('currency')
-    def currency_format(value):
-        """
-        Format a number as currency.
-        
-        Args:
-            value: Number to format
-            
-        Returns:
-            Formatted currency string (e.g., $123.45)
-        """
-        if value is not None:
-            return f"${value:,.2f}"
-        return "$0.00"
-    
-    @app.template_filter('truncate_with_ellipsis')
-    def truncate_with_ellipsis(value, length=50):
-        """
-        Truncate text and add ellipsis if it exceeds a certain length.
-        
-        Args:
-            value: Text to truncate
-            length: Maximum length (default: 50)
-            
-        Returns:
-            Truncated text with ellipsis or original text
-        """
-        if value and isinstance(value, str) and len(value) > length:
-            return value[:length-3] + "..."
-        return value
-    
-    @app.template_filter('timeago')
-    def timeago(value):
-        """
-        Convert a datetime to a "time ago" string.
-        
-        Args:
-            value: Datetime object
-            
-        Returns:
-            String like "2 hours ago", "3 days ago", etc.
+            Formatted date string
         """
         if not value:
-            return ""
+            return ''
             
-        now = datetime.now()
+        if isinstance(value, str):
+            try:
+                # Try to parse ISO format first
+                value = datetime.datetime.fromisoformat(value.replace('Z', '+00:00'))
+            except ValueError:
+                try:
+                    # Try to parse date-only format
+                    value = datetime.datetime.strptime(value, '%Y-%m-%d')
+                except ValueError:
+                    return value
+                    
+        if isinstance(value, datetime.datetime):
+            return value.strftime(format)
+            
+        return value
+        
+    @app.template_filter('format_datetime')
+    def format_datetime(value, format='%Y-%m-%d %H:%M'):
+        """Format a datetime with both date and time."""
+        if value is None:
+            return ""
+        if isinstance(value, str):
+            try:
+                value = datetime.datetime.strptime(value, '%Y-%m-%dT%H:%M:%S')
+            except ValueError:
+                return value
+        return value.strftime(format)
+    
+    @app.template_filter('time_ago')
+    def time_ago(value):
+        """
+        Format a datetime to a relative time string like "3 hours ago"
+        
+        Args:
+            value: datetime object or date string
+            
+        Returns:
+            Relative time string
+        """
+        if not value:
+            return ''
+            
+        if isinstance(value, str):
+            try:
+                value = datetime.datetime.fromisoformat(value.replace('Z', '+00:00'))
+            except ValueError:
+                return value
+        
+        now = datetime.datetime.now(value.tzinfo) if value.tzinfo else datetime.datetime.utcnow()
         diff = now - value
         
-        seconds = diff.total_seconds()
-        if seconds < 60:
-            return "just now"
-        elif seconds < 3600:
-            minutes = int(seconds // 60)
-            return f"{minutes} minute{'s' if minutes != 1 else ''} ago"
-        elif seconds < 86400:
-            hours = int(seconds // 3600)
-            return f"{hours} hour{'s' if hours != 1 else ''} ago"
-        elif seconds < 604800:
-            days = int(seconds // 86400)
-            return f"{days} day{'s' if days != 1 else ''} ago"
-        elif seconds < 2419200:
-            weeks = int(seconds // 604800)
-            return f"{weeks} week{'s' if weeks != 1 else ''} ago"
+        if diff.days > 365:
+            years = diff.days // 365
+            return f"{years} {'year' if years == 1 else 'years'} ago"
+        elif diff.days > 30:
+            months = diff.days // 30
+            return f"{months} {'month' if months == 1 else 'months'} ago"
+        elif diff.days > 0:
+            return f"{diff.days} {'day' if diff.days == 1 else 'days'} ago"
+        elif diff.seconds > 3600:
+            hours = diff.seconds // 3600
+            return f"{hours} {'hour' if hours == 1 else 'hours'} ago"
+        elif diff.seconds > 60:
+            minutes = diff.seconds // 60
+            return f"{minutes} {'minute' if minutes == 1 else 'minutes'} ago"
         else:
-            return value.strftime("%Y-%m-%d") 
+            return "just now"
+    
+    @app.template_filter('truncate_text')
+    def truncate_text(value, length=100):
+        """Truncate text to the specified length with ellipsis."""
+        if value is None:
+            return ""
+        if len(value) <= length:
+            return value
+        return value[:length] + "..."
+    
+    @app.template_filter('truncate_words')
+    def truncate_words(s, length=30, suffix='...'):
+        """
+        Truncate a string to a certain number of words
+        
+        Args:
+            s: String to truncate
+            length: Maximum number of words
+            suffix: String to append if truncated
+            
+        Returns:
+            Truncated string
+        """
+        if not s:
+            return ''
+            
+        words = s.split()
+        if len(words) <= length:
+            return s
+            
+        return ' '.join(words[:length]) + suffix
+    
+    @app.template_filter('markdown')
+    def markdown_filter(value):
+        """Convert markdown text to HTML."""
+        if value is None:
+            return ""
+        try:
+            import markdown
+            return markdown.markdown(value)
+        except ImportError:
+            logger.warning("Markdown package not installed, returning raw text")
+            return value
+    
+    logger.info("Registered custom template filters") 

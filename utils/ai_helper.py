@@ -1,552 +1,1108 @@
 """
-AI Helper module for handling conversations with OpenAI.
-Includes integration with the knowledge base for enhanced responses.
+AI Helper Utility
+
+This module provides AI functionality for the NOUS personal assistant.
+It handles natural language processing, command parsing, and AI-powered responses.
+
+@module utils.ai_helper
+@description Core AI functionality for the personal assistant
 """
 
-import os
 import logging
+import re
+import os
+from typing import Dict, List, Any, Optional, Tuple
 import json
-from datetime import datetime
-from openai import OpenAI
-# Import knowledge base functions at runtime to avoid circular imports
+import time
+import openai
+from utils.settings import get_setting
 
-# Import our key configuration module
-from utils.key_config import (
-    get_openai_key, get_openrouter_key, get_huggingface_token,
-    USE_HUGGINGFACE, USE_OPENROUTER, get_preferred_service
-)
+logger = logging.getLogger(__name__)
 
-# Get API keys
-OPENAI_API_KEY = get_openai_key()
-OPENROUTER_API_KEY = get_openrouter_key()
-HF_ACCESS_TOKEN = get_huggingface_token()
+# Configure OpenAI API key from settings
+OPENAI_KEY = get_setting("openai_api_key", "")
+if not OPENAI_KEY:
+    OPENAI_KEY = os.environ.get("OPENAI_API_KEY", "")
 
-# Only create the OpenAI client if we have a valid OpenAI key
-if OPENAI_API_KEY:
-    openai = OpenAI(api_key=OPENAI_API_KEY)
-else:
-    # Create a dummy client for type checking, but we won't use it
-    openai = None
+# Initialize OpenAI client if key is available
+openai_client = None
+if OPENAI_KEY:
+    openai.api_key = OPENAI_KEY
+    openai_client = openai.OpenAI(api_key=OPENAI_KEY)
 
-# Always check the preferred service for each API call
-preferred_service = get_preferred_service()
+# Rate limiting tracker
+class RateLimitTracker:
+    def __init__(self):
+        self.requests = []
+        self.max_requests_per_minute = 20  # Adjust based on your tier
+        self.window_seconds = 60
+        
+    def can_make_request(self):
+        """Check if we can make a request within rate limits"""
+        now = time.time()
+        # Remove requests older than our window
+        self.requests = [t for t in self.requests if now - t < self.window_seconds]
+        
+        return len(self.requests) < self.max_requests_per_minute
+        
+    def add_request(self):
+        """Record a request"""
+        self.requests.append(time.time())
 
-# Log our API configuration
-if preferred_service == "huggingface":
-    logging.info("NOUS will use Hugging Face API service for cost-effective AI functionality")
-    logging.info(f"Hugging Face token found: {bool(HF_ACCESS_TOKEN)}")
-elif preferred_service == "openrouter":
-    logging.info("NOUS will use OpenRouter API service for AI functionality")
-    logging.info(f"OpenRouter key found: {bool(OPENROUTER_API_KEY)}")
-elif preferred_service == "openai":
-    logging.info("NOUS will use OpenAI API service for AI functionality") 
-    logging.info(f"OpenAI key found: {bool(OPENAI_API_KEY)}")
-elif preferred_service == "local":
-    logging.info("NOUS will use local fallbacks for AI functionality")
-else:
-    logging.warning("No valid AI service keys found. Some features may not work correctly")
+# Create a rate limit tracker instance
+rate_limiter = RateLimitTracker()
 
-def parse_natural_language(command_text):
+class AIHelper:
     """
-    Parse natural language commands into structured format.
+    Provides AI functionality for the NOUS personal assistant
+    """
     
-    Args:
-        command_text (str): The natural language command
+    def __init__(self):
+        """Initialize the AI helper"""
+        self.logger = logging.getLogger(__name__)
+        self.logger.info("Initializing AI Helper")
         
-    Returns:
-        dict: Structured command with confidence level
-    """
-    try:
-        from utils.cache_helper import cache_result
-        
-        # Inner function that can be cached 
-        @cache_result(ttl_seconds=3600)  # Cache for 1 hour since command understanding is stable
-        def _get_parsed_command(cmd_text):
-            messages = [
-                {
-                    "role": "system", 
-                    "content": """You are a command parser. Convert natural language commands to structured commands.
-                    Examples:
-                    - "Add a meeting with John at 3pm tomorrow" -> "add Meeting with John at 3pm tomorrow"
-                    - "What's the weather like in New York?" -> "weather New York"
-                    - "Check my calendar for Friday" -> "what's my day Friday"
-                    
-                    Respond in JSON format with:
-                    - structured_command: The parsed command
-                    - confidence: A value from 0 to 1 indicating how confident you are
-                    - error: Only include if there's an error parsing
-                    """
-                },
-                {"role": "user", "content": cmd_text}
+        # Intent patterns for more accurate detection
+        self.intent_patterns = {
+            'music': [
+                # General music commands
+                r'\b(?:play|listen to|hear|find|search for)\b.+\b(?:song|track|music|artist|album|playlist)\b',
+                r'\b(?:pause|stop|resume|skip|next|previous)\b.+\b(?:music|song|track|playback)\b',
+                # Spotify-specific commands
+                r'\bspotify\b',
+                r'\bconnect.+spotify\b',
+                r'\bplay.+on spotify\b',
+                r'\b(?:recommendation|recommend).+(?:song|track|artist|album|playlist)\b',
+                r'\bcreate.+playlist\b',
+                r'\b(?:what|who).+(?:playing|listening to)\b',
+                # Mood-based music commands
+                r'\b(?:play|find|recommend).+(?:music|songs|tracks).+(?:for|when|while|during).+(?:feeling|mood|activity)\b',
+                r'\b(?:happy|sad|relaxed|energetic|workout|study|focus|party|chill).+music\b',
+                # Music discovery
+                r'\bfind.+(?:new|similar).+(?:music|artists|songs)\b',
+                r'\bdiscover.+music\b',
+                # Music analysis
+                r'\banalyze.+(?:music|song|track|listening)\b',
+                r'\bmusic taste\b',
+                r'\bwhat.+(?:genre|mood|bpm|key)\b'
+            ],
+            'weather': [
+                r'\b(?:weather|temperature|forecast|rain|snow|humidity|wind|storm)\b',
+                r'\bhow.+(?:weather|temperature)\b',
+                r'\bweather.+(?:today|tomorrow|this week)\b'
+            ],
+            'task': [
+                r'\b(?:task|todo|reminder|note|list)\b',
+                r'\b(?:add|create|make|set).+(?:task|todo|reminder|note)\b',
+                r'\b(?:remind me|remember)\b'
+            ],
+            'appointment': [
+                r'\b(?:appointment|schedule|calendar|meeting|event)\b',
+                r'\b(?:book|schedule|set up).+(?:appointment|meeting|call|event)\b',
+                r'\bwhen.+(?:appointment|meeting|event)\b'
+            ],
+            'google_docs': [
+                r'\b(?:google\s+doc|document|gdoc)\b',
+                r'\b(?:create|edit|open|show|view|summarize).+(?:document|doc|gdoc)\b',
+                r'\b(?:document|doc|gdoc).+(?:content|summary|analysis)\b',
+                r'\b(?:recovery journal|therapy worksheet|meeting notes).+(?:template|doc|document)\b',
+                r'\b(?:journal|worksheet|progress\s+tracking)\b'
+            ],
+            'google_sheets': [
+                r'\b(?:google\s+sheet|spreadsheet|gsheet)\b',
+                r'\b(?:create|edit|open|show|view|analyze).+(?:spreadsheet|sheet|gsheet)\b',
+                r'\b(?:spreadsheet|sheet|gsheet).+(?:content|summary|analysis)\b',
+                r'\b(?:budget|medication|tracker|tracking)\b',
+                r'\b(?:recovery metrics|metrics dashboard)\b'
+            ],
+            'gmail': [
+                r'\b(?:gmail|email|mail)\b',
+                r'\b(?:check|read|show|view|search).+(?:email|mail|gmail)\b',
+                r'\b(?:send|compose|draft|reply).+(?:email|mail|gmail)\b',
+                r'\b(?:email|mail|gmail).+(?:digest|summary|analysis)\b',
+                r'\b(?:recovery email|support network email)\b',
+                r'\b(?:email template|email recovery)\b'
+            ],
+            'google_calendar': [
+                r'\b(?:google\s+calendar|gcal|calendar)\b',
+                r'\b(?:create|add|schedule|book).+(?:event|appointment|meeting|calendar)\b',
+                r'\b(?:show|view|check|what).+(?:calendar|schedule|upcoming|events)\b',
+                r'\b(?:when|time).+(?:event|appointment|meeting)\b',
+                r'\b(?:recovery meeting|support group meeting|therapy appointment)\b'
             ]
-            
-            response = openai.chat.completions.create(
-                model="gpt-3.5-turbo",  # Using a smaller model for efficiency
-                messages=messages,
-                temperature=0.2,
-                max_tokens=200,
-                response_format={"type": "json_object"}
-            )
-            
-            content = response.choices[0].message.content
-            if content is not None:
-                return json.loads(content)
-            return {"error": "Empty response", "confidence": 0, "structured_command": cmd_text}
+        }
         
-        # Call the cached function
-        parsed_data = _get_parsed_command(command_text)
-        logging.info(f"Parsed command: {parsed_data}")
-        return parsed_data
+        # Spotify-specific entity extractors
+        self.spotify_entity_patterns = {
+            'track': [
+                r'(?:play|find|recommend).+(?:song|track) ["\']?([^"\']+)["\']?',
+                r'(?:play|find|recommend) ["\']?([^"\']+)["\']? (?:song|track)'
+            ],
+            'artist': [
+                r'(?:play|find|recommend).+(?:artist|band|musician) ["\']?([^"\']+)["\']?',
+                r'(?:play|find|recommend).+(?:songs|music|tracks) (?:by|from) ["\']?([^"\']+)["\']?'
+            ],
+            'album': [
+                r'(?:play|find|recommend).+album ["\']?([^"\']+)["\']?',
+                r'(?:play|find|recommend) ["\']?([^"\']+)["\']? album'
+            ],
+            'playlist': [
+                r'(?:play|find|recommend).+playlist ["\']?([^"\']+)["\']?',
+                r'(?:play|find|recommend) ["\']?([^"\']+)["\']? playlist',
+                r'(?:create|make).+playlist (?:called|named) ["\']?([^"\']+)["\']?'
+            ],
+            'mood': [
+                r'(?:play|find|recommend).+(?:music|songs|tracks) (?:for|when|while) (?:feeling|mood) ["\']?([^"\']+)["\']?',
+                r'(?:play|find|recommend) ["\']?([^"\']+)["\']? (?:music|songs|tracks)',
+                r'(?:I\'m feeling|I feel) ([a-zA-Z]+)'
+            ],
+            'activity': [
+                r'(?:play|find|recommend).+(?:music|songs|tracks) (?:for|during|while) ([^"\']+)',
+                r'(?:music|songs|tracks) (?:for|during|while) ([^"\']+)'
+            ],
+            'command': [
+                r'^(play|pause|resume|stop|skip|next|previous|volume|shuffle|repeat)$'
+            ]
+        }
         
-    except Exception as e:
-        logging.error(f"Error parsing natural language: {str(e)}")
-        return {"error": str(e), "confidence": 0, "structured_command": command_text}
-
-def analyze_gmail_content(content, headers=None, user_id=None):
-    """
-    Analyze the content of a Gmail message using AI.
+        # Google Docs entity extractors
+        self.google_docs_entity_patterns = {
+            'document_name': [
+                r'(?:create|edit|open|find|show).+(?:document|doc|gdoc) ["\']?([^"\']+)["\']?',
+                r'(?:document|doc|gdoc) (?:called|named|titled) ["\']?([^"\']+)["\']?'
+            ],
+            'document_id': [
+                r'document (?:id|ID) ["\']?([^"\']+)["\']?',
+                r'doc (?:id|ID) ["\']?([^"\']+)["\']?'
+            ],
+            'edit_request': [
+                r'(?:edit|update|change|modify) .+(?:to|with) ["\']?([^"\']+)["\']?'
+            ],
+            'template_type': [
+                r'(?:journal|therapy worksheet|meeting notes|recovery) (?:template|document) (?:for|about|on) ["\']?([^"\']+)["\']?',
+                r'(?:create|make) (?:a|an) ([^"\']+) (?:template|document|worksheet)'
+            ],
+            'action': [
+                r'(create|edit|summarize|analyze|share|delete) (?:the|a|my)? (?:document|doc)'
+            ]
+        }
+        
+        # Gmail entity extractors
+        self.gmail_entity_patterns = {
+            'query': [
+                r'(?:search|find|show|get).+emails? (?:about|with|for|from|containing) ["\']?([^"\']+)["\']?',
+                r'emails? (?:about|with|for|from|containing) ["\']?([^"\']+)["\']?'
+            ],
+            'email_id': [
+                r'email (?:id|ID) ["\']?([^"\']+)["\']?'
+            ],
+            'recipient': [
+                r'(?:send|compose|write|draft).+email to ["\']?([^"\']+)["\']?'
+            ],
+            'subject': [
+                r'(?:subject|about) ["\']?([^"\']+)["\']?'
+            ],
+            'template_type': [
+                r'(?:use|create|find) (?:a|an|the) ([^"\']+) (?:template|email template)'
+            ],
+            'action': [
+                r'(check|read|send|reply|forward|categorize|analyze|filter) (?:my|the)? emails?'
+            ],
+            'time_period': [
+                r'(?:in|during|from|last|past) (?:the|this|these)? ([^"\']+) (?:days?|weeks?|months?)'
+            ]
+        }
+        
+        # Google Calendar entity extractors
+        self.calendar_entity_patterns = {
+            'event_name': [
+                r'(?:create|add|schedule|book).+(?:event|appointment|meeting) (?:called|named|titled) ["\']?([^"\']+)["\']?',
+                r'(?:create|add|schedule|book) ["\']?([^"\']+)["\']? (?:event|appointment|meeting)'
+            ],
+            'date': [
+                r'(?:on|for) (?:the)? ([^"\']+)(?:st|nd|rd|th)?',
+                r'(?:on|for) ([a-zA-Z]+ \d{1,2}(?:st|nd|rd|th)?)',
+                r'(?:on|for) (?:the)? (\d{1,2}(?:st|nd|rd|th)? (?:of)? [a-zA-Z]+)'
+            ],
+            'time': [
+                r'(?:at|from) (\d{1,2}(?::\d{2})? ?(?:am|pm)?)',
+                r'(\d{1,2}(?::\d{2})? ?(?:am|pm)?) (?:to|until) (\d{1,2}(?::\d{2})? ?(?:am|pm)?)'
+            ],
+            'action': [
+                r'(check|view|show|list|create|schedule|cancel|delete) (?:my|the)? (?:calendar|events|meetings|appointments)'
+            ],
+            'period': [
+                r'(?:today|tomorrow|this week|next week|this month|next month)'
+            ]
+        }
+        
+        # Google Sheets entity extractors
+        self.sheets_entity_patterns = {
+            'spreadsheet_name': [
+                r'(?:create|edit|open|find|show).+(?:spreadsheet|sheet|gsheet) ["\']?([^"\']+)["\']?',
+                r'(?:spreadsheet|sheet|gsheet) (?:called|named|titled) ["\']?([^"\']+)["\']?'
+            ],
+            'sheet_type': [
+                r'(?:create|make) (?:a|an) ([^"\']+) (?:spreadsheet|sheet|tracker)'
+            ],
+            'action': [
+                r'(create|edit|update|analyze|share|delete) (?:my|the)? (?:spreadsheet|sheet)'
+            ]
+        }
     
-    Args:
-        content (str): The email content
-        headers (dict, optional): Email headers like subject, from, etc.
-        user_id (str, optional): User ID for personalized analysis
+    def process_user_input(self, user_input: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
+        """
+        Process user input and generate a response
         
-    Returns:
-        dict: Analysis results
-    """
-    try:
-        from utils.cache_helper import cache_result
+        Args:
+            user_input: The raw input from the user
+            context: Additional context about the conversation
+            
+        Returns:
+            Dict containing response and any actions to take
+        """
+        if not context:
+            context = {}
+            
+        # Detect intent
+        intent = self._detect_intent(user_input)
         
-        # Create a unique key for caching based on content
-        import hashlib
-        email_hash = hashlib.md5(content.encode()).hexdigest()
+        # Extract entities based on intent
+        entities = self._extract_entities(user_input, intent)
         
-        # Inner function that can be cached
-        @cache_result(ttl_seconds=86400)  # Cache for 24 hours since email content doesn't change
-        def _analyze_email(content_to_analyze, headers_str, email_id):
-            messages = [
-                {
-                    "role": "system", 
-                    "content": """You are an email analyzer. Extract key information from the email and provide a summary.
-                    Focus on:
-                    - Main topic or purpose of the email
-                    - Action items or requests
-                    - Important dates or deadlines
-                    - Key people mentioned
+        # Generate response
+        response_text = self.generate_response(intent, entities)
+        
+        # Determine actions to take
+        actions = self._determine_actions(intent, entities, context)
+        
+        response = {
+            'text': response_text,
+            'actions': actions,
+            'detected_intent': intent,
+            'entities': entities
+        }
+        
+        return response
+    
+    def _detect_intent(self, text: str) -> str:
+        """
+        Detect the intent of the user's message using pattern matching
+        
+        Args:
+            text: The user's message
+            
+        Returns:
+            The detected intent
+        """
+        # Convert to lowercase for consistent matching
+        text_lower = text.lower()
+        
+        # Check each intent's patterns
+        for intent, patterns in self.intent_patterns.items():
+            for pattern in patterns:
+                if re.search(pattern, text_lower):
+                    return intent
+        
+        # Default to general if no patterns match
+        return 'general'
+    
+    def _extract_entities(self, text: str, intent: str) -> Dict[str, Any]:
+        """
+        Extract entities from the user's message based on intent
+        
+        Args:
+            text: The user's message
+            intent: The detected intent
+            
+        Returns:
+            Dictionary of extracted entities
+        """
+        entities = {}
+        
+        # Only process entity extraction for specific intents
+        if intent == 'music':
+            # Extract Spotify-specific entities
+            for entity_type, patterns in self.spotify_entity_patterns.items():
+                for pattern in patterns:
+                    match = re.search(pattern, text.lower())
+                    if match and match.group(1):
+                        # Store the entity value
+                        entities[entity_type] = match.group(1).strip()
+                        break
+                        
+            # Detect playback commands
+            if re.match(r'^(play|pause|resume|stop|skip|next|previous|shuffle|repeat)$', text.lower()):
+                entities['command'] = text.lower()
+        
+        elif intent == 'google_docs':
+            # Extract Google Docs entities
+            for entity_type, patterns in self.google_docs_entity_patterns.items():
+                for pattern in patterns:
+                    match = re.search(pattern, text.lower())
+                    if match and match.group(1):
+                        # Store the entity value
+                        entities[entity_type] = match.group(1).strip()
+                        break
+        
+        elif intent == 'gmail':
+            # Extract Gmail entities
+            for entity_type, patterns in self.gmail_entity_patterns.items():
+                for pattern in patterns:
+                    match = re.search(pattern, text.lower())
+                    if match and match.group(1):
+                        # Store the entity value
+                        entities[entity_type] = match.group(1).strip()
+                        break
+        
+        elif intent == 'google_calendar':
+            # Extract Google Calendar entities
+            for entity_type, patterns in self.calendar_entity_patterns.items():
+                for pattern in patterns:
+                    match = re.search(pattern, text.lower())
+                    if match and match.group(1):
+                        # Store the entity value
+                        entities[entity_type] = match.group(1).strip()
+                        break
+        
+        elif intent == 'google_sheets':
+            # Extract Google Sheets entities
+            for entity_type, patterns in self.sheets_entity_patterns.items():
+                for pattern in patterns:
+                    match = re.search(pattern, text.lower())
+                    if match and match.group(1):
+                        # Store the entity value
+                        entities[entity_type] = match.group(1).strip()
+                        break
+        
+        return entities
+    
+    def _determine_actions(self, intent: str, entities: Dict[str, Any], context: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """
+        Determine actions to take based on intent and entities
+        
+        Args:
+            intent: The detected intent
+            entities: Extracted entities
+            context: Conversation context
+            
+        Returns:
+            List of action objects
+        """
+        actions = []
+        
+        if intent == 'music':
+            # Handle Spotify commands
+            if 'command' in entities:
+                actions.append({
+                    'type': 'spotify_playback',
+                    'command': entities['command']
+                })
+            elif 'track' in entities:
+                actions.append({
+                    'type': 'spotify_play',
+                    'content_type': 'track',
+                    'query': entities['track']
+                })
+            elif 'artist' in entities:
+                actions.append({
+                    'type': 'spotify_play',
+                    'content_type': 'artist',
+                    'query': entities['artist']
+                })
+            elif 'album' in entities:
+                actions.append({
+                    'type': 'spotify_play',
+                    'content_type': 'album',
+                    'query': entities['album']
+                })
+            elif 'playlist' in entities:
+                if re.search(r'create|make', context.get('raw_text', '')):
+                    actions.append({
+                        'type': 'spotify_create_playlist',
+                        'name': entities['playlist']
+                    })
+                else:
+                    actions.append({
+                        'type': 'spotify_play',
+                        'content_type': 'playlist',
+                        'query': entities['playlist']
+                    })
+            elif 'mood' in entities:
+                actions.append({
+                    'type': 'spotify_mood',
+                    'mood': entities['mood']
+                })
+            elif 'activity' in entities:
+                actions.append({
+                    'type': 'spotify_activity',
+                    'activity': entities['activity']
+                })
+        
+        elif intent == 'google_docs':
+            # Handle Google Docs actions
+            if 'action' in entities:
+                action = entities['action']
+                
+                if action == 'create':
+                    # Handle document creation
+                    if 'template_type' in entities:
+                        # Create from template
+                        template_type = entities['template_type']
+                        
+                        if re.search(r'journal|recovery journal', template_type):
+                            actions.append({
+                                'type': 'google_docs_create_template',
+                                'template': 'recovery_journal'
+                            })
+                        elif re.search(r'therapy|worksheet', template_type):
+                            actions.append({
+                                'type': 'google_docs_create_template',
+                                'template': 'therapy_worksheet',
+                                'worksheet_type': 'thought_record' if 'thought' in template_type else 'dbt_diary_card'
+                            })
+                        elif re.search(r'meeting|notes', template_type):
+                            actions.append({
+                                'type': 'google_docs_create_template',
+                                'template': 'meeting_notes',
+                                'meeting_type': 'support_group' if 'support' in template_type else 'therapy'
+                            })
+                        elif re.search(r'progress|tracking', template_type):
+                            actions.append({
+                                'type': 'google_docs_create_template',
+                                'template': 'progress_tracking'
+                            })
+                        else:
+                            # Generic document creation
+                            actions.append({
+                                'type': 'google_docs_create',
+                                'title': entities.get('document_name', 'Untitled Document')
+                            })
+                    elif 'document_name' in entities:
+                        # Create named document
+                        actions.append({
+                            'type': 'google_docs_create',
+                            'title': entities['document_name']
+                        })
+                    else:
+                        # Create generic document
+                        actions.append({
+                            'type': 'google_docs_create',
+                            'title': 'Untitled Document'
+                        })
+                
+                elif action == 'edit' and 'document_name' in entities:
+                    # Handle document editing
+                    actions.append({
+                        'type': 'google_docs_edit',
+                        'document_name': entities['document_name'],
+                        'edit_request': entities.get('edit_request', '')
+                    })
+                
+                elif action == 'summarize' and 'document_name' in entities:
+                    # Handle document summarization
+                    actions.append({
+                        'type': 'google_docs_summarize',
+                        'document_name': entities['document_name']
+                    })
+                
+                elif action == 'analyze' and 'document_name' in entities:
+                    # Handle document analysis
+                    actions.append({
+                        'type': 'google_docs_analyze',
+                        'document_name': entities['document_name']
+                    })
+            elif 'document_name' in entities:
+                # Default to viewing the document
+                actions.append({
+                    'type': 'google_docs_view',
+                    'document_name': entities['document_name']
+                })
+        
+        elif intent == 'gmail':
+            # Handle Gmail actions
+            if 'action' in entities:
+                action = entities['action']
+                
+                if action in ['check', 'read', 'show']:
+                    # Handle email retrieval
+                    if 'query' in entities:
+                        actions.append({
+                            'type': 'gmail_search',
+                            'query': entities['query']
+                        })
+                    else:
+                        actions.append({
+                            'type': 'gmail_list_recent'
+                        })
+                
+                elif action == 'send' and 'recipient' in entities:
+                    # Handle email sending
+                    actions.append({
+                        'type': 'gmail_compose',
+                        'recipient': entities['recipient'],
+                        'subject': entities.get('subject', '')
+                    })
+                
+                elif action == 'reply' and 'email_id' in entities:
+                    # Handle email reply
+                    actions.append({
+                        'type': 'gmail_reply',
+                        'email_id': entities['email_id']
+                    })
+                
+                elif action == 'categorize':
+                    # Handle email categorization
+                    actions.append({
+                        'type': 'gmail_categorize'
+                    })
+                
+                elif action == 'analyze':
+                    # Handle email analysis
+                    actions.append({
+                        'type': 'gmail_analyze'
+                    })
+                
+                elif action == 'filter':
+                    # Handle email filtering for recovery-relevant emails
+                    days = 7
+                    if 'time_period' in entities:
+                        time_period = entities['time_period']
+                        if re.search(r'\d+', time_period):
+                            days = int(re.search(r'\d+', time_period).group())
                     
-                    Respond in JSON format with:
-                    - summary: Brief summary of the email
-                    - action_items: List of action items
-                    - important_dates: List of important dates
-                    - key_people: List of key people
-                    - sentiment: Overall sentiment (positive, neutral, negative)
-                    """
-                },
-                {
-                    "role": "user", 
-                    "content": f"Email headers:\n{headers_str}\n\nEmail content:\n{content_to_analyze}"
-                }
-            ]
+                    actions.append({
+                        'type': 'gmail_filter_recovery',
+                        'days': days
+                    })
             
-            # Import our key configuration which has the latest status
-            from utils.key_config import get_preferred_service
+            elif 'template_type' in entities:
+                # Handle email template creation
+                template_type = entities['template_type']
+                template = 'sponsor_check_in'
+                
+                if re.search(r'amend|apology', template_type):
+                    template = 'making_amends'
+                elif re.search(r'request|support', template_type):
+                    template = 'request_support'
+                elif re.search(r'decline|event', template_type):
+                    template = 'decline_event'
+                elif re.search(r'time|off|recovery', template_type):
+                    template = 'recovery_time_request'
+                
+                actions.append({
+                    'type': 'gmail_create_template',
+                    'template': template
+                })
             
-            # Check if we're using OpenRouter as the preferred service
-            if get_preferred_service() == "openrouter":
-                # Import our OpenRouter helper
-                from utils.openrouter_helper import chat_completion
+            elif 'query' in entities:
+                # Default to searching emails
+                actions.append({
+                    'type': 'gmail_search',
+                    'query': entities['query']
+                })
+        
+        elif intent == 'google_calendar':
+            # Handle Google Calendar actions
+            if 'action' in entities:
+                action = entities['action']
                 
-                # Format the response for OpenRouter
-                response_text = chat_completion(
-                    messages=messages,
-                    model="openai/gpt-4-turbo",
-                    temperature=0.3,
-                    max_tokens=500
-                )
+                if action in ['check', 'view', 'show', 'list']:
+                    # Handle calendar viewing
+                    period = entities.get('period', 'today')
+                    actions.append({
+                        'type': 'calendar_view',
+                        'period': period
+                    })
                 
-                # Create a response object similar to OpenAI's
-                class MockResponse:
-                    def __init__(self, content):
-                        self.choices = [type('obj', (object,), {
-                            'message': type('obj', (object,), {'content': content})
-                        })]
+                elif action in ['create', 'schedule']:
+                    # Handle event creation
+                    event_name = entities.get('event_name', 'New Event')
+                    date = entities.get('date', '')
+                    time = entities.get('time', '')
+                    
+                    actions.append({
+                        'type': 'calendar_create_event',
+                        'event_name': event_name,
+                        'date': date,
+                        'time': time
+                    })
                 
-                response = MockResponse(response_text)
+                elif action in ['cancel', 'delete'] and 'event_name' in entities:
+                    # Handle event cancellation
+                    actions.append({
+                        'type': 'calendar_cancel_event',
+                        'event_name': entities['event_name']
+                    })
+            
+            elif 'event_name' in entities:
+                # Default to creating an event
+                date = entities.get('date', '')
+                time = entities.get('time', '')
+                
+                actions.append({
+                    'type': 'calendar_create_event',
+                    'event_name': entities['event_name'],
+                    'date': date,
+                    'time': time
+                })
+            elif 'period' in entities:
+                # Default to viewing calendar
+                actions.append({
+                    'type': 'calendar_view',
+                    'period': entities['period']
+                })
+        
+        elif intent == 'google_sheets':
+            # Handle Google Sheets actions
+            if 'action' in entities:
+                action = entities['action']
+                
+                if action == 'create':
+                    # Handle spreadsheet creation
+                    if 'sheet_type' in entities:
+                        # Create specific spreadsheet type
+                        sheet_type = entities['sheet_type']
+                        
+                        if re.search(r'medication|med', sheet_type):
+                            actions.append({
+                                'type': 'sheets_create_template',
+                                'template': 'medication_tracker'
+                            })
+                        elif re.search(r'recovery|metrics|dashboard', sheet_type):
+                            actions.append({
+                                'type': 'sheets_create_template',
+                                'template': 'recovery_metrics'
+                            })
+                        elif re.search(r'budget|financial', sheet_type):
+                            actions.append({
+                                'type': 'sheets_create_template',
+                                'template': 'budget'
+                            })
+                        else:
+                            # Generic spreadsheet
+                            actions.append({
+                                'type': 'sheets_create',
+                                'title': entities.get('spreadsheet_name', 'Untitled Spreadsheet')
+                            })
+                    elif 'spreadsheet_name' in entities:
+                        # Create named spreadsheet
+                        actions.append({
+                            'type': 'sheets_create',
+                            'title': entities['spreadsheet_name']
+                        })
+                    else:
+                        # Create generic spreadsheet
+                        actions.append({
+                            'type': 'sheets_create',
+                            'title': 'Untitled Spreadsheet'
+                        })
+                
+                elif action in ['edit', 'update'] and 'spreadsheet_name' in entities:
+                    # Handle spreadsheet editing
+                    actions.append({
+                        'type': 'sheets_edit',
+                        'spreadsheet_name': entities['spreadsheet_name']
+                    })
+                
+                elif action == 'analyze' and 'spreadsheet_name' in entities:
+                    # Handle spreadsheet analysis
+                    actions.append({
+                        'type': 'sheets_analyze',
+                        'spreadsheet_name': entities['spreadsheet_name']
+                    })
+            
+            elif 'sheet_type' in entities:
+                # Create specific spreadsheet type
+                sheet_type = entities['sheet_type']
+                template = 'generic'
+                
+                if re.search(r'medication|med', sheet_type):
+                    template = 'medication_tracker'
+                elif re.search(r'recovery|metrics|dashboard', sheet_type):
+                    template = 'recovery_metrics'
+                elif re.search(r'budget|financial', sheet_type):
+                    template = 'budget'
+                
+                actions.append({
+                    'type': 'sheets_create_template',
+                    'template': template
+                })
+            
+            elif 'spreadsheet_name' in entities:
+                # Default to viewing the spreadsheet
+                actions.append({
+                    'type': 'sheets_view',
+                    'spreadsheet_name': entities['spreadsheet_name']
+                })
+        
+        return actions
+    
+    def generate_response(self, intent: str, entities: Dict[str, Any] = None) -> str:
+        """
+        Generate a response based on intent and entities
+        
+        Args:
+            intent: The detected intent
+            entities: Any entities extracted from the user's message
+            
+        Returns:
+            A response string
+        """
+        if not entities:
+            entities = {}
+            
+        # Generate response based on intent and entities
+        if intent == 'music':
+            if 'command' in entities:
+                command = entities['command']
+                if command in ['play', 'resume']:
+                    return "I'll resume playback for you."
+                elif command in ['pause', 'stop']:
+                    return "I'll pause the music for you."
+                elif command in ['skip', 'next']:
+                    return "I'll skip to the next track."
+                elif command == 'previous':
+                    return "I'll go back to the previous track."
+                elif command == 'shuffle':
+                    return "I'll toggle shuffle mode for you."
+                elif command == 'repeat':
+                    return "I'll toggle repeat mode for you."
+                else:
+                    return "I'll handle the playback command for you."
+            elif 'track' in entities:
+                return f"I'll play the song '{entities['track']}' for you."
+            elif 'artist' in entities:
+                return f"I'll play music by {entities['artist']} for you."
+            elif 'album' in entities:
+                return f"I'll play the album '{entities['album']}' for you."
+            elif 'playlist' in entities:
+                if 'create' in entities.get('action', ''):
+                    return f"I'll create a new playlist called '{entities['playlist']}' for you."
+                else:
+                    return f"I'll play the '{entities['playlist']}' playlist for you."
+            elif 'mood' in entities:
+                return f"I'll find some {entities['mood']} music for you."
+            elif 'activity' in entities:
+                return f"I'll play suitable music for {entities['activity']}."
             else:
-                # Use standard OpenAI client
-                response = openai.chat.completions.create(
-                    model="gpt-4o",
-                    messages=messages,
-                    temperature=0.3,
-                    max_tokens=500,
-                    response_format={"type": "json_object"}
-                )
-            
-            content_str = response.choices[0].message.content
-            if content_str is not None:
-                return json.loads(content_str)
-            return {"error": "Empty response", "summary": "Could not analyze email content."}
-            
-        # Prepare the headers for context
-        header_context = ""
-        if headers:
-            header_context = "\n".join([f"{key}: {value}" for key, value in headers.items()])
+                return "I can help you play music. What would you like to hear?"
         
-        # Call the cached function
-        analysis = _analyze_email(content, header_context, email_hash)
+        elif intent == 'google_docs':
+            if 'action' in entities:
+                action = entities['action']
+                if action == 'create':
+                    if 'template_type' in entities:
+                        template_type = entities['template_type']
+                        if re.search(r'journal|recovery journal', template_type):
+                            return "I'll create a recovery journal document for you."
+                        elif re.search(r'therapy|worksheet', template_type):
+                            return "I'll create a therapy worksheet for you."
+                        elif re.search(r'meeting|notes', template_type):
+                            return "I'll create a meeting notes template for you."
+                        elif re.search(r'progress|tracking', template_type):
+                            return "I'll create a progress tracking document for you."
+                        else:
+                            return f"I'll create a document for {template_type} for you."
+                    elif 'document_name' in entities:
+                        return f"I'll create a new document called '{entities['document_name']}' for you."
+                    else:
+                        return "I'll create a new document for you."
+                elif action == 'edit':
+                    return f"I'll help you edit the document '{entities.get('document_name', 'requested document')}'."
+                elif action == 'summarize':
+                    return f"I'll summarize the document '{entities.get('document_name', 'requested document')}' for you."
+                elif action == 'analyze':
+                    return f"I'll analyze the content of '{entities.get('document_name', 'the document')}' for you."
+                else:
+                    return f"I'll {action} the document for you."
+            elif 'document_name' in entities:
+                return f"I'll open the document '{entities['document_name']}' for you."
+            else:
+                return "I can help you with Google Docs. What would you like to do?"
         
-        # Store analysis in knowledge base if applicable (do this outside the cached function)
-        if user_id and 'summary' in analysis:
-            knowledge_entry = f"Email Analysis: {analysis['summary']}"
-            from utils.knowledge_helper import add_to_knowledge_base
-            add_to_knowledge_base(knowledge_entry, user_id, source="email_analysis")
-            
-        return analysis
+        elif intent == 'gmail':
+            if 'action' in entities:
+                action = entities['action']
+                if action in ['check', 'read', 'show']:
+                    if 'query' in entities:
+                        return f"I'll find emails about '{entities['query']}' for you."
+                    else:
+                        return "I'll show you your recent emails."
+                elif action == 'send':
+                    recipient = entities.get('recipient', 'the recipient')
+                    return f"I'll help you compose an email to {recipient}."
+                elif action == 'reply':
+                    return "I'll help you reply to that email."
+                elif action == 'categorize':
+                    return "I'll categorize your emails based on recovery relevance."
+                elif action == 'analyze':
+                    return "I'll analyze your emails for content and sentiment."
+                elif action == 'filter':
+                    days = 7
+                    if 'time_period' in entities:
+                        time_period = entities['time_period']
+                        if re.search(r'\d+', time_period):
+                            days = int(re.search(r'\d+', time_period).group())
+                    return f"I'll filter your emails for recovery-relevant content from the past {days} days."
+                else:
+                    return f"I'll {action} your emails for you."
+            elif 'template_type' in entities:
+                template_type = entities['template_type']
+                return f"I'll create a {template_type} email template for you."
+            elif 'query' in entities:
+                return f"I'll search for emails about '{entities['query']}' for you."
+            else:
+                return "I can help you with your emails. What would you like to do?"
         
-    except Exception as e:
-        logging.error(f"Error analyzing Gmail content: {str(e)}")
-        return {"error": str(e), "summary": "Could not analyze email content."}
+        elif intent == 'google_calendar':
+            if 'action' in entities:
+                action = entities['action']
+                if action in ['check', 'view', 'show', 'list']:
+                    period = entities.get('period', 'today')
+                    return f"I'll show you your calendar for {period}."
+                elif action in ['create', 'schedule']:
+                    event_name = entities.get('event_name', 'the event')
+                    return f"I'll schedule {event_name} for you."
+                elif action in ['cancel', 'delete']:
+                    event_name = entities.get('event_name', 'the event')
+                    return f"I'll cancel {event_name} from your calendar."
+                else:
+                    return f"I'll {action} your calendar events for you."
+            elif 'event_name' in entities:
+                return f"I'll schedule {entities['event_name']} for you."
+            elif 'period' in entities:
+                return f"I'll show you your calendar for {entities['period']}."
+            else:
+                return "I can help you manage your calendar. What would you like to do?"
+        
+        elif intent == 'google_sheets':
+            if 'action' in entities:
+                action = entities['action']
+                if action == 'create':
+                    if 'sheet_type' in entities:
+                        sheet_type = entities['sheet_type']
+                        if re.search(r'medication|med', sheet_type):
+                            return "I'll create a medication tracking spreadsheet for you."
+                        elif re.search(r'recovery|metrics|dashboard', sheet_type):
+                            return "I'll create a recovery metrics dashboard for you."
+                        elif re.search(r'budget|financial', sheet_type):
+                            return "I'll create a budget management spreadsheet for you."
+                        else:
+                            return f"I'll create a {sheet_type} spreadsheet for you."
+                    elif 'spreadsheet_name' in entities:
+                        return f"I'll create a new spreadsheet called '{entities['spreadsheet_name']}' for you."
+                    else:
+                        return "I'll create a new spreadsheet for you."
+                elif action in ['edit', 'update']:
+                    return f"I'll help you edit the spreadsheet '{entities.get('spreadsheet_name', 'requested spreadsheet')}'."
+                elif action == 'analyze' and 'spreadsheet_name' in entities:
+                    return f"I'll analyze the data in '{entities.get('spreadsheet_name', 'the spreadsheet')}' for you."
+                else:
+                    return f"I'll {action} the spreadsheet for you."
+            elif 'sheet_type' in entities:
+                sheet_type = entities['sheet_type']
+                if re.search(r'medication|med', sheet_type):
+                    return "I'll create a medication tracking spreadsheet for you."
+                elif re.search(r'recovery|metrics|dashboard', sheet_type):
+                    return "I'll create a recovery metrics dashboard for you."
+                elif re.search(r'budget|financial', sheet_type):
+                    return "I'll create a budget management spreadsheet for you."
+                else:
+                    return f"I'll create a {sheet_type} spreadsheet for you."
+            elif 'spreadsheet_name' in entities:
+                return f"I'll open the spreadsheet '{entities['spreadsheet_name']}' for you."
+            else:
+                return "I can help you with Google Sheets. What would you like to do?"
+        
+        elif intent == 'weather':
+            return "I can check the weather for you. Which location are you interested in?"
+        elif intent == 'task':
+            return "I can help you manage your tasks. Would you like to create a new task?"
+        elif intent == 'appointment':
+            return "I can help you with your schedule. Would you like to check or create an appointment?"
+        else:
+            return "How can I assist you today?"
 
-def analyze_gmail_threads(threads, user_id=None):
+# Create a singleton instance
+ai_helper = AIHelper()
+
+def get_ai_helper() -> AIHelper:
+    """Get the singleton instance of AIHelper"""
+    return ai_helper 
+
+def generate_ai_text(prompt, model="gpt-3.5-turbo", max_tokens=1000, temperature=0.7):
     """
-    Analyze a Gmail thread (multiple messages) to extract insights.
+    Generate text using AI
     
     Args:
-        threads (list): List of messages in a thread
-        user_id (str, optional): User ID for personalized analysis
+        prompt: Text prompt for generation
+        model: AI model to use 
+        max_tokens: Maximum tokens to generate
+        temperature: Creativity factor (0.0-1.0)
         
     Returns:
-        dict: Thread analysis with conversation insights
+        Generated text
     """
+    if not openai_client:
+        logging.warning("OpenAI client not initialized. Check your API key.")
+        return "AI text generation not available. Please check system settings."
+    
+    # Check rate limits
+    if not rate_limiter.can_make_request():
+        logging.warning("Rate limit reached, waiting before making API request")
+        time.sleep(5)  # Wait a bit and try again
+        if not rate_limiter.can_make_request():
+            return "AI service temporarily unavailable due to high demand. Please try again shortly."
+    
     try:
-        # Extract full conversation from threads
-        conversation = []
-        for message in threads:
-            sender = message.get('sender', 'Unknown')
-            content = message.get('content', '')
-            date = message.get('date', '')
-            
-            conversation.append(f"[{date}] {sender}:\n{content}\n")
+        # Record this request
+        rate_limiter.add_request()
         
-        full_conversation = "\n".join(conversation)
+        response = openai_client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant for a recovery-focused application."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
         
-        messages = [
-            {
-                "role": "system", 
-                "content": """You are an email thread analyzer. Analyze the conversation thread and extract insights.
-                Focus on:
-                - Thread summary and main topic
-                - Key points of discussion
-                - Decisions made or conclusions reached
-                - Open questions or unresolved issues
-                - Overall tone of conversation
-                
-                Respond in JSON format with:
-                - thread_summary: Brief summary of the entire thread
-                - key_points: List of key discussion points
-                - decisions: List of decisions made or conclusions reached
-                - open_items: List of unresolved questions or issues
-                - tone: Overall tone of the conversation
-                """
-            },
-            {"role": "user", "content": full_conversation}
-        ]
+        # Extract the generated text
+        return response.choices[0].message.content.strip()
         
-        response = openai.chat.completions.create(
-            model="gpt-4o",
-            messages=messages,
-            temperature=0.3,
-            max_tokens=600,
+    except Exception as e:
+        logging.error(f"Error generating AI text: {str(e)}")
+        return f"Error generating text: {str(e)}"
+
+def analyze_document_content(content, analysis_type="general", max_tokens=1000):
+    """
+    Analyze document content using AI
+    
+    Args:
+        content: Text content to analyze
+        analysis_type: Type of analysis to perform (general, sentiment, therapeutic)
+        max_tokens: Maximum tokens for the response
+        
+    Returns:
+        Analysis results as a dictionary
+    """
+    if not openai_client:
+        logging.warning("OpenAI client not initialized. Check your API key.")
+        return {"error": "AI analysis not available. Please check system settings."}
+    
+    # Check rate limits
+    if not rate_limiter.can_make_request():
+        logging.warning("Rate limit reached, waiting before making API request")
+        time.sleep(5)  # Wait a bit and try again
+        if not rate_limiter.can_make_request():
+            return {"error": "AI service temporarily unavailable due to high demand. Please try again shortly."}
+    
+    try:
+        # Select the appropriate prompt based on analysis type
+        if analysis_type == "sentiment":
+            system_prompt = "You are an emotional intelligence expert. Analyze the sentiment and emotional content of the provided text."
+            user_prompt = "Provide a detailed analysis of the emotional content of this text. Identify the main emotions, their intensity, and overall sentiment. Format your response as JSON with keys for 'primary_emotion', 'secondary_emotions', 'sentiment_score' (-10 to 10), 'emotional_patterns', and 'recommendations'."
+        elif analysis_type == "therapeutic":
+            system_prompt = "You are a therapeutic writing analyst with expertise in recovery. Analyze the provided text for therapeutic insights."
+            user_prompt = "Analyze this therapeutic writing for recovery insights. Identify themes, patterns, challenges, strengths, and areas for growth. Format your response as JSON with keys for 'themes', 'patterns', 'challenges', 'strengths', 'growth_areas', and 'therapeutic_recommendations'."
+        else:  # general analysis
+            system_prompt = "You are a document analysis assistant. Analyze the provided text and extract key information."
+            user_prompt = "Analyze this document content and provide a comprehensive assessment. Format your response as JSON with keys for 'summary', 'key_topics', 'action_items', 'main_theme', and 'insights'."
+        
+        # Truncate content if too long
+        if len(content) > 10000:
+            content = content[:10000] + "...[content truncated]"
+        
+        # Record this request
+        rate_limiter.add_request()
+        
+        response = openai_client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+                {"role": "user", "content": content}
+            ],
+            max_tokens=max_tokens,
+            temperature=0.5,
             response_format={"type": "json_object"}
         )
         
-        analysis = json.loads(response.choices[0].message.content)
+        # Extract and parse the JSON response
+        analysis_text = response.choices[0].message.content.strip()
+        analysis_json = json.loads(analysis_text)
         
-        # Store thread analysis in knowledge base if applicable
-        if user_id and 'thread_summary' in analysis:
-            knowledge_entry = f"Email Thread Analysis: {analysis['thread_summary']}"
-            from utils.knowledge_helper import add_to_knowledge_base
-            add_to_knowledge_base(knowledge_entry, user_id, source="email_thread_analysis")
-            
-        return analysis
+        return analysis_json
+        
+    except json.JSONDecodeError:
+        logging.error("Failed to decode JSON from AI response")
+        return {"error": "Failed to parse AI analysis", "raw_response": analysis_text if 'analysis_text' in locals() else "No response"}
         
     except Exception as e:
-        logging.error(f"Error analyzing Gmail thread: {str(e)}")
-        return {"error": str(e), "thread_summary": "Could not analyze email thread."}
+        logging.error(f"Error analyzing content: {str(e)}")
+        return {"error": f"Error analyzing content: {str(e)}"}
 
-def handle_conversation(messages, user_id=None, include_debug=False):
+def generate_recovery_content(topic, format_type="journal_prompt", recovery_program="general", max_tokens=500):
     """
-    Handle a conversation with OpenAI, enhanced with knowledge base integration.
+    Generate recovery-specific content
     
     Args:
-        messages (list): List of message objects with role and content
-        user_id (str, optional): User ID for personalized knowledge
-        include_debug (bool): Whether to include debug info in response
+        topic: Recovery topic or theme
+        format_type: Type of content to generate (journal_prompt, reflection, exercise)
+        recovery_program: Recovery program context (aa, dbt, general)
+        max_tokens: Maximum tokens for the response
         
     Returns:
-        dict: Response with AI output and optional debug info
+        Generated recovery content
     """
-    try:
-        # Step 1: Extract the user query (if any)
-        user_query = None
-        if messages and messages[-1]['role'] == 'user':
-            user_query = messages[-1]['content']
-        
-        # Initialize debug info
-        debug_info = {}
-        
-        # Step 2: Check if the user's query matches anything in the knowledge base
-        knowledge_results = []
-        if user_query:
-            knowledge_results = query_knowledge_base(user_query, user_id, similarity_threshold=0.1)
-        
-        # Step 3: Prepare the conversation with appropriate system message
-        conversation = []
-        
-        if knowledge_results:
-            # Format knowledge context
-            knowledge_context = "\n\n".join([
-                f"[Relevant knowledge {i+1} (similarity: {similarity:.2f})] {entry.content}" 
-                for i, (entry, similarity) in enumerate(knowledge_results)
-            ])
-            
-            # Save debug info
-            debug_info['knowledge_used'] = [
-                {
-                    'id': entry.id,
-                    'content': entry.content,
-                    'similarity': similarity,
-                    'source': entry.source,
-                    'created_at': entry.created_at.isoformat() if entry.created_at else None
-                }
-                for entry, similarity in knowledge_results
-            ]
-            
-            # Add system message with knowledge context
-            system_message = {
-                'role': 'system',
-                'content': f"""You are Nous, an AI personal assistant with a self-learning knowledge base.
-                Use the following relevant information from your knowledge base to help answer the user's question.
-                
-                {knowledge_context}
-                
-                Based on this information and your general knowledge, provide a helpful, accurate response.
-                Your response should feel natural and not explicitly reference the knowledge base unless necessary."""
-            }
-            
-            # Insert system message at the beginning
-            conversation = [system_message] + messages
-        else:
-            # No knowledge found, use standard prompt
-            system_message = {
-                'role': 'system',
-                'content': "You are Nous, an AI personal assistant. Provide helpful, accurate, and friendly responses."
-            }
-            conversation = [system_message] + messages
-            debug_info['knowledge_used'] = []
-        
-        # Utility function to hash conversation for caching
-        def hash_conversation(conv_messages):
-            import hashlib
-            # Convert messages to a consistent string representation
-            msg_str = str([(m.get('role', ''), m.get('content', '')) for m in conv_messages])
-            return hashlib.md5(msg_str.encode()).hexdigest()
-            
-        # Use cache helper for the actual API call
-        from utils.cache_helper import cache_result
-        
-        # This function encapsulates the API call for caching
-        @cache_result(ttl_seconds=300)  # Cache for 5 minutes to balance freshness and efficiency
-        def get_ai_response(conversation_hash, temperature, max_tokens):
-            # We'll pass typed dictionaries directly to the API
-            from typing import List, Dict, Any
-            typed_messages: List[Dict[str, Any]] = []
-            
-            for message in conversation:
-                role = message.get('role', '')
-                content = message.get('content', '')
-                if role and content:
-                    typed_messages.append({"role": role, "content": content})
-            
-            # Check if we should use OpenRouter
-            openrouter_key = os.environ.get("OPENROUTER_API_KEY")
-            if openrouter_key:
-                # Use our dedicated OpenRouter helper
-                from utils.openrouter_helper import chat_completion
-                logging.info("Using OpenRouter API for chat completion")
-                
-                # Map to OpenRouter model format
-                openrouter_model = "openai/gpt-4-turbo"  # OpenRouter equivalent of gpt-4o
-                
-                response_text = chat_completion(
-                    messages=typed_messages,
-                    model=openrouter_model,
-                    temperature=temperature,
-                    max_tokens=max_tokens
-                )
-                
-                # Create a response object matching OpenAI's format for consistent handling
-                class MockResponse:
-                    class Choice:
-                        class Message:
-                            def __init__(self, content):
-                                self.content = content
-                                
-                        def __init__(self, content):
-                            self.message = self.Message(content)
-                    
-                    def __init__(self, content):
-                        self.choices = [self.Choice(content)]
-                
-                # If we got a response from OpenRouter, return it in the expected format
-                if response_text:
-                    response = MockResponse(response_text)
-                else:
-                    # Fall back to OpenAI if OpenRouter fails
-                    response = openai.chat.completions.create(
-                        model="gpt-4o",
-                        messages=typed_messages,
-                        temperature=temperature,
-                        max_tokens=max_tokens
-                    )
-            else:
-                # Use standard OpenAI API
-                response = openai.chat.completions.create(
-                    model="gpt-4o",  # Use the latest model
-                    messages=typed_messages,
-                    temperature=temperature,
-                    max_tokens=max_tokens
-                )
-            
-            if response.choices and response.choices[0].message:
-                return response.choices[0].message.content
-            return None
-        
-        # Get the response using the cached function
-        conv_hash = hash_conversation(conversation)
-        response_text = get_ai_response(conv_hash, 0.7, 800)
-        
-        if not response_text:
-            response_text = "I apologize, but I'm having trouble processing your request right now. Please try again in a moment."
-        
-        # Step 4: Store the assistant's response in the knowledge base for future retrieval
-        if user_query and response_text:
-            try:
-                # Store a summarized version that pairs the query with the response
-                knowledge_entry = f"Q: {user_query}\nA: {response_text}"
-                add_to_knowledge_base(knowledge_entry, user_id, source="conversation")
-                debug_info['knowledge_added'] = True
-            except Exception as e:
-                logging.error(f"Error adding response to knowledge base: {str(e)}")
-                debug_info['knowledge_added'] = False
-        
-        # Prepare the final response
-        result = {
-            'response': response_text
-        }
-        
-        if include_debug:
-            result['debug'] = debug_info
-            
-        return result
-        
-    except Exception as e:
-        logging.error(f"Error in handle_conversation: {str(e)}")
-        return {
-            'response': "I apologize, but I'm having trouble processing your request right now. Please try again in a moment.",
-            'error': str(e) if include_debug else None
-        }
-
-def cfhat(message_text, user_id=None, feature=None, context=None, include_debug=False):
-    """
-    Central function for all chat-related features. All features should connect through this
-    function to ensure consistent handling, knowledge storage, and model selection.
+    if not openai_client:
+        logging.warning("OpenAI client not initialized. Check your API key.")
+        return "Recovery content generation not available. Please check system settings."
     
-    Args:
-        message_text (str): The user's message
-        user_id (str, optional): User ID for personalized knowledge
-        feature (str, optional): The specific feature being used (e.g., 'email_analysis', 'weather', 'travel')
-        context (dict, optional): Additional context relevant to the feature
-        include_debug (bool): Whether to include debug info in response
-        
-    Returns:
-        str or dict: Response to the user's message
-    """
+    # Check rate limits
+    if not rate_limiter.can_make_request():
+        logging.warning("Rate limit reached, waiting before making API request")
+        time.sleep(5)  # Wait a bit and try again
+        if not rate_limiter.can_make_request():
+            return "AI service temporarily unavailable due to high demand. Please try again shortly."
+    
     try:
-        logging.info(f"cfhat called with feature={feature}")
-        
-        # Prepare the conversation messages
-        messages = []
-        
-        # If we have a specific feature, add context and feature-specific instructions
-        if feature:
-            # Create a specialized system message based on the feature
-            system_content = "You are Nous, an AI personal assistant. "
-            
-            # Add feature-specific context and instructions
-            if feature == "email_analysis":
-                system_content += "You're analyzing an email to extract key information and insights."
-                if context and "email_content" in context:
-                    message_text = context["email_content"]
-            elif feature == "weather":
-                system_content += "You're providing weather information and insights."
-                if context and "weather_data" in context:
-                    system_content += f"\nCurrent weather data: {json.dumps(context['weather_data'])}"
-            elif feature == "travel":
-                system_content += "You're helping with travel planning and recommendations."
-                if context and "destination" in context:
-                    system_content += f"\nDestination: {context['destination']}"
-            elif feature == "dbt":
-                system_content += "You're providing Dialectical Behavior Therapy (DBT) support."
-            elif feature == "spotify":
-                system_content += "You're helping with music recommendations and Spotify features."
-            elif feature == "budget":
-                system_content += "You're assisting with budget management and financial insights."
-            elif feature == "shopping":
-                system_content += "You're helping with shopping list management and recommendations."
-            
-            # Create the system message with feature-specific instructions
-            messages.append({
-                "role": "system",
-                "content": system_content
-            })
-        
-        # Add the user's message
-        messages.append({
-            "role": "user",
-            "content": message_text
-        })
-        
-        # Use the handle_conversation function to get a response
-        response = handle_conversation(messages, user_id, include_debug)
-        
-        # If we have a feature that needs post-processing, handle it here
-        if feature and feature == "email_analysis" and context and "format" in context:
-            if context["format"] == "json":
-                try:
-                    # Try to extract structured data from the response
-                    from utils.email_parser import extract_structured_data
-                    return extract_structured_data(response['response'])
-                except Exception as e:
-                    logging.error(f"Error extracting structured data: {str(e)}")
-        
-        # Return either the full response object or just the text based on include_debug
-        if include_debug:
-            return response
+        # Create a context-appropriate prompt based on the recovery program
+        if recovery_program.lower() == "aa":
+            system_prompt = "You are an experienced AA sponsor with deep knowledge of 12-step recovery. Provide supportive, non-judgmental guidance focused on the principles of Alcoholics Anonymous."
+        elif recovery_program.lower() == "dbt":
+            system_prompt = "You are a DBT therapist assistant with expertise in dialectical behavior therapy. Provide balanced, skills-focused guidance that incorporates DBT principles and techniques."
         else:
-            return response['response']
-            
-    except Exception as e:
-        logging.error(f"Error in cfhat: {str(e)}")
-        return "I apologize, but I'm having trouble processing your request right now. Please try again in a moment."
-
-# Import these at the end to avoid circular dependencies
-try:
-    from utils.knowledge_helper import query_knowledge_base, add_to_knowledge_base
-except ImportError:
-    # Create placeholder functions for environments without knowledge_helper
-    def query_knowledge_base(query, user_id=None, similarity_threshold=0.0):
-        return []
+            system_prompt = "You are a recovery support specialist with broad knowledge of recovery principles. Provide supportive, evidence-based guidance for people in recovery."
         
-    def add_to_knowledge_base(entry, user_id=None, source=None):
-        pass
+        # Create a format-appropriate prompt
+        if format_type == "journal_prompt":
+            user_prompt = f"Create a thoughtful journal prompt about {topic} that encourages deep reflection on recovery. The prompt should be specific, thought-provoking, and recovery-oriented."
+        elif format_type == "reflection":
+            user_prompt = f"Write a brief reflection on {topic} from a recovery perspective. Include insights about how this relates to the recovery journey and personal growth."
+        elif format_type == "exercise":
+            user_prompt = f"Design a practical exercise related to {topic} that someone in recovery can complete. Include clear steps, a purpose statement, and reflection questions."
+        else:
+            user_prompt = f"Create recovery-focused content about {topic}. Make it supportive, insightful, and practical for someone in recovery."
+        
+        # Record this request
+        rate_limiter.add_request()
+        
+        response = openai_client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            max_tokens=max_tokens,
+            temperature=0.7
+        )
+        
+        # Extract the generated text
+        return response.choices[0].message.content.strip()
+        
+    except Exception as e:
+        logging.error(f"Error generating recovery content: {str(e)}")
+        return f"Error generating content: {str(e)}" 

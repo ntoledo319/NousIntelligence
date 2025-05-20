@@ -1,26 +1,17 @@
-{% extends "layout.html" %}
+{% extends "simplified_layout.html" %}
+
+{% block title %}Login | NOUS{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-lg-12 mb-4 text-center">
-            <div class="d-flex justify-content-center">
-                <div class="position-relative">
-                    <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" alt="NOUS Logo" class="hero-logo mb-3" style="max-height: 150px;">
-                    <div class="hero-badge position-absolute end-0 bottom-0 transform-translate bg-gradient-primary text-white px-2 py-1 rounded-pill fs-sm">
-                        <i class="fas fa-shield-alt me-1"></i>Secure
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <h2 class="mb-1">Welcome to NOUS</h2>
+                        <p class="text-muted">Sign in to continue to your personal assistant</p>
                     </div>
-                </div>
-            </div>
-            <h1 class="display-4 mb-2 fw-bold text-gradient">NOUS</h1>
-            <p class="lead mb-4">Your comprehensive AI-powered personal assistant</p>
-        </div>
-        <div class="col-md-6">
-            <div class="nous-card">
-                <div class="card-body p-lg-5 p-4">
-                    <h3 class="mb-4 text-center">Sign In</h3>
-                    
-                    <p class="text-center mb-4">Access your personal assistant dashboard and beta features</p>
                     
                     {% with messages = get_flashed_messages(with_categories=true) %}
                         {% if messages %}
@@ -32,51 +23,46 @@
                             {% endfor %}
                         {% endif %}
                     {% endwith %}
-                    
-                    <div class="text-center mb-4">
-                        <a href="{{ url_for('auth.login') }}" class="btn btn-lg position-relative overflow-hidden mobile-login-btn" style="background-color: #fff; color: #444; border: 1px solid #ddd; width: 100%; padding: 15px; font-size: 16px; touch-action: manipulation; -webkit-tap-highlight-color: transparent;">
-                            <span class="position-relative z-1">
-                                <i class="fab fa-google me-2" style="color: #4285F4;"></i>
-                                Sign in with Google
-                            </span>
-                            <div class="btn-gradient-overlay" style="background: linear-gradient(135deg, rgba(66,133,244,0.1) 0%, rgba(66,133,244,0) 100%);"></div>
+
+                    <div class="d-grid mb-3">
+                        <a href="{{ url_for('google_auth.login') }}" class="btn btn-primary btn-lg">
+                            <i class="fab fa-google me-2"></i> Sign in with Google
                         </a>
-                        
-                        <div class="small text-muted mt-3">
-                            <i class="fas fa-lock me-1"></i> Secure Google authentication
-                        </div>
                     </div>
                     
-                    <div class="text-center mt-4">
-                        <p class="text-muted">By signing in, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
+                    <div class="text-center text-muted">
+                        <p class="small mb-0">
+                            By signing in, you agree to our 
+                            <a href="#" class="text-decoration-none">Terms of Service</a> and 
+                            <a href="#" class="text-decoration-none">Privacy Policy</a>
+                        </p>
                     </div>
+                    
+                    {% if config.get('ENABLE_LOCAL_AUTH', False) %}
+                    <div class="divider d-flex align-items-center my-4">
+                        <p class="text-center mx-3 mb-0 text-muted">OR</p>
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('auth.login') }}">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-outline-secondary">Sign In with Email</button>
+                        </div>
+                    </form>
+                    
+                    <div class="mt-4 text-center">
+                        <p class="mb-0">Don't have an account? <a href="{{ url_for('auth.register') }}">Register</a></p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
-            
-            {% if config.get('BETA_MODE', True) %}
-            <div class="mt-4 nous-card p-4">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="badge bg-warning text-dark p-2 me-2">
-                        <i class="fas fa-flask me-1"></i> Beta Program
-                    </div>
-                    <div class="badge bg-info text-white p-2">
-                        <i class="fas fa-users me-1"></i> Limited Spots
-                    </div>
-                </div>
-                
-                <h5 class="mb-2">Join Our Beta Testing Program</h5>
-                <p class="mb-3">Experience our cutting-edge features before anyone else and help shape the future of NOUS.</p>
-                
-                <div class="d-flex flex-column flex-md-row gap-2">
-                    <a href="{{ url_for('beta.features') }}" class="btn btn-outline-primary btn-sm flex-grow-1">
-                        <i class="fas fa-star me-1"></i> Beta Features
-                    </a>
-                    <a href="{{ url_for('beta.request_access') }}" class="btn btn-success btn-sm flex-grow-1">
-                        <i class="fas fa-user-plus me-1"></i> Request Access
-                    </a>
-                </div>
-            </div>
-            {% endif %}
         </div>
     </div>
 </div>

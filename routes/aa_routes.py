@@ -10,8 +10,8 @@ from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, session, current_app, abort, Response
 from flask_login import login_required, current_user
 
-# Import database from the app
-from app import db
+# Import database from app_factory instead of app to avoid circular imports
+from app_factory import db
 
 # Import AA recovery models from helper
 from utils.aa_helper import (

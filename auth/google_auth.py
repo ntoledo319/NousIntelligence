@@ -1,351 +1,201 @@
 """
-Google OAuth Authentication Module
+Google Authentication Provider
 
-This module provides Google OAuth authentication using the recommended
-oauthlib and requests approach for better compatibility and security.
+This module provides Google OAuth authentication for the application.
+It handles the OAuth flow for Google sign-in.
 
-@module auth.google_auth
-@author NOUS Development Team
+@module google_auth
+@description Google OAuth authentication provider
 """
 
 import os
-import json
 import logging
-import uuid
+import secrets
+import json
 from datetime import datetime
-
+from flask import Blueprint, redirect, request, url_for, session, flash, current_app
+from flask_login import login_user
 import requests
-from flask import Blueprint, redirect, request, url_for, flash, session, current_app, render_template
-from flask_login import login_user, logout_user, login_required, current_user
-from oauthlib.oauth2 import WebApplicationClient
+import uuid
 
-from models import User, db, UserSettings, ConversationDifficulty, BetaTester
+from models import User, UserSettings, db
 
-# Set up logger
+# Configure logging
 logger = logging.getLogger(__name__)
 
-# Google OAuth credentials
-GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
-GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
-
-# Google OAuth discovery document URL
-GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
-
 # Create blueprint
-google_bp = Blueprint("google_auth", __name__)
+google_bp = Blueprint('google_auth', __name__, url_prefix='/auth/google')
 
-# Initialize OAuth client
-client = WebApplicationClient(GOOGLE_CLIENT_ID)
+# Try to load credentials from client_secret.json if it exists
+def _load_client_secret():
+    """Attempt to load OAuth credentials from client_secret.json"""
+    try:
+        if os.path.exists('client_secret.json'):
+            with open('client_secret.json', 'r') as f:
+                client_info = json.load(f)
+                if 'web' in client_info:
+                    web_info = client_info['web']
+                    return {
+                        'client_id': web_info.get('client_id'),
+                        'client_secret': web_info.get('client_secret'),
+                        'redirect_uri': web_info.get('redirect_uris', [])[0] if web_info.get('redirect_uris') else None
+                    }
+    except Exception as e:
+        logger.error(f"Error loading client_secret.json: {str(e)}")
+    return {}
 
-@google_bp.route("/login")
+# Get credentials from environment or client_secret.json
+creds = _load_client_secret()
+
+# OAuth configuration
+CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID') or creds.get('client_id')
+CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET') or creds.get('client_secret')
+REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI') or creds.get('redirect_uri') or 'http://localhost:8080/auth/google/callback'
+
+# Log configuration status
+if CLIENT_ID and CLIENT_SECRET:
+    logger.info("Google OAuth credentials loaded successfully")
+else:
+    logger.warning("Google OAuth credentials not found or incomplete")
+
+# OAuth endpoints
+AUTH_URI = 'https://accounts.google.com/o/oauth2/auth'
+TOKEN_URI = 'https://oauth2.googleapis.com/token'
+USER_INFO_URI = 'https://www.googleapis.com/oauth2/v3/userinfo'
+
+@google_bp.route('/login')
 def login():
-    """
-    Initiate Google OAuth login flow
-    
-    This starts the OAuth process by redirecting the user to Google's authentication page
-    """
-    logger.info("Starting Google OAuth login flow")
-    
-    # Check if we have Google credentials
-    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+    """Initiate Google OAuth flow"""
+    # Check if credentials are available
+    if not CLIENT_ID or not CLIENT_SECRET:
+        flash('Google OAuth credentials not configured. Contact administrator.', 'danger')
         logger.error("Google OAuth credentials not configured")
+        return redirect(url_for('index.index'))
         
-        # For development only - create a test user and login
-        if current_app.config.get('DEBUG', False):
-            try:
-                # Check if our test user exists
-                test_user = User.query.filter_by(email="test@example.com").first()
-                
-                if not test_user:
-                    # Create a test user for development
-                    test_user = User(
-                        id=str(uuid.uuid4()),
-                        email="test@example.com",
-                        first_name="Test",
-                        last_name="User",
-                        profile_image_url="https://ui-avatars.com/api/?name=Test+User",
-                        account_active=True
-                    )
-                    
-                    # Create default settings
-                    settings = UserSettings(
-                        user_id=test_user.id,
-                        theme="light",
-                        conversation_difficulty=ConversationDifficulty.INTERMEDIATE,
-                        enable_notifications=True,
-                        default_location=None
-                    )
-                    
-                    # Save to database
-                    db.session.add(test_user)
-                    db.session.add(settings)
-                    db.session.commit()
-                    
-                    logger.info("Created test user for development")
-                
-                # Log the test user in
-                login_user(test_user)
-                flash("Logged in with test account (Google credentials not configured)", "warning")
-                return redirect("/dashboard")
-            
-            except Exception as e:
-                logger.error(f"Failed to create test user: {str(e)}")
-                
-        # Show proper error for production environment
-        flash("Google authentication is not properly configured. Please contact the administrator.", "danger")
-        return redirect(url_for("index.index"))
+    # Generate a state token for CSRF protection
+    state = secrets.token_hex(16)
+    session['oauth_state'] = state
     
-    # Get Google's OAuth endpoints from discovery document
-    try:
-        google_provider_cfg = requests.get(GOOGLE_DISCOVERY_URL).json()
-        authorization_endpoint = google_provider_cfg["authorization_endpoint"]
-    except Exception as e:
-        logger.error(f"Failed to fetch Google discovery document: {str(e)}")
-        flash("Could not connect to Google authentication service. Please try again later.", "danger")
-        return redirect(url_for("index.index"))
+    # Build the authorization URL
+    auth_params = {
+        'client_id': CLIENT_ID,
+        'redirect_uri': REDIRECT_URI,
+        'response_type': 'code',
+        'scope': 'openid profile email',
+        'state': state,
+        'prompt': 'select_account',
+        'access_type': 'offline'  # For refresh token
+    }
     
-    # Build the redirect URI
-    # First check if we're in a Replit environment
-    if 'REPLIT_SLUG' in os.environ:
-        # Use the Replit domain
-        replit_domain = os.environ.get("REPLIT_SLUG", "mynous") + ".replit.app"
-        redirect_uri = f"https://{replit_domain}/auth/callback/google"
-    else:
-        # Fall back to constructing from the request
-        base_url = request.url_root.rstrip('/')
-        redirect_uri = f"{base_url}/auth/callback/google"
+    # Convert params to URL query string
+    auth_url = f"{AUTH_URI}?{'&'.join(f'{k}={v}' for k, v in auth_params.items())}"
     
-    logger.info(f"Using redirect URI: {redirect_uri}")
+    # Log the OAuth attempt
+    logger.info(f"Starting Google OAuth flow with redirect URI: {REDIRECT_URI}")
     
-    # Create the OAuth request URI
-    request_uri = client.prepare_request_uri(
-        authorization_endpoint,
-        redirect_uri=redirect_uri,
-        scope=["openid", "email", "profile"],
-    )
-    
-    return redirect(request_uri)
+    # Redirect user to Google's authorization page
+    return redirect(auth_url)
 
-@google_bp.route("/callback/google")
+@google_bp.route('/callback')
 def callback():
-    """
-    Handle OAuth callback from Google
+    """Handle OAuth callback from Google"""
+    # Verify state token to prevent CSRF attacks
+    state = request.args.get('state')
+    if state != session.get('oauth_state'):
+        flash('Invalid authentication state', 'danger')
+        logger.warning("OAuth state mismatch - possible CSRF attempt")
+        return redirect(url_for('auth.login'))
     
-    This processes the response from Google's authentication server
-    """
-    logger.info("Received Google OAuth callback")
-    
-    # Check for error in callback
-    if request.args.get("error"):
-        error = request.args.get("error")
-        logger.error(f"Google OAuth error: {error}")
-        flash(f"Authentication error: {error}", "danger")
-        return redirect(url_for("index.index"))
-    
-    # Get authorization code from callback
-    code = request.args.get("code")
+    # Get authorization code
+    code = request.args.get('code')
     if not code:
-        logger.error("No OAuth code received in callback")
-        flash("Authentication failed: No authorization code received", "danger")
-        return redirect(url_for("auth.login"))
+        flash('Authentication failed', 'danger')
+        logger.warning("No authorization code received from Google")
+        return redirect(url_for('auth.login'))
     
-    # Get token endpoint from discovery document
     try:
-        google_provider_cfg = requests.get(GOOGLE_DISCOVERY_URL).json()
-        token_endpoint = google_provider_cfg["token_endpoint"]
-    except Exception as e:
-        logger.error(f"Failed to fetch Google discovery document: {str(e)}")
-        flash("Authentication error: Could not connect to Google service", "danger")
-        return redirect(url_for("index.index"))
-    
-    # Build the redirect URI (must match the one used in the login route)
-    if 'REPLIT_SLUG' in os.environ:
-        replit_domain = os.environ.get("REPLIT_SLUG", "mynous") + ".replit.app"
-        redirect_uri = f"https://{replit_domain}/auth/callback/google"
-    else:
-        base_url = request.url_root.rstrip('/')
-        redirect_uri = f"{base_url}/auth/callback/google"
-    
-    # Prepare the token request
-    try:
-        token_url, headers, body = client.prepare_token_request(
-            token_endpoint,
-            authorization_response=request.url,
-            redirect_url=redirect_uri,
-            code=code
-        )
+        # Exchange code for access token
+        token_data = {
+            'client_id': CLIENT_ID,
+            'client_secret': CLIENT_SECRET,
+            'code': code,
+            'grant_type': 'authorization_code',
+            'redirect_uri': REDIRECT_URI
+        }
+        token_response = requests.post(TOKEN_URI, data=token_data, timeout=10)
+        token_response.raise_for_status()
+        token_json = token_response.json()
         
-        # Send the token request to Google
-        token_response = requests.post(
-            token_url,
-            headers=headers,
-            data=body,
-            auth=(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET),
-        )
+        # Get user info using the access token
+        headers = {'Authorization': f"Bearer {token_json['access_token']}"}
+        user_info_response = requests.get(USER_INFO_URI, headers=headers, timeout=10)
+        user_info_response.raise_for_status()
+        user_info = user_info_response.json()
         
-        # Parse the token response
-        client.parse_request_body_response(json.dumps(token_response.json()))
-    except Exception as e:
-        logger.error(f"Token exchange failed: {str(e)}")
-        flash("Authentication failed: Could not exchange token", "danger")
-        return redirect(url_for("auth.login"))
-    
-    # Get user info from Google
-    try:
-        userinfo_endpoint = google_provider_cfg["userinfo_endpoint"]
-        uri, headers, body = client.add_token(userinfo_endpoint)
-        userinfo_response = requests.get(uri, headers=headers, data=body)
-        userinfo = userinfo_response.json()
-    except Exception as e:
-        logger.error(f"Could not get user info from Google: {str(e)}")
-        flash("Authentication failed: Could not retrieve user information", "danger")
-        return redirect(url_for("auth.login"))
-    
-    # Verify the user's email is confirmed by Google
-    if not userinfo.get("email_verified", False):
-        logger.warning(f"User tried to log in with unverified email: {userinfo.get('email')}")
-        flash("Authentication failed: Email not verified by Google", "danger")
-        return redirect(url_for("auth.login"))
-    
-    # Get user information
-    email = userinfo["email"]
-    first_name = userinfo.get("given_name", "")
-    last_name = userinfo.get("family_name", "")
-    profile_image = userinfo.get("picture", "")
-    
-    # Find or create user
-    user = User.query.filter_by(email=email).first()
-    
-    if not user:
-        # Create a new user record
-        logger.info(f"Creating new user account for: {email}")
-        user = User(
-            id=str(uuid.uuid4()),
-            email=email,
-            first_name=first_name,
-            last_name=last_name,
-            profile_image_url=profile_image,
-            account_active=True
-        )
-        
-        # Create default user settings
-        settings = UserSettings(
-            user_id=user.id,
-            theme="light",
-            conversation_difficulty=ConversationDifficulty.INTERMEDIATE,
-            enable_notifications=True,
-            default_location=None
-        )
-        
-        # Add to beta testers if beta mode is enabled
-        if current_app.config.get('BETA_MODE', False):
-            max_testers = current_app.config.get('MAX_BETA_TESTERS', 30)
-            current_tester_count = BetaTester.query.count()
+        # Find or create user
+        email = user_info.get('email')
+        if not email:
+            logger.error("No email found in Google user profile")
+            flash('Could not retrieve email from Google', 'danger')
+            return redirect(url_for('auth.login'))
             
-            if current_tester_count < max_testers:
-                beta_tester = BetaTester(
-                    user_id=user.id,
-                    access_granted=True,
-                    invite_code=None,
-                    granted_at=datetime.utcnow()
-                )
-                db.session.add(beta_tester)
-                logger.info(f"Added {email} to beta testers (automatic enrollment)")
+        user = User.query.filter_by(email=email).first()
         
-        # Save the user and settings
-        db.session.add(user)
-        db.session.add(settings)
-        
-        try:
+        if not user:
+            # Create new user
+            logger.info(f"Creating new user from Google OAuth: {email}")
+            user = User(
+                id=str(uuid.uuid4()),
+                email=email,
+                first_name=user_info.get('given_name', ''),
+                last_name=user_info.get('family_name', ''),
+                profile_image_url=user_info.get('picture'),
+                account_active=True,
+                email_verified=user_info.get('email_verified', False)
+            )
+            
+            # Add user to database
+            db.session.add(user)
+            
+            # Create default settings for the user
+            settings = UserSettings(user_id=user.id)
+            db.session.add(settings)
             db.session.commit()
-            logger.info(f"New user account created for: {email}")
-        except Exception as e:
-            db.session.rollback()
-            logger.error(f"Failed to create new user: {str(e)}")
-            flash("Account creation failed. Please try again later.", "danger")
-            return redirect(url_for("auth.login"))
-    else:
-        # Update existing user's profile information
-        user.first_name = first_name
-        user.last_name = last_name
-        user.profile_image_url = profile_image
-        user.last_login = datetime.utcnow()
-        
-        try:
+            
+            # Log user creation
+            logger.info(f"New user created via Google OAuth: {email}")
+            
+            # Redirect to welcome page after first login
+            login_user(user)
+            flash('Welcome! Your account has been created.', 'success')
+            return redirect(url_for('welcome'))
+        else:
+            # Update existing user info
+            logger.info(f"User logged in via Google OAuth: {email}")
+            user.first_name = user_info.get('given_name', user.first_name)
+            user.last_name = user_info.get('family_name', user.last_name)
+            user.profile_image_url = user_info.get('picture', user.profile_image_url)
+            user.last_login = datetime.utcnow()
+            user.email_verified = user_info.get('email_verified', user.email_verified)
             db.session.commit()
-            logger.info(f"Updated existing user profile for: {email}")
-        except Exception as e:
-            db.session.rollback()
-            logger.error(f"Failed to update user profile: {str(e)}")
-    
-    # Log the user in
-    login_user(user)
-    logger.info(f"User logged in successfully: {email}")
-    
-    # Get the next URL if it was stored in the session
-    next_url = session.pop('next', None)
-    
-    # Redirect to dashboard or next URL
-    try:
-        if user.first_name:
-            welcome_message = f"Welcome back, {user.first_name}!"
-        else:
-            welcome_message = "Welcome back!"
-        
-        flash(welcome_message, "success")
-        logger.info(f"User successfully authenticated: {user.email}")
-        
-        if next_url:
-            # Make sure next_url is a valid relative URL
-            if next_url.startswith('/'):
-                logger.info(f"Redirecting to: {next_url}")
-                return redirect(next_url)
-            else:
-                logger.warning(f"Invalid next_url: {next_url}")
-                return redirect('/')
-        else:
-            # Use absolute URL to avoid routing issues
-            logger.info("Redirecting to dashboard")
-            return redirect('/dashboard')
+            
+            # Log in existing user
+            login_user(user)
+            flash('You have been logged in successfully.', 'success')
+            
+            # Redirect to intended page if set, otherwise dashboard
+            next_page = session.get('next_url')
+            if next_page:
+                session.pop('next_url', None)
+                return redirect(next_page)
+            
+            return redirect(url_for('dashboard.dashboard'))
+            
+    except requests.RequestException as e:
+        logger.error(f"Google API request error: {str(e)}")
+        flash('Authentication service unavailable. Please try again later.', 'danger')
+        return redirect(url_for('auth.login'))
     except Exception as e:
-        logger.error(f"Error during post-authentication redirect: {str(e)}")
-        # Fall back to home page on any error
-        return redirect('/')
-
-@google_bp.route("/logout")
-@login_required
-def logout():
-    """
-    Log the user out
-    
-    Clears the session and redirects to the home page
-    """
-    # Log the user out
-    logout_user()
-    
-    # Clear the session
-    session.clear()
-    
-    # Flash a message
-    flash("You have been logged out successfully.", "success")
-    
-    # Redirect to the home page
-    return redirect(url_for("index.index"))
-
-def init_app(app):
-    """
-    Register the Google auth blueprint with the app
-    
-    Args:
-        app: Flask application instance
-    """
-    # Register the blueprint with correct URL prefix
-    app.register_blueprint(google_bp, url_prefix="/auth")
-    
-    # Add a root-level callback route for better compatibility
-    @app.route("/auth/callback")
-    def google_callback_root():
-        """Root-level handler for Google OAuth callback"""
-        return redirect(url_for("google_auth.callback"))
-    
-    logger.info("Google authentication configured successfully")
+        logger.error(f"Google authentication error: {str(e)}")
+        flash('Authentication failed. Please try again.', 'danger')
+        return redirect(url_for('auth.login'))

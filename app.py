@@ -1,35 +1,61 @@
 """
-NOUS Application Instance
+Main application module
+======================
 
-This module provides a singleton Flask application instance for use by scripts
-that need to access the Flask app outside of the main application run context.
-It uses the application factory pattern to ensure consistency.
-
-Note: This approach maintains backward compatibility with scripts that
-import directly from app while using the more flexible factory pattern.
+This module initializes the NOUS Assistant Flask application and registers all routes.
 """
 
-import os
+from flask import Flask, render_template
+from flask_login import LoginManager
 import logging
-from app_factory import create_app
+import os
 
-# Configure logging
+# Import blueprints
+from routes.meet_routes import meet_bp
+from routes.chat_routes import chat_bp, chat_api_bp
+
+# Setup logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# Create the application instance using the factory
-app = create_app()
-
-# Make sure to import models after app is created to avoid circular imports
-with app.app_context():
-    from models import db
+def create_app():
+    """Create and configure the Flask application"""
+    app = Flask(__name__)
     
-    # This is redundant with app_factory but kept for backward compatibility
-    try:
-        db.create_all()
-        logger.info("Database tables created (if they didn't exist already)")
-    except Exception as e:
-        logger.error(f"Error creating database tables: {str(e)}")
+    # Load configuration
+    app.config.from_pyfile('config.py')
+    
+    # Initialize Flask-Login
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+    login_manager.login_view = 'auth.login'
+    
+    # Register blueprints
+    app.register_blueprint(meet_bp)
+    
+    # Register chat blueprints
+    app.register_blueprint(chat_bp)
+    app.register_blueprint(chat_api_bp)
+    
+    # Root route
+    @app.route('/')
+    def index():
+        return render_template('index.html')
+    
+    # Error handlers
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template('errors/404.html'), 404
+    
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        return render_template('errors/500.html'), 500
+    
+    return app
+
+if __name__ == '__main__':
+    app = create_app()
+    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

@@ -1,0 +1,77 @@
+{% extends "layout.html" %}
+
+{% block title %}Google Forms Dashboard{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Google Forms Dashboard</h1>
+            <p class="lead">Create and manage Google Forms for recovery tracking and therapy support.</p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Create New Form</h5>
+                    <p class="card-text">Create a custom Google Form from scratch.</p>
+                    <a href="{{ url_for('forms.create') }}" class="btn btn-primary">Create Form</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Recovery Assessment</h5>
+                    <p class="card-text">Create assessment forms for tracking recovery progress.</p>
+                    <a href="{{ url_for('forms.recovery_assessment') }}" class="btn btn-primary">Create Assessment</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Anonymous Sharing</h5>
+                    <p class="card-text">Create anonymous sharing forms for group therapy.</p>
+                    <a href="{{ url_for('forms.anonymous_sharing') }}" class="btn btn-primary">Create Sharing Form</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-2">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Daily Check-In</h5>
+                    <p class="card-text">Create daily check-in forms for recovery monitoring.</p>
+                    <a href="{{ url_for('forms.daily_check_in') }}" class="btn btn-primary">Create Check-In</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <h2 class="mb-3">Your Recent Forms</h2>
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> Your recently created forms will appear here. Connect to your Google account to view and manage your forms.
+            </div>
+            
+            <!-- This would be populated with actual forms data in a real implementation -->
+            <div class="list-group">
+                <a href="#" class="list-group-item list-group-item-action disabled">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">No forms available</h5>
+                        <small>Connect your Google account to see your forms</small>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

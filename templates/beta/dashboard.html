@@ -1,250 +1,136 @@
-{% extends "base.html" %}
+{% extends 'layout.html' %}
 
-{% block title %}Beta Tester Dashboard{% endblock %}
+{% block title %}Beta Dashboard{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1 class="mb-4">Beta Tester Dashboard</h1>
-
-    <div class="alert alert-info">
-        <i class="fas fa-flask"></i> You're a beta tester! Thank you for helping us improve.
-    </div>
-
-    {% if current_user.is_administrator() %}
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Admin: Beta Test Overview</h5>
-        </div>
-        <div class="card-body">
-            {% if stats %}
-            <div class="row">
-                <div class="col-md-3">
-                    <div class="card text-center">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ stats.active }}</h5>
-                            <p class="card-text">Active Testers</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card text-center">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ stats.inactive }}</h5>
-                            <p class="card-text">Inactive Testers</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card text-center">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ stats.total }}</h5>
-                            <p class="card-text">Total Testers</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card text-center">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ stats.available_slots }}</h5>
-                            <p class="card-text">Available Slots</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-4">
-                <a href="{{ url_for('beta.manage_testers') }}" class="btn btn-primary">
-                    <i class="fas fa-users"></i> Manage Testers
-                </a>
-                <a href="{{ url_for('beta.feedback_report') }}" class="btn btn-info">
-                    <i class="fas fa-chart-bar"></i> Feedback Report
-                </a>
-            </div>
-            {% endif %}
-            
-            {% if recent_feedback %}
-            <h5 class="mt-4">Recent Feedback</h5>
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Category</th>
-                            <th>Severity</th>
-                            <th>Status</th>
-                            <th>Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in recent_feedback %}
-                        <tr>
-                            <td>{{ item.title }}</td>
-                            <td>{{ item.category }}</td>
-                            <td>
-                                {% if item.severity == 1 %}
-                                <span class="badge bg-danger">Critical</span>
-                                {% elif item.severity == 2 %}
-                                <span class="badge bg-warning">High</span>
-                                {% elif item.severity == 3 %}
-                                <span class="badge bg-primary">Medium</span>
-                                {% elif item.severity == 4 %}
-                                <span class="badge bg-info">Low</span>
-                                {% else %}
-                                <span class="badge bg-secondary">Trivial</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if item.status == 'new' %}
-                                <span class="badge bg-secondary">New</span>
-                                {% elif item.status == 'in_progress' %}
-                                <span class="badge bg-primary">In Progress</span>
-                                {% elif item.status == 'resolved' %}
-                                <span class="badge bg-success">Resolved</span>
-                                {% else %}
-                                <span class="badge bg-danger">Won't Fix</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ item.created_at.strftime('%Y-%m-%d') }}</td>
-                            <td>
-                                <a href="{{ url_for('beta.view_feedback', feedback_id=item.id) }}" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Tester's feedback -->
+<div class="container my-5">
     <div class="row">
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-header bg-success text-white">
+        <div class="col-lg-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3">
+                    <i class="fas fa-flask me-2"></i> Beta Tester Dashboard
+                </h1>
+                <div>
+                    <a href="{{ url_for('beta.index') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Beta Home
+                    </a>
+                    <button type="button" class="btn btn-outline-danger btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#leaveModal">
+                        <i class="fas fa-sign-out-alt me-1"></i> Leave Beta
+                    </button>
+                </div>
+            </div>
+            
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Welcome to the Beta Program!</strong> You have access to experimental features. 
+                Please provide feedback and report any issues you encounter.
+            </div>
+            
+            <!-- Beta Tester Status Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">Your Beta Status</h5>
                 </div>
                 <div class="card-body">
-                    {% if tester %}
-                    <p><strong>Status:</strong> 
-                        {% if tester.status == 'active' %}
-                        <span class="badge bg-success">Active</span>
-                        {% else %}
-                        <span class="badge bg-secondary">Inactive</span>
-                        {% endif %}
-                    </p>
-                    <p><strong>Feedback Provided:</strong> {{ tester.feedback_count }}</p>
-                    <p><strong>Beta Access Since:</strong> {{ tester.activated_at.strftime('%Y-%m-%d') }}</p>
-                    <p><strong>Last Activity:</strong> 
-                        {% if tester.last_activity %}
-                        {{ tester.last_activity.strftime('%Y-%m-%d %H:%M') }}
-                        {% else %}
-                        No activity recorded
-                        {% endif %}
-                    </p>
-                    {% else %}
-                    <p>No beta tester status information available.</p>
-                    {% endif %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th style="width: 40%">Status:</th>
+                                    <td>
+                                        <span class="badge bg-success">Active</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Joined:</th>
+                                    <td>{{ beta_tester.created_at.strftime('%Y-%m-%d') }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Access Code:</th>
+                                    <td><code>{{ beta_tester.access_code }}</code></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-secondary">
+                                <h6 class="alert-heading">Beta Tester Guidelines</h6>
+                                <ul class="mb-0 small">
+                                    <li>Try new features and provide feedback</li>
+                                    <li>Report any bugs or issues you encounter</li>
+                                    <li>Check for updates regularly</li>
+                                    <li>Your input helps shape the final product</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="col-md-8">
-            <div class="card h-100">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">Beta Test Guidelines</h5>
+            
+            <!-- Beta Features List -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Available Beta Features</h5>
                 </div>
                 <div class="card-body">
-                    <h6>What We Need From You:</h6>
-                    <ul>
-                        <li>Test all features thoroughly and report any issues</li>
-                        <li>Provide detailed feedback about your experience</li>
-                        <li>Suggest improvements or new features</li>
-                        <li>Report bugs with clear steps to reproduce</li>
-                    </ul>
-                    
-                    <h6>Current Test Focus Areas:</h6>
-                    <ul>
-                        <li>User interface and experience</li>
-                        <li>Voice recognition accuracy</li>
-                        <li>AI response quality and helpfulness</li>
-                        <li>Third-party integrations (Google, Spotify)</li>
-                        <li>Database storage and retrieval of personal information</li>
-                    </ul>
-                    
-                    <a href="{{ url_for('beta.submit_feedback') }}" class="btn btn-primary mt-3">
-                        <i class="fas fa-comment-alt"></i> Submit Feedback
-                    </a>
+                    <div class="row">
+                        {% for feature in beta_features %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <h5 class="card-title">
+                                            <i class="{{ feature.icon }} me-2"></i> {{ feature.name }}
+                                        </h5>
+                                        <span class="badge {% if feature.status == 'Available' %}bg-success{% else %}bg-warning{% endif %}">
+                                            {{ feature.status }}
+                                        </span>
+                                    </div>
+                                    <p class="card-text">{{ feature.description }}</p>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    {% if feature.status == 'Available' %}
+                                    <a href="{{ feature.url }}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-external-link-alt me-1"></i> Try Feature
+                                    </a>
+                                    <a href="#" class="btn btn-outline-secondary btn-sm ms-2">
+                                        <i class="fas fa-comment-alt me-1"></i> Feedback
+                                    </a>
+                                    {% else %}
+                                    <button class="btn btn-secondary btn-sm" disabled>
+                                        <i class="fas fa-clock me-1"></i> Coming Soon
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Your submitted feedback -->
-    {% if feedback %}
-    <div class="card mt-4">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Your Submitted Feedback</h5>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Category</th>
-                            <th>Severity</th>
-                            <th>Status</th>
-                            <th>Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in feedback %}
-                        <tr>
-                            <td>{{ item.title }}</td>
-                            <td>{{ item.category }}</td>
-                            <td>
-                                {% if item.severity == 1 %}
-                                <span class="badge bg-danger">Critical</span>
-                                {% elif item.severity == 2 %}
-                                <span class="badge bg-warning">High</span>
-                                {% elif item.severity == 3 %}
-                                <span class="badge bg-primary">Medium</span>
-                                {% elif item.severity == 4 %}
-                                <span class="badge bg-info">Low</span>
-                                {% else %}
-                                <span class="badge bg-secondary">Trivial</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if item.status == 'new' %}
-                                <span class="badge bg-secondary">New</span>
-                                {% elif item.status == 'in_progress' %}
-                                <span class="badge bg-primary">In Progress</span>
-                                {% elif item.status == 'resolved' %}
-                                <span class="badge bg-success">Resolved</span>
-                                {% else %}
-                                <span class="badge bg-danger">Won't Fix</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ item.created_at.strftime('%Y-%m-%d') }}</td>
-                            <td>
-                                <a href="{{ url_for('beta.view_feedback', feedback_id=item.id) }}" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+</div>
+
+<!-- Leave Beta Modal -->
+<div class="modal fade" id="leaveModal" tabindex="-1" aria-labelledby="leaveModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="leaveModalLabel">Confirm Leave Beta Program</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to leave the beta testing program? You will lose access to all beta features.</p>
+                
+                <form id="leaveForm" method="post" action="{{ url_for('beta.leave_beta') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="leaveForm" class="btn btn-danger">Leave Beta Program</button>
             </div>
         </div>
     </div>
-    {% endif %}
 </div>
 {% endblock %}

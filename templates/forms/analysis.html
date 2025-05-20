@@ -1,0 +1,102 @@
+{% extends "layout.html" %}
+
+{% block title %}Form Response Analysis{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Form Response Analysis</h1>
+            <p class="lead">AI-generated insights from your form responses.</p>
+            
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('forms.dashboard') }}">Forms Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('forms.view', form_id=form_id) }}">Form Details</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Analysis</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">AI Analysis of Form Responses</h5>
+                </div>
+                <div class="card-body">
+                    {% if analysis %}
+                        <div class="analysis-content">
+                            <!-- Response overview section -->
+                            <div class="mb-4">
+                                <h4>Response Overview</h4>
+                                <div class="row">
+                                    <div class="col-md-3 col-sm-6">
+                                        <div class="card bg-light mb-3">
+                                            <div class="card-body text-center">
+                                                <h5 class="card-title">{{ analysis.response_count }}</h5>
+                                                <p class="card-text">Total Responses</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Additional stats cards could go here -->
+                                </div>
+                            </div>
+
+                            <!-- Main AI analysis -->
+                            <div class="mb-4">
+                                <h4>Key Insights</h4>
+                                <div class="analysis-text">
+                                    {{ analysis.insights|safe }}
+                                </div>
+                            </div>
+
+                            <!-- Patterns and trends -->
+                            <div class="mb-4">
+                                <h4>Patterns & Trends</h4>
+                                <div class="analysis-text">
+                                    {{ analysis.patterns|safe }}
+                                </div>
+                            </div>
+
+                            <!-- Recommendations -->
+                            <div class="mb-4">
+                                <h4>Recommendations</h4>
+                                <div class="analysis-text">
+                                    {{ analysis.recommendations|safe }}
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> No analysis available. This could be because there are not enough responses or an error occurred during analysis.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{{ url_for('forms.view', form_id=form_id) }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Form
+                </a>
+                <a href="{{ url_for('forms.dashboard') }}" class="btn btn-primary">
+                    <i class="fas fa-th-large"></i> Forms Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Any additional JavaScript for the analysis page would go here
+    // For example, visualization libraries or interactive elements
+</script>
+{% endblock %}
+
+{% endblock %} 

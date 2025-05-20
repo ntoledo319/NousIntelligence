@@ -1,341 +1,116 @@
-{% extends "layout.html" %}
+{% extends "simplified_layout.html" %}
+
+{% block title %}NOUS - AI Personal Assistant{% endblock %}
 
 {% block content %}
-<div class="container">
-    <!-- Hero Section -->
-    <section class="hero-section">
-        <div class="row align-items-center">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <h1 class="hero-title">Your Personal AI Assistant</h1>
-                <p class="hero-subtitle">NOUS helps you organize your life, find information, and get things done - all through natural conversation.</p>
-                <div class="d-flex flex-wrap gap-2">
-                    <a href="#command-section" class="btn btn-primary" data-shortcut-key="t">
-                        <i class="fas fa-comment-dots me-2"></i>Start Conversation
-                    </a>
-                    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary" data-shortcut-key="d">
-                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                    </a>
-                </div>
-                
-                <!-- Feature Badges -->
-                <div class="mt-4 d-flex flex-wrap gap-2">
-                    <span class="badge bg-primary-soft">
-                        <i class="fas fa-microphone me-1"></i>Voice Enabled
-                    </span>
-                    <span class="badge bg-success-soft">
-                        <i class="fas fa-brain me-1"></i>AI-Powered
-                    </span>
-                    <span class="badge bg-info-soft">
-                        <i class="fas fa-lock me-1"></i>Private & Secure
-                    </span>
-                    <span class="badge bg-warning-soft">
-                        <i class="fas fa-bolt me-1"></i>Fast Responses
-                    </span>
-                </div>
-                
-                <!-- Keyboard Shortcuts Reference -->
-                <div class="mt-3">
-                    <small class="text-muted">
-                        <i class="fas fa-keyboard me-1"></i> Keyboard shortcuts: 
-                        Press <kbd>T</kbd> to talk to NOUS, 
-                        <kbd>D</kbd> for Dashboard, 
-                        <kbd>V</kbd> to activate voice input
-                    </small>
-                </div>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-6">
+            <h1 class="display-4 mb-4">Your Personal AI Assistant</h1>
+            <p class="lead">NOUS helps you organize your life, track important information, and stay connected with what matters.</p>
+            
+            {% if current_user.is_authenticated %}
+            <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
+                <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-primary btn-lg px-4 me-md-2">
+                    <i class="fas fa-columns me-2"></i> Go to Dashboard
+                </a>
             </div>
-            <div class="col-lg-6">
-                <div class="text-center">
-                    <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" alt="NOUS AI Assistant" class="hero-image img-fluid rounded shadow">
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Command Section -->
-    <section id="command-section" class="section-container mb-4">
-        <div class="row">
-            <div class="col-lg-8 mx-auto">
-                <div class="text-center mb-4">
-                    <h2 class="mb-3">How Can I Help You Today?</h2>
-                    <p class="text-secondary">Ask me anything or try one of the suggested commands below.</p>
-                </div>
-                
-                <!-- Command Input -->
-                <div class="command-input-wrapper">
-                    <form id="commandForm" action="{{ url_for('process_command') }}" method="post" class="d-flex">
-                        <input type="text" name="cmd" id="commandInput" class="form-control command-input" placeholder="Type your message or command..." required autocomplete="off">
-                        <button type="submit" class="btn btn-primary command-submit">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
+            {% else %}
+            <!-- Login Card -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-body p-4">
+                    <h3 class="mb-3">Sign In</h3>
+                    
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="{{ url_for('auth.login') }}">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                            <label class="form-check-label" for="remember">Remember me</label>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Sign In</button>
+                        </div>
                     </form>
-                </div>
-                
-                <!-- Voice Input Button -->
-                <div class="text-center mb-4">
-                    <button class="voice-record-btn" id="voiceBtn" title="Click to start voice recording" data-shortcut-key="v">
-                        <i class="fas fa-microphone"></i>
-                    </button>
-                    <p class="small text-secondary mt-2">Or speak to me - click the microphone to start</p>
-                    <div id="transcriptOutput" class="text-muted mt-2 small"></div>
-                </div>
-                
-                <!-- Suggested Commands -->
-                <div class="card border-0 bg-transparent">
-                    <div class="card-body p-0">
-                        <h5 class="text-secondary mb-3">Try asking:</h5>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <a href="{{ url_for('process_command') }}?cmd=What%20are%20all%20the%20things%20you%20can%20do" class="card card-modern text-decoration-none h-100">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <div class="card-icon-wrapper info-soft me-2">
-                                                <i class="fas fa-info-circle"></i>
-                                            </div>
-                                            <h5 class="card-title mb-0">What can you do?</h5>
-                                        </div>
-                                        <p class="card-text text-secondary small">Get a complete list of my capabilities and services</p>
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="col-md-6">
-                                <a href="{{ url_for('process_command') }}?cmd=Show%20my%20upcoming%20appointments" class="card card-modern text-decoration-none h-100">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <div class="card-icon-wrapper success-soft me-2">
-                                                <i class="fas fa-calendar-check"></i>
-                                            </div>
-                                            <h5 class="card-title mb-0">Appointments</h5>
-                                        </div>
-                                        <p class="card-text text-secondary small">View your upcoming medical appointments</p>
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="col-md-6">
-                                <a href="{{ url_for('process_command') }}?cmd=Show%20my%20shopping%20lists" class="card card-modern text-decoration-none h-100">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <div class="card-icon-wrapper warning-soft me-2">
-                                                <i class="fas fa-shopping-cart"></i>
-                                            </div>
-                                            <h5 class="card-title mb-0">Shopping Lists</h5>
-                                        </div>
-                                        <p class="card-text text-secondary small">See your shopping lists and items to buy</p>
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="col-md-6">
-                                <a href="{{ url_for('process_command') }}?cmd=Show%20medications%20that%20need%20refill" class="card card-modern text-decoration-none h-100">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <div class="card-icon-wrapper danger-soft me-2">
-                                                <i class="fas fa-pills"></i>
-                                            </div>
-                                            <h5 class="card-title mb-0">Medications</h5>
-                                        </div>
-                                        <p class="card-text text-secondary small">Check medications that need refills</p>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
+                    
+                    <div class="divider d-flex align-items-center my-3">
+                        <p class="text-center mx-3 mb-0 text-muted">OR</p>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <a href="{{ url_for('google_auth.login') }}" class="btn btn-outline-secondary">
+                            <i class="fab fa-google me-2"></i> Sign in with Google
+                        </a>
+                    </div>
+                    
+                    <div class="mt-3 text-center">
+                        <p class="mb-0">Don't have an account? <a href="{{ url_for('auth.register') }}">Register</a></p>
                     </div>
                 </div>
             </div>
+            {% endif %}
         </div>
-    </section>
+        <div class="col-lg-6 d-flex align-items-center justify-content-center">
+            <div class="text-center">
+                <i class="fas fa-brain fa-8x text-primary mb-4"></i>
+                <h3>Intelligent. Helpful. Personal.</h3>
+            </div>
+        </div>
+    </div>
     
-    <!-- Command Log -->
-    {% if session.history %}
-    <section class="section-container">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="mb-0">Recent Conversations</h2>
-            <a href="{{ url_for('clear_log') }}" class="btn btn-sm btn-danger">
-                <i class="fas fa-trash-alt me-1"></i>Clear History
-            </a>
+    {% if not current_user.is_authenticated %}
+    <div class="row mt-5">
+        <div class="col-lg-12">
+            <h2 class="text-center mb-4">Features</h2>
         </div>
-        
-        <div class="command-log">
-            {% for entry in session.history|reverse %}
-            <div class="command-log-entry">
-                <div class="command-question">
-                    <i class="fas fa-user-circle"></i>{{ entry.q }}
-                </div>
-                <div class="command-response mt-2">
-                    {{ entry.a|nl2br|safe }}
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-tasks fa-3x text-primary mb-3"></i>
+                    <h4 class="card-title">Task Management</h4>
+                    <p class="card-text">Keep track of your tasks, set reminders, and never miss an important deadline.</p>
                 </div>
             </div>
-            {% endfor %}
         </div>
-    </section>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-heartbeat fa-3x text-primary mb-3"></i>
+                    <h4 class="card-title">Health Tracking</h4>
+                    <p class="card-text">Monitor your health metrics, track medications, and manage appointments.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-cloud-sun fa-3x text-primary mb-3"></i>
+                    <h4 class="card-title">Weather Integration</h4>
+                    <p class="card-text">Get personalized weather forecasts and alerts based on your location.</p>
+                </div>
+            </div>
+        </div>
+    </div>
     {% endif %}
-    
-    <!-- Feature Highlights -->
-    <section class="my-5">
-        <div class="text-center mb-4">
-            <h2 class="mb-2">Features & Capabilities</h2>
-            <p class="text-secondary">Discover what your AI assistant can do for you</p>
-        </div>
-        
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="card card-modern h-100">
-                    <div class="card-body">
-                        <div class="feature-icon text-primary">
-                            <i class="fas fa-heartbeat"></i>
-                        </div>
-                        <h3 class="feature-title">Health Management</h3>
-                        <p class="feature-description">Keep track of doctor appointments, medications, and get weather-based pain forecasts.</p>
-                        <a href="{{ url_for('process_command') }}?cmd=Show%20my%20doctors" class="btn btn-sm btn-outline-primary mt-2">
-                            <i class="fas fa-arrow-right me-1"></i>Try it
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="card card-modern h-100">
-                    <div class="card-body">
-                        <div class="feature-icon text-success">
-                            <i class="fas fa-shopping-basket"></i>
-                        </div>
-                        <h3 class="feature-title">Shopping Assistant</h3>
-                        <p class="feature-description">Create and manage shopping lists, track products, and get reminders when it's time to reorder.</p>
-                        <a href="{{ url_for('process_command') }}?cmd=Create%20a%20new%20shopping%20list" class="btn btn-sm btn-outline-success mt-2">
-                            <i class="fas fa-arrow-right me-1"></i>Try it
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="card card-modern h-100">
-                    <div class="card-body">
-                        <div class="feature-icon text-info">
-                            <i class="fas fa-music"></i>
-                        </div>
-                        <h3 class="feature-title">Music Insights</h3>
-                        <p class="feature-description">Connect with Spotify to visualize your listening habits, discover new music, and get personalized recommendations.</p>
-                        <a href="{{ url_for('spotify_viz.spotify_report_page') }}" class="btn btn-sm btn-outline-info mt-2">
-                            <i class="fas fa-arrow-right me-1"></i>Try it
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="card card-modern h-100">
-                    <div class="card-body">
-                        <div class="feature-icon text-warning">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <h3 class="feature-title">Financial Tracking</h3>
-                        <p class="feature-description">Set budgets, track expenses, and monitor recurring payments to stay on top of your finances.</p>
-                        <a href="{{ url_for('process_command') }}?cmd=Show%20budget%20summary" class="btn btn-sm btn-outline-warning mt-2">
-                            <i class="fas fa-arrow-right me-1"></i>Try it
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="card card-modern h-100">
-                    <div class="card-body">
-                        <div class="feature-icon text-danger">
-                            <i class="fas fa-plane-departure"></i>
-                        </div>
-                        <h3 class="feature-title">Travel Planning</h3>
-                        <p class="feature-description">Plan trips, manage itineraries, track accommodations, and create packing lists for stress-free travel.</p>
-                        <a href="{{ url_for('process_command') }}?cmd=Show%20my%20upcoming%20trips" class="btn btn-sm btn-outline-danger mt-2">
-                            <i class="fas fa-arrow-right me-1"></i>Try it
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="card card-modern h-100">
-                    <div class="card-body">
-                        <div class="feature-icon" style="color: #6c5ce7;">
-                            <i class="fas fa-images"></i>
-                        </div>
-                        <h3 class="feature-title">Image Analysis</h3>
-                        <p class="feature-description">Upload images for AI-powered analysis and insights, helping you understand the visual content.</p>
-                        <a href="{{ url_for('image_routes.image_upload') }}" class="btn btn-sm btn-outline-primary mt-2">
-                            <i class="fas fa-arrow-right me-1"></i>Try it
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 </div>
-
-<!-- Mobile Bottom Navigation -->
-<div class="bottom-nav d-md-none">
-    <a href="{{ url_for('index') }}" class="bottom-nav-item active">
-        <i class="fas fa-home bottom-nav-icon"></i>
-        <span>Home</span>
-    </a>
-    <a href="{{ url_for('dashboard') }}" class="bottom-nav-item">
-        <i class="fas fa-tachometer-alt bottom-nav-icon"></i>
-        <span>Dashboard</span>
-    </a>
-    <a href="{{ url_for('user_guide') }}" class="bottom-nav-item">
-        <i class="fas fa-book bottom-nav-icon"></i>
-        <span>Guide</span>
-    </a>
-    <a href="{{ url_for('settings_page') }}" class="bottom-nav-item">
-        <i class="fas fa-cog bottom-nav-icon"></i>
-        <span>Settings</span>
-    </a>
-</div>
-
-<!-- Add body class for bottom nav spacing -->
-<script>
-document.body.classList.add('has-bottom-nav');
-</script>
-
-<!-- Voice recording functionality -->
-<script src="{{ url_for('static', filename='js/voice-recorder.js') }}"></script>
-
-<!-- Keyboard shortcuts -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Add keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-        // Only process if no input field is focused
-        if (document.activeElement.tagName !== 'INPUT' && 
-            document.activeElement.tagName !== 'TEXTAREA' &&
-            !document.activeElement.isContentEditable) {
-            
-            // Convert to lowercase for case-insensitive matching
-            const key = e.key.toLowerCase();
-            
-            // Find any element with matching shortcut
-            const elements = document.querySelectorAll('[data-shortcut-key="' + key + '"]');
-            if (elements.length > 0) {
-                e.preventDefault();
-                
-                // If it's a button, click it
-                if (elements[0].tagName === 'BUTTON') {
-                    elements[0].click();
-                } 
-                // If it's a link, navigate to it or scroll to it
-                else if (elements[0].tagName === 'A') {
-                    if (elements[0].getAttribute('href').startsWith('#')) {
-                        // It's an in-page link, scroll to it
-                        const targetId = elements[0].getAttribute('href').substring(1);
-                        const targetElement = document.getElementById(targetId);
-                        if (targetElement) {
-                            targetElement.scrollIntoView({ behavior: 'smooth' });
-                        }
-                    } else {
-                        // It's a navigation link, follow it
-                        window.location.href = elements[0].href;
-                    }
-                }
-            }
-        }
-    });
-});
-</script>
 {% endblock %}
