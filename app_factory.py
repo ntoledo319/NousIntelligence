@@ -145,6 +145,14 @@ def create_app(config_class=None):
             except ImportError:
                 logger.info("Settings cache initialization skipped")
                 
+            # Register template filters
+            try:
+                from utils.template_filters import register_template_filters
+                register_template_filters(app)
+                logger.info("Template filters registered")
+            except Exception as e:
+                logger.error(f"Error registering template filters: {str(e)}")
+                
             # Log startup performance
             startup_time = time.time() - _start_time
             logger.info(f"Application startup completed in {startup_time:.2f} seconds")
@@ -166,19 +174,5 @@ def create_app(config_class=None):
 # The register_blueprints function has been removed as its functionality is
 # already incorporated into the create_app function.
 
-def register_templates(app):
-    """
-    Register custom template filters and context processors
-    
-    Args:
-        app: Flask application instance
-    """
-    logger = logging.getLogger(__name__)
-    
-    # Register template filters
-    try:
-        from utils.template_filters import register_template_filters
-        register_template_filters(app)
-        logger.info("Template filters registered")
-    except Exception as e:
-        logger.error(f"Error registering template filters: {str(e)}") 
+# The register_templates function has been removed as its functionality is
+# now integrated directly into the create_app function for better organization.
