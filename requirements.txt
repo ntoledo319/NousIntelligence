@@ -47,3 +47,4 @@ openai==1.3.0  # For OpenRouter API integration (OpenRouter uses OpenAI-compatib
 pygame
 SpeechRecognition
 gTTS
+trafilatura
