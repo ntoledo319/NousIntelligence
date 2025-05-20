@@ -1,0 +1,166 @@
+{% extends "layout.html" %}
+
+{% block title %}Create Recovery Group Meeting{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Create Recovery Group Meeting</h1>
+            <p class="lead">Schedule a recovery group meeting with Google Meet.</p>
+            
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('meet.dashboard') }}">Meet Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Recovery Group</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Meeting Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('meet.recovery_group') }}">
+                        <div class="mb-3">
+                            <label for="group_type" class="form-label">Group Type *</label>
+                            <select class="form-select" id="group_type" name="group_type" required>
+                                <option value="AA">Alcoholics Anonymous (AA)</option>
+                                <option value="NA">Narcotics Anonymous (NA)</option>
+                                <option value="DBT">Dialectical Behavior Therapy (DBT)</option>
+                                <option value="SMART">SMART Recovery</option>
+                                <option value="ACA">Adult Children of Alcoholics (ACA)</option>
+                                <option value="AlAnon">Al-Anon Family Groups</option>
+                                <option value="OA">Overeaters Anonymous (OA)</option>
+                                <option value="GA">Gamblers Anonymous (GA)</option>
+                                <option value="other">Other Support Group</option>
+                            </select>
+                            <div class="form-text">Type of recovery group meeting</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="attendees" class="form-label">Attendees</label>
+                            <input type="text" class="form-control" id="attendees" name="attendees" placeholder="email1@example.com, email2@example.com">
+                            <div class="form-text">Comma-separated list of email addresses to invite (optional)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="start_date" class="form-label">Meeting Date *</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="start_time" class="form-label">Meeting Time *</label>
+                            <input type="time" class="form-control" id="start_time" name="start_time" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="duration" class="form-label">Duration (minutes) *</label>
+                            <input type="number" class="form-control" id="duration" name="duration" value="90" min="30" max="240" required>
+                            <div class="form-text">Meeting duration in minutes</div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="is_recurring" name="is_recurring" value="1">
+                            <label class="form-check-label" for="is_recurring">Recurring Meeting</label>
+                        </div>
+                        
+                        <div class="mb-3 recurring-options" style="display: none;">
+                            <label for="weekly_day" class="form-label">Recurrence Day</label>
+                            <select class="form-select" id="weekly_day" name="weekly_day">
+                                <option value="0">Monday</option>
+                                <option value="1">Tuesday</option>
+                                <option value="2">Wednesday</option>
+                                <option value="3">Thursday</option>
+                                <option value="4">Friday</option>
+                                <option value="5">Saturday</option>
+                                <option value="6">Sunday</option>
+                            </select>
+                            <div class="form-text">Day of the week for recurring meetings</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('meet.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Create Group Meeting</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recovery Group Information</h5>
+                </div>
+                <div class="card-body">
+                    <p>Creating a recovery group meeting will:</p>
+                    <ul>
+                        <li>Schedule a Google Meet video call</li>
+                        <li>Send email invitations to all participants</li>
+                        <li>Set up confidentiality guidelines</li>
+                        <li>Create a calendar event for the meeting</li>
+                        <li>Support recurring meeting scheduling</li>
+                    </ul>
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i> Recovery meetings generally last 90 minutes to allow for check-ins, sharing, and discussion.
+                    </div>
+                    
+                    <h6 class="mt-3">Group Guidelines</h6>
+                    <ul>
+                        <li>Respect privacy and confidentiality</li>
+                        <li>Speak from personal experience</li>
+                        <li>Listen without judgment</li>
+                        <li>Honor the meeting format and traditions</li>
+                        <li>Focus on recovery principles</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set default date to tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const formattedDate = tomorrow.toISOString().split('T')[0];
+        document.getElementById('start_date').value = formattedDate;
+        
+        // Set default time to 7:00 PM
+        document.getElementById('start_time').value = '19:00';
+        
+        // Toggle recurring options
+        const isRecurringCheckbox = document.getElementById('is_recurring');
+        const recurringOptions = document.querySelector('.recurring-options');
+        
+        isRecurringCheckbox.addEventListener('change', function() {
+            recurringOptions.style.display = this.checked ? 'block' : 'none';
+        });
+        
+        // Set weekly day to match the selected start date (default)
+        const startDateInput = document.getElementById('start_date');
+        const weeklyDaySelect = document.getElementById('weekly_day');
+        
+        startDateInput.addEventListener('change', function() {
+            const date = new Date(this.value);
+            const day = date.getDay();
+            // Convert Sunday (0) to 6, Monday (1) to 0, etc.
+            const weeklyDayValue = day === 0 ? 6 : day - 1;
+            weeklyDaySelect.value = weeklyDayValue;
+        });
+        
+        // Trigger initial weekly day setting
+        startDateInput.dispatchEvent(new Event('change'));
+    });
+</script>
+{% endblock %} 

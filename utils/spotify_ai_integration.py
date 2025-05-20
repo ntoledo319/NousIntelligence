@@ -1,639 +1,726 @@
+"""
+Spotify AI Integration
+
+This module provides integration between AI features and Spotify music services.
+It allows for intelligent music recommendations and playlist generation based on user preferences.
+
+@module utils.spotify_ai_integration
+@description AI-powered Spotify recommendation and assistant features
+"""
+
 import logging
-import json
-import random
 import os
-from datetime import datetime
+from typing import Dict, List, Any, Optional, Union
+import random
+from flask import session
 
-# Get API key from environment variable
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+from utils.spotify_helper import get_spotify_client
 
-def analyze_text_for_music_parameters(text_input):
+logger = logging.getLogger(__name__)
+
+class SpotifyAIIntegration:
     """
-    Analyze text input to determine music parameters using OpenAI
+    Integrates AI capabilities with Spotify functionality
     
-    Args:
-        text_input: User's text input about their mood, preferences, etc.
-        
-    Returns:
-        Dictionary with music parameters
+    This class provides advanced Spotify integration features including:
+    - Mood-based recommendations
+    - Context-aware playlist generation
+    - Listening history analysis
+    - Audio feature processing
+    - Social music recommendations
+    - Music taste comparisons
+    - Music discovery tools
     """
-    try:
-        if not OPENAI_API_KEY:
-            logging.warning("OpenAI API key not available for music analysis")
-            return default_music_parameters(text_input)
-            
-        # Import OpenAI here to avoid circular imports
-        from openai import OpenAI
+    
+    def __init__(self):
+        """Initialize the Spotify AI integration"""
+        self.logger = logging.getLogger(__name__)
         
-        # Initialize OpenAI client
-        openai = OpenAI(api_key=OPENAI_API_KEY)
+        # Initialize with None values until properly authenticated
+        self.spotify_client = None
+        self.spotify_auth = None
         
-        # Prompt to analyze text for music features
-        prompt = f"""
-        Analyze the following text and extract music parameters that would match the mood, context, or request.
-        Input text: "{text_input}"
+        # Get credentials from environment variables
+        self.client_id = os.environ.get("SPOTIFY_CLIENT_ID")
+        self.client_secret = os.environ.get("SPOTIFY_CLIENT_SECRET")
+        self.redirect_uri = os.environ.get("SPOTIFY_REDIRECT_URI", "http://localhost:8080/callback")
         
-        Return a JSON object with these parameters:
-        - name: A creative and personalized playlist name
-        - description: A brief description of the playlist
-        - seed_genres: An array of 1-5 music genres that would match (use exact Spotify genre names)
-        - target_energy: A value from 0.0 to 1.0 representing the energy level
-        - target_valence: A value from 0.0 to 1.0 representing the musical positivity
-        - target_danceability: A value from 0.0 to 1.0 representing how danceable
-        - mood_keywords: An array of 3-5 mood keywords extracted from the text
-        - min_tempo: A minimum tempo (BPM) value appropriate for the mood
-        - max_tempo: A maximum tempo (BPM) value appropriate for the mood
-        - musical_attributes: A short text describing what musical qualities should be present
-        
-        Ensure all numeric values are appropriate for the expressed mood or context.
+        self.logger.info("Spotify AI Integration initialized")
+    
+    def authenticate(self, session_obj, user_id=None):
+        """Authenticate with Spotify API"""
+        self.spotify_client, self.spotify_auth = get_spotify_client(
+            session=session_obj,
+            client_id=self.client_id,
+            client_secret=self.client_secret,
+            redirect_uri=self.redirect_uri,
+            user_id=user_id
+        )
+        return self.is_authenticated()
+    
+    def is_authenticated(self):
+        """Check if Spotify client is authenticated"""
+        return self.spotify_client is not None
+    
+    def recommend_music_by_mood(self, mood: str, diversity_level: float = 0.5) -> List[Dict[str, Any]]:
         """
+        Recommend music based on user's mood with customizable diversity
         
-        # Call OpenAI API
-        # The newest OpenAI model is "gpt-4o" which was released May 13, 2024.
-        # do not change this unless explicitly requested by the user
-        response = openai.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": "You are a musical analysis expert that helps translate human emotions and contexts into Spotify musical parameters."},
-                {"role": "user", "content": prompt}
-            ],
-            response_format={"type": "json_object"},
-            max_tokens=1000
-        )
+        Args:
+            mood: The user's current mood (e.g., "happy", "sad", "energetic")
+            diversity_level: Controls how diverse the recommendations are (0.0-1.0)
+                             Higher values produce more varied selections
+            
+        Returns:
+            List of track recommendations
+        """
+        self.logger.info(f"Recommending music for mood: {mood} with diversity: {diversity_level}")
         
-        # Process response
-        result = json.loads(response.choices[0].message.content)
-        
-        # Ensure all expected fields are present with reasonable values
-        validated_result = {
-            'name': result.get('name', f"Playlist for: {text_input[:30]}..."),
-            'description': result.get('description', f"Music based on: {text_input[:50]}..."),
-            'seed_genres': result.get('seed_genres', ['pop', 'rock']),
-            'target_energy': max(0.0, min(1.0, result.get('target_energy', 0.5))),
-            'target_valence': max(0.0, min(1.0, result.get('target_valence', 0.5))),
-            'target_danceability': max(0.0, min(1.0, result.get('target_danceability', 0.5))),
-            'mood_keywords': result.get('mood_keywords', ['balanced', 'neutral']),
-            'min_tempo': max(40, min(200, result.get('min_tempo', 90))),
-            'max_tempo': max(40, min(200, max(result.get('min_tempo', 90) + 10, result.get('max_tempo', 130)))),
-            'musical_attributes': result.get('musical_attributes', 'Balanced mix of different musical elements'),
+        # Enhanced mood mappings with more audio features
+        mood_mappings = {
+            "happy": {"min_valence": 0.7, "target_energy": 0.7, "target_danceability": 0.6},
+            "sad": {"max_valence": 0.4, "target_energy": 0.3, "target_mode": 0, "target_tempo": 80},
+            "relaxed": {"max_energy": 0.4, "target_valence": 0.5, "target_acousticness": 0.6},
+            "energetic": {"min_energy": 0.7, "target_valence": 0.6, "min_tempo": 120},
+            "focused": {"max_energy": 0.5, "max_valence": 0.5, "target_instrumentalness": 0.5, "max_speechiness": 0.1},
+            "uplifting": {"min_valence": 0.6, "target_energy": 0.6, "min_mode": 1},
+            "melancholic": {"max_valence": 0.4, "target_acousticness": 0.5, "max_energy": 0.5},
+            "motivated": {"target_energy": 0.8, "target_tempo": 130, "min_valence": 0.5},
+            "nostalgic": {"target_acousticness": 0.6, "target_valence": 0.5, "max_popularity": 70},
+            "intense": {"min_energy": 0.8, "min_loudness": -8.0, "max_acousticness": 0.3},
         }
         
-        return validated_result
+        # Use default parameters if mood not recognized
+        base_params = mood_mappings.get(mood.lower(), {"target_valence": 0.5, "target_energy": 0.5})
         
-    except Exception as e:
-        logging.error(f"Error analyzing text for music parameters: {str(e)}")
-        return default_music_parameters(text_input)
-
-def default_music_parameters(text_input):
-    """
-    Generate default music parameters based on simple keyword matching
-    when AI analysis is not available
-    
-    Args:
-        text_input: User's text input
+        # Adjust parameters based on diversity level
+        params = self._apply_diversity(base_params, diversity_level)
         
-    Returns:
-        Dictionary with default music parameters
-    """
-    # Convert input to lowercase for easier matching
-    text = text_input.lower()
+        # Get recommendations from Spotify
+        try:
+            if self.spotify_client.is_authenticated():
+                # Add genre seeds for more varied results
+                # Get user's top genres
+                top_genres = self._get_user_top_genres(limit=3)
+                if top_genres:
+                    params["seed_genres"] = random.sample(top_genres, min(2, len(top_genres)))
+                
+                return self.spotify_client.get_recommendations(limit=15, **params)
+            else:
+                self.logger.warning("Spotify client not authenticated")
+                return []
+        except Exception as e:
+            self.logger.error(f"Error getting recommendations: {str(e)}")
+            return []
     
-    # Default parameters
-    params = {
-        'name': f"Playlist for: {text_input[:30]}...",
-        'description': f"Music based on your mood and preferences",
-        'seed_genres': ['pop', 'rock'],
-        'target_energy': 0.6,
-        'target_valence': 0.6,
-        'target_danceability': 0.5,
-        'mood_keywords': ['balanced', 'neutral'],
-        'min_tempo': 90,
-        'max_tempo': 130,
-        'musical_attributes': 'Balanced mix of different musical elements',
-    }
-    
-    # Check for happy/positive keywords
-    if any(word in text for word in ['happy', 'joy', 'excited', 'upbeat', 'energetic', 'positive']):
-        params['name'] = "Happy Vibes"
-        params['description'] = "Upbeat and joyful tracks to boost your mood"
-        params['seed_genres'] = ['happy', 'pop', 'dance']
-        params['target_energy'] = 0.8
-        params['target_valence'] = 0.8
-        params['target_danceability'] = 0.7
-        params['mood_keywords'] = ['happy', 'joyful', 'upbeat', 'energetic', 'positive']
-        params['min_tempo'] = 110
-        params['max_tempo'] = 140
-        params['musical_attributes'] = 'Bright major keys, upbeat rhythms, cheerful melodies'
-    
-    # Check for sad/melancholy keywords
-    elif any(word in text for word in ['sad', 'melancholy', 'depressed', 'heartbreak', 'lonely', 'blue']):
-        params['name'] = "Melancholy Moments"
-        params['description'] = "Reflective tracks for when you're feeling down"
-        params['seed_genres'] = ['sad', 'indie', 'acoustic']
-        params['target_energy'] = 0.4
-        params['target_valence'] = 0.3
-        params['target_danceability'] = 0.4
-        params['mood_keywords'] = ['sad', 'melancholy', 'reflective', 'emotional', 'pensive']
-        params['min_tempo'] = 60
-        params['max_tempo'] = 100
-        params['musical_attributes'] = 'Minor keys, emotional vocals, introspective lyrics'
-    
-    # Check for relaxed/chill keywords
-    elif any(word in text for word in ['relax', 'chill', 'calm', 'peace', 'tranquil', 'mellow']):
-        params['name'] = "Chill Session"
-        params['description'] = "Relaxing tracks to help you unwind"
-        params['seed_genres'] = ['chill', 'ambient', 'study']
-        params['target_energy'] = 0.3
-        params['target_valence'] = 0.5
-        params['target_danceability'] = 0.3
-        params['mood_keywords'] = ['relaxed', 'calm', 'chill', 'peaceful', 'tranquil']
-        params['min_tempo'] = 60
-        params['max_tempo'] = 90
-        params['musical_attributes'] = 'Soft instrumentation, gentle rhythms, atmospheric sounds'
-    
-    # Check for focused/productive keywords
-    elif any(word in text for word in ['focus', 'concentrate', 'study', 'work', 'productive']):
-        params['name'] = "Deep Focus"
-        params['description'] = "Music to help you concentrate and be productive"
-        params['seed_genres'] = ['focus', 'study', 'ambient']
-        params['target_energy'] = 0.5
-        params['target_valence'] = 0.5
-        params['target_danceability'] = 0.2
-        params['target_instrumentalness'] = 0.7
-        params['mood_keywords'] = ['focused', 'concentration', 'productive', 'flow', 'clarity']
-        params['min_tempo'] = 70
-        params['max_tempo'] = 110
-        params['musical_attributes'] = 'Minimal distractions, consistent rhythms, often instrumental'
-    
-    # Check for party/dance keywords
-    elif any(word in text for word in ['party', 'dance', 'club', 'fun', 'celebration']):
-        params['name'] = "Party Time"
-        params['description'] = "High-energy tracks to get the party started"
-        params['seed_genres'] = ['party', 'dance', 'electronic']
-        params['target_energy'] = 0.9
-        params['target_valence'] = 0.7
-        params['target_danceability'] = 0.8
-        params['mood_keywords'] = ['party', 'dance', 'energetic', 'celebration', 'fun']
-        params['min_tempo'] = 115
-        params['max_tempo'] = 160
-        params['musical_attributes'] = 'Strong beats, catchy hooks, driving rhythms'
-    
-    # Check for workout/exercise keywords
-    elif any(word in text for word in ['workout', 'exercise', 'gym', 'run', 'fitness']):
-        params['name'] = "Workout Power"
-        params['description'] = "Energizing tracks to power your exercise session"
-        params['seed_genres'] = ['workout', 'electronic', 'rock']
-        params['target_energy'] = 0.9
-        params['target_valence'] = 0.6
-        params['target_danceability'] = 0.7
-        params['mood_keywords'] = ['energetic', 'powerful', 'motivating', 'intense', 'driving']
-        params['min_tempo'] = 120
-        params['max_tempo'] = 160
-        params['musical_attributes'] = 'Strong beats, motivational, high intensity'
-    
-    # Check for romantic/love keywords
-    elif any(word in text for word in ['love', 'romantic', 'romance', 'date', 'intimate']):
-        params['name'] = "Romantic Moments"
-        params['description'] = "Intimate and romantic tracks for special moments"
-        params['seed_genres'] = ['romance', 'r-n-b', 'jazz']
-        params['target_energy'] = 0.5
-        params['target_valence'] = 0.6
-        params['target_danceability'] = 0.5
-        params['mood_keywords'] = ['romantic', 'intimate', 'emotional', 'love', 'passionate']
-        params['min_tempo'] = 70
-        params['max_tempo'] = 110
-        params['musical_attributes'] = 'Emotional vocals, intimate instrumentation, romantic themes'
-    
-    return params
-
-def generate_ai_playlist(spotify, user_input, custom_name=None):
-    """
-    Create a Spotify playlist based on AI analysis of user text input
-    
-    Args:
-        spotify: Authenticated Spotify client
-        user_input: User's text describing their mood, preferences, etc.
-        custom_name: Optional custom name for the playlist
+    def _apply_diversity(self, params: Dict[str, Any], diversity_level: float) -> Dict[str, Any]:
+        """
+        Adjust recommendation parameters based on desired diversity level
         
-    Returns:
-        String with result message
-    """
-    try:
-        # Get music parameters based on text analysis
-        params = analyze_text_for_music_parameters(user_input)
-        
-        # Update name if provided
-        if custom_name:
-            params['name'] = custom_name
+        Args:
+            params: Base recommendation parameters
+            diversity_level: 0.0-1.0 with higher values increasing diversity
             
-        # Import here to avoid circular imports
-        from utils.spotify_helper import create_recommendations_playlist
+        Returns:
+            Modified parameters dict
+        """
+        result = params.copy()
         
-        # Extract seed genres (max 5 for Spotify API)
-        seed_genres = params.get('seed_genres', ['pop'])[:5]
+        # Adjust min/max ranges based on diversity
+        for key in list(result.keys()):
+            if key.startswith("min_") and diversity_level > 0.3:
+                # Decrease min values to allow more variation
+                result[key] = max(0, result[key] - (diversity_level * 0.2))
+            elif key.startswith("max_") and diversity_level > 0.3:
+                # Increase max values to allow more variation
+                result[key] = min(1.0, result[key] + (diversity_level * 0.2))
+            elif key.startswith("target_") and diversity_level > 0.7:
+                # For high diversity, remove some target constraints
+                result.pop(key, None)
         
-        # Extract other parameters as audio features
-        audio_features = {
-            'target_energy': params.get('target_energy', 0.5),
-            'target_valence': params.get('target_valence', 0.5),
-            'target_danceability': params.get('target_danceability', 0.5),
-            'min_tempo': params.get('min_tempo', 90),
-            'max_tempo': params.get('max_tempo', 130)
+        return result
+    
+    def _get_user_top_genres(self, limit: int = 5) -> List[str]:
+        """
+        Get the user's top genres based on their favorite artists
+        
+        Args:
+            limit: Maximum number of genres to return
+            
+        Returns:
+            List of genre names
+        """
+        try:
+            if not self.spotify_client.is_authenticated():
+                return []
+                
+            # Get user's top artists
+            top_artists = self.spotify_client.get_top_artists(limit=10)
+            
+            # Extract genres
+            genres = []
+            for artist in top_artists:
+                genres.extend(artist.get("genres", []))
+            
+            # Count genre occurrences
+            genre_counts = {}
+            for genre in genres:
+                genre_counts[genre] = genre_counts.get(genre, 0) + 1
+            
+            # Sort by count
+            sorted_genres = sorted(genre_counts.items(), key=lambda x: x[1], reverse=True)
+            
+            # Return top genres
+            return [genre for genre, _ in sorted_genres[:limit]]
+        except Exception as e:
+            self.logger.error(f"Error getting top genres: {str(e)}")
+            return []
+    
+    def get_playlist_for_activity(self, activity: str, personalize: bool = True) -> Optional[Dict[str, Any]]:
+        """
+        Get a suitable playlist for a specific activity with personalization
+        
+        Args:
+            activity: The activity (e.g., "workout", "study", "relaxation")
+            personalize: Whether to personalize based on user's taste
+            
+        Returns:
+            Playlist information or None if not found
+        """
+        # Enhanced activity mappings
+        activity_queries = {
+            "workout": "workout gym exercise fitness",
+            "cardio": "cardio running jogging upbeat",
+            "weightlifting": "weightlifting strength heavy",
+            "yoga": "yoga mindfulness calm flow",
+            "study": "focus study concentration",
+            "work": "productivity focus work concentration",
+            "reading": "reading ambient calm",
+            "relaxation": "relax calm peaceful",
+            "meditation": "meditation mindfulness zen",
+            "sleep": "sleep peaceful ambient",
+            "party": "party upbeat dance fun",
+            "dinner": "dinner jazz acoustic chill",
+            "cooking": "cooking kitchen upbeat jazz",
+            "morning": "morning wake up energetic",
+            "commute": "commute driving travel",
+            "gaming": "gaming electronic intense",
+            "cleaning": "cleaning upbeat motivation",
         }
         
-        # If any other target features are specified, add them
-        for key, value in params.items():
-            if key.startswith('target_') and key not in audio_features:
-                audio_features[key] = value
+        base_query = activity_queries.get(activity.lower(), activity)
         
-        # Create the playlist
-        playlist_result = create_recommendations_playlist(
-            spotify, 
-            params['name'], 
-            f"AI-generated based on: {user_input[:50]}...", 
-            limit=25,
-            seed_genres=seed_genres,
-            audio_features=audio_features
-        )
-        
-        mood_keywords = ", ".join(params.get('mood_keywords', ['balanced']))
-        attributes = params.get('musical_attributes', 'Balanced music')
-        
-        return f"🎵 Created AI-generated playlist based on your input\n\n"\
-               f"Mood detected: {mood_keywords}\n"\
-               f"Musical qualities: {attributes}\n\n"\
-               f"{playlist_result}"
+        try:
+            if not self.spotify_client.is_authenticated():
+                return None
+                
+            if personalize:
+                # Add personalization based on user's taste
+                top_genres = self._get_user_top_genres(limit=2)
+                if top_genres:
+                    # Add top genre to the search query
+                    personalized_query = f"{base_query} {' '.join(top_genres)}"
+                else:
+                    personalized_query = base_query
+                    
+                playlists = self.spotify_client.search_playlists(personalized_query, limit=8)
+            else:
+                playlists = self.spotify_client.search_playlists(base_query, limit=5)
+                
+            if playlists:
+                # Return the most relevant playlist
+                return playlists[0]
+            return None
+        except Exception as e:
+            self.logger.error(f"Error finding playlist for activity: {str(e)}")
+            return None
     
-    except Exception as e:
-        logging.error(f"Error creating AI-generated playlist: {str(e)}")
-        return f"❌ Error creating AI-generated playlist: {str(e)}"
-
-def analyze_listening_history(spotify, time_range='medium_term'):
-    """
-    Analyze user's listening history to generate insights and recommendations
+    def analyze_user_listening_history(self, time_range: str = 'medium_term') -> Dict[str, Any]:
+        """
+        Analyze the user's listening history to generate insights
+        
+        Args:
+            time_range: The time range to analyze ('short_term', 'medium_term', 'long_term')
+            
+        Returns:
+            Dictionary containing insights about listening habits
+        """
+        if not self.spotify_client.is_authenticated():
+            self.logger.warning("Spotify client not authenticated")
+            return {"error": "Not authenticated with Spotify"}
+        
+        try:
+            # Get user's recently played tracks
+            recent_tracks = self.spotify_client.get_recently_played(limit=50)
+            
+            # Get user's top tracks for the specified time range
+            top_tracks = self.spotify_client.get_top_tracks(time_range=time_range, limit=50)
+            
+            # Get user's top artists for the specified time range
+            top_artists = self.spotify_client.get_top_artists(time_range=time_range, limit=20)
+            
+            # Get audio features for top tracks
+            track_ids = [track["id"] for track in top_tracks[:20]]
+            audio_features = {}
+            
+            # Process in batches of 10 to avoid API limits
+            for i in range(0, len(track_ids), 10):
+                batch = track_ids[i:i+10]
+                features_batch = self.spotify_client.get_audio_features(batch)
+                for j, features in enumerate(features_batch):
+                    if features:
+                        audio_features[batch[j]] = features
+            
+            # Calculate average audio features
+            avg_features = self._calculate_average_features(audio_features)
+            
+            # Extract genre information
+            genres = self._extract_top_genres(top_artists)
+            
+            # Calculate listening patterns
+            listening_patterns = self._analyze_listening_patterns(recent_tracks)
+            
+            # Analyze energy and mood distribution
+            mood_distribution = self._analyze_mood_distribution(audio_features)
+            
+            # Get recently discovered artists
+            recent_discoveries = self._get_recent_discoveries(recent_tracks, top_artists)
+            
+            # Get recommendations for similar artists
+            similar_artists = self._get_similar_artists(top_artists[:3])
+            
+            return {
+                "top_genres": genres,
+                "favorite_artists": [artist["name"] for artist in top_artists[:5]],
+                "listening_patterns": listening_patterns,
+                "mood_distribution": mood_distribution,
+                "audio_profile": avg_features,
+                "recent_discoveries": recent_discoveries,
+                "recommendations": {
+                    "similar_artists": similar_artists,
+                    "suggested_genres": self._suggest_new_genres(genres)
+                }
+            }
+        except Exception as e:
+            self.logger.error(f"Error analyzing listening history: {str(e)}")
+            return {"error": str(e)}
     
-    Args:
-        spotify: Authenticated Spotify client
-        time_range: Time range to analyze ('short_term', 'medium_term', 'long_term')
+    def _calculate_average_features(self, audio_features: Dict[str, Dict[str, Any]]) -> Dict[str, float]:
+        """
+        Calculate average audio features from a set of tracks
         
-    Returns:
-        Dictionary with analysis results
-    """
-    try:
-        results = {
-            'top_genres': [],
-            'audio_feature_averages': {},
-            'listening_personality': '',
-            'recommendations': []
-        }
-        
-        # 1. Get top artists and extract genres
-        top_artists = spotify.current_user_top_artists(limit=50, time_range=time_range)
-        
-        all_genres = []
-        for artist in top_artists['items']:
-            all_genres.extend(artist.get('genres', []))
+        Args:
+            audio_features: Dict mapping track IDs to their audio features
             
-        # Count genres and get top ones
-        from collections import Counter
-        genre_counts = Counter(all_genres)
-        results['top_genres'] = [genre for genre, _ in genre_counts.most_common(10)]
-        
-        # 2. Get top tracks and analyze audio features
-        top_tracks = spotify.current_user_top_tracks(limit=50, time_range=time_range)
-        if not top_tracks['items']:
-            return results
+        Returns:
+            Dict with average values for each feature
+        """
+        if not audio_features:
+            return {}
             
-        # Extract track IDs
-        track_ids = [track['id'] for track in top_tracks['items']]
+        # Features to analyze
+        features_to_analyze = [
+            'danceability', 'energy', 'valence', 'acousticness',
+            'instrumentalness', 'liveness', 'speechiness', 'tempo'
+        ]
         
-        # Get audio features in batches (Spotify API limit)
-        all_features = []
-        for i in range(0, len(track_ids), 100):
-            batch = track_ids[i:i+100]
-            features = spotify.audio_features(batch)
-            all_features.extend([f for f in features if f])
+        avg_features = {}
         
-        if not all_features:
-            return results
+        for feature in features_to_analyze:
+            values = [
+                features[feature] 
+                for features in audio_features.values() 
+                if feature in features and features[feature] is not None
+            ]
             
-        # Calculate averages for key audio features
-        feature_keys = ['danceability', 'energy', 'valence', 'tempo', 
-                        'acousticness', 'instrumentalness', 'liveness']
-        
-        for key in feature_keys:
-            values = [track[key] for track in all_features if key in track]
             if values:
-                results['audio_feature_averages'][key] = sum(values) / len(values)
-        
-        # 3. Determine listening personality based on features
-        try:
-            energy = results['audio_feature_averages'].get('energy', 0.5)
-            valence = results['audio_feature_averages'].get('valence', 0.5)
-            danceability = results['audio_feature_averages'].get('danceability', 0.5)
-            acousticness = results['audio_feature_averages'].get('acousticness', 0.5)
-            
-            personality_traits = []
-            
-            if energy > 0.7:
-                personality_traits.append("Energetic Listener")
-            elif energy < 0.4:
-                personality_traits.append("Relaxed Listener")
+                avg_features[feature] = sum(values) / len(values)
                 
-            if valence > 0.7:
-                personality_traits.append("Positive Mood Seeker")
-            elif valence < 0.4:
-                personality_traits.append("Emotional Depth Explorer")
-                
-            if danceability > 0.7:
-                personality_traits.append("Rhythm Enthusiast")
-                
-            if acousticness > 0.7:
-                personality_traits.append("Acoustic Appreciator")
-            elif acousticness < 0.3:
-                personality_traits.append("Electronic Music Fan")
-                
-            # Main personality type
-            if energy > 0.65 and valence > 0.65:
-                main_type = "The Energizer"
-            elif energy > 0.65 and valence < 0.4:
-                main_type = "The Intense Explorer"
-            elif energy < 0.4 and valence > 0.6:
-                main_type = "The Gentle Optimist"
-            elif energy < 0.4 and valence < 0.4:
-                main_type = "The Deep Thinker"
-            elif danceability > 0.7:
-                main_type = "The Dance Enthusiast"
-            elif acousticness > 0.7:
-                main_type = "The Acoustic Soul"
-            else:
-                main_type = "The Balanced Listener"
-                
-            results['listening_personality'] = {
-                'main_type': main_type,
-                'traits': personality_traits
-            }
-            
-        except Exception as e:
-            logging.error(f"Error determining listening personality: {str(e)}")
-            results['listening_personality'] = {
-                'main_type': "The Eclectic Listener",
-                'traits': ["Diverse Tastes"]
-            }
-        
-        # 4. Generate genre recommendations based on current preferences
-        try:
-            if OPENAI_API_KEY and results['top_genres']:
-                # Import OpenAI here to avoid circular imports
-                from openai import OpenAI
-                
-                # Initialize OpenAI client
-                openai = OpenAI(api_key=OPENAI_API_KEY)
-                
-                # Prepare top genres string
-                top_genres_str = ", ".join(results['top_genres'][:5])
-                
-                # Create prompt for recommendations
-                prompt = f"""
-                Based on these favorite music genres: {top_genres_str}
-                
-                Please recommend:
-                1. 3 similar genres the person might enjoy
-                2. 3 slightly different genres to expand their tastes
-                3. 2 completely different genres they might find interesting as a stretch
-                
-                Format your response as a JSON object with these arrays:
-                - similar_genres
-                - expanding_genres
-                - discovery_genres
-                
-                Use actual Spotify genre names only.
-                """
-                
-                # Call OpenAI API
-                # The newest OpenAI model is "gpt-4o" which was released May 13, 2024.
-                # do not change this unless explicitly requested by the user
-                response = openai.chat.completions.create(
-                    model="gpt-4o",
-                    messages=[
-                        {"role": "system", "content": "You are a music recommendation expert who understands genre relationships and similarities."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    response_format={"type": "json_object"},
-                    max_tokens=500
-                )
-                
-                # Process response
-                rec_result = json.loads(response.choices[0].message.content)
-                
-                results['recommendations'] = {
-                    'similar': rec_result.get('similar_genres', []),
-                    'expanding': rec_result.get('expanding_genres', []),
-                    'discovery': rec_result.get('discovery_genres', [])
-                }
-            else:
-                # Fallback if OpenAI is not available
-                results['recommendations'] = {
-                    'similar': ['pop', 'rock', 'indie'],
-                    'expanding': ['jazz', 'classical', 'electronic'],
-                    'discovery': ['world', 'funk']
-                }
-        
-        except Exception as e:
-            logging.error(f"Error generating genre recommendations: {str(e)}")
-            results['recommendations'] = {
-                'similar': ['pop', 'rock', 'indie'],
-                'expanding': ['jazz', 'classical', 'electronic'],
-                'discovery': ['world', 'funk']
-            }
-        
-        return results
-        
-    except Exception as e:
-        logging.error(f"Error analyzing listening history: {str(e)}")
-        return {
-            'top_genres': ['pop', 'rock'],
-            'audio_feature_averages': {},
-            'listening_personality': {
-                'main_type': "The Listener",
-                'traits': ["Music Fan"]
-            },
-            'recommendations': {
-                'similar': ['pop', 'rock'],
-                'expanding': ['jazz', 'classical'],
-                'discovery': ['world']
-            }
-        }
-
-def generate_listening_report(spotify, time_range='medium_term'):
-    """
-    Generate a detailed report on user's listening habits with AI insights
+        return avg_features
     
-    Args:
-        spotify: Authenticated Spotify client
-        time_range: Time range to analyze
+    def _analyze_listening_patterns(self, recent_tracks: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Analyze listening patterns from recently played tracks
         
-    Returns:
-        String with formatted report
-    """
-    try:
-        # Analyze listening history
-        analysis = analyze_listening_history(spotify, time_range)
-        
-        # Format time range for display
-        time_labels = {
-            'short_term': 'the past month',
-            'medium_term': 'the past 6 months',
-            'long_term': 'all time'
+        Args:
+            recent_tracks: List of recently played tracks
+            
+        Returns:
+            Dict with listening pattern insights
+        """
+        if not recent_tracks:
+            return {}
+            
+        # TODO: Extract time of day patterns from timestamps
+        # This is a placeholder for now
+        return {
+            "morning": 30,
+            "afternoon": 45,
+            "evening": 120,
         }
-        time_display = time_labels.get(time_range, 'recent history')
+    
+    def _analyze_mood_distribution(self, audio_features: Dict[str, Dict[str, Any]]) -> Dict[str, int]:
+        """
+        Analyze mood distribution based on audio features
         
-        # Start building the report
-        report = f"🎧 YOUR SPOTIFY LISTENING REPORT ({time_display.upper()})\n\n"
-        
-        # Add personality section
-        personality = analysis.get('listening_personality', {})
-        main_type = personality.get('main_type', 'Music Listener')
-        traits = personality.get('traits', [])
-        
-        report += f"🧠 LISTENING PERSONALITY: {main_type.upper()}\n"
-        if traits:
-            report += "Your listening traits:\n"
-            for trait in traits:
-                report += f"• {trait}\n"
-        report += "\n"
-        
-        # Add top genres section
-        top_genres = analysis.get('top_genres', [])
-        if top_genres:
-            report += "🎸 YOUR TOP GENRES:\n"
-            for i, genre in enumerate(top_genres[:7], 1):
-                report += f"{i}. {genre.title()}\n"
-            report += "\n"
-        
-        # Add audio features section
-        features = analysis.get('audio_feature_averages', {})
-        if features:
-            report += "🔊 YOUR MUSIC PREFERENCES:\n"
+        Args:
+            audio_features: Dict mapping track IDs to their audio features
             
-            if 'energy' in features:
-                energy_pct = int(features['energy'] * 100)
-                report += f"• Energy: {energy_pct}% ({self_categorize(features['energy'], 'energy')})\n"
-                
-            if 'valence' in features:
-                valence_pct = int(features['valence'] * 100)
-                report += f"• Mood/Positivity: {valence_pct}% ({self_categorize(features['valence'], 'valence')})\n"
-                
-            if 'danceability' in features:
-                dance_pct = int(features['danceability'] * 100)
-                report += f"• Danceability: {dance_pct}% ({self_categorize(features['danceability'], 'danceability')})\n"
-                
-            if 'acousticness' in features:
-                acoustic_pct = int(features['acousticness'] * 100)
-                report += f"• Acoustic vs. Electronic: {acoustic_pct}% acoustic\n"
-                
-            if 'tempo' in features:
-                tempo = int(features['tempo'])
-                report += f"• Average Tempo: {tempo} BPM ({self_categorize(features['tempo'], 'tempo')})\n"
-                
-            report += "\n"
-        
-        # Add recommendations section
-        recommendations = analysis.get('recommendations', {})
-        if recommendations:
-            report += "✨ RECOMMENDED GENRE EXPLORATIONS:\n"
+        Returns:
+            Dict with mood distribution percentages
+        """
+        if not audio_features:
+            return {}
             
-            similar = recommendations.get('similar', [])
-            if similar:
-                report += "If you like what you already listen to:\n"
-                for genre in similar:
-                    report += f"• {genre.title()}\n"
-                report += "\n"
-                
-            expanding = recommendations.get('expanding', [])
-            if expanding:
-                report += "To expand your horizons a bit:\n"
-                for genre in expanding:
-                    report += f"• {genre.title()}\n"
-                report += "\n"
-                
-            discovery = recommendations.get('discovery', [])
-            if discovery:
-                report += "For a completely new experience:\n"
-                for genre in discovery:
-                    report += f"• {genre.title()}\n"
-                report += "\n"
+        moods = {
+            "happy": 0,
+            "energetic": 0,
+            "relaxed": 0,
+            "melancholic": 0
+        }
         
-        # Add personalized playlist suggestions
-        report += "🎵 PERSONALIZED PLAYLIST IDEAS:\n"
-        
-        if personality.get('main_type') == "The Energizer":
-            report += "• \"Peak Energy Mix\" - Your ultimate high-energy favorites\n"
-            report += "• \"Good Vibes Only\" - Positive, uplifting tracks matching your taste\n"
-        elif personality.get('main_type') == "The Deep Thinker":
-            report += "• \"Introspection\" - Thoughtful tracks for contemplative moments\n"
-            report += "• \"Emotional Journey\" - Music that resonates with deeper feelings\n"
-        elif personality.get('main_type') == "The Intense Explorer":
-            report += "• \"Intensity Session\" - High-energy tracks with emotional depth\n"
-            report += "• \"Focused Power\" - Driving, forceful music for when you need motivation\n"
-        elif personality.get('main_type') == "The Gentle Optimist":
-            report += "• \"Calm Positivity\" - Relaxing tracks with uplifting energy\n"
-            report += "• \"Peaceful Joy\" - Gentle music that brings happiness\n"
-        elif personality.get('main_type') == "The Dance Enthusiast":
-            report += "• \"Rhythm & Groove\" - Your ultimate dance collection\n"
-            report += "• \"Movement Mix\" - Tracks that keep you moving\n"
-        elif personality.get('main_type') == "The Acoustic Soul":
-            report += "• \"Unplugged Favorites\" - Your top acoustic tracks\n"
-            report += "• \"Natural Sound\" - Music with organic instrumentation\n"
-        else:
-            report += "• \"Your Eclectic Mix\" - A diverse playlist based on your varied tastes\n"
-            report += "• \"Mood Versatility\" - Music for all your different moods\n"
+        # Count tracks in each mood category
+        for track_id, features in audio_features.items():
+            valence = features.get('valence', 0.5)
+            energy = features.get('energy', 0.5)
             
-        report += "\n"
+            if valence > 0.6 and energy > 0.6:
+                moods["happy"] += 1
+            elif energy > 0.6:
+                moods["energetic"] += 1
+            elif valence <= 0.4:
+                moods["melancholic"] += 1
+            else:
+                moods["relaxed"] += 1
+                
+        # Convert to percentages
+        total = sum(moods.values())
+        if total > 0:
+            for mood in moods:
+                moods[mood] = int((moods[mood] / total) * 100)
+                
+        return moods
+    
+    def _get_recent_discoveries(self, recent_tracks: List[Dict[str, Any]], 
+                              top_artists: List[Dict[str, Any]]) -> List[str]:
+        """
+        Identify artists that appear in recent tracks but not in top artists
         
-        # Add instructions for creating AI playlists
-        report += "🤖 CREATE AN AI PLAYLIST:\n"
-        report += "Use the command: 'ai playlist [description of your mood or what you want]'\n"
-        report += "Example: 'ai playlist I'm feeling relaxed but need some gentle motivation'\n\n"
+        Args:
+            recent_tracks: List of recently played tracks
+            top_artists: List of top artists
+            
+        Returns:
+            List of recently discovered artist names
+        """
+        if not recent_tracks or not top_artists:
+            return []
+            
+        # Get set of top artist IDs
+        top_artist_ids = {artist["id"] for artist in top_artists}
         
-        report += "Report generated on " + datetime.now().strftime("%B %d, %Y at %H:%M")
+        # Find artists in recent tracks that aren't in top artists
+        discoveries = set()
+        for track in recent_tracks:
+            for artist in track.get("artists", []):
+                if artist["id"] not in top_artist_ids:
+                    discoveries.add(artist["name"])
+                    
+        return list(discoveries)[:5]  # Limit to 5 discoveries
+    
+    def _get_similar_artists(self, artists: List[Dict[str, Any]]) -> List[str]:
+        """
+        Get similar artists based on the user's top artists
         
-        return report
+        Args:
+            artists: List of the user's top artists
+            
+        Returns:
+            List of similar artist names
+        """
+        if not artists or not self.spotify_client.is_authenticated():
+            return []
+            
+        similar_artists = set()
         
-    except Exception as e:
-        logging.error(f"Error generating listening report: {str(e)}")
-        return f"❌ Error generating listening report: {str(e)}"
+        try:
+            for artist in artists:
+                artist_id = artist.get("id")
+                if not artist_id:
+                    continue
+                    
+                related = self.spotify_client.get_artist_related_artists(artist_id)
+                for related_artist in related[:3]:  # Get top 3 related for each
+                    similar_artists.add(related_artist["name"])
+                    
+            return list(similar_artists)[:5]  # Limit to 5 similar artists
+        except Exception as e:
+            self.logger.error(f"Error getting similar artists: {str(e)}")
+            return []
+    
+    def _suggest_new_genres(self, current_genres: List[str]) -> List[str]:
+        """
+        Suggest new genres based on the user's current favorites
+        
+        Args:
+            current_genres: List of the user's current favorite genres
+            
+        Returns:
+            List of suggested genre names
+        """
+        # This is a simplified implementation that could be enhanced with more genre mappings
+        genre_recommendations = {
+            "rock": ["indie rock", "alternative rock", "classic rock", "punk rock"],
+            "pop": ["dance pop", "electropop", "indie pop", "synth pop"],
+            "hip hop": ["trap", "alternative hip hop", "rap", "r&b"],
+            "electronic": ["house", "techno", "ambient", "drum and bass"],
+            "indie": ["indie folk", "indie rock", "indie pop", "alternative"],
+            "folk": ["singer-songwriter", "indie folk", "americana", "acoustic"],
+            "jazz": ["nu jazz", "vocal jazz", "jazz fusion", "bebop"],
+            "classical": ["contemporary classical", "neo-classical", "minimalism", "baroque"],
+            "metal": ["heavy metal", "progressive metal", "black metal", "death metal"],
+            "country": ["americana", "folk", "bluegrass", "alternative country"]
+        }
+        
+        suggestions = set()
+        
+        # Find related genres
+        for genre in current_genres:
+            genre_lower = genre.lower()
+            for key, related in genre_recommendations.items():
+                # If the genre contains one of our keys, suggest related genres
+                if key in genre_lower:
+                    suggestions.update(related)
+                    
+        # Remove current genres from suggestions
+        current_lower = [g.lower() for g in current_genres]
+        suggestions = [g for g in suggestions if g.lower() not in current_lower]
+                    
+        return list(suggestions)[:5]  # Limit to 5 suggestions
+    
+    def _extract_top_genres(self, artists: List[Dict[str, Any]]) -> List[str]:
+        """
+        Extract top genres from a list of artists
+        
+        Args:
+            artists: List of artist objects from Spotify API
+            
+        Returns:
+            List of top genres
+        """
+        genre_count = {}
+        
+        for artist in artists:
+            for genre in artist.get("genres", []):
+                genre_count[genre] = genre_count.get(genre, 0) + 1
+        
+        # Sort genres by count
+        sorted_genres = sorted(genre_count.items(), key=lambda x: x[1], reverse=True)
+        
+        # Return top 5 genres
+        return [genre for genre, count in sorted_genres[:5]]
+    
+    def generate_smart_playlist(self, name: str, seed_type: str, seed_value: str, 
+                             track_count: int = 25) -> Dict[str, Any]:
+        """
+        Create a smart playlist based on a seed (artist, track, or genre)
+        
+        Args:
+            name: Name for the playlist
+            seed_type: Type of seed ('artist', 'track', or 'genre')
+            seed_value: Name of the artist, track, or genre
+            track_count: Number of tracks to include (max 100)
+            
+        Returns:
+            Dict with playlist information and result status
+        """
+        if not self.spotify_client.is_authenticated():
+            return {"success": False, "error": "Not authenticated with Spotify"}
+            
+        try:
+            # Limit track count to API maximum
+            track_count = min(track_count, 100)
+            
+            # Prepare recommendation parameters
+            params = {"limit": track_count}
+            
+            # Add seeds based on type
+            if seed_type == 'artist':
+                # Search for artist
+                artists = self.spotify_client.search(query=seed_value, type='artist', limit=1)
+                if not artists or not artists.get('artists', {}).get('items'):
+                    return {"success": False, "error": f"Artist '{seed_value}' not found"}
+                    
+                artist_id = artists['artists']['items'][0]['id']
+                params["seed_artists"] = [artist_id]
+                
+            elif seed_type == 'track':
+                # Search for track
+                tracks = self.spotify_client.search(query=seed_value, type='track', limit=1)
+                if not tracks or not tracks.get('tracks', {}).get('items'):
+                    return {"success": False, "error": f"Track '{seed_value}' not found"}
+                    
+                track_id = tracks['tracks']['items'][0]['id']
+                params["seed_tracks"] = [track_id]
+                
+            elif seed_type == 'genre':
+                # Validate genre
+                available_genres = self.spotify_client.get_available_genre_seeds()
+                if seed_value not in available_genres:
+                    return {"success": False, "error": f"Genre '{seed_value}' not available. Valid genres: {', '.join(available_genres[:10])}..."}
+                    
+                params["seed_genres"] = [seed_value]
+                
+            else:
+                return {"success": False, "error": f"Invalid seed type: {seed_type}"}
+                
+            # Get recommendations
+            recommendations = self.spotify_client.get_recommendations(**params)
+            if not recommendations or not recommendations.get('tracks'):
+                return {"success": False, "error": "Failed to get recommendations"}
+                
+            # Create playlist
+            user_info = self.spotify_client.current_user()
+            user_id = user_info['id']
+            
+            # Create the playlist
+            playlist = self.spotify_client.user_playlist_create(
+                user_id, 
+                name,
+                description=f"Smart playlist based on {seed_type}: {seed_value}"
+            )
+            
+            # Add tracks to playlist
+            track_uris = [track['uri'] for track in recommendations['tracks']]
+            self.spotify_client.user_playlist_add_tracks(user_id, playlist['id'], track_uris)
+            
+            return {
+                "success": True,
+                "playlist": {
+                    "id": playlist['id'],
+                    "name": playlist['name'],
+                    "url": playlist['external_urls']['spotify'],
+                    "track_count": len(track_uris)
+                }
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error creating smart playlist: {str(e)}")
+            return {"success": False, "error": str(e)}
+    
+    def compare_music_taste(self, friend_id: str) -> Dict[str, Any]:
+        """
+        Compare the user's music taste with a friend's
+        
+        Args:
+            friend_id: Spotify ID of the friend to compare with
+            
+        Returns:
+            Dict with comparison results
+        """
+        if not self.spotify_client.is_authenticated():
+            return {"error": "Not authenticated with Spotify"}
+            
+        try:
+            # This would require permission to access friend's data
+            # For now, returning a mock implementation
+            return {
+                "message": "Friend comparison feature requires additional permissions",
+                "compatibility_score": 0,
+                "common_artists": [],
+                "common_genres": [],
+                "suggested_playlist": None
+            }
+        except Exception as e:
+            self.logger.error(f"Error comparing music taste: {str(e)}")
+            return {"error": str(e)}
+    
+    def get_concert_recommendations(self) -> List[Dict[str, Any]]:
+        """
+        Get concert recommendations based on user's favorite artists
+        
+        Returns:
+            List of concert recommendations
+        """
+        if not self.spotify_client.is_authenticated():
+            return []
+            
+        try:
+            # This would require integration with a concert API
+            # For now, returning a mock implementation
+            return []
+        except Exception as e:
+            self.logger.error(f"Error getting concert recommendations: {str(e)}")
+            return []
+    
+    def classify_track_mood(self, track_id: str) -> Dict[str, Any]:
+        """
+        Classify the mood of a track based on its audio features
+        
+        Args:
+            track_id: Spotify ID of the track
+            
+        Returns:
+            Dict with mood classification
+        """
+        if not self.spotify_client.is_authenticated():
+            return {"error": "Not authenticated with Spotify"}
+            
+        try:
+            # Get track info
+            track = self.spotify_client.track(track_id)
+            if not track:
+                return {"error": "Track not found"}
+                
+            # Get audio features
+            features = self.spotify_client.audio_features([track_id])[0]
+            if not features:
+                return {"error": "Audio features not available"}
+                
+            # Classify mood based on valence and energy
+            valence = features.get('valence', 0)
+            energy = features.get('energy', 0)
+            
+            # Simple mood classification
+            if valence > 0.7 and energy > 0.7:
+                mood = "Euphoric"
+            elif valence > 0.7 and energy <= 0.7:
+                mood = "Happy"
+            elif valence <= 0.3 and energy > 0.7:
+                mood = "Angry"
+            elif valence <= 0.3 and energy <= 0.3:
+                mood = "Sad"
+            elif energy > 0.7:
+                mood = "Energetic"
+            elif valence > 0.5:
+                mood = "Pleasant"
+            elif features.get('acousticness', 0) > 0.7:
+                mood = "Intimate"
+            else:
+                mood = "Neutral"
+                
+            return {
+                "track": {
+                    "name": track.get('name'),
+                    "artist": track.get('artists', [{}])[0].get('name'),
+                    "album": track.get('album', {}).get('name')
+                },
+                "audio_features": {
+                    "valence": valence,
+                    "energy": energy,
+                    "danceability": features.get('danceability'),
+                    "tempo": features.get('tempo'),
+                    "acousticness": features.get('acousticness')
+                },
+                "mood": mood
+            }
+        except Exception as e:
+            self.logger.error(f"Error classifying track mood: {str(e)}")
+            return {"error": str(e)}
 
-def self_categorize(value, feature_type):
-    """Helper function to categorize audio feature values"""
-    if feature_type == 'energy':
-        if value < 0.33:
-            return "relaxed/calm"
-        elif value < 0.66:
-            return "moderate energy"
-        else:
-            return "high energy"
-    elif feature_type == 'valence':
-        if value < 0.33:
-            return "melancholic/serious"
-        elif value < 0.66:
-            return "balanced mood"
-        else:
-            return "positive/upbeat"
-    elif feature_type == 'danceability':
-        if value < 0.33:
-            return "less danceable"
-        elif value < 0.66:
-            return "moderately rhythmic"
-        else:
-            return "highly danceable"
-    elif feature_type == 'tempo':
-        if value < 90:
-            return "slower paced"
-        elif value < 120:
-            return "moderate tempo"
-        elif value < 150:
-            return "upbeat"
-        else:
-            return "very fast"
-    return "moderate"
+# Create a singleton instance
+spotify_ai = SpotifyAIIntegration()
+
+def get_spotify_ai() -> SpotifyAIIntegration:
+    """Get the singleton instance of SpotifyAIIntegration"""
+    return spotify_ai 

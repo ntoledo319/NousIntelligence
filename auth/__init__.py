@@ -1,40 +1,41 @@
 """
-Authentication Package
+Authentication Module
 
-This package provides authentication implementations for different providers.
-It consolidates various authentication mechanisms into a unified interface.
+This module handles user authentication and registration.
+It provides a simplified authentication system for development.
 
 @module auth
-@author NOUS Development Team
+@description Authentication providers and integration
 """
 
-from flask import Flask
 import logging
+from flask import Blueprint, Flask
+from flask_login import LoginManager
 
 logger = logging.getLogger(__name__)
 
-def register_auth_providers(app: Flask) -> None:
+# Create auth blueprint
+auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
+
+# Import auth routes
+from auth.routes import *
+
+def register_auth_providers(app: Flask):
     """
-    Register all available authentication providers with the Flask application.
+    Register authentication providers with the application
     
     Args:
         app: Flask application instance
     """
-    # Try to register Google OAuth using the standardized implementation
+    # Register the core auth blueprint
+    app.register_blueprint(auth_bp)
+    
     try:
-        from auth.google_auth import google_bp, init_app
-        init_app(app)
-        logger.info("Registered Google authentication provider using standard implementation")
+        # Import and register Google auth provider if available
+        from auth.google_auth import google_bp
+        app.register_blueprint(google_bp)
+        logger.info("Google authentication provider registered")
     except Exception as e:
-        logger.warning(f"Failed to register Google authentication: {str(e)}")
+        logger.warning(f"Google authentication provider not registered: {str(e)}")
     
-    # Try to register any other providers here
-    # For example:
-    # try:
-    #     from auth.github import register_auth_blueprint as register_github
-    #     register_github(app)
-    #     logger.info("Registered GitHub authentication provider")
-    # except Exception as e:
-    #     logger.warning(f"Failed to register GitHub authentication: {str(e)}")
-    
-    logger.info("Authentication providers registration complete")
+    logger.info("Authentication providers registered")

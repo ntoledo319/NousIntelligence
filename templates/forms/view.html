@@ -1,0 +1,172 @@
+{% extends "layout.html" %}
+
+{% block title %}Form Details{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">{{ form.info.title }}</h1>
+            
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('forms.dashboard') }}">Forms Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Form Details</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Form Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Form Title:</div>
+                        <div class="col-md-9">{{ form.info.title }}</div>
+                    </div>
+                    
+                    {% if form.info.description %}
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Description:</div>
+                        <div class="col-md-9">{{ form.info.description }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Form ID:</div>
+                        <div class="col-md-9">{{ form.formId }}</div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Questions:</div>
+                        <div class="col-md-9">{{ form.items|length if form.items else 0 }}</div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Responses:</div>
+                        <div class="col-md-9">{{ responses.responses|length if responses and responses.responses else 0 }}</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a href="https://docs.google.com/forms/d/{{ form.formId }}/edit" target="_blank" class="btn btn-primary">
+                                    <i class="fas fa-edit"></i> Edit in Google Forms
+                                </a>
+                                <a href="https://docs.google.com/forms/d/{{ form.formId }}" target="_blank" class="btn btn-success">
+                                    <i class="fas fa-share-square"></i> View Live Form
+                                </a>
+                                <a href="{{ url_for('forms.analyze', form_id=form.formId) }}" class="btn btn-info">
+                                    <i class="fas fa-chart-bar"></i> Analyze Responses
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Form Questions</h5>
+                </div>
+                <div class="card-body">
+                    {% if form.items %}
+                        <div class="list-group">
+                            {% for item in form.items %}
+                                <div class="list-group-item">
+                                    <h5 class="mb-1">{{ item.title }}</h5>
+                                    {% if item.description %}
+                                        <p class="mb-1">{{ item.description }}</p>
+                                    {% endif %}
+                                    <small>
+                                        {% if item.questionItem and item.questionItem.question %}
+                                            {% if item.questionItem.question.required %}
+                                                <span class="badge bg-danger">Required</span>
+                                            {% endif %}
+                                            
+                                            {% if item.questionItem.question.textQuestion %}
+                                                <span class="badge bg-primary">Text</span>
+                                            {% elif item.questionItem.question.choiceQuestion %}
+                                                <span class="badge bg-success">Multiple Choice</span>
+                                            {% elif item.questionItem.question.scaleQuestion %}
+                                                <span class="badge bg-warning">Scale</span>
+                                            {% elif item.questionItem.question.dateQuestion %}
+                                                <span class="badge bg-info">Date</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Other</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> This form does not have any questions yet. Edit the form in Google Forms to add questions.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Response Summary</h5>
+                </div>
+                <div class="card-body">
+                    {% if responses and responses.responses %}
+                        <p>Total responses: {{ responses.responses|length }}</p>
+                        <a href="https://docs.google.com/forms/d/{{ form.formId }}/responses" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-table"></i> View all responses in Google Forms
+                        </a>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> This form has no responses yet.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Share Form</h5>
+                </div>
+                <div class="card-body">
+                    <p>Share this form with others to collect responses.</p>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" value="https://docs.google.com/forms/d/{{ form.formId }}" id="shareLink" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="copyShareLink()">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="d-grid">
+                        <a href="mailto:?subject={{ form.info.title|urlencode }}&body=Please%20fill%20out%20this%20form:%20https://docs.google.com/forms/d/{{ form.formId }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-envelope"></i> Share via Email
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    function copyShareLink() {
+        var copyText = document.getElementById("shareLink");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        document.execCommand("copy");
+        
+        // Show a copied notification
+        alert("Form link copied to clipboard!");
+    }
+</script>
+{% endblock %}
+
+{% endblock %} 

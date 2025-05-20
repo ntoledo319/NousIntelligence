@@ -1,0 +1,67 @@
+{% extends 'layout.html' %}
+
+{% block title %}Apply for Beta Access{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">Beta Program Application</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('beta.apply') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        
+                        <div class="mb-4">
+                            <h5>Beta Program Guidelines</h5>
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <span>Beta features may contain bugs or behave unexpectedly. By joining the beta program, you acknowledge that:</span>
+                                <ul class="mb-0 mt-2">
+                                    <li>Features may change or be removed without notice</li>
+                                    <li>You'll provide feedback on issues you encounter</li>
+                                    <li>Your data and privacy are still protected, but unexpected issues may occur</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="access_code" class="form-label">Beta Access Code</label>
+                            <input type="text" class="form-control" id="access_code" name="access_code" 
+                                   placeholder="Enter your beta access code" required>
+                            <div class="form-text">
+                                You need a valid access code to join the beta program. 
+                                If you don't have one, please contact the administrator.
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Why are you interested in joining?</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                      placeholder="Tell us why you want to join the beta program and what features you're most interested in"></textarea>
+                        </div>
+                        
+                        <div class="mb-4 form-check">
+                            <input type="checkbox" class="form-check-input" id="agreement" name="agreement" required>
+                            <label class="form-check-label" for="agreement">
+                                I agree to provide feedback on beta features and report any issues I encounter
+                            </label>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('beta.index') }}" class="btn btn-outline-secondary me-md-2">
+                                <i class="fas fa-arrow-left me-2"></i> Back
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i> Submit Application
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

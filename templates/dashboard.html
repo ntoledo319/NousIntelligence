@@ -1,942 +1,182 @@
-{% extends "layout.html" %}
+{% extends "simplified_layout.html" %}
+
+{% block title %}Dashboard | NOUS{% endblock %}
 
 {% block content %}
-<div class="container">
-    <!-- Dashboard Hero Section -->
-    <section class="section-container mb-4">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <h1 class="mb-3">Welcome to Your Dashboard</h1>
-                <p class="text-secondary mb-4">Here's an overview of your personal data and insights from NOUS.</p>
-                
-                <!-- Quick action buttons -->
-                <div class="d-flex flex-wrap gap-2">
-                    <a href="{{ url_for('index.index') }}" class="btn btn-primary" data-shortcut-key="c">
-                        <i class="fas fa-comment-dots me-2"></i>Talk to NOUS
-                    </a>
-                    <a href="{{ url_for('voice_emotion.voice_emotion_page') }}" class="btn btn-info" data-shortcut-key="v">
-                        <i class="fas fa-microphone me-2"></i>Voice Analysis
-                    </a>
-                    <a href="{{ url_for('image_routes.image_upload') }}" class="btn btn-success" data-shortcut-key="i">
-                        <i class="fas fa-image me-2"></i>Image Analysis
-                    </a>
-                    <button id="refreshDashboard" class="btn btn-secondary" data-shortcut-key="r">
-                        <i class="fas fa-sync-alt me-2"></i>Refresh
-                    </button>
-                </div>
-                
-                <!-- Keyboard shortcuts reference -->
-                <div class="mt-3">
-                    <small class="text-muted">
-                        <i class="fas fa-keyboard me-1"></i> Keyboard shortcuts: 
-                        Press <kbd>C</kbd> to talk to NOUS, 
-                        <kbd>V</kbd> for Voice Analysis, 
-                        <kbd>I</kbd> for Image Analysis, 
-                        <kbd>R</kbd> to refresh the dashboard
-                    </small>
-                </div>
-            </div>
-            <div class="col-lg-4 d-none d-lg-block">
-                <div class="text-end">
-                    <img src="{{ url_for('static', filename='img/IMG_4875.jpeg') }}" alt="NOUS Assistant" class="img-fluid rounded" style="max-width: 180px;">
-                </div>
-            </div>
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-3">Welcome, {{ current_user.first_name }}</h1>
+            <p class="lead">Here's an overview of your personal information and important updates.</p>
         </div>
-    </section>
-    
-    <!-- Quick Access Tiles -->
-    <section class="section-container mb-4">
-        <div class="section-header">
-            <div>
-                <h2 class="section-title">Quick Access</h2>
-                <p class="section-subtitle">Frequently used features and services</p>
-            </div>
-        </div>
-        
-        <div class="quick-access-grid">
-            <a href="{{ url_for('index.index') }}?cmd=Show%20my%20doctors" class="quick-access-tile text-decoration-none">
-                <div class="tile-icon text-primary">
-                    <i class="fas fa-user-md"></i>
-                </div>
-                <div class="tile-title">Doctors</div>
-            </a>
-            
-            <a href="{{ url_for('index.index') }}?cmd=Show%20my%20appointments" class="quick-access-tile text-decoration-none">
-                <div class="tile-icon text-success">
-                    <i class="fas fa-calendar-check"></i>
-                </div>
-                <div class="tile-title">Appointments</div>
-            </a>
-            
-            <a href="{{ url_for('index.index') }}?cmd=Show%20my%20medications" class="quick-access-tile text-decoration-none">
-                <div class="tile-icon text-danger">
-                    <i class="fas fa-pills"></i>
-                </div>
-                <div class="tile-title">Medications</div>
-            </a>
-            
-            <a href="{{ url_for('index.index') }}?cmd=Show%20shopping%20lists" class="quick-access-tile text-decoration-none">
-                <div class="tile-icon text-warning">
-                    <i class="fas fa-shopping-cart"></i>
-                </div>
-                <div class="tile-title">Shopping</div>
-            </a>
-            
-            <a href="{{ url_for('index.index') }}?cmd=Show%20my%20budget" class="quick-access-tile text-decoration-none">
-                <div class="tile-icon" style="color: #4361ee;">
-                    <i class="fas fa-wallet"></i>
-                </div>
-                <div class="tile-title">Budget</div>
-            </a>
-            
-            <a href="{{ url_for('process_command') }}?cmd=Show%20my%20trips" class="quick-access-tile text-decoration-none">
-                <div class="tile-icon text-info">
-                    <i class="fas fa-plane-departure"></i>
-                </div>
-                <div class="tile-title">Travel</div>
-            </a>
-            
-            <a href="{{ url_for('process_command') }}?cmd=Show%20weather" class="quick-access-tile text-decoration-none">
-                <div class="tile-icon" style="color: #00b0ff;">
-                    <i class="fas fa-cloud-sun"></i>
-                </div>
-                <div class="tile-title">Weather</div>
-            </a>
-            
-            <a href="{{ url_for('spotify_viz.spotify_report_page') }}" class="quick-access-tile text-decoration-none">
-                <div class="tile-icon" style="color: #1DB954;">
-                    <i class="fab fa-spotify"></i>
-                </div>
-                <div class="tile-title">Spotify</div>
-            </a>
-            
-            <a href="{{ url_for('settings_page') }}" class="quick-access-tile text-decoration-none">
-                <div class="tile-icon text-secondary">
-                    <i class="fas fa-cog"></i>
-                </div>
-                <div class="tile-title">Settings</div>
-            </a>
-            
-            <a href="{{ url_for('user_guide') }}" class="quick-access-tile text-decoration-none">
-                <div class="tile-icon" style="color: #9333ea;">
-                    <i class="fas fa-book"></i>
-                </div>
-                <div class="tile-title">User Guide</div>
+        <div class="col-md-4 text-md-end">
+            <a href="{{ url_for('settings.settings_page') }}" class="btn btn-outline-primary">
+                <i class="fas fa-cog me-2"></i> Settings
             </a>
         </div>
-    </section>
-    
-    <!-- Health Section -->
-    <section id="health-section" class="mb-4">
-        <div class="section-header">
-            <div>
-                <h2 class="section-title text-gradient">Health</h2>
-                <p class="section-subtitle">Manage your health information</p>
-            </div>
-            <a href="{{ url_for('process_command') }}?cmd=What%20health%20features%20do%20you%20offer" class="btn btn-sm btn-outline-primary">
-                <i class="fas fa-plus me-1"></i>Explore More
-            </a>
-        </div>
-        
-        <div class="row g-4">
-            <!-- Appointments Card -->
-            <div class="col-md-6">
-                <div class="card card-modern h-100">
-                    <div class="card-header">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center">
-                                <div class="card-icon-wrapper success-soft me-3">
-                                    <i class="fas fa-calendar-check"></i>
-                                </div>
-                                <h3 class="card-title mb-0">Upcoming Appointments</h3>
-                            </div>
-                            <div class="loading-indicator">
-                                <div class="spinner-border spinner-border-sm text-primary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                            </div>
-                        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Quick Actions Card -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-bolt me-2"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{{ url_for('dashboard.tasks') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-plus-circle me-2 text-success"></i> Add a new task
+                        </a>
+                        <a href="{{ url_for('dashboard.tasks') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-check-circle me-2 text-primary"></i> Manage tasks
+                        </a>
+                        <a href="{{ url_for('settings.settings_page') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-cog me-2 text-secondary"></i> Update settings
+                        </a>
+                        <a href="{{ url_for('index.help_page') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-question-circle me-2 text-info"></i> Get help
+                        </a>
                     </div>
-                    <div class="card-body">
-                        <div id="appointment-list">
-                            <div class="placeholder-content">
-                                <div class="placeholder-item"></div>
-                                <div class="placeholder-item"></div>
-                                <div class="placeholder-item"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Overview Card -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-chart-pie me-2"></i> Status Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded text-center">
+                                <h3 class="mb-1">0</h3>
+                                <p class="mb-0 small">Due Tasks</p>
                             </div>
                         </div>
-                        
-                        <div class="text-center mt-3">
-                            <a href="{{ url_for('process_command') }}?cmd=Show%20all%20appointments" class="btn btn-sm btn-outline-primary">
-                                View All Appointments
-                            </a>
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded text-center">
+                                <h3 class="mb-1">0</h3>
+                                <p class="mb-0 small">Appointments</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded text-center">
+                                <h3 class="mb-1">0</h3>
+                                <p class="mb-0 small">Shopping Items</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 bg-light rounded text-center">
+                                <h3 class="mb-1">0</h3>
+                                <p class="mb-0 small">Medications</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Medications Card -->
-            <div class="col-md-6">
-                <div class="card card-modern h-100">
-                    <div class="card-header">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center">
-                                <div class="card-icon-wrapper warning-soft me-3">
-                                    <i class="fas fa-pills"></i>
-                                </div>
-                                <h3 class="card-title mb-0">Medications</h3>
-                            </div>
-                            <div class="loading-indicator">
-                                <div class="spinner-border spinner-border-sm text-warning" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <ul id="medication-list" class="medication-list">
-                            <div class="placeholder-content">
-                                <div class="placeholder-item"></div>
-                                <div class="placeholder-item"></div>
-                                <div class="placeholder-item"></div>
-                            </div>
+        </div>
+
+        <!-- Upcoming Tasks Card -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-tasks me-2"></i> Upcoming Tasks</h5>
+                </div>
+                <div class="card-body">
+                    {% if tasks %}
+                        <ul class="list-group list-group-flush">
+                            {% for task in tasks %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <form action="{{ url_for('dashboard.toggle_task', task_id=task.id) }}" method="post" class="d-inline">
+                                            <input type="checkbox" class="form-check-input me-2 task-toggle" data-task-id="{{ task.id }}" {% if task.completed %}checked{% endif %}>
+                                        </form>
+                                        <span class="{% if task.completed %}text-decoration-line-through{% endif %}">{{ task.title }}</span>
+                                        {% if task.priority == 'high' %}
+                                            <span class="badge bg-danger ms-2">High</span>
+                                        {% elif task.priority == 'medium' %}
+                                            <span class="badge bg-warning text-dark ms-2">Medium</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if task.due_date %}
+                                        <small class="text-muted">{{ task.due_date|format_date }}</small>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
                         </ul>
-                        
-                        <div class="text-center mt-3">
-                            <a href="{{ url_for('process_command') }}?cmd=Show%20all%20medications" class="btn btn-sm btn-outline-warning">
-                                View All Medications
+                        <div class="mt-3 text-end">
+                            <a href="{{ url_for('dashboard.tasks') }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-tasks me-1"></i> View All Tasks
                             </a>
                         </div>
-                    </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> No upcoming tasks found.
+                        </div>
+                        <p class="card-text">You don't have any upcoming tasks. Use the quick actions to add tasks.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
-    </section>
-    
-    <!-- Shopping Section -->
-    <section id="shopping-section" class="mb-4">
-        <div class="section-header">
-            <div>
-                <h2 class="section-title text-gradient-success">Shopping</h2>
-                <p class="section-subtitle">Track your shopping lists and products</p>
-            </div>
-            <a href="{{ url_for('process_command') }}?cmd=What%20shopping%20features%20do%20you%20offer" class="btn btn-sm btn-outline-success">
-                <i class="fas fa-plus me-1"></i>Explore More
-            </a>
-        </div>
-        
-        <div class="row g-4">
-            <!-- Shopping Lists Card -->
-            <div class="col-md-6">
-                <div class="card card-modern h-100">
-                    <div class="card-header">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center">
-                                <div class="card-icon-wrapper success-soft me-3">
-                                    <i class="fas fa-shopping-basket"></i>
-                                </div>
-                                <h3 class="card-title mb-0">Shopping Lists</h3>
-                            </div>
-                            <div class="loading-indicator">
-                                <div class="spinner-border spinner-border-sm text-success" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <ul id="shopping-list" class="shopping-list">
-                            <div class="placeholder-content">
-                                <div class="placeholder-item"></div>
-                                <div class="placeholder-item"></div>
-                                <div class="placeholder-item"></div>
-                            </div>
-                        </ul>
-                        
-                        <div class="text-center mt-3">
-                            <a href="{{ url_for('process_command') }}?cmd=Show%20all%20shopping%20lists" class="btn btn-sm btn-outline-success">
-                                View All Lists
-                            </a>
-                        </div>
-                    </div>
+
+        <!-- Weather Card -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0"><i class="fas fa-cloud-sun me-2"></i> Weather</h5>
                 </div>
-            </div>
-            
-            <!-- Products Card -->
-            <div class="col-md-6">
-                <div class="card card-modern h-100">
-                    <div class="card-header">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center">
-                                <div class="card-icon-wrapper warning-soft me-3">
-                                    <i class="fas fa-box"></i>
-                                </div>
-                                <h3 class="card-title mb-0">Tracked Products</h3>
-                            </div>
-                            <div class="loading-indicator">
-                                <div class="spinner-border spinner-border-sm text-warning" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                            </div>
-                        </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> Weather data not available.
                     </div>
-                    <div class="card-body">
-                        <div id="products-container">
-                            <div class="placeholder-content">
-                                <div class="placeholder-item"></div>
-                                <div class="placeholder-item"></div>
-                                <div class="placeholder-item"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="text-center mt-3">
-                            <a href="{{ url_for('process_command') }}?cmd=Show%20all%20tracked%20products" class="btn btn-sm btn-outline-warning">
-                                View All Products
-                            </a>
-                        </div>
-                    </div>
+                    <p class="card-text">Configure your location in settings to get weather information.</p>
                 </div>
             </div>
         </div>
-    </section>
-    
-    <!-- Finance Section -->
-    <section id="finance-section" class="mb-4">
-        <div class="section-header">
-            <div>
-                <h2 class="section-title text-gradient-warning">Finance</h2>
-                <p class="section-subtitle">Track your budgets and expenses</p>
-            </div>
-            <a href="{{ url_for('process_command') }}?cmd=What%20financial%20features%20do%20you%20offer" class="btn btn-sm btn-outline-warning">
-                <i class="fas fa-plus me-1"></i>Explore More
-            </a>
-        </div>
-        
-        <div class="row g-4">
-            <!-- Budget Summary Card -->
-            <div class="col-md-6">
-                <div class="card card-modern h-100">
-                    <div class="card-header">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center">
-                                <div class="card-icon-wrapper warning-soft me-3">
-                                    <i class="fas fa-chart-pie"></i>
-                                </div>
-                                <h3 class="card-title mb-0">Budget Summary</h3>
-                            </div>
-                            <div class="loading-indicator">
-                                <div class="spinner-border spinner-border-sm text-warning" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div id="budget-summary">
-                            <div class="placeholder-content">
-                                <div class="placeholder-item"></div>
-                                <div class="placeholder-item"></div>
-                                <div class="placeholder-item"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-4">
-                            <canvas id="budget-chart" width="100%" height="200"></canvas>
-                        </div>
-                        
-                        <div class="text-center mt-3">
-                            <a href="{{ url_for('process_command') }}?cmd=Show%20budget%20details" class="btn btn-sm btn-outline-warning">
-                                View Budget Details
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Expenses Card -->
-            <div class="col-md-6">
-                <div class="card card-modern h-100">
-                    <div class="card-header">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center">
-                                <div class="card-icon-wrapper danger-soft me-3">
-                                    <i class="fas fa-receipt"></i>
-                                </div>
-                                <h3 class="card-title mb-0">Recent Expenses</h3>
-                            </div>
-                            <div class="loading-indicator">
-                                <div class="spinner-border spinner-border-sm text-danger" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div id="expenses-container">
-                            <div class="placeholder-content">
-                                <div class="placeholder-item"></div>
-                                <div class="placeholder-item"></div>
-                                <div class="placeholder-item"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="text-center mt-3">
-                            <a href="{{ url_for('process_command') }}?cmd=Show%20recent%20expenses" class="btn btn-sm btn-outline-danger">
-                                View All Expenses
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    </div>
 </div>
+{% endblock %}
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize the dashboard
-    initializeDashboard();
-    
-    // Add keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-        // Only process if no input field is focused
-        if (document.activeElement.tagName !== 'INPUT' && 
-            document.activeElement.tagName !== 'TEXTAREA' &&
-            !document.activeElement.isContentEditable) {
-            
-            // Convert to lowercase for case-insensitive matching
-            const key = e.key.toLowerCase();
-            
-            // Find any element with matching shortcut
-            const elements = document.querySelectorAll('[data-shortcut-key="' + key + '"]');
-            if (elements.length > 0) {
-                e.preventDefault();
+    document.addEventListener('DOMContentLoaded', function() {
+        // Task toggle checkboxes
+        const taskToggles = document.querySelectorAll('.task-toggle');
+        taskToggles.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const taskId = this.dataset.taskId;
+                const form = this.closest('form');
                 
-                // If it's a button, click it
-                if (elements[0].tagName === 'BUTTON') {
-                    elements[0].click();
-                } 
-                // If it's a link, navigate to it
-                else if (elements[0].tagName === 'A') {
-                    window.location.href = elements[0].href;
-                }
-            }
-        }
-    });
-    
-    // Refresh dashboard button
-    document.getElementById('refreshDashboard').addEventListener('click', function() {
-        refreshDashboard();
-    });
-});
-
-function initializeDashboard() {
-    // Show loading indicators
-    document.querySelectorAll('.loading-indicator').forEach(function(el) {
-        el.style.display = 'block';
-    });
-    
-    // Load data for each section
-    loadHealthData();
-    loadShoppingData();
-    loadFinanceData();
-    
-    // Load all data at once (alternative approach)
-    loadDashboardSummary();
-}
-
-function refreshDashboard() {
-    // Show loading indicators
-    document.querySelectorAll('.loading-indicator').forEach(function(el) {
-        el.style.display = 'block';
-    });
-    
-    // Clear existing data
-    document.getElementById('appointment-list').innerHTML = '<div class="placeholder-content"><div class="placeholder-item"></div><div class="placeholder-item"></div><div class="placeholder-item"></div></div>';
-    document.getElementById('medication-list').innerHTML = '<div class="placeholder-content"><div class="placeholder-item"></div><div class="placeholder-item"></div><div class="placeholder-item"></div></div>';
-    document.getElementById('shopping-list').innerHTML = '<div class="placeholder-content"><div class="placeholder-item"></div><div class="placeholder-item"></div><div class="placeholder-item"></div></div>';
-    document.getElementById('products-container').innerHTML = '<div class="placeholder-content"><div class="placeholder-item"></div><div class="placeholder-item"></div><div class="placeholder-item"></div></div>';
-    document.getElementById('budget-summary').innerHTML = '<div class="placeholder-content"><div class="placeholder-item"></div><div class="placeholder-item"></div><div class="placeholder-item"></div></div>';
-    document.getElementById('expenses-container').innerHTML = '<div class="placeholder-content"><div class="placeholder-item"></div><div class="placeholder-item"></div><div class="placeholder-item"></div></div>';
-    
-    // Reload all data
-    initializeDashboard();
-}
-
-function loadDashboardSummary() {
-    fetch('/dashboard/api/summary')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Process each section data
-                const sections = data.sections;
-                
-                // Load health data if available
-                if (sections.appointments || sections.medications) {
-                    renderHealthData(sections.appointments, sections.medications);
-                }
-                
-                // Load shopping data if available
-                if (sections.shopping) {
-                    renderShoppingData(sections.shopping);
-                }
-                
-                // Load budget data if available
-                if (sections.budget) {
-                    renderBudgetData(sections.budget);
-                }
-                
-                // Hide loading indicators
-                document.querySelectorAll('.loading-indicator').forEach(function(el) {
-                    el.style.display = 'none';
-                });
-            } else {
-                console.error("Error loading dashboard data:", data.error);
-                showErrorMessage("Could not load dashboard data. Please try again later.");
-            }
-        })
-        .catch(error => {
-            console.error("Dashboard loading error:", error);
-            showErrorMessage("Could not load dashboard data. Please try again later.");
-            
-            // Hide loading indicators
-            document.querySelectorAll('.loading-indicator').forEach(function(el) {
-                el.style.display = 'none';
-            });
-        });
-}
-
-function loadHealthData() {
-    fetch('/dashboard/api/health-status')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                renderHealthData(data.appointments, data.medications);
-            } else {
-                console.error("Error loading health data:", data.error);
-                document.getElementById('health-section').innerHTML = '<div class="alert alert-warning">Could not load health data. Please try again later.</div>';
-            }
-            
-            // Hide loading indicators in health section
-            document.querySelectorAll('#health-section .loading-indicator').forEach(function(el) {
-                el.style.display = 'none';
-            });
-        })
-        .catch(error => {
-            console.error("Health data loading error:", error);
-            document.getElementById('health-section').innerHTML = '<div class="alert alert-warning">Could not load health data. Please try again later.</div>';
-            
-            // Hide loading indicators in health section
-            document.querySelectorAll('#health-section .loading-indicator').forEach(function(el) {
-                el.style.display = 'none';
-            });
-        });
-}
-
-function loadShoppingData() {
-    fetch('/dashboard/api/shopping-status')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                renderShoppingData(data);
-            } else {
-                console.error("Error loading shopping data:", data.error);
-                document.getElementById('shopping-section').innerHTML = '<div class="alert alert-warning">Could not load shopping data. Please try again later.</div>';
-            }
-            
-            // Hide loading indicators in shopping section
-            document.querySelectorAll('#shopping-section .loading-indicator').forEach(function(el) {
-                el.style.display = 'none';
-            });
-        })
-        .catch(error => {
-            console.error("Shopping data loading error:", error);
-            document.getElementById('shopping-section').innerHTML = '<div class="alert alert-warning">Could not load shopping data. Please try again later.</div>';
-            
-            // Hide loading indicators in shopping section
-            document.querySelectorAll('#shopping-section .loading-indicator').forEach(function(el) {
-                el.style.display = 'none';
-            });
-        });
-}
-
-function loadFinanceData() {
-    // This would call the finance API endpoint
-    // For now, we'll use placeholder data
-    
-    setTimeout(() => {
-        // This simulates loading data from an API
-        const budgetData = {
-            income: 5250,
-            expenses: 3840,
-            savings_rate: 26.9,
-            upcoming_bills: 1280,
-            categories: {
-                'Housing': 1200,
-                'Food': 600,
-                'Transportation': 400,
-                'Entertainment': 300,
-                'Utilities': 250,
-                'Other': 450
-            }
-        };
-        
-        renderBudgetData(budgetData);
-        
-        // Hide loading indicators in finance section
-        document.querySelectorAll('#finance-section .loading-indicator').forEach(function(el) {
-            el.style.display = 'none';
-        });
-    }, 1000);
-}
-
-function renderHealthData(appointments, medications) {
-    // Render appointments
-    const appointmentList = document.getElementById('appointment-list');
-    
-    if (appointments && appointments.length > 0) {
-        let appointmentHtml = '';
-        
-        appointments.forEach(appointment => {
-            const appointmentDate = new Date(appointment.date);
-            const formattedDate = appointmentDate.toLocaleDateString('en-US', { 
-                month: 'long', 
-                day: 'numeric', 
-                year: 'numeric'
-            });
-            
-            const formattedTime = appointmentDate.toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                minute: '2-digit'
-            });
-            
-            appointmentHtml += `
-                <div class="appointment-card">
-                    <div class="appointment-date">
-                        <i class="far fa-calendar-alt"></i> ${formattedDate}
-                    </div>
-                    <div class="doctor-info">
-                        <div class="doctor-avatar">
-                            <i class="fas fa-user-md"></i>
-                        </div>
-                        <div>
-                            <div class="doctor-name">${appointment.doctor_name || 'Doctor'}</div>
-                            <div class="doctor-specialty">${appointment.reason || 'Checkup'}</div>
-                        </div>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <span class="badge bg-info-soft">
-                            <i class="far fa-clock me-1"></i>${formattedTime}
-                        </span>
-                        <a href="#" class="btn btn-sm btn-outline-primary">Details</a>
-                    </div>
-                </div>
-            `;
-        });
-        
-        appointmentList.innerHTML = appointmentHtml;
-    } else {
-        appointmentList.innerHTML = '<div class="alert alert-info">No upcoming appointments.</div>';
-    }
-    
-    // Render medications
-    const medicationList = document.getElementById('medication-list');
-    
-    if (medications && medications.length > 0) {
-        let medicationHtml = '';
-        
-        medications.forEach(medication => {
-            // Determine pill class based on quantity
-            let pillClass = 'pill-high';
-            if (medication.quantity_remaining < 5) {
-                pillClass = 'pill-low';
-            } else if (medication.quantity_remaining < 15) {
-                pillClass = 'pill-medium';
-            }
-            
-            medicationHtml += `
-                <li class="medication-item">
-                    <div class="medication-icon">
-                        <i class="fas fa-capsules"></i>
-                    </div>
-                    <div>
-                        <div class="medication-name">${medication.name}</div>
-                        <div class="medication-dosage">${medication.dosage || ''}, ${medication.instructions || ''}</div>
-                    </div>
-                    <div class="medication-meta">
-                        <div class="remaining-pills ${pillClass}">${medication.quantity_remaining} left</div>
-                    </div>
-                </li>
-            `;
-        });
-        
-        medicationList.innerHTML = medicationHtml;
-    } else {
-        medicationList.innerHTML = '<div class="alert alert-info">No medications to track.</div>';
-    }
-}
-
-function renderShoppingData(data) {
-    // Render shopping lists
-    const shoppingList = document.getElementById('shopping-list');
-    
-    if (data.lists && data.lists.length > 0) {
-        // Get the first list's items to display
-        const firstList = data.lists[0];
-        
-        if (firstList.items && firstList.items.length > 0) {
-            let listHtml = '';
-            
-            firstList.items.forEach(item => {
-                listHtml += `
-                    <li class="shopping-item ${item.is_checked ? 'checked' : ''}">
-                        <input type="checkbox" class="form-check-input item-checkbox" ${item.is_checked ? 'checked' : ''}>
-                        <span class="item-name">${item.name}</span>
-                        <span class="item-category">${item.category || 'Uncategorized'}</span>
-                        <div class="item-actions">
-                            <button class="item-action-btn" title="Remove item">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    </li>
-                `;
-            });
-            
-            shoppingList.innerHTML = listHtml;
-        } else {
-            shoppingList.innerHTML = '<div class="alert alert-info">No items in your shopping list.</div>';
-        }
-    } else {
-        shoppingList.innerHTML = '<div class="alert alert-info">No shopping lists available.</div>';
-    }
-    
-    // Render products
-    const productsContainer = document.getElementById('products-container');
-    
-    if (data.products_to_order && data.products_to_order.length > 0) {
-        let productsHtml = `
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th>Price</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-        `;
-        
-        data.products_to_order.forEach(product => {
-            productsHtml += `
-                <tr>
-                    <td>${product.name}</td>
-                    <td>${product.price ? '$' + product.price.toFixed(2) : 'N/A'}</td>
-                    <td><span class="badge bg-warning-soft">Reorder Soon</span></td>
-                </tr>
-            `;
-        });
-        
-        productsHtml += `
-                    </tbody>
-                </table>
-            </div>
-        `;
-        
-        productsContainer.innerHTML = productsHtml;
-    } else {
-        productsContainer.innerHTML = '<div class="alert alert-info">No products need reordering.</div>';
-    }
-}
-
-function renderBudgetData(data) {
-    // Render budget summary
-    const budgetSummary = document.getElementById('budget-summary');
-    
-    if (data) {
-        let budgetHtml = `
-            <div class="row g-3">
-                <div class="col-sm-6">
-                    <div class="stat-card">
-                        <div class="stat-title">MONTHLY INCOME</div>
-                        <div class="stat-value">$${data.income.toLocaleString()}</div>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up me-1"></i>5.2% from last month
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-sm-6">
-                    <div class="stat-card">
-                        <div class="stat-title">MONTHLY EXPENSES</div>
-                        <div class="stat-value">$${data.expenses.toLocaleString()}</div>
-                        <div class="stat-change negative">
-                            <i class="fas fa-arrow-up me-1"></i>2.8% from last month
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-sm-6">
-                    <div class="stat-card">
-                        <div class="stat-title">SAVINGS RATE</div>
-                        <div class="stat-value">${data.savings_rate}%</div>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up me-1"></i>1.4% from last month
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-sm-6">
-                    <div class="stat-card">
-                        <div class="stat-title">UPCOMING BILLS</div>
-                        <div class="stat-value">$${data.upcoming_bills.toLocaleString()}</div>
-                        <div class="stat-change">
-                            Due in next 7 days
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        budgetSummary.innerHTML = budgetHtml;
-        
-        // Render budget chart
-        if (data.categories) {
-            const ctx = document.getElementById('budget-chart').getContext('2d');
-            
-            // Extract labels and data from categories
-            const labels = Object.keys(data.categories);
-            const values = Object.values(data.categories);
-            
-            // Generate colors for each category
-            const colors = generateChartColors(labels.length);
-            
-            const chart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: values,
-                        backgroundColor: colors,
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                boxWidth: 15,
-                                padding: 15
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const value = context.raw;
-                                    const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                                    const percentage = Math.round((value / total) * 100);
-                                    return `$${value} (${percentage}%)`;
-                                }
-                            }
-                        }
+                // Submit the form to toggle task status
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/x-www-form-urlencoded',
                     }
-                }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Update UI based on task status
+                    const listItem = checkbox.closest('li');
+                    const taskTitle = listItem.querySelector('span');
+                    
+                    if (data.completed) {
+                        taskTitle.classList.add('text-decoration-line-through');
+                    } else {
+                        taskTitle.classList.remove('text-decoration-line-through');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error toggling task:', error);
+                    // Revert checkbox state on error
+                    this.checked = !this.checked;
+                });
             });
-        }
-    } else {
-        budgetSummary.innerHTML = '<div class="alert alert-info">No budget data available.</div>';
-    }
-    
-    // Render expenses
-    const expensesContainer = document.getElementById('expenses-container');
-    
-    // Placeholder for now
-    expensesContainer.innerHTML = `
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Description</th>
-                        <th>Amount</th>
-                        <th>Category</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>May 15</td>
-                        <td>Grocery Shopping</td>
-                        <td>$78.45</td>
-                        <td>Food</td>
-                    </tr>
-                    <tr>
-                        <td>May 14</td>
-                        <td>Gas Station</td>
-                        <td>$42.50</td>
-                        <td>Transportation</td>
-                    </tr>
-                    <tr>
-                        <td>May 12</td>
-                        <td>Online Subscription</td>
-                        <td>$14.99</td>
-                        <td>Entertainment</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    `;
-}
-
-function generateChartColors(count) {
-    const colors = [
-        '#4361ee', '#3a0ca3', '#7209b7', '#f72585', '#4cc9f0',
-        '#4895ef', '#560bad', '#b5179e', '#f15bb5', '#00b4d8',
-        '#0077b6', '#023e8a', '#0096c7', '#48cae4', '#90e0ef'
-    ];
-    
-    if (count <= colors.length) {
-        return colors.slice(0, count);
-    }
-    
-    // If we need more colors than available, generate random ones
-    const result = [...colors];
-    const remaining = count - colors.length;
-    
-    for (let i = 0; i < remaining; i++) {
-        const randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16);
-        result.push(randomColor);
-    }
-    
-    return result;
-}
-
-function showErrorMessage(message) {
-    // Create alert
-    const alertDiv = document.createElement('div');
-    alertDiv.className = 'alert alert-danger alert-dismissible fade show';
-    alertDiv.role = 'alert';
-    
-    alertDiv.innerHTML = `
-        <div class="d-flex align-items-center">
-            <i class="fas fa-exclamation-circle me-2"></i>
-            ${message}
-        </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    `;
-    
-    // Insert at top of container
-    const container = document.querySelector('.container');
-    container.insertBefore(alertDiv, container.firstChild);
-    
-    // Auto-dismiss after 5 seconds
-    setTimeout(() => {
-        alertDiv.classList.remove('show');
-        setTimeout(() => alertDiv.remove(), 150);
-    }, 5000);
-}
+        });
+    });
 </script>
 {% endblock %}

@@ -1,82 +1,107 @@
-# NOUS Personal Assistant
+# NOUS - Personal Assistant Application
 
-NOUS is a comprehensive personal assistant application designed to help manage tasks, track health, monitor weather, maintain budgets, and much more. The application integrates with various services like Google, Spotify, and AI providers to deliver a personalized experience.
+NOUS is a modern web-based personal assistant application built with Flask. It helps you organize your life, track important information, and manage tasks efficiently.
 
 ## Features
 
-- **Task Management**: Integration with Google services for calendar, tasks, and notes
-- **Health Tracking**: Monitor appointments, medications, and pain forecasts
-- **Weather Integration**: Get weather forecasts and track weather-based health impacts
-- **Budget Management**: Track expenses, budgets, and financial planning
-- **Travel Planning**: Plan trips, manage itineraries, and track travel documents
-- **Shopping Lists**: Create and manage shopping lists and recurring items
-- **Voice Interactions**: Process voice commands and provide voice responses
-- **AI-Powered Assistance**: Natural language processing for commands and questions
+- **User Authentication**: Secure login with email/password or Google OAuth
+- **Task Management**: Create, update, and track tasks with priorities and due dates
+- **Settings Management**: Customize your experience with themes and preferences
+- **Dashboard**: Get a quick overview of your most important information
+- **Responsive Design**: Works well on desktop and mobile devices
 
-## Architecture
+## Getting Started
 
-The application follows a modern, modular architecture with clear separation of concerns:
+### Prerequisites
 
-- **Factory Pattern**: Uses an application factory to configure and initialize the app
-- **Repository Pattern**: Abstracts database access through repositories
-- **Service Layer**: Encapsulates business logic in service components
-- **Blueprints**: Organizes routes into logical blueprint modules
-- **API Versioning**: Structured API endpoints with versioning
+- Python 3.8 or higher
+- pip (Python package manager)
+- A modern web browser
 
-### Directory Structure
+### Installation
 
-```
-├── app_factory.py        # Application factory
-├── auth/                 # Authentication providers
-├── config.py             # Configuration classes
-├── main.py               # Main entry point
-├── migrations/           # Database migrations
-├── models.py             # SQLAlchemy models
-├── repositories/         # Repository pattern implementations
-├── routes/               # Route blueprints
-│   ├── api/              # API endpoints
-│   │   └── v1/           # API version 1
-│   └── view/             # View/page routes
-├── services/             # Business logic services
-├── static/               # Static assets
-├── templates/            # HTML templates
-└── utils/                # Utility functions
-```
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/nous.git
+   cd nous
+   ```
 
-## Setup and Installation
+2. Set up a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
-1. Clone the repository
-2. Create a virtual environment: `python -m venv venv`
-3. Activate the virtual environment:
-   - Windows: `venv\Scripts\activate`
-   - Unix/MacOS: `source venv/bin/activate`
-4. Install dependencies: `pip install -r requirements.txt`
-5. Set up environment variables (see `.env.example`)
-6. Initialize the database: `flask db upgrade`
-7. Run the application: `python main.py`
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## API Documentation
+4. Configure environment variables:
+   ```bash
+   # For development
+   export FLASK_ENV=development
+   export SECRET_KEY=your_secret_key
+   
+   # For Google OAuth (optional)
+   export GOOGLE_CLIENT_ID=your_google_client_id
+   export GOOGLE_CLIENT_SECRET=your_google_client_secret
+   export GOOGLE_REDIRECT_URI=http://localhost:8080/auth/google/callback
+   ```
 
-The API is organized into versioned endpoints:
+5. Initialize the database:
+   ```bash
+   flask init-db  # This command is added by the app
+   ```
 
-- `/api/v1/settings` - User settings management
-- `/api/v1/weather` - Weather data and location management
+6. Run the application:
+   ```bash
+   python app.py
+   # or
+   flask run
+   ```
 
-For detailed API documentation, visit `/api/documentation` after starting the server.
+7. Access the application:
+   Open your browser and navigate to `http://localhost:8080`
 
-## Integrations
+## Development
 
-NOUS integrates with several third-party services:
+### Project Structure
 
-- **Google OAuth**: Authentication and access to Google services
-- **Spotify API**: Music integration and health-related music recommendations
-- **OpenAI/OpenRouter**: AI capabilities for natural language processing
-- **Weather APIs**: Local weather information and forecasting
+- **app.py**: Main application entry point
+- **app_factory.py**: Application factory for Flask app creation
+- **models.py**: SQLAlchemy database models
+- **auth/**: Authentication related files
+- **routes/**: Route blueprints for different features
+- **templates/**: Jinja2 HTML templates
+- **static/**: Static files (CSS, JS, images)
+- **utils/**: Utility functions and helpers
+
+### Key Components
+
+- **Flask**: Web framework
+- **SQLAlchemy**: ORM for database operations
+- **Flask-Login**: User session management
+- **Bootstrap 5**: Frontend framework
+- **JavaScript**: Client-side interactions
 
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
 ## License
 
-[MIT License](LICENSE)
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgements
+
+- [Flask](https://flask.palletsprojects.com/)
+- [Bootstrap](https://getbootstrap.com/)
+- [Font Awesome](https://fontawesome.com/)
+- [Google OAuth](https://developers.google.com/identity/protocols/oauth2)

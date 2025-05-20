@@ -1,112 +1,228 @@
 """
-Beta testing routes for handling beta access requests and management
+Beta Testing Routes
+
+This module provides routes for managing beta testers and beta feature access.
+It includes functionality for registering as a beta tester and managing beta testing.
+
+@module routes.beta_routes
+@description Beta testing routes
 """
 
 import logging
-from flask import Blueprint, render_template, redirect, url_for, flash, request, session
-from flask_login import current_user, login_required
-from models import User, BetaTester, db
-from utils.beta_test_helper import (
-    is_beta_tester,
-    register_beta_tester,
-    get_beta_tester_stats,
-    validate_beta_access_code,
-    deactivate_beta_tester,
-)
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask_login import login_required, current_user
+from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 
-# Create the blueprint
-beta = Blueprint('beta', __name__, url_prefix='/beta')
+from models import db, BetaTester, User
+from utils.security_helper import admin_required, csrf_protect, log_security_event
+from utils.settings import get_setting
 
-@beta.route('/request')
-def request_access():
-    """Show beta access request page"""
-    # If user is already a beta tester, redirect to features
-    if current_user.is_authenticated and is_beta_tester(current_user.id):
-        flash("You already have beta access!", "info")
-        return redirect(url_for('beta.features'))
-    
-    # Get beta tester stats
-    stats = get_beta_tester_stats()
-    
-    return render_template('beta/request_access.html', 
-                          stats=stats, 
-                          slots_available=stats['available_slots'] > 0)
+# Configure logging
+logger = logging.getLogger(__name__)
 
-@beta.route('/request', methods=['POST'])
+# Create blueprint
+beta_bp = Blueprint('beta', __name__, url_prefix='/beta')
+
+@beta_bp.route('/')
+def index():
+    """Beta testing landing page"""
+    # Check if beta mode is enabled
+    beta_mode = get_setting('enable_beta_features', False)
+    if not beta_mode:
+        flash('Beta testing is currently disabled.', 'info')
+        return redirect(url_for('index.index'))
+    
+    # Check if user is already a beta tester
+    is_beta_tester = False
+    if current_user.is_authenticated:
+        beta_tester = BetaTester.query.filter_by(user_id=current_user.id, active=True).first()
+        is_beta_tester = beta_tester is not None
+    
+    return render_template(
+        'beta/index.html',
+        is_beta_tester=is_beta_tester
+    )
+
+@beta_bp.route('/apply', methods=['GET', 'POST'])
 @login_required
-def submit_access_request():
-    """Process beta access request"""
-    access_code = request.form.get('access_code', '').strip()
-    agreement = request.form.get('agreement') == 'on'
+def apply():
+    """Apply for beta testing"""
+    # Check if beta mode is enabled
+    beta_mode = get_setting('enable_beta_features', False)
+    if not beta_mode:
+        flash('Beta testing is currently disabled.', 'info')
+        return redirect(url_for('index.index'))
     
-    if not agreement:
-        flash("You must agree to provide feedback to join the beta program.", "warning")
-        return redirect(url_for('beta.request_access'))
+    # Check if user is already a beta tester
+    existing_tester = BetaTester.query.filter_by(user_id=current_user.id).first()
+    if existing_tester and existing_tester.active:
+        flash('You are already a beta tester.', 'info')
+        return redirect(url_for('beta.dashboard'))
     
-    # Validate access code
-    if not validate_beta_access_code(access_code):
-        flash("Invalid beta access code. Please check and try again.", "danger")
-        return redirect(url_for('beta.request_access'))
+    # Check if we're at max beta testers
+    max_testers = int(current_app.config.get('MAX_BETA_TESTERS', 30))
+    current_tester_count = BetaTester.query.filter_by(active=True).count()
     
-    # Register the user as a beta tester
-    result = register_beta_tester(
-        current_user.id, 
-        access_code=access_code,
-        notes=f"Manual request via web form on {datetime.utcnow().strftime('%Y-%m-%d')}"
+    if current_tester_count >= max_testers and not existing_tester:
+        flash('Maximum number of beta testers has been reached. Please try again later.', 'warning')
+        return redirect(url_for('beta.index'))
+    
+    if request.method == 'POST':
+        # Get access code from form
+        access_code = request.form.get('access_code', '').strip()
+        correct_code = current_app.config.get('BETA_ACCESS_CODE', 'BETANOUS2025')
+        
+        if not access_code:
+            flash('Access code is required.', 'danger')
+        elif access_code != correct_code:
+            flash('Invalid access code.', 'danger')
+            log_security_event("BETA_INVALID_CODE", f"Invalid beta access code attempt: {access_code}", severity="WARNING")
+        else:
+            try:
+                # Create or update beta tester
+                if existing_tester:
+                    existing_tester.active = True
+                    existing_tester.access_code = access_code
+                    db.session.commit()
+                    log_security_event("BETA_REACTIVATED", "User reactivated as beta tester", severity="INFO")
+                else:
+                    # Create new beta tester
+                    beta_tester = BetaTester(
+                        user_id=current_user.id,
+                        access_code=access_code,
+                        active=True,
+                        notes=request.form.get('notes', '')
+                    )
+                    db.session.add(beta_tester)
+                    db.session.commit()
+                    log_security_event("BETA_ENROLLED", "User enrolled as beta tester", severity="INFO")
+                
+                flash('You have been successfully enrolled as a beta tester!', 'success')
+                return redirect(url_for('beta.dashboard'))
+            
+            except IntegrityError:
+                db.session.rollback()
+                flash('An error occurred during enrollment.', 'danger')
+                logger.error(f"Beta enrollment failed for user {current_user.id}")
+            
+            except Exception as e:
+                db.session.rollback()
+                flash('An unexpected error occurred.', 'danger')
+                logger.error(f"Beta enrollment error: {str(e)}")
+    
+    return render_template('beta/apply.html')
+
+@beta_bp.route('/dashboard')
+@login_required
+def dashboard():
+    """Beta tester dashboard"""
+    # Check if user is a beta tester
+    beta_tester = BetaTester.query.filter_by(user_id=current_user.id, active=True).first()
+    if not beta_tester:
+        flash('You need to be a beta tester to access this page.', 'warning')
+        return redirect(url_for('beta.index'))
+    
+    # Get list of available beta features (could be dynamic from database)
+    beta_features = [
+        {
+            'name': 'Voice Emotion Analysis',
+            'description': 'Analyze emotions in voice recordings using AI',
+            'url': url_for('voice_emotion.index'),
+            'status': 'Available',
+            'icon': 'fas fa-microphone'
+        },
+        {
+            'name': 'Smart Shopping Lists',
+            'description': 'AI-generated shopping lists based on your history',
+            'url': url_for('smart_shopping.index'),
+            'status': 'Available',
+            'icon': 'fas fa-shopping-cart'
+        },
+        {
+            'name': 'Mindfulness Voice Assistant',
+            'description': 'Voice-guided mindfulness sessions',
+            'url': url_for('voice_mindfulness.index'),
+            'status': 'Coming Soon',
+            'icon': 'fas fa-brain'
+        }
+    ]
+    
+    return render_template(
+        'beta/dashboard.html',
+        beta_tester=beta_tester,
+        beta_features=beta_features
+    )
+
+@beta_bp.route('/leave', methods=['POST'])
+@login_required
+@csrf_protect
+def leave_beta():
+    """Leave the beta testing program"""
+    beta_tester = BetaTester.query.filter_by(user_id=current_user.id).first()
+    
+    if beta_tester:
+        beta_tester.active = False
+        db.session.commit()
+        log_security_event("BETA_LEFT", "User left beta testing program", severity="INFO")
+        flash('You have successfully left the beta testing program.', 'success')
+    else:
+        flash('You are not currently enrolled in the beta testing program.', 'info')
+    
+    return redirect(url_for('beta.index'))
+
+@beta_bp.route('/admin')
+@admin_required
+def admin_dashboard():
+    """Admin dashboard for managing beta testers"""
+    # Get all beta testers
+    beta_testers = (
+        BetaTester.query
+        .join(User)
+        .add_columns(
+            User.email,
+            User.first_name,
+            User.last_name,
+            User.created_at
+        )
+        .order_by(BetaTester.active.desc(), BetaTester.created_at.desc())
+        .all()
     )
     
-    if result.get('success'):
-        flash("Welcome to the beta program! You now have access to all beta features.", "success")
-        return redirect(url_for('beta.features'))
+    # Max testers config
+    max_testers = int(current_app.config.get('MAX_BETA_TESTERS', 30))
+    current_active = BetaTester.query.filter_by(active=True).count()
+    
+    return render_template(
+        'beta/admin.html',
+        beta_testers=beta_testers,
+        max_testers=max_testers,
+        current_active=current_active
+    )
+
+@beta_bp.route('/admin/toggle/<user_id>', methods=['POST'])
+@admin_required
+@csrf_protect
+def toggle_tester(user_id):
+    """Toggle a beta tester's active status"""
+    beta_tester = BetaTester.query.filter_by(user_id=user_id).first()
+    
+    if not beta_tester:
+        flash('Beta tester not found.', 'danger')
     else:
-        flash(f"Error: {result.get('error')}", "danger")
-        return redirect(url_for('beta.request_access'))
-
-@beta.route('/features')
-@login_required
-def features():
-    """Show beta features page"""
-    # Check if user is a beta tester
-    if not is_beta_tester(current_user.id):
-        flash("You need beta tester access to view this page.", "warning")
-        return redirect(url_for('beta.request_access'))
+        # Toggle status
+        beta_tester.active = not beta_tester.active
+        db.session.commit()
+        
+        status = "activated" if beta_tester.active else "deactivated"
+        user_email = User.query.filter_by(id=user_id).first().email
+        
+        log_security_event(
+            "BETA_STATUS_CHANGE", 
+            f"Admin {status} beta tester: {user_email}",
+            severity="INFO"
+        )
+        
+        flash(f'Beta tester {status} successfully.', 'success')
     
-    return render_template('beta/features.html')
-
-@beta.route('/leave', methods=['POST'])
-@login_required
-def leave_beta():
-    """Allow user to leave beta program"""
-    reason = request.form.get('reason', 'User-initiated departure')
-    
-    # Deactivate beta status
-    result = deactivate_beta_tester(current_user.id, reason)
-    
-    if result.get('success'):
-        flash("You have been removed from the beta program. Thank you for your participation!", "success")
-    else:
-        flash(f"Error: {result.get('error')}", "danger")
-    
-    return redirect(url_for('index'))
-
-# Admin-only routes for beta tester management
-@beta.route('/admin')
-@login_required
-def admin():
-    """Admin dashboard for beta tester management"""
-    # Check if user is an admin
-    if not current_user.is_administrator():
-        flash("You don't have permission to access this page.", "danger")
-        return redirect(url_for('index'))
-    
-    # Get all beta testers
-    from utils.beta_test_helper import get_beta_testers
-    active_testers = get_beta_testers(include_inactive=False)
-    inactive_testers = get_beta_testers(include_inactive=True)
-    stats = get_beta_tester_stats()
-    
-    return render_template('beta/admin.html', 
-                          active_testers=active_testers,
-                          inactive_testers=inactive_testers,
-                          stats=stats)
+    return redirect(url_for('beta.admin_dashboard'))

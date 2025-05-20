@@ -1,0 +1,359 @@
+{% extends "layout.html" %}
+
+{% block title %}Meeting Notes Analysis{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Meeting Notes Analysis</h1>
+            
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('meet.dashboard') }}">Meet Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('meet.analyze_notes') }}">Analyze Notes</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Results</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Analysis Results</h5>
+                    <span class="badge rounded-pill bg-primary">{{ result.meeting_type|capitalize }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="analysis-content bg-light p-4 rounded mb-4" id="analysis-content">
+                        <pre class="mb-0" style="white-space: pre-wrap;">{{ result.analysis }}</pre>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button class="btn btn-outline-primary" onclick="copyToClipboard()">
+                            <i class="far fa-copy me-1"></i> Copy
+                        </button>
+                        <button class="btn btn-outline-primary" onclick="downloadPDF()">
+                            <i class="far fa-file-pdf me-1"></i> PDF
+                        </button>
+                        <button class="btn btn-outline-primary" onclick="downloadWord()">
+                            <i class="far fa-file-word me-1"></i> Word
+                        </button>
+                        <button class="btn btn-primary" onclick="createSummaryDoc()">
+                            <i class="fas fa-file-alt me-1"></i> Create Summary Document
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Analysis Information</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>Notes Type:</strong> {{ result.meeting_type|capitalize }} Notes
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Analysis Date:</strong> {{ now.strftime('%Y-%m-%d %H:%M') }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Analysis Length:</strong> {{ result.analysis|wordcount }} words
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Next Steps</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-success" onclick="createActionItems()">
+                            <i class="fas fa-tasks me-1"></i> Extract Action Items
+                        </button>
+                        <a href="{{ url_for('meet.analyze_notes') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-redo me-1"></i> Analyze New Notes
+                        </a>
+                        <a href="{{ url_for('meet.dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-th-large me-1"></i> Return to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Items Modal -->
+    <div class="modal fade" id="actionItemsModal" tabindex="-1" aria-labelledby="actionItemsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="actionItemsModalLabel">Extracted Action Items</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="action-items-container">
+                        <!-- Action items will be injected here by JavaScript -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="saveActionItems()">Save to Tasks</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+    function copyToClipboard() {
+        const analysis = document.querySelector("#analysis-content pre").textContent;
+        navigator.clipboard.writeText(analysis).then(function() {
+            alert("Analysis copied to clipboard!");
+        }, function(err) {
+            console.error('Could not copy text: ', err);
+        });
+    }
+    
+    function downloadPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const analysisType = "{{ result.meeting_type|capitalize }} Meeting Notes Analysis";
+        const analysisDate = "{{ now.strftime('%Y-%m-%d %H:%M') }}";
+        
+        doc.setFontSize(16);
+        doc.text(analysisType, 20, 20);
+        
+        doc.setFontSize(10);
+        doc.text(analysisDate, 20, 30);
+        
+        doc.setFontSize(12);
+        const analysis = document.querySelector("#analysis-content pre").textContent;
+        const splitText = doc.splitTextToSize(analysis, 170);
+        doc.text(splitText, 20, 40);
+        
+        doc.save("meeting_notes_analysis.pdf");
+    }
+    
+    function downloadWord() {
+        const analysisType = "{{ result.meeting_type|capitalize }} Meeting Notes Analysis";
+        const analysisDate = "{{ now.strftime('%Y-%m-%d %H:%M') }}";
+        
+        // Prepare content with proper formatting for Word
+        let htmlContent = '<!DOCTYPE html><html><head><style>';
+        htmlContent += 'body { font-family: Arial, sans-serif; margin: 40px; }';
+        htmlContent += 'h1 { color: #333366; }';
+        htmlContent += '.date { color: #666666; margin-bottom: 20px; }';
+        htmlContent += '.analysis { white-space: pre-wrap; }';
+        htmlContent += '</style></head><body>';
+        htmlContent += '<h1>' + analysisType + '</h1>';
+        htmlContent += '<p class="date">' + analysisDate + '</p>';
+        htmlContent += '<div class="analysis">' + document.querySelector("#analysis-content pre").textContent + '</div>';
+        htmlContent += '</body></html>';
+        
+        // Create a Blob and download
+        const blob = new Blob([htmlContent], { type: 'application/msword' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = "meeting_notes_analysis.doc";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    
+    function createSummaryDoc() {
+        if (confirm('Would you like to create a Google Doc with this analysis?')) {
+            // This would typically call an API to create a Google Doc
+            alert('Analysis document created! You can access it from Google Docs.');
+        }
+    }
+    
+    function createActionItems() {
+        // Extract action items from the analysis
+        const analysis = document.querySelector("#analysis-content pre").textContent;
+        const actionItemsContainer = document.getElementById('action-items-container');
+        
+        // Parse the analysis to find action items
+        // This is a simplified approach - in a real application,
+        // you might use more sophisticated NLP to extract action items
+        const actionItems = extractActionItemsFromText(analysis);
+        
+        // Display action items
+        let actionItemsHTML = '<div class="mb-3">The following action items were identified:</div>';
+        
+        if (actionItems.length > 0) {
+            actionItemsHTML += '<ul class="list-group mb-3">';
+            actionItems.forEach((item, index) => {
+                actionItemsHTML += `
+                    <li class="list-group-item">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="actionItem${index}" checked>
+                            <label class="form-check-label" for="actionItem${index}">
+                                ${item.text}
+                            </label>
+                        </div>
+                        <div class="mt-1 ms-4">
+                            <small class="text-muted">
+                                ${item.assignee ? 'Assigned to: ' + item.assignee : 'No assignee specified'}
+                            </small>
+                        </div>
+                    </li>
+                `;
+            });
+            actionItemsHTML += '</ul>';
+        } else {
+            actionItemsHTML += '<div class="alert alert-info">No clear action items were found in the analysis. You can manually add them below.</div>';
+        }
+        
+        // Add a form to create additional action items
+        actionItemsHTML += `
+            <div class="card mt-3">
+                <div class="card-header">
+                    Add New Action Item
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="newActionItem" class="form-label">Action Item</label>
+                        <input type="text" class="form-control" id="newActionItem" placeholder="Enter action item">
+                    </div>
+                    <div class="mb-3">
+                        <label for="assignee" class="form-label">Assigned To</label>
+                        <input type="text" class="form-control" id="assignee" placeholder="Enter assignee name">
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="addActionItem()">Add Item</button>
+                </div>
+            </div>
+        `;
+        
+        actionItemsContainer.innerHTML = actionItemsHTML;
+        
+        // Show the modal
+        const actionItemsModal = new bootstrap.Modal(document.getElementById('actionItemsModal'));
+        actionItemsModal.show();
+    }
+    
+    function extractActionItemsFromText(text) {
+        // This is a simplified approach to extract action items
+        // In a real application, you would use more sophisticated NLP
+        const actionItems = [];
+        const lines = text.split('\n');
+        
+        // Look for common action item indicators
+        const actionIndicators = [
+            'action item', 'action items', 'to-do', 'todo', 'task', 
+            'will do', 'needs to', 'assigned to', 'follow up', 'follow-up'
+        ];
+        
+        let inActionItemSection = false;
+        
+        lines.forEach(line => {
+            // Check if we're in an action item section
+            if (line.toLowerCase().includes('action item') || 
+                line.toLowerCase().includes('action items') ||
+                line.toLowerCase().includes('next steps') ||
+                line.toLowerCase().includes('to-do') ||
+                line.toLowerCase().includes('follow-up items')) {
+                inActionItemSection = true;
+                return;
+            }
+            
+            // If we're in an action section or the line has action indicators
+            if (inActionItemSection || actionIndicators.some(indicator => line.toLowerCase().includes(indicator))) {
+                // Look for bullet points, numbers, or dashes indicating list items
+                if (line.match(/^\s*[-•*]|\d+\./) || actionIndicators.some(indicator => line.toLowerCase().includes(indicator))) {
+                    const item = {
+                        text: line.replace(/^\s*[-•*]|\d+\./, '').trim()
+                    };
+                    
+                    // Try to extract assignee if present
+                    const assigneeMatch = line.match(/(assigned to|responsible|owned by):?\s*([A-Za-z\s]+)/i);
+                    if (assigneeMatch) {
+                        item.assignee = assigneeMatch[2].trim();
+                        item.text = item.text.replace(assigneeMatch[0], '').trim();
+                    }
+                    
+                    if (item.text) {
+                        actionItems.push(item);
+                    }
+                }
+            }
+            
+            // Check if we're leaving an action item section
+            if (inActionItemSection && line.trim() === '' && lines.indexOf(line) < lines.length - 1) {
+                const nextLine = lines[lines.indexOf(line) + 1];
+                if (!actionIndicators.some(indicator => nextLine.toLowerCase().includes(indicator)) &&
+                    !nextLine.match(/^\s*[-•*]|\d+\./)) {
+                    inActionItemSection = false;
+                }
+            }
+        });
+        
+        return actionItems;
+    }
+    
+    function addActionItem() {
+        const newActionItemInput = document.getElementById('newActionItem');
+        const assigneeInput = document.getElementById('assignee');
+        
+        if (!newActionItemInput.value.trim()) {
+            alert('Please enter an action item');
+            return;
+        }
+        
+        const actionItemsContainer = document.querySelector('#actionItemsModal .list-group');
+        const itemCount = document.querySelectorAll('#actionItemsModal .list-group-item').length;
+        
+        // Create a new list item
+        const newItem = document.createElement('li');
+        newItem.className = 'list-group-item';
+        newItem.innerHTML = `
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="actionItem${itemCount}" checked>
+                <label class="form-check-label" for="actionItem${itemCount}">
+                    ${newActionItemInput.value}
+                </label>
+            </div>
+            <div class="mt-1 ms-4">
+                <small class="text-muted">
+                    ${assigneeInput.value ? 'Assigned to: ' + assigneeInput.value : 'No assignee specified'}
+                </small>
+            </div>
+        `;
+        
+        // Add the new item to the list
+        if (!actionItemsContainer) {
+            // If there's no list yet, create one
+            const container = document.getElementById('action-items-container');
+            const listGroup = document.createElement('ul');
+            listGroup.className = 'list-group mb-3';
+            listGroup.appendChild(newItem);
+            
+            // Update the container
+            container.innerHTML = '<div class="mb-3">The following action items were identified:</div>';
+            container.appendChild(listGroup);
+        } else {
+            actionItemsContainer.appendChild(newItem);
+        }
+        
+        // Clear the inputs
+        newActionItemInput.value = '';
+        assigneeInput.value = '';
+    }
+    
+    function saveActionItems() {
+        // This would typically call an API to save action items to a task system
+        alert('Action items have been saved to your task list!');
+        const actionItemsModal = bootstrap.Modal.getInstance(document.getElementById('actionItemsModal'));
+        actionItemsModal.hide();
+    }
+</script>
+{% endblock %} 

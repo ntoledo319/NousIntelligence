@@ -1,0 +1,234 @@
+{% extends "layout.html" %}
+
+{% block title %}Meeting Details{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Meeting Details</h1>
+            
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('meet.dashboard') }}">Meet Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Meeting Details</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">{{ meeting.title }}</h5>
+                    <span class="badge rounded-pill {% if meeting.is_recurring %}bg-success{% else %}bg-primary{% endif %}">
+                        {% if meeting.is_recurring %}Recurring{% else %}One-time{% endif %}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success mb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="fas fa-video fa-2x"></i>
+                            </div>
+                            <div>
+                                <div class="mb-1"><strong>Google Meet Link:</strong></div>
+                                <a href="{{ meeting.meet_link }}" target="_blank" class="btn btn-success">
+                                    <i class="fas fa-sign-in-alt me-2"></i> Join Meeting
+                                </a>
+                                <button class="btn btn-outline-secondary ms-2" onclick="copyMeetLink()">
+                                    <i class="far fa-copy me-1"></i> Copy Link
+                                </button>
+                                <input type="hidden" id="meet-link" value="{{ meeting.meet_link }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6><i class="far fa-clock me-2"></i> Start Time</h6>
+                            <p>{{ meeting.start_time|replace('T', ' ')|replace('Z', '')|replace('.000', '') }}</p>
+                            
+                            <h6><i class="far fa-calendar-alt me-2"></i> Duration</h6>
+                            <p>
+                                {% set start = meeting.start_time|replace('T', ' ')|replace('Z', '')|replace('.000', '') %}
+                                {% set end = meeting.end_time|replace('T', ' ')|replace('Z', '')|replace('.000', '') %}
+                                {{ ((end|string)|datetime - (start|string)|datetime).seconds // 60 }} minutes
+                            </p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-users me-2"></i> Attendees</h6>
+                            {% if meeting.attendees %}
+                                <ul class="list-unstyled">
+                                {% for attendee in meeting.attendees %}
+                                    <li>
+                                        <i class="far fa-user me-2"></i> {{ attendee.email }}
+                                        {% if attendee.responseStatus == 'accepted' %}
+                                            <span class="badge bg-success">Accepted</span>
+                                        {% elif attendee.responseStatus == 'declined' %}
+                                            <span class="badge bg-danger">Declined</span>
+                                        {% elif attendee.responseStatus == 'tentative' %}
+                                            <span class="badge bg-warning">Maybe</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Pending</span>
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted">No attendees specified</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if meeting.description %}
+                        <h6><i class="far fa-file-alt me-2"></i> Description</h6>
+                        <div class="card">
+                            <div class="card-body bg-light">
+                                <pre class="mb-0" style="white-space: pre-wrap;">{{ meeting.description }}</pre>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{{ url_for('meet.dashboard') }}" class="btn btn-outline-secondary">
+                            Back to Dashboard
+                        </a>
+                        <a href="{{ url_for('meet.edit', meeting_id=meeting.meeting_id) }}" class="btn btn-primary">
+                            <i class="fas fa-edit me-1"></i> Edit Meeting
+                        </a>
+                        <form method="POST" action="{{ url_for('meet.delete', meeting_id=meeting.meeting_id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this meeting?');">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash-alt me-1"></i> Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Meeting Tools</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('meet.generate_agenda', meeting_id=meeting.meeting_id) }}" class="btn btn-outline-primary">
+                            <i class="fas fa-list-ul me-2"></i> Generate Agenda
+                        </a>
+                        <a href="{{ url_for('meet.create_notes', meeting_id=meeting.meeting_id) }}" class="btn btn-outline-primary">
+                            <i class="fas fa-sticky-note me-2"></i> Create Meeting Notes
+                        </a>
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addToCalendarModal">
+                            <i class="far fa-calendar-plus me-2"></i> Add to Calendar
+                        </button>
+                        <a href="{{ url_for('meet.email_participants', meeting_id=meeting.meeting_id) }}" class="btn btn-outline-primary">
+                            <i class="far fa-envelope me-2"></i> Email Participants
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            {% if meeting_type == 'therapy' or meeting_type == 'recovery' %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recovery Resources</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('meet.create_recovery_worksheet', meeting_id=meeting.meeting_id) }}" class="btn btn-outline-success">
+                            <i class="fas fa-file-medical me-2"></i> Create Worksheet
+                        </a>
+                        <a href="{{ url_for('crisis.resources') }}" class="btn btn-outline-danger">
+                            <i class="fas fa-first-aid me-2"></i> Crisis Resources
+                        </a>
+                        {% if meeting_type == 'therapy' %}
+                        <a href="{{ url_for('meet.therapy_preparation', meeting_id=meeting.meeting_id) }}" class="btn btn-outline-info">
+                            <i class="fas fa-check-square me-2"></i> Session Preparation
+                        </a>
+                        {% endif %}
+                        {% if meeting_type == 'recovery' %}
+                        <a href="{{ url_for('aa.meetings') }}" class="btn btn-outline-info">
+                            <i class="fas fa-users me-2"></i> Find More Meetings
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add to Calendar Modal -->
+<div class="modal fade" id="addToCalendarModal" tabindex="-1" aria-labelledby="addToCalendarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addToCalendarModalLabel">Add to Calendar</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Add this meeting to your preferred calendar:</p>
+                <div class="d-grid gap-2">
+                    <a href="#" class="btn btn-outline-primary" onclick="downloadICS()">
+                        <i class="far fa-calendar me-2"></i> Download ICS File
+                    </a>
+                    <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text={{ meeting.title|urlencode }}&dates={{ meeting.start_time|replace('-', '')|replace(':', '')|replace('.000Z', 'Z') }}/{{ meeting.end_time|replace('-', '')|replace(':', '')|replace('.000Z', 'Z') }}&details={{ meeting.description|urlencode }}&location={{ meeting.meet_link|urlencode }}" target="_blank" class="btn btn-outline-danger">
+                        <i class="fab fa-google me-2"></i> Add to Google Calendar
+                    </a>
+                    <a href="https://outlook.office.com/calendar/action/compose?subject={{ meeting.title|urlencode }}&startdt={{ meeting.start_time }}&enddt={{ meeting.end_time }}&body={{ meeting.description|urlencode }}&location={{ meeting.meet_link|urlencode }}" target="_blank" class="btn btn-outline-primary">
+                        <i class="fab fa-microsoft me-2"></i> Add to Outlook
+                    </a>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function copyMeetLink() {
+        const meetLink = document.getElementById('meet-link');
+        navigator.clipboard.writeText(meetLink.value).then(function() {
+            alert('Meeting link copied to clipboard!');
+        }, function(err) {
+            console.error('Could not copy text: ', err);
+        });
+    }
+    
+    function downloadICS() {
+        // This is a simplified example - you would need to generate a proper ICS file
+        const icsData = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//NOUS Assistant//Google Meet Integration//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+SUMMARY:{{ meeting.title }}
+DTSTART:{{ meeting.start_time|replace('-', '')|replace(':', '')|replace('.000Z', 'Z') }}
+DTEND:{{ meeting.end_time|replace('-', '')|replace(':', '')|replace('.000Z', 'Z') }}
+DESCRIPTION:{{ meeting.description|replace('\n', '\\n') }}
+LOCATION:{{ meeting.meet_link }}
+STATUS:CONFIRMED
+SEQUENCE:0
+END:VEVENT
+END:VCALENDAR`;
+        
+        const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = "meeting.ics";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+{% endblock %} 

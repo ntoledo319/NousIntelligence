@@ -1,0 +1,125 @@
+{% extends 'layout.html' %}
+
+{% block title %}System Settings{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">
+            <i class="fas fa-cogs me-2"></i> System Settings
+        </h1>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Application Settings</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{{ url_for('admin.save_system_settings') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                
+                <div class="row">
+                    <!-- Security Settings -->
+                    <div class="col-md-6">
+                        <h6 class="border-bottom pb-2 mb-3">Security Settings</h6>
+                        
+                        <div class="mb-3">
+                            <label for="session_timeout" class="form-label">Session Timeout (minutes)</label>
+                            <input type="number" class="form-control" id="session_timeout" name="session_timeout" 
+                                   value="{{ system_settings.session_timeout }}" min="5" max="1440" required>
+                            <div class="form-text">How long before an inactive session expires</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="max_login_attempts" class="form-label">Max Login Attempts</label>
+                            <input type="number" class="form-control" id="max_login_attempts" name="max_login_attempts" 
+                                   value="{{ system_settings.max_login_attempts }}" min="1" max="10" required>
+                            <div class="form-text">Maximum number of failed login attempts before lockout</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password_min_length" class="form-label">Minimum Password Length</label>
+                            <input type="number" class="form-control" id="password_min_length" name="password_min_length" 
+                                   value="{{ system_settings.password_min_length }}" min="8" max="32" required>
+                            <div class="form-text">Minimum required length for user passwords</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="account_lockout_duration" class="form-label">Account Lockout Duration (minutes)</label>
+                            <input type="number" class="form-control" id="account_lockout_duration" name="account_lockout_duration" 
+                                   value="{{ system_settings.account_lockout_duration }}" min="5" max="1440" required>
+                            <div class="form-text">How long accounts remain locked after too many failed login attempts</div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="require_https" name="require_https" 
+                                   {% if system_settings.require_https %}checked{% endif %}>
+                            <label class="form-check-label" for="require_https">Require HTTPS</label>
+                            <div class="form-text">Force all connections to use secure HTTPS protocol</div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="enable_audit_logging" name="enable_audit_logging" 
+                                   {% if system_settings.enable_audit_logging %}checked{% endif %}>
+                            <label class="form-check-label" for="enable_audit_logging">Enable Audit Logging</label>
+                            <div class="form-text">Log all security events and admin actions</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Feature Settings -->
+                    <div class="col-md-6">
+                        <h6 class="border-bottom pb-2 mb-3">Feature Settings</h6>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="enable_beta_features" name="enable_beta_features" 
+                                   {% if system_settings.enable_beta_features %}checked{% endif %}>
+                            <label class="form-check-label" for="enable_beta_features">Enable Beta Features</label>
+                            <div class="form-text">Enable experimental features that are still in testing</div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="enable_social_login" name="enable_social_login" 
+                                   {% if system_settings.enable_social_login %}checked{% endif %}>
+                            <label class="form-check-label" for="enable_social_login">Enable Social Login</label>
+                            <div class="form-text">Allow users to sign in with Google, Twitter, etc.</div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="enable_registration" name="enable_registration" 
+                                   {% if system_settings.enable_registration %}checked{% endif %}>
+                            <label class="form-check-label" for="enable_registration">Enable Registration</label>
+                            <div class="form-text">Allow new users to register (disable for invite-only)</div>
+                        </div>
+                        
+                        <h6 class="border-bottom pb-2 mb-3 mt-4">Email Settings</h6>
+                        
+                        <div class="mb-3">
+                            <label for="email_from_name" class="form-label">Email From Name</label>
+                            <input type="text" class="form-control" id="email_from_name" name="email_from_name" 
+                                   value="{{ system_settings.email_from_name }}" required>
+                            <div class="form-text">Name to display in sent emails</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email_from_address" class="form-label">Email From Address</label>
+                            <input type="email" class="form-control" id="email_from_address" name="email_from_address" 
+                                   value="{{ system_settings.email_from_address }}" required>
+                            <div class="form-text">Email address to use as sender</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <button type="reset" class="btn btn-outline-secondary me-md-2">Reset</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i> Save Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

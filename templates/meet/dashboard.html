@@ -1,0 +1,185 @@
+{% extends "layout.html" %}
+
+{% block title %}Google Meet Dashboard{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Google Meet Dashboard</h1>
+            <p class="lead">Manage your meetings and video conferences for recovery and support.</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Upcoming Meetings Section -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Upcoming Meetings</h5>
+                    <a href="{{ url_for('meet.create') }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i> New Meeting
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if meetings %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Date & Time</th>
+                                        <th>Participants</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for meeting in meetings %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ url_for('meet.view', meeting_id=meeting.meeting_id) }}">
+                                                {{ meeting.title }}
+                                            </a>
+                                            {% if meeting.is_recurring %}
+                                                <span class="badge bg-success ms-2">Recurring</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ meeting.start_time|replace('T', ' ')|replace('Z', '')|replace('.000', '') }}
+                                        </td>
+                                        <td>
+                                            {% if meeting.attendees_count %}
+                                                {% if meeting.attendees_count == 1 %}
+                                                    1 participant
+                                                {% else %}
+                                                    {{ meeting.attendees_count }} participants
+                                                {% endif %}
+                                            {% else %}
+                                                No participants
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{{ meeting.meet_link }}" target="_blank" class="btn btn-success" title="Join Meeting">
+                                                    <i class="fas fa-video"></i>
+                                                </a>
+                                                <a href="{{ url_for('meet.view', meeting_id=meeting.meeting_id) }}" class="btn btn-primary" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{{ url_for('meet.edit', meeting_id=meeting.meeting_id) }}" class="btn btn-warning" title="Edit Meeting">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> You don't have any upcoming meetings.
+                            <a href="{{ url_for('meet.create') }}" class="alert-link">Create a new meeting</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Recently Completed Meetings -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Meetings</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-light">
+                        <i class="fas fa-history me-2"></i> Recently completed meetings will appear here.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('meet.create') }}" class="btn btn-primary">
+                            <i class="fas fa-video me-2"></i> Schedule Standard Meeting
+                        </a>
+                        <a href="{{ url_for('meet.therapy_session') }}" class="btn btn-success">
+                            <i class="fas fa-user-md me-2"></i> Create Therapy Session
+                        </a>
+                        <a href="{{ url_for('meet.recovery_group') }}" class="btn btn-info text-white">
+                            <i class="fas fa-users me-2"></i> Schedule Recovery Group
+                        </a>
+                        <a href="{{ url_for('meet.sponsor_meeting') }}" class="btn btn-secondary">
+                            <i class="fas fa-handshake me-2"></i> Meet with Sponsor
+                        </a>
+                        <a href="{{ url_for('meet.mindfulness_session') }}" class="btn btn-light">
+                            <i class="fas fa-brain me-2"></i> Mindfulness Session
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tools -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Meeting Tools</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="{{ url_for('meet.generate_agenda') }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Generate Meeting Agenda</h6>
+                                <i class="fas fa-list-ul"></i>
+                            </div>
+                            <small>Create AI-powered agendas for any meeting type</small>
+                        </a>
+                        <a href="{{ url_for('meet.analyze_notes') }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Analyze Meeting Notes</h6>
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <small>Extract insights from your meeting notes</small>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Help & Tips -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Help & Tips</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Test your setup</strong> before important meetings
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Find a quiet space</strong> for recovery and therapy sessions
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Prepare an agenda</strong> to make meetings more productive
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>Take notes</strong> during meetings for later reference
+                        </li>
+                    </ul>
+                    <div class="mt-3">
+                        <a href="#" class="btn btn-sm btn-outline-secondary">View Google Meet Help</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

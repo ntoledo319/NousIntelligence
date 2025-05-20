@@ -1,31 +1,31 @@
 """
-Application Factory Module
+Application Factory
 
-This module contains the application factory function that creates and configures
-a Flask application instance using the specified configuration.
+This module provides the application factory for creating the Flask app.
+It centralizes app creation and configuration.
+
+@module app_factory
+@description Flask application factory
 """
+
 import os
 import logging
-from flask import Flask, session
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-from flask_migrate import Migrate
-from werkzeug.middleware.proxy_fix import ProxyFix
+from flask_session import Session
 
-from models import db, User
-from config import get_config
-
-# Initialize extension instances
+# Create extensions
+db = SQLAlchemy()
 login_manager = LoginManager()
-migrate = Migrate()
+session = Session()
 
-def create_app(config_object=None):
-    """
-    Application factory function to create and configure a Flask application.
+def create_app(config_class=None):
+    """Create and configure the Flask application
     
     Args:
-        config_object: Configuration object or name of configuration to use
-                      If None, the configuration is determined by FLASK_ENV
-    
+        config_class: Configuration class to use (defaults to from_env)
+        
     Returns:
         Configured Flask application
     """
@@ -33,82 +33,151 @@ def create_app(config_object=None):
     app = Flask(__name__)
     
     # Load configuration
-    if config_object is None:
-        config_object = get_config()
-    app.config.from_object(config_object)
+    if config_class is None:
+        # If no config provided, load from environment
+        from config import get_config
+        config_class = get_config()
     
-    # Configure logging
-    logging.basicConfig(level=logging.DEBUG if app.config.get('DEBUG') else logging.INFO)
+    app.config.from_object(config_class)
     
     # Initialize extensions
     db.init_app(app)
     login_manager.init_app(app)
-    migrate.init_app(app, db)
-    
-    # Configure middleware
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+    session.init_app(app)
     
     # Set up login manager
-    # Use auth blueprint for login to maintain consistent entry point
-    # Ignore LSP errors for Flask-Login attributes - they are dynamically added
-    setattr(login_manager, 'login_view', "auth.login")  # Unified login entry point
-    setattr(login_manager, 'login_message', "Please sign in with Google to access this page.")
-    setattr(login_manager, 'login_message_category', "info")
-    # Flask-login requires these attributes in newer versions
-    setattr(login_manager, 'refresh_view', "auth.login")
-    setattr(login_manager, 'needs_refresh_message', "Session timed out, please sign in again")
-    setattr(login_manager, 'needs_refresh_message_category', "info")
+    login_manager.login_view = 'auth.login'
+    login_manager.login_message_category = 'info'
     
-    @login_manager.user_loader
-    def load_user(user_id):
-        """Load user by ID for Flask-Login"""
-        return User.query.get(user_id)
-    
-    # Make session permanent
-    @app.before_request
-    def make_session_permanent():
-        """Make session permanent with expiration from config"""
-        session.permanent = True
-    
-    # Register components with app context
+    # Register blueprints
     with app.app_context():
-        # Register authentication providers
-        from auth import register_auth_providers
-        register_auth_providers(app)
-        
-        # Import and register blueprints
+        # Import and register all blueprints
         from routes import register_blueprints
         register_blueprints(app)
         
-        # Import and register error handlers
-        from utils.error_handler import register_error_handlers
-        register_error_handlers(app)
+        # Set up middleware
+        from middleware import register_middleware
+        register_middleware(app)
         
-        # Register template filters
-        from utils.template_filters import register_template_filters
-        register_template_filters(app)
-        
-        # Configure beta testing mode if available
-        try:
-            from utils.beta_test_helper import configure_beta_mode
-            configure_beta_mode(app)
-        except ImportError:
-            logging.info("Beta test helper not available")
-        
-        # Create database tables if needed
+        # Create database tables if they don't exist
+        db.create_all()
+    
+    return app
+
+def configure_app(app):
+    """
+    Configure the application with settings from environment and config files
+    
+    Args:
+        app: Flask application instance
+    """
+    logger = logging.getLogger(__name__)
+    
+    # Set basic configuration
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_key_for_development')
+    
+    # Database configuration
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///nous.db')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    
+    # Flask-Login configuration
+    app.config['LOGIN_DISABLED'] = False
+    
+    # Set dev/production mode
+    app.config['DEBUG'] = os.environ.get('FLASK_ENV', 'development') == 'development'
+    
+    logger.info(f"Application configured with database: {app.config['SQLALCHEMY_DATABASE_URI']}")
+
+def initialize_extensions(app):
+    """
+    Initialize Flask extensions
+    
+    Args:
+        app: Flask application instance
+    """
+    logger = logging.getLogger(__name__)
+    
+    # Initialize SQLAlchemy
+    db.init_app(app)
+    
+    # Create all database tables
+    with app.app_context():
         try:
             db.create_all()
-            logging.info("Database tables created (if they didn't exist already)")
-            
-            # Start maintenance scheduler (if available)
-            try:
-                from utils.maintenance_helper import start_maintenance_scheduler
-                start_maintenance_scheduler()
-                logging.info("Maintenance scheduler started")
-            except ImportError:
-                logging.info("Maintenance scheduler not available")
-                
+            logger.info("Database tables created successfully")
         except Exception as e:
-            logging.error(f"Error initializing database: {str(e)}")
+            logger.error(f"Error creating database tables: {str(e)}")
     
-    return app 
+    # Configure Flask-Login
+    login_manager.init_app(app)
+    login_manager.login_view = 'auth.login'
+    login_manager.login_message = 'Please log in to access this page.'
+    login_manager.login_message_category = 'info'
+    
+    # User loader callback for Flask-Login
+    from models import User
+    
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(user_id)
+    
+    logger.info("Extensions initialized")
+
+def configure_error_handlers(app):
+    """
+    Configure error handlers for the application
+    
+    Args:
+        app: Flask application instance
+    """
+    logger = logging.getLogger(__name__)
+    
+    # Import and register error handlers
+    try:
+        from utils.error_handler import register_error_handlers
+        register_error_handlers(app)
+        logger.info("Error handlers registered")
+    except Exception as e:
+        logger.error(f"Error registering error handlers: {str(e)}")
+
+def register_blueprints(app):
+    """
+    Register all blueprint routes
+    
+    Args:
+        app: Flask application instance
+    """
+    logger = logging.getLogger(__name__)
+    
+    # Register route blueprints
+    try:
+        from routes import register_blueprints
+        register_blueprints(app)
+        logger.info("Route blueprints registered")
+    except Exception as e:
+        logger.error(f"Error registering route blueprints: {str(e)}")
+    
+    # Register authentication blueprints
+    try:
+        from auth import register_auth_providers
+        register_auth_providers(app)
+        logger.info("Authentication blueprints registered")
+    except Exception as e:
+        logger.error(f"Error registering authentication blueprints: {str(e)}")
+
+def register_templates(app):
+    """
+    Register custom template filters and context processors
+    
+    Args:
+        app: Flask application instance
+    """
+    logger = logging.getLogger(__name__)
+    
+    # Register template filters
+    try:
+        from utils.template_filters import register_template_filters
+        register_template_filters(app)
+        logger.info("Template filters registered")
+    except Exception as e:
+        logger.error(f"Error registering template filters: {str(e)}") 

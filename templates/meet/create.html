@@ -1,0 +1,135 @@
+{% extends "layout.html" %}
+
+{% block title %}Create Meeting{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Create Meeting</h1>
+            <p class="lead">Schedule a standard Google Meet meeting.</p>
+            
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('meet.dashboard') }}">Meet Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Create Meeting</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Meeting Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('meet.create') }}">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Meeting Title *</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                            <div class="form-text">Title of your meeting</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                            <div class="form-text">Brief description of the meeting purpose</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="start_date" class="form-label">Meeting Date *</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="start_time" class="form-label">Meeting Time *</label>
+                            <input type="time" class="form-control" id="start_time" name="start_time" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="duration" class="form-label">Duration (minutes) *</label>
+                            <input type="number" class="form-control" id="duration" name="duration" value="60" min="15" max="480" required>
+                            <div class="form-text">Meeting duration in minutes</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="attendees" class="form-label">Attendees</label>
+                            <input type="text" class="form-control" id="attendees" name="attendees" placeholder="email1@example.com, email2@example.com">
+                            <div class="form-text">Comma-separated list of email addresses to invite (optional)</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('meet.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Create Meeting</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">About Google Meet</h5>
+                </div>
+                <div class="card-body">
+                    <p>When you create a meeting, your attendees will receive:</p>
+                    <ul>
+                        <li>Email invitations to join</li>
+                        <li>A Google Meet link to access the video conference</li>
+                        <li>Calendar invitations with meeting details</li>
+                    </ul>
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i> For specialized meeting types, use the specific options on the dashboard.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Meeting Types</h5>
+                </div>
+                <div class="card-body">
+                    <p>For specific recovery-focused meetings, consider:</p>
+                    <div class="list-group">
+                        <a href="{{ url_for('meet.therapy_session') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-user-md me-2"></i> Therapy Session
+                        </a>
+                        <a href="{{ url_for('meet.recovery_group') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-users me-2"></i> Recovery Group Meeting
+                        </a>
+                        <a href="{{ url_for('meet.sponsor_meeting') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-handshake me-2"></i> Sponsor Meeting
+                        </a>
+                        <a href="{{ url_for('meet.mindfulness_session') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-brain me-2"></i> Mindfulness Session
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set default date to tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const formattedDate = tomorrow.toISOString().split('T')[0];
+        document.getElementById('start_date').value = formattedDate;
+        
+        // Set default time to current time
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('start_time').value = `${hours}:${minutes}`;
+    });
+</script>
+{% endblock %} 

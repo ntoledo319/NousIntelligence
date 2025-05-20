@@ -1,709 +1,287 @@
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
-import enum
-import numpy as np
-from flask_login import UserMixin
-from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
-from sqlalchemy import UniqueConstraint, func, text, Index
-import json
-from werkzeug.security import generate_password_hash, check_password_hash
+"""
+Database Models
+
+This module defines the database models for the application.
+It contains SQLAlchemy model classes for users, settings, and other core entities.
+
+@module models
+@description SQLAlchemy database models
+@context_boundary Database Layer
+"""
+
 import uuid
+from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
+from app_factory import db
 
-db = SQLAlchemy()
-
-# Enum for conversation difficulty levels
-class ConversationDifficulty(enum.Enum):
-    BEGINNER = "beginner"        # Simple language, basic concepts, extra explanations
-    INTERMEDIATE = "intermediate"  # Standard language, more technical terms
-    ADVANCED = "advanced"        # Technical language, assumes domain knowledge
-    EXPERT = "expert"            # Highly technical, specialized terminology
-
-# User model for authentication
 class User(UserMixin, db.Model):
-    __tablename__ = 'users'
-    id = db.Column(db.String(255), primary_key=True)  # Changed to match database type
+    """
+    User model for authentication and user management.
+    
+    Attributes:
+        id: Unique identifier for the user (UUID)
+        email: User's email address
+        first_name: User's first name
+        last_name: User's last name
+        password_hash: Hashed password for authentication
+        profile_image_url: URL to user's profile image
+        created_at: Timestamp when the user was created
+        last_login: Timestamp of the user's last login
+        account_active: Whether the user's account is active
+        is_admin: Whether the user is an administrator
+        email_verified: Whether the user's email is verified
+        two_factor_enabled: Whether two-factor authentication is enabled
+        two_factor_secret: Secret for two-factor authentication
+    """
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     email = db.Column(db.String(120), unique=True, nullable=False)
-    first_name = db.Column(db.String(80), nullable=False)
-    last_name = db.Column(db.String(80), nullable=False)
-    profile_image_url = db.Column(db.String(255), nullable=True)
-    is_admin = db.Column(db.Boolean, default=False)
-    account_active = db.Column(db.Boolean, default=True)  # Renamed to avoid conflict with UserMixin
+    password_hash = db.Column(db.String(128))
+    first_name = db.Column(db.String(50))
+    last_name = db.Column(db.String(50))
+    profile_image_url = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # Authentication fields
-    password_hash = db.Column(db.String(256), nullable=True)
-    last_login = db.Column(db.DateTime, nullable=True)
+    last_login = db.Column(db.DateTime)
+    account_active = db.Column(db.Boolean, default=True)
+    is_admin = db.Column(db.Boolean, default=False)
+    email_verified = db.Column(db.Boolean, default=False)
     
     # Two-factor authentication fields
     two_factor_enabled = db.Column(db.Boolean, default=False)
-    two_factor_secret = db.Column(db.String(32), nullable=True)
+    two_factor_secret = db.Column(db.String(32))
     
-    # Relationship with user settings
-    settings = db.relationship('UserSettings', backref='user', uselist=False, cascade="all, delete-orphan")
-    
-    # Relationship with assistant profile (must be defined after AssistantProfile class)
-    assistant = db.relationship('AssistantProfile', 
-                               foreign_keys='AssistantProfile.user_id',
-                               backref=db.backref('owner', lazy='joined'),
-                               lazy='dynamic',
-                               cascade='all, delete-orphan')
-    
-    # Relationship with memory entries - removed backref to avoid conflict
-    memory_entries = db.relationship('UserMemoryEntry', lazy=True, cascade="all, delete-orphan")
-    
-    # Relationship with topic interests - removed backref to avoid conflict
-    topic_interests = db.relationship('UserTopicInterest', lazy=True, cascade="all, delete-orphan")
-    
-    # Relationship with entity memories - removed backref to avoid conflict 
-    entity_memories = db.relationship('UserEntityMemory', lazy=True, cascade="all, delete-orphan")
-    
-    # Relationship with backup codes - removed backref to avoid conflict
-    backup_codes = db.relationship('TwoFactorBackupCode', lazy=True, cascade="all, delete-orphan")
-    
-    def is_administrator(self):
-        """Check if user has admin privileges"""
-        return self.is_admin
-    
-    # Override UserMixin's is_active property to use our account_active field
-    @property
-    def is_active(self):
-        """Return whether the user account is active"""
-        return self.account_active
-    
-    @is_active.setter
-    def is_active(self, value):
-        """Set whether the user account is active"""
-        self.account_active = value
-    
-    def set_password(self, password):
-        """Set user password with secure hashing"""
-        self.password_hash = generate_password_hash(password)
-    
-    def check_password(self, password):
-        """Check a password against the stored hash"""
-        return check_password_hash(self.password_hash, password)
-    
-    @property
-    def is_authenticated(self):
-        """Required by Flask-Login"""
-        return True
-    
-    @property
-    def is_anonymous(self):
-        """Required by Flask-Login"""
-        return False
-    
-    def get_id(self):
-        """Required by Flask-Login"""
-        return str(self.id)
+    # Relationships
+    settings = db.relationship('UserSettings', backref='user', lazy=True, uselist=False)
+    tasks = db.relationship('Task', backref='user', cascade='all, delete-orphan')
     
     def __repr__(self):
         return f'<User {self.email}>'
     
-    # Add indexes for frequently queried fields
-    __table_args__ = (
-        Index('idx_user_email', 'email'),
-        Index('idx_user_active', 'account_active'),
-    )
-
-# TwoFactorBackupCode model for 2FA recovery codes
-class TwoFactorBackupCode(db.Model):
-    """Model for storing two-factor authentication backup codes"""
-    __tablename__ = 'two_factor_backup_codes'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(255), db.ForeignKey(User.id), nullable=False)  # Changed to match User.id type
-    code_hash = db.Column(db.String(255), nullable=False)  # Stores hashed backup code
-    used = db.Column(db.Boolean, default=False)  # Whether this code has been used
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    used_at = db.Column(db.DateTime, nullable=True)  # When the code was used
+    def set_password(self, password):
+        """Set password hash from plain text password"""
+        self.password_hash = generate_password_hash(password)
     
-    # Use overlaps parameter to resolve the conflict
-    user = db.relationship(User, overlaps="backup_codes")
-    
-    __table_args__ = (
-        Index('idx_backup_codes_user_id', 'user_id'),
-        Index('idx_backup_codes_used', 'used'),
-    )
-    
-    def __repr__(self):
-        return f'<TwoFactorBackupCode {self.id} (User: {self.user_id}, Used: {self.used})>'
-    
-    def use_code(self):
-        """Mark this code as used"""
-        self.used = True
-        self.used_at = datetime.utcnow()
-
-# UserSettings model to store user preferences
-class UserSettings(db.Model):
-    __tablename__ = 'user_settings'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(255), db.ForeignKey('users.id'), unique=True)
-    conversation_difficulty = db.Column(db.String(20), default=ConversationDifficulty.INTERMEDIATE.value)
-    enable_voice_responses = db.Column(db.Boolean, default=False)
-    preferred_language = db.Column(db.String(10), default='en-US')
-    theme = db.Column(db.String(20), default='light')
-    color_theme = db.Column(db.String(20), default='default')
-    
-    # AI Character customization
-    ai_name = db.Column(db.String(30), default='NOUS')
-    ai_personality = db.Column(db.String(20), default='helpful')
-    ai_formality = db.Column(db.String(20), default='casual')  # casual, neutral, formal
-    ai_verbosity = db.Column(db.String(20), default='balanced')  # concise, balanced, detailed  
-    ai_enthusiasm = db.Column(db.String(20), default='moderate')  # low, moderate, high
-    ai_emoji_usage = db.Column(db.String(20), default='occasional')  # none, occasional, frequent
-    ai_voice_type = db.Column(db.String(20), default='neutral')  # neutral, warm, authoritative, energetic, calm
-    ai_backstory = db.Column(db.Text, nullable=True)  # Custom backstory for the AI
-    
-    # Setup wizard progress tracking
-    setup_progress = db.Column(db.Text)  # JSON string to track setup wizard progress
-    
-    # Notification settings
-    email_notifications = db.Column(db.Boolean, default=False)
-    push_notifications = db.Column(db.Boolean, default=False)
-    
-    # Feature settings
-    medication_reminders = db.Column(db.Boolean, default=False)
-    pain_tracking = db.Column(db.Boolean, default=False)
-    mindfulness_features = db.Column(db.Boolean, default=False)
-    shopping_lists = db.Column(db.Boolean, default=False)
-    product_tracking = db.Column(db.Boolean, default=False)
-    budget_reminder_enabled = db.Column(db.Boolean, default=False)
-    weather_alerts = db.Column(db.Boolean, default=False)
-    travel_planning = db.Column(db.Boolean, default=False)
-    
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    def check_password(self, password):
+        """Check password against stored hash"""
+        if self.password_hash:
+            return check_password_hash(self.password_hash, password)
+        return False
     
     def to_dict(self):
+        """Convert user to dictionary"""
         return {
             'id': self.id,
-            'user_id': self.user_id,
-            'conversation_difficulty': self.conversation_difficulty,
-            'enable_voice_responses': self.enable_voice_responses,
-            'preferred_language': self.preferred_language,
+            'email': self.email,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'profile_image_url': self.profile_image_url,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'last_login': self.last_login.isoformat() if self.last_login else None
+        }
+
+    def is_administrator(self):
+        """Check if user is an administrator"""
+        return self.is_admin
+
+class UserSettings(db.Model):
+    """
+    User settings model to store user preferences.
+    
+    Attributes:
+        id: Unique identifier for the settings
+        user_id: Foreign key to the user
+        theme: UI theme preference
+        ai_name: Custom name for the AI assistant
+        ai_personality: Preferred AI assistant personality
+        preferred_language: Preferred language for the interface
+        enable_voice_responses: Whether to enable voice responses
+        conversation_difficulty: Level of conversation difficulty
+    """
+    __tablename__ = 'user_settings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    theme = db.Column(db.String(20), default='light')
+    ai_name = db.Column(db.String(64), default='NOUS')
+    ai_personality = db.Column(db.String(20), default='helpful')
+    preferred_language = db.Column(db.String(10), default='en')
+    enable_voice_responses = db.Column(db.Boolean, default=True)
+    conversation_difficulty = db.Column(db.String(20), default='normal')
+    
+    # Relationships
+    user = db.relationship('User', back_populates='settings')
+    
+    def __repr__(self):
+        return f'<UserSettings for user {self.user_id}>'
+    
+    def to_dict(self):
+        """Convert settings to dictionary"""
+        return {
             'theme': self.theme,
             'ai_name': self.ai_name,
             'ai_personality': self.ai_personality,
-            'ai_formality': self.ai_formality,
-            'ai_verbosity': self.ai_verbosity,
-            'ai_enthusiasm': self.ai_enthusiasm,
-            'ai_emoji_usage': self.ai_emoji_usage,
-            'ai_voice_type': self.ai_voice_type,
-            'ai_backstory': self.ai_backstory
+            'preferred_language': self.preferred_language,
+            'enable_voice_responses': self.enable_voice_responses,
+            'conversation_difficulty': self.conversation_difficulty
         }
 
-# OAuth model for token storage
-class OAuth(OAuthConsumerMixin, db.Model):
-    """Model for storing OAuth tokens from providers like Google"""
-    user_id = db.Column(db.String(255), db.ForeignKey(User.id))
-    browser_session_key = db.Column(db.String, nullable=False)
-    user = db.relationship(User, backref=db.backref('oauth_tokens', lazy='dynamic'))
+class Task(db.Model):
+    """
+    Task model for task management functionality.
     
-    # Add created/updated timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-# AssistantProfile model for customizing the assistant
-class AssistantProfile(db.Model):
-    __tablename__ = 'assistant_profiles'
+    Attributes:
+        id: Unique identifier for the task
+        user_id: Foreign key to the user who owns the task
+        title: Task title
+        description: Task description
+        due_date: When the task is due
+        priority: Task priority level
+        completed: Whether the task is completed
+        created_at: When the task was created
+        updated_at: When the task was last updated
+    """
+    __tablename__ = 'tasks'
+    
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(255), db.ForeignKey('users.id'), nullable=True)  # Nullable for default profile
-    
-    # Basic information
-    name = db.Column(db.String(50), nullable=False, default="NOUS")  # Internal name
-    display_name = db.Column(db.String(50), nullable=False, default="NOUS")  # Name shown to user
-    tagline = db.Column(db.String(100))  # Short description/tagline
-    description = db.Column(db.Text)  # Longer description
-    
-    # Appearance
-    primary_color = db.Column(db.String(20), default="#6f42c1")  # Primary color in hex
-    theme = db.Column(db.String(20), default="dark")  # dark, light
-    logo_path = db.Column(db.String(255))  # Path to logo image
-    
-    # Behavior
-    personality = db.Column(db.String(50), default="friendly")  # Affects tone and style
-    
-    # Flags
-    is_default = db.Column(db.Boolean, default=False)  # Whether this is the default profile
-    
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    title = db.Column(db.String(120), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    due_date = db.Column(db.DateTime, nullable=True)
+    priority = db.Column(db.String(20), default='medium')
+    completed = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'display_name': self.display_name,
-            'tagline': self.tagline,
-            'description': self.description,
-            'primary_color': self.primary_color,
-            'theme': self.theme,
-            'personality': self.personality,
-            'is_default': self.is_default,
-            'logo_path': self.logo_path,
-        }
-    
-# Beta tester model
-class BetaTester(db.Model):
-    """Model for managing beta testers"""
-    __tablename__ = 'beta_testers'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(255), db.ForeignKey(User.id), nullable=False, unique=True)
-    status = db.Column(db.String(20), default='active')  # 'active', 'inactive'
-    notes = db.Column(db.Text, nullable=True)
-    feedback_count = db.Column(db.Integer, default=0)  # Count of feedback submissions
-    last_activity = db.Column(db.DateTime, nullable=True)
-    activated_at = db.Column(db.DateTime, default=datetime.utcnow)
-    deactivated_at = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # Relationship with User
-    user = db.relationship('User', backref=db.backref('beta_tester', uselist=False))
-    
-    # Relationship with feedback
-    feedback = db.relationship('BetaFeedback', backref='tester', lazy='dynamic', cascade="all, delete-orphan")
-    
-    def to_dict(self):
-        """Convert to dictionary"""
-        return {
-            'id': self.id,
-            'user_id': self.user_id,
-            'status': self.status,
-            'feedback_count': self.feedback_count,
-            'last_activity': self.last_activity.isoformat() if self.last_activity else None,
-            'activated_at': self.activated_at.isoformat() if self.activated_at else None,
-            'deactivated_at': self.deactivated_at.isoformat() if self.deactivated_at else None,
-            'created_at': self.created_at.isoformat() if self.created_at else None
-        }
-
-# Beta feedback model
-# Cache Entry model for database caching
-class CacheEntry(db.Model):
-    """Model for storing cache entries in the database"""
-    __tablename__ = 'cache_entries'
-    
-    key = db.Column(db.String(255), primary_key=True)
-    value = db.Column(db.Text, nullable=False)
-    expires_at = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # Add index for faster lookup/cleanup
-    __table_args__ = (
-        Index('idx_cache_entries_expires_at', 'expires_at'),
-    )
+    # Relationships
+    user = db.relationship('User', back_populates='tasks')
     
     def __repr__(self):
-        return f"<CacheEntry {self.key} expires: {self.expires_at}>"
-
-
-class BetaFeedback(db.Model):
-    """Model for feedback from beta testers"""
-    __tablename__ = 'beta_feedback'
-    id = db.Column(db.Integer, primary_key=True)
-    tester_id = db.Column(db.Integer, db.ForeignKey('beta_testers.id'), nullable=False)
-    category = db.Column(db.String(50), nullable=False)  # 'bug', 'feature', 'suggestion', 'general'
-    title = db.Column(db.String(200), nullable=False)
-    description = db.Column(db.Text, nullable=False)
-    severity = db.Column(db.Integer, default=3)  # 1-5 scale (1:critical, 5:trivial)
-    status = db.Column(db.String(20), default='new')  # 'new', 'in_progress', 'resolved', 'wont_fix'
-    resolution_notes = db.Column(db.Text, nullable=True)
-    screenshots = db.Column(db.Text, nullable=True)  # JSON array of screenshot URLs or base64 data
-    browser = db.Column(db.String(100), nullable=True)  # Browser info
-    device = db.Column(db.String(100), nullable=True)  # Device info
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+        return f'<Task {self.title}>'
     
     def to_dict(self):
-        """Convert to dictionary"""
+        """Convert task to dictionary"""
         return {
             'id': self.id,
-            'tester_id': self.tester_id,
-            'category': self.category,
             'title': self.title,
             'description': self.description,
-            'severity': self.severity,
-            'status': self.status,
-            'resolution_notes': self.resolution_notes,
-            'screenshots': self.screenshots,
-            'browser': self.browser,
-            'device': self.device,
+            'due_date': self.due_date.isoformat() if self.due_date else None,
+            'priority': self.priority,
+            'completed': self.completed,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
-# Enhanced Memory Models for Personalized Conversation
-
-class UserMemoryEntry(db.Model):
-    """Stores conversation message history"""
-    __tablename__ = 'user_memory_entries'
+class BetaTester(db.Model):
+    """
+    Beta tester model for managing beta testing program participants.
+    
+    Attributes:
+        id: Unique identifier for the beta tester record
+        user_id: Foreign key to the user who is participating as a beta tester
+        access_code: Code used to register as a beta tester
+        active: Whether the beta tester account is active
+        notes: Additional notes or feedback from the beta tester
+        created_at: When the beta tester record was created
+    """
+    __tablename__ = 'beta_testers'
+    
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(255), db.ForeignKey(User.id), nullable=False)  # Changed to match User.id type
-    role = db.Column(db.String(20), nullable=False)  # 'user' or 'assistant'
-    content = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    importance = db.Column(db.Integer, default=1)  # 1-5 scale
-    embedding = db.Column(db.Text, nullable=True)  # Vector embedding for semantic search
-    
-    # Use overlaps parameter to resolve the conflict with User.memory_entries
-    user = db.relationship(User, overlaps="memory_entries")
-    
-    __table_args__ = (
-        Index('idx_memory_user_timestamp', 'user_id', 'timestamp'),
-    )
-    
-    def __repr__(self):
-        return f"<UserMemoryEntry {self.id}: {self.role} at {self.timestamp}>"
-
-class UserTopicInterest(db.Model):
-    """Tracks user interests in topics based on conversation history"""
-    __tablename__ = 'user_topic_interests'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(255), db.ForeignKey(User.id), nullable=False)  # Changed to match User.id type
-    topic_name = db.Column(db.String(50), nullable=False)
-    interest_level = db.Column(db.Float, default=0.5)  # 0-1 scale
-    last_discussed = db.Column(db.DateTime, default=datetime.utcnow)
-    engagement_count = db.Column(db.Integer, default=1)  # How many times mentioned
-    
-    # Use overlaps parameter to resolve the conflict with User.topic_interests
-    user = db.relationship(User, overlaps="topic_interests")
-    
-    __table_args__ = (UniqueConstraint(
-        'user_id', 
-        'topic_name',
-        name='uq_user_topic'
-    ),)
-    
-    def __repr__(self):
-        return f"<UserTopicInterest {self.topic_name}: level {self.interest_level}>"
-
-class UserEntityMemory(db.Model):
-    """Stores information about entities (people, places, things) mentioned by the user"""
-    __tablename__ = 'user_entity_memories'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(255), db.ForeignKey(User.id), nullable=False)  # Changed to match User.id type
-    entity_name = db.Column(db.String(100), nullable=False)
-    entity_type = db.Column(db.String(50), nullable=False)  # person, place, thing, etc.
-    attributes = db.Column(db.JSON, nullable=False)
-    last_mentioned = db.Column(db.DateTime, default=datetime.utcnow)
-    mention_count = db.Column(db.Integer, default=1)
-    
-    # Use overlaps parameter to resolve the conflict
-    user = db.relationship(User, overlaps="entity_memories")
-    
-    __table_args__ = (UniqueConstraint(
-        'user_id', 
-        'entity_name',
-        name='uq_user_entity'
-    ),)
-    
-    def __repr__(self):
-        return f"<UserEntityMemory {self.entity_name} ({self.entity_type})>"
-
-class UserEmotionLog(db.Model):
-    """Logs detected user emotions from interactions"""
-    __tablename__ = 'user_emotion_logs'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    emotion = db.Column(db.String(30), nullable=False)  # happiness, sadness, anger, etc.
-    confidence = db.Column(db.Float, default=0.0)  # 0-1 scale of detection confidence
-    source = db.Column(db.String(20), nullable=False)  # 'text', 'voice', 'image'
-    details = db.Column(db.Text, nullable=True)  # Optional details about the emotion
-    
-    user = db.relationship(User, backref='emotion_logs')
-    
-    def __repr__(self):
-        return f"<UserEmotionLog {self.emotion} ({self.confidence:.2f}) at {self.timestamp}>"
-    
-# Third-party service connections for users
-class UserConnection(db.Model):
-    __tablename__ = 'user_connections'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
-    service = db.Column(db.String(50), nullable=False)  # 'google', 'spotify', etc.
-    token = db.Column(db.Text, nullable=False)
-    refresh_token = db.Column(db.Text, nullable=True)
-    token_uri = db.Column(db.String(255), nullable=True)
-    client_id = db.Column(db.String(255), nullable=True)
-    client_secret = db.Column(db.String(255), nullable=True)
-    scopes = db.Column(db.Text, nullable=True)  # JSON string of scopes
-    expires_at = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    user = db.relationship('User', backref=db.backref('connections', lazy=True))
-    
-    __table_args__ = (
-        UniqueConstraint('user_id', 'service', name='uq_user_service'),
-    )
-
-# Enum for DBT (Dialectical Behavior Therapy) skills
-class DBTSkillCategory(enum.Enum):
-    MINDFULNESS = "Mindfulness"
-    DISTRESS_TOLERANCE = "Distress Tolerance"
-    EMOTION_REGULATION = "Emotion Regulation"
-    INTERPERSONAL_EFFECTIVENESS = "Interpersonal Effectiveness"
-    RADICAL_ACCEPTANCE = "Radical Acceptance"
-    WISE_MIND = "Wise Mind"
-    DIALECTICS = "Dialectics"
-    OTHER = "Other"
-
-# DBT Skills log model
-class DBTSkillLog(db.Model):
-    """Model for tracking DBT skill usage"""
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    skill_name = db.Column(db.String(100), nullable=False)
-    category = db.Column(db.String(50))  # Uses DBTSkillCategory values
-    situation = db.Column(db.Text)  # The situation where the skill was used
-    effectiveness = db.Column(db.Integer)  # Rating from 1-5 of how effective the skill was
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    access_code = db.Column(db.String(32))
+    active = db.Column(db.Boolean, default=True)
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'skill_name': self.skill_name,
-            'category': self.category,
-            'situation': self.situation,
-            'effectiveness': self.effectiveness,
-            'notes': self.notes,
-            'created_at': self.created_at.isoformat() if self.created_at else None
-        }
-
-# DBT Diary Card model
-class DBTDiaryCard(db.Model):
-    """Model for DBT diary cards"""
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    date = db.Column(db.Date, default=datetime.utcnow().date)
-    mood_rating = db.Column(db.Integer)  # 0-5 scale
-    triggers = db.Column(db.Text)  # What triggered emotions
-    urges = db.Column(db.Text)  # Urges felt
-    skills_used = db.Column(db.Text)  # Skills used
-    reflection = db.Column(db.Text)  # Reflection notes
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    # Relationships
+    user = db.relationship('User', backref=db.backref('beta_tester', lazy=True))
+    
+    def __repr__(self):
+        return f'<BetaTester for user {self.user_id}>'
     
     def to_dict(self):
+        """Convert beta tester record to dictionary"""
         return {
             'id': self.id,
-            'date': self.date.isoformat() if self.date else None,
-            'mood_rating': self.mood_rating,
-            'triggers': self.triggers,
-            'urges': self.urges,
-            'skills_used': self.skills_used,
-            'reflection': self.reflection,
+            'user_id': self.user_id,
+            'active': self.active,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
-# DBT Skill Recommendation model
-class DBTSkillRecommendation(db.Model):
-    """Model for personalized skill recommendations"""
+class SystemSettings(db.Model):
+    """
+    System settings model for storing application-wide configuration.
+    
+    Attributes:
+        id: Unique identifier for the system setting
+        key: Setting key name
+        value: Setting value as string (will be converted to appropriate type)
+        description: Description of what the setting does
+        created_at: When the setting was created
+        updated_at: When the setting was last updated
+    """
+    __tablename__ = 'system_settings'
+    
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    situation_type = db.Column(db.String(100))  # General type of situation
-    skill_name = db.Column(db.String(100))  # Recommended skill
-    category = db.Column(db.String(50))  # Skill category
-    confidence_score = db.Column(db.Float, default=0.0)  # How confident we are in this recommendation (0.0-1.0)
-    times_used = db.Column(db.Integer, default=0)  # How many times user has used this skill
-    avg_effectiveness = db.Column(db.Float, default=0.0)  # Average effectiveness rating (0.0-5.0)
+    key = db.Column(db.String(64), unique=True, nullable=False)
+    value = db.Column(db.Text, nullable=True)
+    description = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'situation_type': self.situation_type,
-            'skill_name': self.skill_name,
-            'category': self.category,
-            'confidence_score': self.confidence_score,
-            'times_used': self.times_used,
-            'avg_effectiveness': self.avg_effectiveness
-        }
-
-# DBT Skill Challenge model
-class DBTSkillChallenge(db.Model):
-    """Model for DBT skill challenges"""
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    challenge_name = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.Text)
-    skill_category = db.Column(db.String(50))  # Primary skill category for this challenge
-    difficulty = db.Column(db.Integer, default=1)  # 1-5 scale
-    is_completed = db.Column(db.Boolean, default=False)
-    progress = db.Column(db.Integer, default=0)  # Progress percentage (0-100)
-    start_date = db.Column(db.DateTime, default=datetime.utcnow)
-    completed_date = db.Column(db.DateTime)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    def __repr__(self):
+        return f'<SystemSetting {self.key}>'
     
     def to_dict(self):
+        """Convert setting to dictionary"""
         return {
-            'id': self.id,
-            'challenge_name': self.challenge_name,
+            'key': self.key,
+            'value': self.value,
             'description': self.description,
-            'skill_category': self.skill_category,
-            'difficulty': self.difficulty,
-            'is_completed': self.is_completed,
-            'progress': self.progress,
-            'start_date': self.start_date.isoformat() if self.start_date else None,
-            'completed_date': self.completed_date.isoformat() if self.completed_date else None
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
-# Crisis Resource model
-class DBTCrisisResource(db.Model):
-    """Model for crisis resources"""
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    name = db.Column(db.String(100), nullable=False)
-    contact_info = db.Column(db.String(255))
-    resource_type = db.Column(db.String(50))  # e.g., hotline, therapist, hospital
-    notes = db.Column(db.Text)
-    is_emergency = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'contact_info': self.contact_info,
-            'resource_type': self.resource_type,
-            'notes': self.notes,
-            'is_emergency': self.is_emergency
-        }
-
-# Emotion Tracking model
-class DBTEmotionTrack(db.Model):
-    """Model for tracking emotions"""
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    emotion_name = db.Column(db.String(50), nullable=False)
-    intensity = db.Column(db.Integer)  # 1-10 scale
-    trigger = db.Column(db.Text)
-    body_sensations = db.Column(db.Text)  # Physical sensations
-    thoughts = db.Column(db.Text)  # Associated thoughts
-    urges = db.Column(db.Text)  # Action urges
-    opposite_action = db.Column(db.Text)  # Opposite action taken
-    date_recorded = db.Column(db.DateTime, default=datetime.utcnow)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'emotion_name': self.emotion_name,
-            'intensity': self.intensity,
-            'trigger': self.trigger,
-            'body_sensations': self.body_sensations,
-            'thoughts': self.thoughts,
-            'urges': self.urges,
-            'opposite_action': self.opposite_action,
-            'date_recorded': self.date_recorded.isoformat() if self.date_recorded else None
-        }
-
-# Enum for expense categories
-class ExpenseCategory(enum.Enum):
-    HOUSING = "Housing"
-    TRANSPORTATION = "Transportation"
-    FOOD = "Food"
-    UTILITIES = "Utilities"
-    INSURANCE = "Insurance"
-    HEALTHCARE = "Healthcare"
-    SAVINGS = "Savings"
-    PERSONAL = "Personal"
-    ENTERTAINMENT = "Entertainment"
-    EDUCATION = "Education" 
-    DEBT = "Debt"
-    GIFTS = "Gifts"
-    TRAVEL = "Travel"
-    OTHER = "Other"
-
-class Doctor(db.Model):
-    """Model for storing doctor information"""
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    specialty = db.Column(db.String(100))
-    phone = db.Column(db.String(20))
-    address = db.Column(db.String(255))
-    notes = db.Column(db.Text)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Relationship with appointments
-    appointments = db.relationship('Appointment', backref='doctor', lazy=True, cascade="all, delete-orphan")
-    
-    __table_args__ = (
-        Index('idx_doctor_user', 'user_id'),
-        Index('idx_doctor_name', 'name'),
-    )
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'specialty': self.specialty,
-            'phone': self.phone,
-            'address': self.address,
-            'notes': self.notes
-        }
-
-class Appointment(db.Model):
-    """Model for tracking appointment history and upcoming appointments"""
-    id = db.Column(db.Integer, primary_key=True)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
-    date = db.Column(db.DateTime)
-    reason = db.Column(db.String(255))
-    status = db.Column(db.String(50), default='scheduled')  # scheduled, completed, cancelled
-    notes = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    
-    __table_args__ = (
-        Index('idx_appointment_user', 'user_id'),
-        Index('idx_appointment_doctor', 'doctor_id'),
-        Index('idx_appointment_date', 'date'),
-        Index('idx_appointment_status', 'status'),
-    )
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'doctor_id': self.doctor_id,
-            'date': self.date.isoformat() if self.date else None,
-            'reason': self.reason,
-            'status': self.status,
-            'notes': self.notes
-        }
-
-class AppointmentReminder(db.Model):
-    """Model for storing when to remind users about making appointments"""
-    id = db.Column(db.Integer, primary_key=True)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
-    frequency_months = db.Column(db.Integer, default=6)  # How often to see this doctor (in months)
-    last_appointment = db.Column(db.DateTime)  # Date of the last appointment
-    next_reminder = db.Column(db.DateTime)  # When to remind about making the next appointment
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-# Shopping List and Grocery Features
 class ShoppingList(db.Model):
-    """Model for shopping/grocery lists"""
+    """
+    Shopping list model to store lists of shopping items.
+    
+    Attributes:
+        id: Unique identifier for the shopping list
+        name: Name of the shopping list
+        description: Description of the shopping list
+        store: Specific store this list is for
+        is_recurring: Whether this is a recurring purchase list
+        frequency_days: Frequency in days for recurring lists
+        last_ordered: Date when items on this list were last ordered
+        next_order_date: Date when items on this list should be ordered next
+        user_id: Foreign key to the user who owns this list
+        created_at: When the list was created
+        updated_at: When the list was last updated
+    """
+    __tablename__ = 'shopping_lists'
+    
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.String(255))
-    store = db.Column(db.String(100))  # Optional store name
-    is_recurring = db.Column(db.Boolean, default=False)  # If this is a recurring order list
-    frequency_days = db.Column(db.Integer, default=0)  # For recurring orders, every X days
-    next_order_date = db.Column(db.DateTime)  # For recurring orders
-    last_ordered = db.Column(db.DateTime)  # When this list was last ordered
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    description = db.Column(db.Text)
+    store = db.Column(db.String(100))
+    is_recurring = db.Column(db.Boolean, default=False)
+    frequency_days = db.Column(db.Integer, default=0)
+    last_ordered = db.Column(db.DateTime)
+    next_order_date = db.Column(db.DateTime)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationship with items
-    items = db.relationship('ShoppingItem', backref='shopping_list', lazy=True, cascade="all, delete-orphan")
+    # Relationships
+    user = db.relationship('User', backref=db.backref('shopping_lists', lazy=True))
+    items = db.relationship('ShoppingItem', backref='shopping_list', cascade='all, delete-orphan')
+    
+    def __repr__(self):
+        return f'<ShoppingList {self.name}>'
     
     def to_dict(self):
+        """Convert shopping list to dictionary"""
         return {
             'id': self.id,
             'name': self.name,
@@ -711,94 +289,105 @@ class ShoppingList(db.Model):
             'store': self.store,
             'is_recurring': self.is_recurring,
             'frequency_days': self.frequency_days,
-            'next_order_date': self.next_order_date.isoformat() if self.next_order_date else None,
             'last_ordered': self.last_ordered.isoformat() if self.last_ordered else None,
-            'items_count': len(self.items) if self.items else 0
+            'next_order_date': self.next_order_date.isoformat() if self.next_order_date else None,
+            'item_count': len(self.items) if self.items else 0,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
 class ShoppingItem(db.Model):
-    """Model for items in a shopping list"""
+    """
+    Shopping item model for items in shopping lists.
+    
+    Attributes:
+        id: Unique identifier for the shopping item
+        name: Name of the item
+        category: Category of the item (e.g., produce, dairy, etc.)
+        quantity: Quantity of the item
+        unit: Unit of measure (e.g., oz, lb, etc.)
+        is_checked: Whether the item has been checked off
+        notes: Additional notes about the item
+        estimated_price: Estimated price of the item
+        shopping_list_id: Foreign key to the shopping list this item belongs to
+        created_at: When the item was created
+    """
+    __tablename__ = 'shopping_items'
+    
     id = db.Column(db.Integer, primary_key=True)
-    shopping_list_id = db.Column(db.Integer, db.ForeignKey('shopping_list.id'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
-    category = db.Column(db.String(50))  # e.g., Produce, Dairy, etc.
-    quantity = db.Column(db.Integer, default=1)
-    unit = db.Column(db.String(20))  # e.g., lbs, oz, etc.
-    notes = db.Column(db.String(255))
-    is_checked = db.Column(db.Boolean, default=False)  # For checked off items
-    priority = db.Column(db.Integer, default=0)  # Higher number = higher priority
+    category = db.Column(db.String(50))
+    quantity = db.Column(db.Float, default=1.0)
+    unit = db.Column(db.String(20))
+    is_checked = db.Column(db.Boolean, default=False)
+    notes = db.Column(db.Text)
+    estimated_price = db.Column(db.Float)
+    shopping_list_id = db.Column(db.Integer, db.ForeignKey('shopping_lists.id', ondelete='CASCADE'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
+    def __repr__(self):
+        return f'<ShoppingItem {self.name}>'
+    
     def to_dict(self):
+        """Convert shopping item to dictionary"""
         return {
             'id': self.id,
             'name': self.name,
             'category': self.category,
             'quantity': self.quantity,
             'unit': self.unit,
-            'notes': self.notes,
             'is_checked': self.is_checked,
-            'priority': self.priority
+            'notes': self.notes,
+            'estimated_price': self.estimated_price,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
-# Prescription and Medication Management
-class Medication(db.Model):
-    """Model for tracking medications"""
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    dosage = db.Column(db.String(50))  # e.g., 10mg
-    instructions = db.Column(db.Text)  # e.g., Take twice daily with food
-    prescription_number = db.Column(db.String(50))
-    pharmacy = db.Column(db.String(100))
-    pharmacy_phone = db.Column(db.String(20))
-    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'))
-    quantity_remaining = db.Column(db.Integer)  # Pills/doses remaining
-    refills_remaining = db.Column(db.Integer, default=0)
-    refill_reminder_threshold = db.Column(db.Integer, default=7)  # Remind when X days of medicine left
-    next_refill_date = db.Column(db.DateTime)
-    last_refilled = db.Column(db.DateTime)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    __table_args__ = (
-        Index('idx_medication_user', 'user_id'),
-        Index('idx_medication_doctor', 'doctor_id'),
-        Index('idx_medication_refill_date', 'next_refill_date'),
-    )
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'dosage': self.dosage,
-            'instructions': self.instructions,
-            'prescription_number': self.prescription_number,
-            'pharmacy': self.pharmacy,
-            'doctor_name': Doctor.query.get(self.doctor_id).name if self.doctor_id and Doctor.query.get(self.doctor_id) else None,
-            'quantity_remaining': self.quantity_remaining,
-            'refills_remaining': self.refills_remaining,
-            'next_refill_date': self.next_refill_date.isoformat() if self.next_refill_date else None,
-            'days_remaining': (self.next_refill_date - datetime.datetime.now()).days if self.next_refill_date else None
-        }
-
-# E-commerce Product Ordering
 class Product(db.Model):
-    """Model for tracking favorite or recurring products to order"""
+    """
+    Product model for tracking products from various sources.
+    
+    Attributes:
+        id: Unique identifier for the product
+        name: Product name
+        description: Product description
+        url: URL to the product page
+        image_url: URL to the product image
+        price: Current price of the product
+        source: Source of the product (e.g., Amazon, Walmart)
+        is_recurring: Whether this is a recurring purchase
+        frequency_days: Frequency in days for recurring purchases
+        last_ordered: Date when this product was last ordered
+        next_order_date: Date when this product should be ordered next
+        user_id: Foreign key to the user who is tracking this product
+        created_at: When the product tracking was created
+        updated_at: When the product tracking was last updated
+    """
+    __tablename__ = 'products'
+    
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
+    name = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text)
-    url = db.Column(db.String(255))  # Link to the product
-    image_url = db.Column(db.String(255))  # Product image
-    price = db.Column(db.Float)  # Last known price
-    source = db.Column(db.String(50))  # e.g., Amazon, Target, etc.
-    is_recurring = db.Column(db.Boolean, default=False)  # If this is a recurring order
-    frequency_days = db.Column(db.Integer, default=0)  # For recurring orders, every X days
-    next_order_date = db.Column(db.DateTime)  # For recurring orders
-    last_ordered = db.Column(db.DateTime)  # When this product was last ordered
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    url = db.Column(db.String(1024))
+    image_url = db.Column(db.String(1024))
+    price = db.Column(db.Float)
+    source = db.Column(db.String(50))  # Amazon, Walmart, etc.
+    is_recurring = db.Column(db.Boolean, default=False)
+    frequency_days = db.Column(db.Integer, default=0)
+    last_ordered = db.Column(db.DateTime)
+    next_order_date = db.Column(db.DateTime)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('products', lazy=True))
+    price_history = db.relationship('PriceHistory', backref='product', lazy=True, cascade='all, delete-orphan')
+    
+    def __repr__(self):
+        return f'<Product {self.name}>'
     
     def to_dict(self):
+        """Convert product to dictionary"""
         return {
             'id': self.id,
             'name': self.name,
@@ -809,573 +398,674 @@ class Product(db.Model):
             'source': self.source,
             'is_recurring': self.is_recurring,
             'frequency_days': self.frequency_days,
+            'last_ordered': self.last_ordered.isoformat() if self.last_ordered else None,
             'next_order_date': self.next_order_date.isoformat() if self.next_order_date else None,
-            'last_ordered': self.last_ordered.isoformat() if self.last_ordered else None
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
-        
-# Budget & Expense Tracking Models
 
-class Budget(db.Model):
-    """Model for budget categories and limits"""
+class PriceHistory(db.Model):
+    """
+    Price history model for tracking price changes over time.
+    
+    Attributes:
+        id: Unique identifier for the price history record
+        product_id: Foreign key to the product
+        price: Recorded price at this point in time
+        date_recorded: When this price was recorded
+        source: Source of the price data (e.g., Amazon, Walmart, manual entry)
+        is_deal: Whether this price represents a special deal
+        created_at: When the price history record was created
+    """
+    __tablename__ = 'price_history'
+    
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    category = db.Column(db.String(50))  # Uses ExpenseCategory values
-    amount = db.Column(db.Float, nullable=False)  # Monthly budget amount
-    start_date = db.Column(db.DateTime, default=datetime.utcnow)
-    end_date = db.Column(db.DateTime)  # For fixed-period budgets
-    is_recurring = db.Column(db.Boolean, default=True)  # Monthly recurring by default
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id', ondelete='CASCADE'), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    date_recorded = db.Column(db.DateTime, default=datetime.utcnow)
+    source = db.Column(db.String(50))  # Amazon, Walmart, manual entry, etc.
+    is_deal = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationship with expenses
-    expenses = db.relationship('Expense', backref='budget', lazy=True)
+    def __repr__(self):
+        return f'<PriceHistory ${self.price} for product_id {self.product_id}>'
     
     def to_dict(self):
+        """Convert price history to dictionary"""
         return {
             'id': self.id,
-            'name': self.name,
-            'category': self.category,
-            'amount': self.amount,
-            'start_date': self.start_date.isoformat() if self.start_date else None,
-            'end_date': self.end_date.isoformat() if self.end_date else None,
-            'is_recurring': self.is_recurring,
-            'spent': sum(expense.amount for expense in self.expenses) if self.expenses else 0,
-            'remaining': self.amount - sum(expense.amount for expense in self.expenses) if self.expenses else self.amount
+            'product_id': self.product_id,
+            'price': self.price,
+            'date_recorded': self.date_recorded.isoformat() if self.date_recorded else None,
+            'source': self.source,
+            'is_deal': self.is_deal,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
-class Expense(db.Model):
-    """Model for tracking expenses"""
+class PriceAlert(db.Model):
+    """
+    Price alert model for notifications when a product's price drops below a threshold.
+    
+    Attributes:
+        id: Unique identifier for the price alert
+        product_id: Foreign key to the product
+        user_id: Foreign key to the user who created the alert
+        target_price: Price threshold that triggers the alert
+        percentage_drop: Alternative percentage drop that triggers the alert
+        is_active: Whether the alert is active
+        last_triggered: When the alert was last triggered
+        notification_method: How to notify the user (email, app, etc.)
+        created_at: When the price alert was created
+    """
+    __tablename__ = 'price_alerts'
+    
     id = db.Column(db.Integer, primary_key=True)
-    description = db.Column(db.String(255), nullable=False)
-    amount = db.Column(db.Float, nullable=False)
-    date = db.Column(db.DateTime, default=datetime.utcnow)
-    category = db.Column(db.String(50))  # Uses ExpenseCategory values
-    payment_method = db.Column(db.String(50))  # e.g., cash, credit card, etc.
-    budget_id = db.Column(db.Integer, db.ForeignKey('budget.id'), nullable=True)
-    is_recurring = db.Column(db.Boolean, default=False)
-    recurring_frequency = db.Column(db.String(20))  # daily, weekly, monthly, yearly
-    next_due_date = db.Column(db.DateTime)  # For recurring expenses
-    notes = db.Column(db.Text)
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id', ondelete='CASCADE'), nullable=False)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    target_price = db.Column(db.Float)
+    percentage_drop = db.Column(db.Float)  # e.g., 20.0 for 20% drop
+    is_active = db.Column(db.Boolean, default=True)
+    last_triggered = db.Column(db.DateTime)
+    notification_method = db.Column(db.String(20), default='app')  # app, email, sms
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'description': self.description,
-            'amount': self.amount,
-            'date': self.date.isoformat() if self.date else None,
-            'category': self.category,
-            'payment_method': self.payment_method,
-            'budget_name': self.budget.name if self.budget else None,
-            'is_recurring': self.is_recurring,
-            'recurring_frequency': self.recurring_frequency,
-            'next_due_date': self.next_due_date.isoformat() if self.next_due_date else None,
-            'notes': self.notes
-        }
-
-class RecurringPayment(db.Model):
-    """Model for tracking recurring payments"""
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    amount = db.Column(db.Float, nullable=False)
-    due_day = db.Column(db.Integer)  # Day of month when payment is due
-    frequency = db.Column(db.String(20), nullable=False)  # monthly, yearly, etc.
-    category = db.Column(db.String(50))  # Uses ExpenseCategory values
-    start_date = db.Column(db.DateTime)
-    end_date = db.Column(db.DateTime)  # For fixed-term payments
-    next_due_date = db.Column(db.DateTime)
-    payment_method = db.Column(db.String(50))
-    website = db.Column(db.String(255))  # For online payments
-    notes = db.Column(db.Text)
-    user_id = db.Column(db.String(255))  # User identifier (from session)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    # Relationships
+    product = db.relationship('Product')
+    user = db.relationship('User', backref=db.backref('price_alerts', lazy=True))
+    
+    def __repr__(self):
+        return f'<PriceAlert for product_id {self.product_id}>'
     
     def to_dict(self):
+        """Convert price alert to dictionary"""
         return {
             'id': self.id,
-            'name': self.name,
-            'amount': self.amount,
-            'due_day': self.due_day,
-            'frequency': self.frequency,
-            'category': self.category,
-            'start_date': self.start_date.isoformat() if self.start_date else None,
-            'end_date': self.end_date.isoformat() if self.end_date else None,
-            'next_due_date': self.next_due_date.isoformat() if self.next_due_date else None,
-            'payment_method': self.payment_method,
-            'website': self.website,
-            'notes': self.notes
+            'product_id': self.product_id,
+            'user_id': self.user_id,
+            'target_price': self.target_price,
+            'percentage_drop': self.percentage_drop,
+            'is_active': self.is_active,
+            'last_triggered': self.last_triggered.isoformat() if self.last_triggered else None,
+            'notification_method': self.notification_method,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
-# Travel Planning Models
-
-class Trip(db.Model):
-    """Model for storing trip information"""
+class Deal(db.Model):
+    """
+    Deal model for tracking special deals and promotions.
+    
+    Attributes:
+        id: Unique identifier for the deal
+        product_id: Foreign key to the product (optional, can be a general deal)
+        name: Name/title of the deal
+        description: Description of the deal
+        url: URL to the deal page
+        source: Source of the deal (e.g., Amazon, Walmart)
+        original_price: Original price before the deal
+        deal_price: Price with the deal applied
+        discount_percentage: Percentage discount
+        start_date: When the deal starts
+        end_date: When the deal ends
+        user_id: Foreign key to the user who added the deal
+        rating: User-assigned rating of the deal (1-5)
+        is_verified: Whether the deal has been verified
+        created_at: When the deal was created
+    """
+    __tablename__ = 'deals'
+    
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    destination = db.Column(db.String(100), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id', ondelete='SET NULL'), nullable=True)
+    name = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text)
+    url = db.Column(db.String(1024))
+    source = db.Column(db.String(50))
+    original_price = db.Column(db.Float)
+    deal_price = db.Column(db.Float)
+    discount_percentage = db.Column(db.Float)
     start_date = db.Column(db.DateTime)
     end_date = db.Column(db.DateTime)
-    notes = db.Column(db.Text)
-    budget = db.Column(db.Float)  # Budget for the trip
-    user_id = db.Column(db.String(255))  # User identifier (from session)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    rating = db.Column(db.Integer)  # 1-5 rating
+    is_verified = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
-    itinerary_items = db.relationship('ItineraryItem', backref='trip', lazy=True, cascade="all, delete-orphan")
-    accommodations = db.relationship('Accommodation', backref='trip', lazy=True, cascade="all, delete-orphan")
-    travel_documents = db.relationship('TravelDocument', backref='trip', lazy=True, cascade="all, delete-orphan")
-    packing_items = db.relationship('PackingItem', backref='trip', lazy=True, cascade="all, delete-orphan")
+    product = db.relationship('Product', backref=db.backref('deals', lazy=True))
+    user = db.relationship('User', backref=db.backref('deals', lazy=True))
     
-    __table_args__ = (
-        Index('idx_trip_user', 'user_id'),
-        Index('idx_trip_dates', 'start_date', 'end_date'),
-    )
+    def __repr__(self):
+        return f'<Deal {self.name}>'
     
     def to_dict(self):
+        """Convert deal to dictionary"""
         return {
             'id': self.id,
+            'product_id': self.product_id,
             'name': self.name,
-            'destination': self.destination,
+            'description': self.description,
+            'url': self.url,
+            'source': self.source,
+            'original_price': self.original_price,
+            'deal_price': self.deal_price,
+            'discount_percentage': self.discount_percentage,
             'start_date': self.start_date.isoformat() if self.start_date else None,
             'end_date': self.end_date.isoformat() if self.end_date else None,
-            'notes': self.notes,
-            'budget': self.budget,
-            'duration': (self.end_date - self.start_date).days if self.start_date and self.end_date else None,
-            'itinerary_count': len(self.itinerary_items) if self.itinerary_items else 0,
-            'accommodation_count': len(self.accommodations) if self.accommodations else 0,
-            'document_count': len(self.travel_documents) if self.travel_documents else 0,
-            'packed_items': sum(1 for item in self.packing_items if item.is_packed) if self.packing_items else 0,
-            'total_items': len(self.packing_items) if self.packing_items else 0
+            'user_id': self.user_id,
+            'rating': self.rating,
+            'is_verified': self.is_verified,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
-class ItineraryItem(db.Model):
-    """Model for trip itinerary items"""
+class Medication(db.Model):
+    """
+    Medication model for tracking user medications.
+    
+    Attributes:
+        id: Unique identifier for the medication
+        name: Medication name
+        dosage: Medication dosage (e.g., 10mg)
+        frequency: How often the medication is taken (e.g., twice daily)
+        remaining_quantity: Current quantity remaining
+        refill_threshold: Quantity at which to refill
+        refill_amount: Standard amount to refill
+        pharmacy: Preferred pharmacy for refills
+        notes: Additional notes or instructions
+        next_refill_date: Next estimated refill date
+        user_id: Foreign key to the user who takes this medication
+        created_at: When the medication tracking was created
+        updated_at: When the medication tracking was last updated
+    """
+    __tablename__ = 'medications'
+    
     id = db.Column(db.Integer, primary_key=True)
-    trip_id = db.Column(db.Integer, db.ForeignKey('trip.id'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
-    date = db.Column(db.DateTime)
-    start_time = db.Column(db.Time)
-    end_time = db.Column(db.Time)
-    location = db.Column(db.String(255))
-    address = db.Column(db.String(255))
-    reservation_confirmation = db.Column(db.String(100))
-    category = db.Column(db.String(50))  # e.g., activity, transportation, meal
+    dosage = db.Column(db.String(50), nullable=False)
+    frequency = db.Column(db.String(100))
+    remaining_quantity = db.Column(db.Float, default=0)
+    refill_threshold = db.Column(db.Float, default=5)
+    refill_amount = db.Column(db.Float, default=30)
+    pharmacy = db.Column(db.String(100))
+    needs_prescription = db.Column(db.Boolean, default=True)
     notes = db.Column(db.Text)
-    cost = db.Column(db.Float)  # Cost of this activity
+    next_refill_date = db.Column(db.DateTime)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'trip_id': self.trip_id,
-            'name': self.name,
-            'date': self.date.isoformat() if self.date else None,
-            'start_time': self.start_time.isoformat() if self.start_time else None,
-            'end_time': self.end_time.isoformat() if self.end_time else None,
-            'location': self.location,
-            'address': self.address,
-            'reservation_confirmation': self.reservation_confirmation,
-            'category': self.category,
-            'notes': self.notes,
-            'cost': self.cost
-        }
-
-class Accommodation(db.Model):
-    """Model for trip accommodations"""
-    id = db.Column(db.Integer, primary_key=True)
-    trip_id = db.Column(db.Integer, db.ForeignKey('trip.id'), nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    check_in_date = db.Column(db.DateTime)
-    check_out_date = db.Column(db.DateTime)
-    address = db.Column(db.String(255))
-    booking_confirmation = db.Column(db.String(100))
-    booking_site = db.Column(db.String(100))  # e.g., Airbnb, Booking.com
-    phone = db.Column(db.String(20))
-    cost = db.Column(db.Float)
-    notes = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'trip_id': self.trip_id,
-            'name': self.name,
-            'check_in_date': self.check_in_date.isoformat() if self.check_in_date else None,
-            'check_out_date': self.check_out_date.isoformat() if self.check_out_date else None,
-            'address': self.address,
-            'booking_confirmation': self.booking_confirmation,
-            'booking_site': self.booking_site,
-            'phone': self.phone,
-            'cost': self.cost,
-            'notes': self.notes
-        }
-
-class TravelDocument(db.Model):
-    """Model for storing travel documents"""
-    id = db.Column(db.Integer, primary_key=True)
-    trip_id = db.Column(db.Integer, db.ForeignKey('trip.id'), nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    document_type = db.Column(db.String(50))  # e.g., flight, train, rental car
-    confirmation_number = db.Column(db.String(100))
-    provider = db.Column(db.String(100))  # e.g., airline, rail company
-    departure_location = db.Column(db.String(100))
-    arrival_location = db.Column(db.String(100))
-    departure_time = db.Column(db.DateTime)
-    arrival_time = db.Column(db.DateTime)
-    notes = db.Column(db.Text)
-    cost = db.Column(db.Float)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'trip_id': self.trip_id,
-            'name': self.name,
-            'document_type': self.document_type,
-            'confirmation_number': self.confirmation_number,
-            'provider': self.provider,
-            'departure_location': self.departure_location,
-            'arrival_location': self.arrival_location,
-            'departure_time': self.departure_time.isoformat() if self.departure_time else None,
-            'arrival_time': self.arrival_time.isoformat() if self.arrival_time else None,
-            'notes': self.notes,
-            'cost': self.cost
-        }
-
-class PackingItem(db.Model):
-    """Model for trip packing list items"""
-    id = db.Column(db.Integer, primary_key=True)
-    trip_id = db.Column(db.Integer, db.ForeignKey('trip.id'), nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    category = db.Column(db.String(50))  # e.g., clothing, toiletries, documents
-    quantity = db.Column(db.Integer, default=1)
-    is_packed = db.Column(db.Boolean, default=False)
-    notes = db.Column(db.String(255))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'trip_id': self.trip_id,
-            'name': self.name,
-            'category': self.category,
-            'quantity': self.quantity,
-            'is_packed': self.is_packed,
-            'notes': self.notes
-        }
-
-
-class WeatherLocation(db.Model):
-    """Model for storing saved weather locations"""
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)  # User-provided name for this location
-    display_name = db.Column(db.String(255))  # Full formatted location name from API
-    latitude = db.Column(db.Float, nullable=False)
-    longitude = db.Column(db.Float, nullable=False)
-    is_primary = db.Column(db.Boolean, default=False)  # If this is the user's main location
-    units = db.Column(db.String(20), default="imperial")  # imperial or metric
-    user_id = db.Column(db.String(255))  # User identifier (from session)
-    added_date = db.Column(db.DateTime, default=datetime.utcnow)
-    last_accessed = db.Column(db.DateTime)
-    
-    __table_args__ = (
-        Index('idx_weather_user', 'user_id'),
-        Index('idx_weather_primary', 'is_primary'),
-        Index('idx_weather_coords', 'latitude', 'longitude'),
-    )
-    
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'display_name': self.display_name,
-            'latitude': self.latitude,
-            'longitude': self.longitude,
-            'is_primary': self.is_primary,
-            'units': self.units,
-            'added_date': self.added_date.isoformat() if self.added_date else None,
-            'last_accessed': self.last_accessed.isoformat() if self.last_accessed else None
-        }
-
-# Knowledge Base Models for AI Self-Learning
-class KnowledgeBase(db.Model):
-    """
-    Stores learned information in the knowledge base.
-    Each entry contains content and its embedding for semantic search.
-    """
-    __tablename__ = 'knowledge_base'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String, db.ForeignKey(User.id), nullable=True)  # Can be null for global knowledge
-    content = db.Column(db.Text, nullable=False)
-    embedding = db.Column(db.LargeBinary, nullable=False)  # Store embedding as binary
-    source = db.Column(db.String(50), default='conversation')  # conversation, training, reflection
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    last_accessed = db.Column(db.DateTime, nullable=True)  # Track when this was last retrieved
-    access_count = db.Column(db.Integer, default=0)  # How many times this knowledge was accessed
-    relevance_score = db.Column(db.Float, default=1.0)  # Higher = more relevant (for pruning)
-    
-    # Relationship with user
-    user = db.relationship('User', backref=db.backref('knowledge_entries', lazy=True))
-    
-    __table_args__ = (
-        Index('idx_knowledge_user_relevance', 'user_id', 'relevance_score'),
-        Index('idx_knowledge_source', 'source'),
-        Index('idx_knowledge_access', 'access_count'),
-    )
-        
-    def get_embedding_array(self):
-        """
-        Convert stored binary embedding back to numpy array.
-        Handles both compressed and uncompressed formats.
-        """
-        try:
-            # First try to decompress (for newer compressed embeddings)
-            import zlib
-            decompressed = zlib.decompress(self.embedding)
-            return np.frombuffer(decompressed, dtype=np.float16).astype(np.float32)
-        except:
-            # Fall back to legacy uncompressed format
-            try:
-                return np.frombuffer(self.embedding, dtype=np.float32)
-            except:
-                # Last resort fallback
-                import logging
-                logging.warning(f"Failed to decode embedding for knowledge entry {self.id}")
-                return np.zeros(1536, dtype=np.float32)
-    
-    def set_embedding_array(self, embedding_array):
-        """
-        Convert numpy array to compressed binary for storage.
-        Uses float16 precision and zlib compression to reduce size.
-        """
-        try:
-            # Convert to float16 and compress with zlib
-            import zlib
-            # Use moderate compression level (6) for good balance of speed/size
-            compressed = zlib.compress(
-                embedding_array.astype(np.float16).tobytes(), 
-                level=6
-            )
-            self.embedding = compressed
-        except:
-            # Fall back to uncompressed if compression fails
-            self.embedding = embedding_array.astype(np.float32).tobytes()
-        
-    def increment_access(self):
-        """Update access metrics when this entry is retrieved"""
-        self.access_count += 1
-        self.last_accessed = datetime.utcnow()
-        
-    def to_dict(self):
-        """Convert to dictionary for API responses"""
-        return {
-            'id': self.id,
-            'content': self.content,
-            'source': self.source,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'last_accessed': self.last_accessed.isoformat() if self.last_accessed else None,
-            'access_count': self.access_count,
-            'relevance_score': self.relevance_score
-        }
-
-class ReflectionPrompt(db.Model):
-    """
-    Stores prompts used during self-reflection to identify knowledge gaps.
-    These prompts are used periodically to improve the knowledge base.
-    """
-    __tablename__ = 'reflection_prompts'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    prompt = db.Column(db.Text, nullable=False)
-    description = db.Column(db.String(255))
-    category = db.Column(db.String(50), default='general')  # general, gap-finding, consistency, etc.
-    last_used = db.Column(db.DateTime, nullable=True)
-    use_count = db.Column(db.Integer, default=0)
-    enabled = db.Column(db.Boolean, default=True)
-    
-    def __repr__(self):
-        return f"<ReflectionPrompt {self.id}: {self.prompt[:30]}...>"
-        
-    def to_dict(self):
-        """Convert to dictionary for API responses"""
-        return {
-            'id': self.id,
-            'prompt': self.prompt,
-            'description': self.description,
-            'category': self.category,
-            'last_used': self.last_used.isoformat() if self.last_used else None,
-            'use_count': self.use_count,
-            'enabled': self.enabled
-        }
-
-# API Key Management Models
-class APIKey(db.Model):
-    """
-    Model for storing and managing API keys with rotation support.
-    Each user can have multiple API keys with different scopes and statuses.
-    """
-    __tablename__ = 'api_keys'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(255), db.ForeignKey('users.id'), nullable=False)  # Changed to match User.id type
-    name = db.Column(db.String(100), nullable=False)  # User-defined name for this key
-    key_prefix = db.Column(db.String(8), nullable=False)  # First few chars of key (shown to user)
-    key_hash = db.Column(db.String(255), nullable=False)  # Securely hashed API key
-    scopes = db.Column(db.Text, nullable=False)  # JSON list of permitted scopes
-    status = db.Column(db.String(20), default='active')  # active, rotated, revoked
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    expires_at = db.Column(db.DateTime, nullable=True)  # Optional expiration date
-    last_used_at = db.Column(db.DateTime, nullable=True)
-    use_count = db.Column(db.Integer, default=0)
-    last_rotated_at = db.Column(db.DateTime, nullable=True)
-    rotation_count = db.Column(db.Integer, default=0)
-    
-    # For audit purposes
-    rotated_from_id = db.Column(db.Integer, db.ForeignKey('api_keys.id'), nullable=True)
-    rotated_to_id = db.Column(db.Integer, db.ForeignKey('api_keys.id'), nullable=True)
-    
-    # For tracking rate limits
-    hourly_usage = db.Column(db.Integer, default=0)
-    daily_usage = db.Column(db.Integer, default=0)
-    hourly_reset_at = db.Column(db.DateTime, default=datetime.utcnow)
-    daily_reset_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Self-referential relationships for tracking rotation history
-    rotated_from = db.relationship('APIKey', foreign_keys=[rotated_from_id],
-                                 remote_side=[id], backref='rotated_to_prev')
-    rotated_to = db.relationship('APIKey', foreign_keys=[rotated_to_id],
-                               remote_side=[id], backref='rotated_from_next')
-    
-    # User relationship
-    user = db.relationship('User', backref=db.backref('api_keys', lazy=True))
-    
-    __table_args__ = (
-        UniqueConstraint('key_prefix', name='uq_api_key_prefix'),
-        Index('idx_api_key_user', 'user_id'),
-        Index('idx_api_key_status', 'status'),
-        Index('idx_api_key_expires', 'expires_at'),
-    )
-    
-    def __repr__(self):
-        return f"<APIKey {self.key_prefix}... ({self.status})>"
-    
-    def is_active(self):
-        """Check if the API key is active and not expired"""
-        if self.status != 'active':
-            return False
-        if self.expires_at and self.expires_at < datetime.utcnow():
-            return False
-        return True
-        
-    def has_scope(self, scope):
-        """Check if the API key has the requested scope"""
-        import json
-        if not self.is_active():
-            return False
-        
-        try:
-            key_scopes = json.loads(self.scopes)
-            # If key has '*' scope, it has access to everything
-            if '*' in key_scopes:
-                return True
-            return scope in key_scopes
-        except json.JSONDecodeError:
-            return False
-    
-    def record_usage(self):
-        """Record usage of this API key and update rate limit counters"""
-        now = datetime.utcnow()
-        self.last_used_at = now
-        self.use_count += 1
-        
-        # Reset hourly counter if needed
-        hourly_diff = now - self.hourly_reset_at
-        if hourly_diff.total_seconds() > 3600:  # 1 hour
-            self.hourly_usage = 0
-            self.hourly_reset_at = now
-        
-        # Reset daily counter if needed
-        daily_diff = now - self.daily_reset_at
-        if daily_diff.total_seconds() > 86400:  # 24 hours
-            self.daily_usage = 0
-            self.daily_reset_at = now
-        
-        # Increment counters
-        self.hourly_usage += 1
-        self.daily_usage += 1
-    
-    def to_dict(self, include_metadata=False):
-        """Convert to dictionary for API responses"""
-        import json
-        result = {
-            'id': self.id,
-            'name': self.name,
-            'key_prefix': f"{self.key_prefix}...",
-            'status': self.status,
-            'scopes': json.loads(self.scopes) if isinstance(self.scopes, str) else self.scopes,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'expires_at': self.expires_at.isoformat() if self.expires_at else None,
-            'rotation_count': self.rotation_count
-        }
-        
-        if include_metadata:
-            result.update({
-                'last_used_at': self.last_used_at.isoformat() if self.last_used_at else None,
-                'use_count': self.use_count,
-                'last_rotated_at': self.last_rotated_at.isoformat() if self.last_rotated_at else None,
-                'hourly_usage': self.hourly_usage,
-                'daily_usage': self.daily_usage
-            })
-            
-        return result
-            
-class APIKeyEvent(db.Model):
-    """
-    Model for tracking API key lifecycle events for auditing purposes.
-    Records all key creations, rotations, and revocations.
-    """
-    __tablename__ = 'api_key_events'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    api_key_id = db.Column(db.Integer, db.ForeignKey('api_keys.id'), nullable=False)
-    event_type = db.Column(db.String(20), nullable=False)  # created, rotated, revoked
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    ip_address = db.Column(db.String(45), nullable=True)  # IPv6 can be up to 45 chars
-    user_agent = db.Column(db.String(255), nullable=True)
-    performed_by_id = db.Column(db.String(255), db.ForeignKey('users.id'), nullable=True)  # Changed to match User.id type
-    event_metadata = db.Column(db.Text, nullable=True)  # JSON string with additional info
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    api_key = db.relationship('APIKey', backref=db.backref('events', lazy=True))
-    performed_by = db.relationship('User', backref=db.backref('api_key_events', lazy=True))
-    
-    __table_args__ = (
-        Index('idx_api_key_event_key', 'api_key_id'),
-        Index('idx_api_key_event_type', 'event_type'),
-        Index('idx_api_key_event_time', 'timestamp'),
-    )
+    user = db.relationship('User', backref=db.backref('medications', lazy=True))
     
     def __repr__(self):
-        return f"<APIKeyEvent {self.event_type} for key {self.api_key_id} at {self.timestamp}>"
+        return f'<Medication {self.name} {self.dosage}>'
     
     def to_dict(self):
-        """Convert to dictionary for API responses"""
-        import json
-        result = {
+        """Convert medication to dictionary"""
+        return {
             'id': self.id,
-            'api_key_id': self.api_key_id,
-            'event_type': self.event_type,
-            'timestamp': self.timestamp.isoformat() if self.timestamp else None,
-            'ip_address': self.ip_address,
-            'performed_by_id': self.performed_by_id
+            'name': self.name,
+            'dosage': self.dosage,
+            'frequency': self.frequency,
+            'remaining_quantity': self.remaining_quantity,
+            'refill_threshold': self.refill_threshold,
+            'refill_amount': self.refill_amount,
+            'pharmacy': self.pharmacy,
+            'needs_prescription': self.needs_prescription,
+            'notes': self.notes,
+            'next_refill_date': self.next_refill_date.isoformat() if self.next_refill_date else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
-        
-        if self.event_metadata:
-            try:
-                result['metadata'] = json.loads(self.event_metadata)
-            except json.JSONDecodeError:
-                result['metadata'] = self.event_metadata
-                
-        return result
+
+# AA Recovery Models
+class AASettings(db.Model):
+    """User settings for AA recovery features"""
+    __tablename__ = 'aa_settings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    sponsor_name = db.Column(db.String(100))
+    sponsor_phone = db.Column(db.String(20))
+    backup_contact_name = db.Column(db.String(100))
+    backup_contact_phone = db.Column(db.String(20))
+    home_group = db.Column(db.String(100))
+    sober_date = db.Column(db.DateTime)
+    show_sober_days = db.Column(db.Boolean, default=True)
+    track_honesty_streaks = db.Column(db.Boolean, default=True)
+    track_pain_flares = db.Column(db.Boolean, default=False)
+    daily_reflection_time = db.Column(db.String(5), default="07:00")
+    nightly_inventory_time = db.Column(db.String(5), default="21:00")
+    spot_checks_per_day = db.Column(db.Integer, default=3)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('aa_settings', lazy=True))
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'sponsor_name': self.sponsor_name,
+            'sponsor_phone': self.sponsor_phone,
+            'backup_contact_name': self.backup_contact_name,
+            'backup_contact_phone': self.backup_contact_phone,
+            'home_group': self.home_group,
+            'sober_date': self.sober_date.isoformat() if self.sober_date else None,
+            'show_sober_days': self.show_sober_days,
+            'track_honesty_streaks': self.track_honesty_streaks,
+            'track_pain_flares': self.track_pain_flares,
+            'daily_reflection_time': self.daily_reflection_time,
+            'nightly_inventory_time': self.nightly_inventory_time,
+            'spot_checks_per_day': self.spot_checks_per_day,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class AARecoveryLog(db.Model):
+    """Log of recovery activities and entries"""
+    __tablename__ = 'aa_recovery_logs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    log_type = db.Column(db.String(50))
+    content = db.Column(db.Text)
+    category = db.Column(db.String(50))
+    is_honest_admit = db.Column(db.Boolean, default=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('aa_recovery_logs', lazy=True))
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'log_type': self.log_type,
+            'content': self.content,
+            'category': self.category,
+            'is_honest_admit': self.is_honest_admit,
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None
+        }
+
+class AAMeetingLog(db.Model):
+    """Log of AA meetings attended"""
+    __tablename__ = 'aa_meeting_logs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    meeting_name = db.Column(db.String(100))
+    meeting_type = db.Column(db.String(50))
+    meeting_id = db.Column(db.String(100))
+    date_attended = db.Column(db.DateTime)
+    pre_meeting_reflection = db.Column(db.Text)
+    post_meeting_reflection = db.Column(db.Text)
+    post_meeting_honest_admit = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('aa_meeting_logs', lazy=True))
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'meeting_name': self.meeting_name,
+            'meeting_type': self.meeting_type,
+            'meeting_id': self.meeting_id,
+            'date_attended': self.date_attended.isoformat() if self.date_attended else None,
+            'pre_meeting_reflection': self.pre_meeting_reflection,
+            'post_meeting_reflection': self.post_meeting_reflection,
+            'post_meeting_honest_admit': self.post_meeting_honest_admit,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class AANightlyInventory(db.Model):
+    """Nightly 10th Step inventory entries"""
+    __tablename__ = 'aa_nightly_inventories'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+    resentful = db.Column(db.Text)
+    selfish = db.Column(db.Text)
+    dishonest = db.Column(db.Text)
+    afraid = db.Column(db.Text)
+    secrets = db.Column(db.Text)
+    apologies_needed = db.Column(db.Text)
+    gratitude = db.Column(db.Text)
+    surrender = db.Column(db.Text)
+    wrong_actions = db.Column(db.Text)
+    amends_owed = db.Column(db.Text)
+    help_plan = db.Column(db.Text)
+    completed = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('aa_nightly_inventories', lazy=True))
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'date': self.date.isoformat() if self.date else None,
+            'resentful': self.resentful,
+            'selfish': self.selfish,
+            'dishonest': self.dishonest,
+            'afraid': self.afraid,
+            'secrets': self.secrets,
+            'apologies_needed': self.apologies_needed,
+            'gratitude': self.gratitude,
+            'surrender': self.surrender,
+            'wrong_actions': self.wrong_actions,
+            'amends_owed': self.amends_owed,
+            'help_plan': self.help_plan,
+            'completed': self.completed,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class AASpotCheck(db.Model):
+    """Spot-check inventory responses"""
+    __tablename__ = 'aa_spot_checks'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    check_type = db.Column(db.String(50))
+    question = db.Column(db.Text)
+    response = db.Column(db.Text)
+    rating = db.Column(db.Integer)
+    trigger = db.Column(db.String(100))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('aa_spot_checks', lazy=True))
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'check_type': self.check_type,
+            'question': self.question,
+            'response': self.response,
+            'rating': self.rating,
+            'trigger': self.trigger,
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None
+        }
+
+class AASponsorCall(db.Model):
+    """Log of calls to sponsor or backup contact"""
+    __tablename__ = 'aa_sponsor_calls'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    contact_type = db.Column(db.String(50))
+    pre_call_admission = db.Column(db.Text)
+    post_call_admission = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('aa_sponsor_calls', lazy=True))
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'contact_type': self.contact_type,
+            'pre_call_admission': self.pre_call_admission,
+            'post_call_admission': self.post_call_admission,
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None
+        }
+
+class AAMindfulnessLog(db.Model):
+    """Log of mindfulness exercises completed"""
+    __tablename__ = 'aa_mindfulness_logs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    exercise_type = db.Column(db.String(50))
+    exercise_name = db.Column(db.String(100))
+    notes = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('aa_mindfulness_logs', lazy=True))
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'exercise_type': self.exercise_type,
+            'exercise_name': self.exercise_name,
+            'notes': self.notes,
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None
+        }
+
+class AAAchievement(db.Model):
+    """Achievement badges for AA recovery progress"""
+    __tablename__ = 'aa_achievements'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    badge_id = db.Column(db.String(50))
+    badge_name = db.Column(db.String(100))
+    badge_description = db.Column(db.Text)
+    awarded_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('aa_achievements', lazy=True))
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'badge_id': self.badge_id,
+            'badge_name': self.badge_name,
+            'badge_description': self.badge_description,
+            'awarded_at': self.awarded_at.isoformat() if self.awarded_at else None
+        }
+
+# DBT Models
+class DBTSkillLog(db.Model):
+    """Log of DBT skills used"""
+    __tablename__ = 'dbt_skill_logs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    skill_name = db.Column(db.String(100))
+    category = db.Column(db.String(50))
+    situation = db.Column(db.Text)
+    effectiveness = db.Column(db.Integer)
+    notes = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('dbt_skill_logs', lazy=True))
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'skill_name': self.skill_name,
+            'category': self.category,
+            'situation': self.situation,
+            'effectiveness': self.effectiveness,
+            'notes': self.notes,
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None
+        }
+
+class DBTDiaryCard(db.Model):
+    """DBT diary card entries"""
+    __tablename__ = 'dbt_diary_cards'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+    mood_rating = db.Column(db.Integer)
+    triggers = db.Column(db.Text)
+    urges = db.Column(db.Text)
+    skills_used = db.Column(db.Text)
+    reflection = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('dbt_diary_cards', lazy=True))
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'date': self.date.isoformat() if self.date else None,
+            'mood_rating': self.mood_rating,
+            'triggers': self.triggers,
+            'urges': self.urges,
+            'skills_used': self.skills_used,
+            'reflection': self.reflection,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class DBTSkillCategory(db.Model):
+    """Categories for DBT skills"""
+    __tablename__ = 'dbt_skill_categories'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True)
+    description = db.Column(db.Text)
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description
+        }
+
+class DBTSkillRecommendation(db.Model):
+    """Recommended DBT skills for specific situations"""
+    __tablename__ = 'dbt_skill_recommendations'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=True)
+    situation_type = db.Column(db.String(100))
+    skill_name = db.Column(db.String(100))
+    description = db.Column(db.Text)
+    effectiveness_score = db.Column(db.Float, default=0.0)
+    usage_count = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('dbt_skill_recommendations', lazy=True))
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'situation_type': self.situation_type,
+            'skill_name': self.skill_name,
+            'description': self.description,
+            'effectiveness_score': self.effectiveness_score,
+            'usage_count': self.usage_count,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class DBTSkillChallenge(db.Model):
+    """DBT skill practice challenges"""
+    __tablename__ = 'dbt_skill_challenges'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=True)
+    name = db.Column(db.String(100))
+    description = db.Column(db.Text)
+    category = db.Column(db.String(50))
+    difficulty = db.Column(db.Integer, default=1)
+    progress = db.Column(db.Integer, default=0)
+    completed = db.Column(db.Boolean, default=False)
+    completed_at = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('dbt_skill_challenges', lazy=True))
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'name': self.name,
+            'description': self.description,
+            'category': self.category,
+            'difficulty': self.difficulty,
+            'progress': self.progress,
+            'completed': self.completed,
+            'completed_at': self.completed_at.isoformat() if self.completed_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class DBTCrisisResource(db.Model):
+    """Crisis resources for DBT users"""
+    __tablename__ = 'dbt_crisis_resources'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=True)
+    name = db.Column(db.String(100))
+    contact_info = db.Column(db.String(255))
+    resource_type = db.Column(db.String(50))
+    notes = db.Column(db.Text)
+    is_emergency = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('dbt_crisis_resources', lazy=True))
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'name': self.name,
+            'contact_info': self.contact_info,
+            'resource_type': self.resource_type,
+            'notes': self.notes,
+            'is_emergency': self.is_emergency,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class DBTEmotionTrack(db.Model):
+    """Emotion tracking for DBT users"""
+    __tablename__ = 'dbt_emotion_tracks'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    emotion_name = db.Column(db.String(50))
+    intensity = db.Column(db.Integer)
+    trigger = db.Column(db.Text)
+    response = db.Column(db.Text)
+    skill_used = db.Column(db.String(100))
+    date_recorded = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('dbt_emotion_tracks', lazy=True))
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'emotion_name': self.emotion_name,
+            'intensity': self.intensity,
+            'trigger': self.trigger,
+            'response': self.response,
+            'skill_used': self.skill_used,
+            'date_recorded': self.date_recorded.isoformat() if self.date_recorded else None
+        }
