@@ -19,27 +19,45 @@ from utils.settings import get_setting
 
 logger = logging.getLogger(__name__)
 
-# Configure OpenAI API key from settings
-OPENAI_KEY = get_setting("openai_api_key", "")
-if not OPENAI_KEY:
-    OPENAI_KEY = os.environ.get("OPENAI_API_KEY", "")
-
-# Initialize OpenAI client if key is available
+# Initialize OpenAI client as None first
 openai_client = None
-if OPENAI_KEY:
-    # Just set the API key but don't create client yet - will be created on demand
-    openai.api_key = OPENAI_KEY
+
+def initialize_openai():
+    """Initialize the OpenAI client with appropriate API key"""
+    global openai_client
+    
+    # Only initialize once when needed
+    if openai_client is not None:
+        return openai_client
+        
     try:
-        # Create OpenAI client without proxies argument
-        openai_client = openai.OpenAI(api_key=OPENAI_KEY)
+        # Get API key from environment first (most reliable)
+        openai_key = os.environ.get("OPENAI_API_KEY", "")
+        
+        # If no key in environment, try getting from app settings (requires app context)
+        if not openai_key:
+            try:
+                from flask import current_app
+                with current_app.app_context():
+                    openai_key = get_setting("openai_api_key", "")
+            except Exception as e:
+                logger.warning(f"Could not access application context for settings: {e}")
+        
+        # If we have a key, initialize client
+        if openai_key:
+            # Set the API key
+            openai.api_key = openai_key
+            
+            # Create client
+            openai_client = openai.OpenAI(api_key=openai_key)
+            logger.info("OpenAI client initialized successfully")
+            return openai_client
+        else:
+            logger.warning("No OpenAI API key found, AI features will be limited")
+            return None
     except Exception as e:
         logger.error(f"Failed to initialize OpenAI client: {e}")
-        # Fallback to older API if needed
-        try:
-            openai_client = None
-            # Just use the API key for legacy client
-        except Exception as e2:
-            logger.error(f"Failed to initialize fallback OpenAI client: {e2}")
+        return None
 
 
 def get_ai_response(prompt: str, conversation_history: Optional[List[Dict[str, str]]] = None) -> str:
