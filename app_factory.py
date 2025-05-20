@@ -138,6 +138,13 @@ def create_app(config_class=None):
             except (ImportError, AttributeError) as e:
                 logger.info(f"Cache initialization skipped: {str(e)}")
                 
+            # Initialize settings cache
+            try:
+                from utils.settings_cache import initialize_settings_cache
+                initialize_settings_cache()
+            except ImportError:
+                logger.info("Settings cache initialization skipped")
+                
             # Log startup performance
             startup_time = time.time() - _start_time
             logger.info(f"Application startup completed in {startup_time:.2f} seconds")

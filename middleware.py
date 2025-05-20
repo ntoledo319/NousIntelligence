@@ -16,6 +16,20 @@ from functools import wraps
 # Configure logging
 logger = logging.getLogger(__name__)
 
+def apply_performance_middleware(app: Flask):
+    """Apply performance optimization middleware
+    
+    Args:
+        app: Flask application instance
+    """
+    try:
+        # Use our optimized performance middleware
+        from utils.performance_middleware import setup_performance_middleware
+        setup_performance_middleware(app)
+        logger.info("Performance middleware applied")
+    except ImportError:
+        logger.info("Performance middleware not available")
+
 def setup_middleware(app: Flask):
     """Set up all middleware for the application
     
@@ -25,6 +39,7 @@ def setup_middleware(app: Flask):
     # Apply middleware in order
     apply_system_settings_middleware(app)
     apply_security_middleware(app)
+    apply_performance_middleware(app)
 
 def apply_system_settings_middleware(app: Flask):
     """Apply system settings to the Flask application
@@ -74,10 +89,24 @@ def apply_security_middleware(app: Flask):
         except Exception as e:
             logger.error(f"Error in security middleware: {str(e)}")
 
+def apply_performance_middleware(app: Flask):
+    """Apply performance optimization middleware
+    
+    Args:
+        app: Flask application instance
+    """
+    try:
+        # Use our optimized performance middleware
+        from utils.performance_middleware import setup_performance_middleware
+        setup_performance_middleware(app)
+        logger.info("Performance middleware applied")
+    except ImportError:
+        logger.info("Performance middleware not available")
+
 def register_middleware(app: Flask):
     """Register all middleware with the Flask application
     
     Args:
         app: Flask application instance
     """
-    setup_middleware(app) 
+    setup_middleware(app)
