@@ -155,29 +155,9 @@ def create_app(config_class=None):
     
     return app
 
-def configure_app(app):
-    """
-    Configure the application with settings from environment and config files
-    
-    Args:
-        app: Flask application instance
-    """
-    logger = logging.getLogger(__name__)
-    
-    # Set basic configuration
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_key_for_development')
-    
-    # Database configuration
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///nous.db')
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    
-    # Flask-Login configuration
-    app.config['LOGIN_DISABLED'] = False
-    
-    # Set dev/production mode
-    app.config['DEBUG'] = os.environ.get('FLASK_ENV', 'development') == 'development'
-    
-    logger.info(f"Application configured with database: {app.config['SQLALCHEMY_DATABASE_URI']}")
+# The configure_app function has been removed as its functionality is
+# already incorporated into the create_app function which uses config classes
+# from config.py instead of direct environment variable access.
 
 # Remove the initialize_extensions function as we've moved this functionality into create_app
 
