@@ -5,20 +5,25 @@ This module provides the application factory for creating the Flask app.
 It centralizes app creation and configuration.
 
 @module app_factory
-@description Flask application factory
+@description Flask application factory - Optimized version
 """
 
 import os
 import logging
+import time
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_session import Session
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Create extensions
 db = SQLAlchemy()
 login_manager = LoginManager()
 session = Session()
+
+# Store a timestamp for startup performance measurement
+_start_time = time.time()
 
 def create_app(config_class=None):
     """Create and configure the Flask application
@@ -40,6 +45,9 @@ def create_app(config_class=None):
     
     app.config.from_object(config_class)
     
+    # Apply ProxyFix for proper URL generation with HTTPS
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+    
     # Setup logging
     log_level = logging.DEBUG if app.config.get('DEBUG', False) else logging.INFO
     logging.basicConfig(
@@ -55,7 +63,7 @@ def create_app(config_class=None):
     session.init_app(app)
     
     # Set up login manager
-    login_manager.login_view = 'index'  # Default to index page if login route isn't available
+    login_manager.login_view = 'index'  # type: ignore # Default to index page if login route isn't available
     login_manager.login_message_category = 'info'
     
     # Configure user loader
@@ -65,7 +73,18 @@ def create_app(config_class=None):
         from models import User
         return User.query.get(user_id)
     
-    # Register blueprints
+    # Register error handlers
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template('errors/404.html'), 404
+    
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        return render_template('errors/500.html'), 500
+    
+    logger.info("Error handlers registered")
+    
+    # Register blueprints, middleware, and other components
     with app.app_context():
         try:
             # Import and register all blueprints
@@ -78,17 +97,6 @@ def create_app(config_class=None):
             register_middleware(app)
             logger.info("Middleware registered successfully")
             
-            # Configure error handlers
-            @app.errorhandler(404)
-            def page_not_found(e):
-                return render_template('errors/404.html'), 404
-            
-            @app.errorhandler(500)
-            def internal_server_error(e):
-                return render_template('errors/500.html'), 500
-            
-            logger.info("Error handlers registered")
-            
             # Configure root route if not already defined
             if not app.view_functions.get('index'):
                 @app.route('/')
@@ -97,8 +105,22 @@ def create_app(config_class=None):
                 logger.info("Root route registered")
             
             # Create database tables if they don't exist
-            db.create_all()
-            logger.info("Database tables created/verified")
+            if app.config.get('AUTO_CREATE_TABLES', True):
+                db.create_all()
+                logger.info("Database tables created/verified")
+            
+            # Initialize cache if available
+            try:
+                from utils.cache_helper import cache_helper
+                # Warm up the cache with frequently used data
+                cache_helper.warmup()
+                logger.info("Cache initialized and warmed up")
+            except (ImportError, AttributeError) as e:
+                logger.info(f"Cache initialization skipped: {str(e)}")
+                
+            # Log startup performance
+            startup_time = time.time() - _start_time
+            logger.info(f"Application startup completed in {startup_time:.2f} seconds")
             
         except Exception as e:
             logger.error(f"Error during application setup: {str(e)}")
@@ -130,57 +152,9 @@ def configure_app(app):
     
     logger.info(f"Application configured with database: {app.config['SQLALCHEMY_DATABASE_URI']}")
 
-def initialize_extensions(app):
-    """
-    Initialize Flask extensions
-    
-    Args:
-        app: Flask application instance
-    """
-    logger = logging.getLogger(__name__)
-    
-    # Initialize SQLAlchemy
-    db.init_app(app)
-    
-    # Create all database tables
-    with app.app_context():
-        try:
-            db.create_all()
-            logger.info("Database tables created successfully")
-        except Exception as e:
-            logger.error(f"Error creating database tables: {str(e)}")
-    
-    # Configure Flask-Login
-    login_manager.init_app(app)
-    login_manager.login_view = 'auth.login'
-    login_manager.login_message = 'Please log in to access this page.'
-    login_manager.login_message_category = 'info'
-    
-    # User loader callback for Flask-Login
-    from models import User
-    
-    @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.get(user_id)
-    
-    logger.info("Extensions initialized")
+# Remove the initialize_extensions function as we've moved this functionality into create_app
 
-def configure_error_handlers(app):
-    """
-    Configure error handlers for the application
-    
-    Args:
-        app: Flask application instance
-    """
-    logger = logging.getLogger(__name__)
-    
-    # Import and register error handlers
-    try:
-        from utils.error_handler import register_error_handlers
-        register_error_handlers(app)
-        logger.info("Error handlers registered")
-    except Exception as e:
-        logger.error(f"Error registering error handlers: {str(e)}")
+# Removed configure_error_handlers as we've integrated this directly into create_app
 
 def register_blueprints(app):
     """
