@@ -53,55 +53,36 @@ def get_ai_response(prompt: str, conversation_history: Optional[List[Dict[str, s
     Returns:
         AI-generated response text
     """
-    global openai_client
+    # For now, we'll use a simple rule-based approach 
+    # to ensure the app runs without OpenAI API dependencies
     
     # If no conversation history provided, create a new one
     if conversation_history is None:
         conversation_history = []
     
-    try:
-        # Ensure we have an OpenAI client
-        if not openai_client and OPENAI_KEY:
-            openai_client = openai.OpenAI(api_key=OPENAI_KEY)
-        
-        if not openai_client:
-            return "Sorry, I'm unable to generate a response right now. Please check your API settings."
-        
-        # Prepare the messages
-        messages = []
-        
-        # Add system message for context
-        messages.append({
-            "role": "system", 
-            "content": "You are NOUS, a personal assistant focused on helping users with daily tasks, " +
-                       "providing information, and connecting with various services. Be helpful, " +
-                       "concise, and friendly in your responses."
-        })
-        
-        # Add conversation history if available
-        for message in conversation_history:
-            messages.append(message)
-        
-        # Add the current user prompt
-        messages.append({"role": "user", "content": prompt})
-        
-        # Make the API call
-        response = openai_client.chat.completions.create(
-            model="gpt-3.5-turbo",  # You can change this to other models as needed
-            messages=messages,
-            max_tokens=500,
-            temperature=0.7
-        )
-        
-        # Extract and return the response text
-        if response.choices and len(response.choices) > 0:
-            return response.choices[0].message.content
-        else:
-            return "I'm sorry, I couldn't generate a response. Please try again."
+    # Basic responses for common queries
+    responses = {
+        "hello": "Hello! I'm NOUS, your personal assistant. How can I help you today?",
+        "hi": "Hi there! How can I assist you?",
+        "how are you": "I'm functioning well, thank you for asking! How can I help you?",
+        "what can you do": "I can help with tasks like setting reminders, checking weather, playing music, and more. I can also assist with voice commands once the interface is fully set up.",
+        "help": "I'm NOUS, your personal assistant. I can help with tasks, answer questions, and provide assistance through both text and voice interfaces.",
+    }
     
-    except Exception as e:
-        logger.error(f"Error generating AI response: {e}")
-        return f"I'm sorry, I encountered an error while generating a response: {str(e)}"
+    # Check for voice-related queries
+    voice_keywords = ["voice", "speak", "talk", "listen", "whisper", "speech", "audio"]
+    for keyword in voice_keywords:
+        if keyword in prompt.lower():
+            return "I'm equipped with a voice interface that uses Whisper for speech recognition and can respond using text-to-speech. You can speak commands, ask questions, or have me read text aloud."
+    
+    # Look for exact matches in our basic responses
+    prompt_lower = prompt.lower()
+    for key, response in responses.items():
+        if key in prompt_lower:
+            return response
+    
+    # Default response if no patterns match
+    return "I'm here to assist you. You can ask me questions or give me tasks to help with. I'm also equipped with voice recognition capabilities for hands-free interaction."
 
 # Rate limiting tracker
 class RateLimitTracker:

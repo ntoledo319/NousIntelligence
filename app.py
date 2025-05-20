@@ -13,6 +13,7 @@ import os
 # Import blueprints
 from routes.meet_routes import meet_bp
 from routes.chat_routes import chat_bp, chat_api_bp
+from routes.voice_routes import voice_bp
 
 # Setup logging
 logging.basicConfig(
@@ -31,7 +32,21 @@ def create_app():
     # Initialize Flask-Login
     login_manager = LoginManager()
     login_manager.init_app(app)
-    login_manager.login_view = 'auth.login'
+    login_manager.login_view = 'index'  # Redirect to home page for now
+    
+    # Define user loader function for Flask-Login
+    @login_manager.user_loader
+    def load_user(user_id):
+        # For now, we'll use a simple implementation without database
+        # In a real app, this would look up the user from the database
+        from flask_login import UserMixin
+        class AnonymousUser(UserMixin):
+            def __init__(self):
+                self.id = 1
+                self.username = "Guest"
+                self.email = "guest@example.com"
+                
+        return AnonymousUser()
     
     # Register blueprints
     app.register_blueprint(meet_bp)
@@ -39,6 +54,9 @@ def create_app():
     # Register chat blueprints
     app.register_blueprint(chat_bp)
     app.register_blueprint(chat_api_bp)
+    
+    # Register voice interface blueprint
+    app.register_blueprint(voice_bp)
     
     # Root route
     @app.route('/')
