@@ -58,14 +58,14 @@ def get_system_setting(key: str, default: Any = None) -> Any:
     
     return default
 
-def set_system_setting(key: str, value: Any, description: str = None) -> bool:
+def set_system_setting(key: str, value: Any, description: Optional[str] = "") -> bool:
     """
     Set a system setting value with cache update
     
     Args:
         key: Setting key
         value: Setting value
-        description: Optional description
+        description: Optional description (defaults to empty string)
         
     Returns:
         True if successful, False otherwise
@@ -80,11 +80,14 @@ def set_system_setting(key: str, value: Any, description: str = None) -> bool:
             if description:
                 setting.description = description
         else:
-            setting = SystemSettings(
-                key=key,
-                value=str(value),
-                description=description
-            )
+            # Import needed for type checking
+            from models import SystemSettings
+            # Create a new system settings instance properly
+            setting = SystemSettings.query.model()
+            setting.key = key
+            setting.value = str(value)
+            if description:  # Only set if not empty
+                setting.description = description
             db.session.add(setting)
         
         db.session.commit()
@@ -140,17 +143,36 @@ def _add_to_cache(key: str, value: Any) -> None:
 
 # Initialize cache with commonly used settings
 def initialize_settings_cache() -> None:
-    """Initialize the settings cache with commonly used settings"""
-    common_settings = [
-        'session_timeout',
-        'require_https',
-        'maintenance_mode',
-        'app_version'
-    ]
-    
-    loaded_count = 0
-    for key in common_settings:
-        if get_system_setting(key) is not None:
-            loaded_count += 1
-    
-    logger.info(f"Settings cache initialized with {loaded_count} entries")
+    """Initialize the settings cache with commonly used settings - optimized batch loading"""
+    try:
+        from models import SystemSettings
+        
+        # Get all settings in a single query
+        start_time = time.time()
+        all_settings = SystemSettings.query.all()
+        query_time = time.time() - start_time
+        
+        # Cache all settings
+        for setting in all_settings:
+            _add_to_cache(setting.key, setting.value)
+            
+        if query_time > 0.1:
+            logger.warning(f"Slow initial settings load: {query_time:.3f}s for {len(all_settings)} settings")
+        
+        logger.info(f"Settings cache initialized with {len(all_settings)} entries")
+    except Exception as e:
+        # Fallback to individual loading if batch load fails
+        common_settings = [
+            'session_timeout',
+            'require_https',
+            'maintenance_mode',
+            'app_version'
+        ]
+        
+        loaded_count = 0
+        for key in common_settings:
+            if get_system_setting(key) is not None:
+                loaded_count += 1
+        
+        logger.info(f"Settings cache initialized with {loaded_count} entries (fallback mode)")
+        logger.warning(f"Batch loading failed: {str(e)}")
