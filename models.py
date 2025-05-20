@@ -34,6 +34,7 @@ class User(UserMixin, db.Model):
         two_factor_enabled: Whether two-factor authentication is enabled
         two_factor_secret: Secret for two-factor authentication
     """
+    __tablename__ = 'users'
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
@@ -52,8 +53,8 @@ class User(UserMixin, db.Model):
     two_factor_secret = db.Column(db.String(32))
     
     # Relationships
-    settings = db.relationship('UserSettings', backref='user', lazy=True, uselist=False)
-    tasks = db.relationship('Task', backref='user', cascade='all, delete-orphan')
+    settings = db.relationship('UserSettings', backref=db.backref('user_account', lazy=True), lazy=True, uselist=False)
+    # Renamed backref to avoid conflicts
     
     def __repr__(self):
         return f'<User {self.email}>'
@@ -109,9 +110,6 @@ class UserSettings(db.Model):
     enable_voice_responses = db.Column(db.Boolean, default=True)
     conversation_difficulty = db.Column(db.String(20), default='normal')
     
-    # Relationships
-    user = db.relationship('User', back_populates='settings')
-    
     def __repr__(self):
         return f'<UserSettings for user {self.user_id}>'
     
@@ -152,9 +150,6 @@ class Task(db.Model):
     completed = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # Relationships
-    user = db.relationship('User', back_populates='tasks')
     
     def __repr__(self):
         return f'<Task {self.title}>'
@@ -291,7 +286,7 @@ class ShoppingList(db.Model):
             'frequency_days': self.frequency_days,
             'last_ordered': self.last_ordered.isoformat() if self.last_ordered else None,
             'next_order_date': self.next_order_date.isoformat() if self.next_order_date else None,
-            'item_count': len(self.items) if self.items else 0,
+            'item_count': 0,  # Will be populated by the service layer
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }

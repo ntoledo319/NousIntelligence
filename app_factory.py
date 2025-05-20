@@ -10,7 +10,7 @@ It centralizes app creation and configuration.
 
 import os
 import logging
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_session import Session
@@ -40,27 +40,69 @@ def create_app(config_class=None):
     
     app.config.from_object(config_class)
     
+    # Setup logging
+    log_level = logging.DEBUG if app.config.get('DEBUG', False) else logging.INFO
+    logging.basicConfig(
+        level=log_level,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    logger = logging.getLogger(__name__)
+    logger.info("Starting NOUS application...")
+    
     # Initialize extensions
     db.init_app(app)
     login_manager.init_app(app)
     session.init_app(app)
     
     # Set up login manager
-    login_manager.login_view = 'auth.login'
+    login_manager.login_view = 'index'  # Default to index page if login route isn't available
     login_manager.login_message_category = 'info'
+    
+    # Configure user loader
+    @login_manager.user_loader
+    def load_user(user_id):
+        # Import here to avoid circular imports
+        from models import User
+        return User.query.get(user_id)
     
     # Register blueprints
     with app.app_context():
-        # Import and register all blueprints
-        from routes import register_blueprints
-        register_blueprints(app)
-        
-        # Set up middleware
-        from middleware import register_middleware
-        register_middleware(app)
-        
-        # Create database tables if they don't exist
-        db.create_all()
+        try:
+            # Import and register all blueprints
+            from routes import register_blueprints
+            register_blueprints(app)
+            logger.info("All blueprints registered successfully")
+            
+            # Set up middleware
+            from middleware import register_middleware
+            register_middleware(app)
+            logger.info("Middleware registered successfully")
+            
+            # Configure error handlers
+            @app.errorhandler(404)
+            def page_not_found(e):
+                return render_template('errors/404.html'), 404
+            
+            @app.errorhandler(500)
+            def internal_server_error(e):
+                return render_template('errors/500.html'), 500
+            
+            logger.info("Error handlers registered")
+            
+            # Configure root route if not already defined
+            if not app.view_functions.get('index'):
+                @app.route('/')
+                def index():
+                    return render_template('index.html')
+                logger.info("Root route registered")
+            
+            # Create database tables if they don't exist
+            db.create_all()
+            logger.info("Database tables created/verified")
+            
+        except Exception as e:
+            logger.error(f"Error during application setup: {str(e)}")
+            raise
     
     return app
 
