@@ -33,10 +33,12 @@ def apply_performance_middleware(app: Flask):
 def setup_middleware(app: Flask):
     """Set up all middleware for the application
     
+    This function applies all middleware in the correct order.
+    
     Args:
         app: Flask application instance
     """
-    # Apply middleware in order
+    # Apply middleware in order of importance
     apply_system_settings_middleware(app)
     apply_security_middleware(app)
     apply_performance_middleware(app)
