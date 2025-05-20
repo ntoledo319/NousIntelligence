@@ -1,0 +1,483 @@
+{% extends "base.html" %}
+
+{% block title %}NOUS - Continuous Listening Mode{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .listening-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .status-indicator {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        margin-right: 10px;
+        animation: pulse 1.5s infinite;
+    }
+    
+    .status-indicator.listening {
+        background-color: #2ecc71;
+    }
+    
+    .status-indicator.processing {
+        background-color: #f39c12;
+    }
+    
+    .status-indicator.error {
+        background-color: #e74c3c;
+        animation: none;
+    }
+    
+    .status-indicator.inactive {
+        background-color: #95a5a6;
+        animation: none;
+    }
+    
+    .status-bar {
+        display: flex;
+        align-items: center;
+        margin-top: 1rem;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #6c5ce7;
+    }
+    
+    .conversation-log {
+        margin-top: 2rem;
+        max-height: 400px;
+        overflow-y: auto;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #6c5ce7;
+    }
+    
+    .message {
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border-radius: 8px;
+    }
+    
+    .user-message {
+        background-color: #d6e4ff;
+        margin-left: 2rem;
+        border-left: 4px solid #4b7bec;
+    }
+    
+    .assistant-message {
+        background-color: #e3f2fd;
+        margin-right: 2rem;
+        border-left: 4px solid #45aaf2;
+    }
+    
+    .message-header {
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        color: #495057;
+    }
+    
+    .control-panel {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .action-button {
+        padding: 0.8rem 1.5rem;
+        border-radius: 6px;
+        cursor: pointer;
+        border: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .primary-button {
+        background-color: #6c5ce7;
+        color: white;
+    }
+    
+    .primary-button:hover {
+        background-color: #5b4bd4;
+    }
+    
+    .danger-button {
+        background-color: #e74c3c;
+        color: white;
+    }
+    
+    .danger-button:hover {
+        background-color: #c0392b;
+    }
+    
+    .secondary-button {
+        background-color: #e9ecef;
+        color: #495057;
+    }
+    
+    .secondary-button:hover {
+        background-color: #dee2e6;
+    }
+    
+    .settings-panel {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #6c5ce7;
+    }
+    
+    .settings-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .settings-label {
+        width: 200px;
+        font-weight: 500;
+    }
+    
+    .settings-value {
+        flex: 1;
+    }
+    
+    .form-control {
+        padding: 0.5rem;
+        border-radius: 4px;
+        border: 1px solid #ced4da;
+        width: 100%;
+    }
+    
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(46, 204, 113, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="listening-container">
+    <h1 class="mb-3">NOUS Continuous Listening Mode</h1>
+    <p class="lead mb-4">NOUS is actively listening for your voice commands. Speak naturally after the listening indicator appears.</p>
+    
+    <div class="status-bar">
+        <span class="status-indicator inactive" id="listeningStatus"></span>
+        <span id="statusText">Initializing...</span>
+    </div>
+    
+    <div class="control-panel">
+        <button class="action-button primary-button" id="startButton">
+            <i class="fas fa-play"></i> Start Listening
+        </button>
+        <button class="action-button danger-button" id="stopButton" disabled>
+            <i class="fas fa-stop"></i> Stop Listening
+        </button>
+        <button class="action-button secondary-button" id="settingsButton">
+            <i class="fas fa-cog"></i> Settings
+        </button>
+        <button class="action-button secondary-button" id="backButton">
+            <i class="fas fa-arrow-left"></i> Back to Voice Interface
+        </button>
+    </div>
+    
+    <div class="settings-panel" id="settingsPanel" style="display: none;">
+        <h3 class="mb-3">Listening Settings</h3>
+        
+        <div class="settings-row">
+            <div class="settings-label">Wake Word</div>
+            <div class="settings-value">
+                <input type="text" class="form-control" id="wakeWordInput" value="Hey NOUS">
+            </div>
+        </div>
+        
+        <div class="settings-row">
+            <div class="settings-label">Listening Timeout (seconds)</div>
+            <div class="settings-value">
+                <input type="number" class="form-control" id="timeoutInput" min="3" max="60" value="5">
+            </div>
+        </div>
+        
+        <div class="settings-row">
+            <div class="settings-label">Response Voice</div>
+            <div class="settings-value">
+                <select class="form-control" id="voiceSelect">
+                    <option value="en-US">English (US) - Female</option>
+                    <option value="en-GB">English (UK) - Male</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="settings-row">
+            <div class="settings-label">Auto-Respond</div>
+            <div class="settings-value">
+                <input type="checkbox" id="autoRespondCheck" checked>
+                <label for="autoRespondCheck">Automatically respond to commands</label>
+            </div>
+        </div>
+    </div>
+    
+    <div class="conversation-log" id="conversationLog">
+        <div class="message assistant-message">
+            <div class="message-header">NOUS Assistant</div>
+            <div class="message-content">Hello! I'm listening for your commands. Say "Hey NOUS" followed by your request.</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elements
+        const listeningStatus = document.getElementById('listeningStatus');
+        const statusText = document.getElementById('statusText');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const settingsButton = document.getElementById('settingsButton');
+        const backButton = document.getElementById('backButton');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const conversationLog = document.getElementById('conversationLog');
+        const wakeWordInput = document.getElementById('wakeWordInput');
+        const timeoutInput = document.getElementById('timeoutInput');
+        const voiceSelect = document.getElementById('voiceSelect');
+        const autoRespondCheck = document.getElementById('autoRespondCheck');
+        
+        // State variables
+        let isListening = false;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let recognition = null;
+        
+        // Settings
+        let settings = {
+            wakeWord: 'Hey NOUS',
+            timeout: 5,
+            voice: 'en-US',
+            autoRespond: true
+        };
+        
+        // Initialize SpeechRecognition
+        try {
+            window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+            
+            recognition.onstart = function() {
+                updateStatus('listening', 'Listening for wake word...');
+            };
+            
+            recognition.onend = function() {
+                if (isListening) {
+                    recognition.start();
+                }
+            };
+            
+            recognition.onresult = function(event) {
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        const transcript = event.results[i][0].transcript.trim();
+                        processTranscript(transcript);
+                    }
+                }
+            };
+            
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                updateStatus('error', 'Error: ' + event.error);
+            };
+            
+            statusText.textContent = 'Ready! Click "Start Listening" to begin.';
+            listeningStatus.className = 'status-indicator inactive';
+        } catch (e) {
+            console.error('Speech recognition not supported:', e);
+            statusText.textContent = 'Error: Speech recognition not supported in this browser.';
+            listeningStatus.className = 'status-indicator error';
+            startButton.disabled = true;
+        }
+        
+        // Event listeners
+        startButton.addEventListener('click', startListening);
+        stopButton.addEventListener('click', stopListening);
+        settingsButton.addEventListener('click', toggleSettings);
+        backButton.addEventListener('click', () => {
+            window.location.href = '/voice';
+        });
+        
+        // Settings event listeners
+        wakeWordInput.addEventListener('change', updateWakeWord);
+        timeoutInput.addEventListener('change', updateTimeout);
+        voiceSelect.addEventListener('change', updateVoice);
+        autoRespondCheck.addEventListener('change', updateAutoRespond);
+        
+        // Start listening function
+        function startListening() {
+            if (!recognition) return;
+            
+            isListening = true;
+            startButton.disabled = true;
+            stopButton.disabled = false;
+            
+            try {
+                recognition.start();
+                addAssistantMessage("I'm listening for your commands now. Say \"" + settings.wakeWord + "\" to activate me.");
+            } catch (e) {
+                console.error('Speech recognition error:', e);
+                updateStatus('error', 'Error starting speech recognition');
+            }
+        }
+        
+        // Stop listening function
+        function stopListening() {
+            isListening = false;
+            startButton.disabled = false;
+            stopButton.disabled = true;
+            
+            if (recognition) {
+                recognition.stop();
+            }
+            
+            updateStatus('inactive', 'Listening stopped');
+            addAssistantMessage("I've stopped listening for commands. Click 'Start Listening' to resume.");
+        }
+        
+        // Toggle settings panel
+        function toggleSettings() {
+            settingsPanel.style.display = settingsPanel.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Update settings functions
+        function updateWakeWord() {
+            settings.wakeWord = wakeWordInput.value.trim();
+            if (!settings.wakeWord) {
+                settings.wakeWord = 'Hey NOUS';
+                wakeWordInput.value = settings.wakeWord;
+            }
+        }
+        
+        function updateTimeout() {
+            let timeout = parseInt(timeoutInput.value);
+            if (isNaN(timeout) || timeout < 3) {
+                timeout = 3;
+                timeoutInput.value = timeout;
+            } else if (timeout > 60) {
+                timeout = 60;
+                timeoutInput.value = timeout;
+            }
+            settings.timeout = timeout;
+        }
+        
+        function updateVoice() {
+            settings.voice = voiceSelect.value;
+        }
+        
+        function updateAutoRespond() {
+            settings.autoRespond = autoRespondCheck.checked;
+        }
+        
+        // Update status display
+        function updateStatus(state, message) {
+            listeningStatus.className = 'status-indicator ' + state;
+            statusText.textContent = message;
+        }
+        
+        // Process transcript
+        function processTranscript(transcript) {
+            console.log('Transcript:', transcript);
+            
+            // Check for wake word
+            if (transcript.toLowerCase().includes(settings.wakeWord.toLowerCase())) {
+                // Extract command after wake word
+                const commandIndex = transcript.toLowerCase().indexOf(settings.wakeWord.toLowerCase()) + settings.wakeWord.length;
+                let command = transcript.substring(commandIndex).trim();
+                
+                if (command) {
+                    // Process command
+                    updateStatus('processing', 'Processing: ' + command);
+                    addUserMessage(command);
+                    
+                    if (settings.autoRespond) {
+                        processCommand(command);
+                    }
+                } else {
+                    // Wake word detected but no command
+                    updateStatus('listening', 'Wake word detected. Waiting for command...');
+                    addAssistantMessage("I heard you say the wake word. How can I help you?");
+                }
+            }
+        }
+        
+        // Process command
+        function processCommand(command) {
+            // This is a placeholder - in a real implementation, this would send the command to the server
+            setTimeout(() => {
+                // Simulate processing time
+                const response = "I received your command: '" + command + "'. This is a simulated response as the continuous listening feature is in development.";
+                addAssistantMessage(response);
+                updateStatus('listening', 'Listening for wake word...');
+            }, 1500);
+        }
+        
+        // Add message to conversation log
+        function addUserMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user-message';
+            
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'message-header';
+            headerDiv.textContent = 'You';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = message;
+            
+            messageDiv.appendChild(headerDiv);
+            messageDiv.appendChild(contentDiv);
+            
+            conversationLog.appendChild(messageDiv);
+            conversationLog.scrollTop = conversationLog.scrollHeight;
+        }
+        
+        function addAssistantMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message assistant-message';
+            
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'message-header';
+            headerDiv.textContent = 'NOUS Assistant';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = message;
+            
+            messageDiv.appendChild(headerDiv);
+            messageDiv.appendChild(contentDiv);
+            
+            conversationLog.appendChild(messageDiv);
+            conversationLog.scrollTop = conversationLog.scrollHeight;
+        }
+    });
+</script>
+{% endblock %}

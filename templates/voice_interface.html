@@ -1,0 +1,485 @@
+{% extends "base.html" %}
+
+{% block title %}NOUS - Voice Interface{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .voice-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .voice-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .control-group {
+        background-color: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border-left: 4px solid #6c5ce7;
+    }
+    
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .record-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: #ff6b6b;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .record-button:hover {
+        background-color: #ff5252;
+        transform: scale(1.05);
+    }
+    
+    .record-button.recording {
+        animation: pulse 1.5s infinite;
+    }
+    
+    .record-button i {
+        font-size: 24px;
+    }
+    
+    .action-button {
+        padding: 0.6rem 1.2rem;
+        border-radius: 6px;
+        cursor: pointer;
+        border: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .primary-button {
+        background-color: #6c5ce7;
+        color: white;
+    }
+    
+    .primary-button:hover {
+        background-color: #5b4bd4;
+    }
+    
+    .secondary-button {
+        background-color: #e9ecef;
+        color: #495057;
+    }
+    
+    .secondary-button:hover {
+        background-color: #dee2e6;
+    }
+    
+    .result-container {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #6c5ce7;
+        min-height: 100px;
+    }
+    
+    .result-container.hidden {
+        display: none;
+    }
+    
+    .input-container {
+        margin-top: 1rem;
+    }
+    
+    .input-container textarea {
+        width: 100%;
+        padding: 0.8rem;
+        border-radius: 6px;
+        border: 1px solid #ced4da;
+        resize: vertical;
+        min-height: 100px;
+    }
+    
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+        }
+    }
+    
+    .status-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+    
+    .status-indicator.online {
+        background-color: #2ecc71;
+    }
+    
+    .status-indicator.offline {
+        background-color: #e74c3c;
+    }
+    
+    .status-bar {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding: 0.5rem 1rem;
+        background-color: #f1f3f5;
+        border-radius: 6px;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="voice-container">
+    <h1 class="mb-4">NOUS Voice Interface</h1>
+    <p class="lead">Interact with NOUS using your voice. Speak naturally and receive responses through text or speech.</p>
+    
+    <div class="status-bar">
+        <span class="status-indicator" id="whisperStatus"></span>
+        <span id="whisperStatusText">Checking Whisper.cpp status...</span>
+        <span class="mx-3">|</span>
+        <span class="status-indicator" id="piperStatus"></span>
+        <span id="piperStatusText">Checking Piper TTS status...</span>
+    </div>
+    
+    <div class="voice-controls">
+        <div class="control-group">
+            <h3>Speech Recognition</h3>
+            <p>Record your voice to convert speech to text.</p>
+            
+            <div class="button-group">
+                <button class="record-button" id="recordButton">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="action-button secondary-button" id="stopButton" disabled>
+                    <i class="fas fa-stop"></i> Stop
+                </button>
+                <button class="action-button primary-button" id="transcribeButton" disabled>
+                    <i class="fas fa-comment-alt"></i> Transcribe
+                </button>
+            </div>
+            
+            <div class="result-container hidden" id="transcriptionResult">
+                <h4>Transcription Result:</h4>
+                <p id="transcriptionText"></p>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <h3>Text to Speech</h3>
+            <p>Enter text to convert it to speech.</p>
+            
+            <div class="input-container">
+                <textarea id="ttsInput" placeholder="Enter text to convert to speech..."></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button class="action-button primary-button" id="speakButton">
+                    <i class="fas fa-volume-up"></i> Speak
+                </button>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <h3>Voice Assistant</h3>
+            <p>Ask NOUS a question using your voice and receive a spoken response.</p>
+            
+            <div class="button-group">
+                <button class="action-button primary-button" id="assistantButton">
+                    <i class="fas fa-robot"></i> Speak to NOUS
+                </button>
+                <button class="action-button secondary-button" id="continuousButton">
+                    <i class="fas fa-headset"></i> Continuous Listening
+                </button>
+            </div>
+            
+            <div class="result-container hidden" id="assistantResult">
+                <h4>NOUS Response:</h4>
+                <p id="assistantText"></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check the status of Whisper.cpp and Piper
+        checkWhisperStatus();
+        checkPiperStatus();
+        
+        // Elements
+        const recordButton = document.getElementById('recordButton');
+        const stopButton = document.getElementById('stopButton');
+        const transcribeButton = document.getElementById('transcribeButton');
+        const transcriptionResult = document.getElementById('transcriptionResult');
+        const transcriptionText = document.getElementById('transcriptionText');
+        const ttsInput = document.getElementById('ttsInput');
+        const speakButton = document.getElementById('speakButton');
+        const assistantButton = document.getElementById('assistantButton');
+        const continuousButton = document.getElementById('continuousButton');
+        const assistantResult = document.getElementById('assistantResult');
+        const assistantText = document.getElementById('assistantText');
+        
+        // Media recorder variables
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        
+        // Record button click event
+        recordButton.addEventListener('click', function() {
+            if (!isRecording) {
+                startRecording();
+            } else {
+                stopRecording();
+            }
+        });
+        
+        // Stop button click event
+        stopButton.addEventListener('click', function() {
+            stopRecording();
+        });
+        
+        // Transcribe button click event
+        transcribeButton.addEventListener('click', function() {
+            transcribeAudio();
+        });
+        
+        // Speak button click event
+        speakButton.addEventListener('click', function() {
+            const text = ttsInput.value.trim();
+            if (text) {
+                synthesizeSpeech(text);
+            } else {
+                alert('Please enter text to speak');
+            }
+        });
+        
+        // Assistant button click event
+        assistantButton.addEventListener('click', function() {
+            startAssistantMode();
+        });
+        
+        // Continuous listening button click event
+        continuousButton.addEventListener('click', function() {
+            window.location.href = '/voice/continuous-listening';
+        });
+        
+        // Start recording function
+        function startRecording() {
+            audioChunks = [];
+            
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    
+                    mediaRecorder.addEventListener('dataavailable', event => {
+                        audioChunks.push(event.data);
+                    });
+                    
+                    mediaRecorder.addEventListener('stop', () => {
+                        stopButton.disabled = true;
+                        transcribeButton.disabled = false;
+                        recordButton.classList.remove('recording');
+                        isRecording = false;
+                    });
+                    
+                    mediaRecorder.start();
+                    isRecording = true;
+                    recordButton.classList.add('recording');
+                    stopButton.disabled = false;
+                    transcribeButton.disabled = true;
+                })
+                .catch(error => {
+                    console.error('Error accessing microphone:', error);
+                    alert('Error accessing microphone: ' + error.message);
+                });
+        }
+        
+        // Stop recording function
+        function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                // Note: The 'stop' event handler will update UI
+            }
+        }
+        
+        // Transcribe audio function
+        function transcribeAudio() {
+            if (audioChunks.length === 0) {
+                alert('No audio recorded');
+                return;
+            }
+            
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'recording.wav');
+            
+            fetch('/voice/upload-audio', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    transcriptionResult.classList.remove('hidden');
+                    transcriptionText.textContent = data.text;
+                } else {
+                    alert('Transcription failed: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error during transcription:', error);
+                alert('Error during transcription: ' + error.message);
+            });
+        }
+        
+        // Synthesize speech function
+        function synthesizeSpeech(text) {
+            fetch('/voice/synthesize', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: text })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // In a complete implementation, this would play the audio
+                    console.log('Synthesis successful:', data.message);
+                    alert(data.message);
+                } else {
+                    alert('Synthesis failed: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error during synthesis:', error);
+                alert('Error during synthesis: ' + error.message);
+            });
+        }
+        
+        // Start assistant mode function
+        function startAssistantMode() {
+            startRecording();
+            
+            // Stop recording after 5 seconds
+            setTimeout(() => {
+                if (isRecording) {
+                    stopRecording();
+                    
+                    // Wait for recording to finish processing
+                    setTimeout(() => {
+                        processVoiceCommand();
+                    }, 500);
+                }
+            }, 5000);
+        }
+        
+        // Process voice command function
+        function processVoiceCommand() {
+            if (audioChunks.length === 0) {
+                alert('No audio recorded');
+                return;
+            }
+            
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'command.wav');
+            
+            fetch('/voice/process-voice-command', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    assistantResult.classList.remove('hidden');
+                    assistantText.textContent = data.response;
+                    
+                    // In a complete implementation, this would also play the audio response
+                } else {
+                    alert('Command processing failed: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error processing command:', error);
+                alert('Error processing command: ' + error.message);
+            });
+        }
+        
+        // Check Whisper.cpp status
+        function checkWhisperStatus() {
+            const whisperStatus = document.getElementById('whisperStatus');
+            const whisperStatusText = document.getElementById('whisperStatusText');
+            
+            fetch('/voice/test-whisper')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        whisperStatus.className = 'status-indicator online';
+                        whisperStatusText.textContent = 'Whisper.cpp is available';
+                    } else {
+                        whisperStatus.className = 'status-indicator offline';
+                        whisperStatusText.textContent = 'Whisper.cpp is not available';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking Whisper status:', error);
+                    whisperStatus.className = 'status-indicator offline';
+                    whisperStatusText.textContent = 'Error checking Whisper.cpp status';
+                });
+        }
+        
+        // Check Piper status
+        function checkPiperStatus() {
+            const piperStatus = document.getElementById('piperStatus');
+            const piperStatusText = document.getElementById('piperStatusText');
+            
+            fetch('/voice/test-piper')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        piperStatus.className = 'status-indicator online';
+                        piperStatusText.textContent = 'Piper TTS is available';
+                    } else {
+                        piperStatus.className = 'status-indicator offline';
+                        piperStatusText.textContent = 'Piper TTS is not available';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking Piper status:', error);
+                    piperStatus.className = 'status-indicator offline';
+                    piperStatusText.textContent = 'Error checking Piper TTS status';
+                });
+        }
+    });
+</script>
+{% endblock %}

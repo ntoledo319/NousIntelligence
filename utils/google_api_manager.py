@@ -17,8 +17,7 @@ from utils.docs_sheets_helper import (
     create_document, create_spreadsheet, 
     create_medication_tracker_spreadsheet,
     create_recovery_journal_document,
-    create_budget_spreadsheet,
-    create_travel_planning_document
+    create_budget_spreadsheet
 )
 from utils.youtube_helper import (
     get_youtube_service, search_videos, 
@@ -28,7 +27,19 @@ from utils.youtube_helper import (
 )
 
 # Import AI analysis capabilities
-from utils.ai_helper import analyze_gmail_content, analyze_gmail_threads
+from utils.ai_helper import generate_ai_text
+
+def get_user_connection(user_id):
+    """Get user Google connection info by user ID
+    
+    Args:
+        user_id: The user ID to get connection for
+        
+    Returns:
+        User connection object or None if not found
+    """
+    # This is a placeholder - needs to be implemented with actual DB logic
+    return None
 
 class GoogleApiManager:
     """Centralized manager for all Google API services"""
