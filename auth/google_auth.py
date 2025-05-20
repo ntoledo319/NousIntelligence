@@ -98,6 +98,10 @@ def login():
         # which can cause problems on some mobile browsers
         auth_params['display'] = 'touch'
         auth_params['prompt'] = 'consent'
+        # Add additional parameters to improve mobile experience
+        auth_params['include_granted_scopes'] = 'true'  # Include previously granted scopes
+        auth_params['login_hint'] = request.args.get('login_hint', '')  # Pre-fill email if provided
+        auth_params['theme'] = 'dark' if session.get('theme') == 'dark' else 'light'  # Match app theme
         logger.info("Mobile device detected, using mobile-optimized OAuth flow")
     
     # Convert params to properly encoded URL query string
@@ -245,13 +249,22 @@ def callback():
             
             # Log in existing user
             login_user(user)
-            flash('You have been logged in successfully.', 'success')
+            
+            # Different messages for mobile vs desktop
+            if is_mobile:
+                flash('Login successful. Welcome back!', 'success')
+            else:
+                flash('You have been logged in successfully.', 'success')
             
             # Redirect to intended page if set, otherwise dashboard
             next_page = session.get('next_url')
             if next_page:
                 session.pop('next_url', None)
                 return redirect(next_page)
+            
+            # For mobile users, redirect to mobile optimized entry point
+            if is_mobile and hasattr(current_app, 'config') and current_app.config.get('MOBILE_REDIRECT_AFTER_LOGIN'):
+                return redirect(url_for(current_app.config.get('MOBILE_REDIRECT_AFTER_LOGIN')))
             
             return redirect(url_for('dashboard.dashboard'))
             
