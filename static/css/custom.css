@@ -881,3 +881,36 @@ kbd {
 #budget-chart {
   max-height: 300px;
 }
+
+/* ===== Hero Image Showcase ===== */
+.hero-image {
+  position: relative;
+  display: inline-block;
+  perspective: 1000px;
+}
+
+.hero-img-primary {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.hero-img-secondary {
+  position: absolute;
+  top: 15%;
+  left: 20%;
+  width: 60%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  transform: rotateZ(5deg);
+  transition: transform var(--transition);
+}
+
+/* Hide secondary image on smaller devices for cleaner layout */
+@media (max-width: 767px) {
+  .hero-img-secondary {
+    display: none;
+  }
+}

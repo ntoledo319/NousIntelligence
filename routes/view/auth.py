@@ -5,18 +5,26 @@ This module contains view routes for user authentication,
 including login, logout and registration.
 
 @module routes.view.auth
-@author NOUS Development Team
+@description Authentication routes with enhanced security
 """
 
 import logging
-from flask import Blueprint, render_template, redirect, url_for, flash, request, session
+import os
+import secrets
+from datetime import datetime
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session, current_app
 from flask_login import login_required, logout_user, current_user
+from flask_wtf.csrf import CSRFProtect, generate_csrf
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Create blueprint
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 # Configure logger
 logger = logging.getLogger(__name__)
+
+# Create CSRF protection
+csrf = CSRFProtect()
 
 @auth_bp.route('/login', methods=['GET'])
 def login():
@@ -41,8 +49,11 @@ def login():
     client_ip = request.remote_addr
     logger.info(f"Login page accessed from IP: {client_ip}")
     
+    # Generate CSRF token
+    csrf_token = generate_csrf()
+    
     # Render the login page with Google authentication option
-    return render_template('login.html')
+    return render_template('login.html', csrf_token=csrf_token)
     
 @auth_bp.route('/email-login', methods=['POST'])
 def email_login():
@@ -54,9 +65,13 @@ def email_login():
     """
     from models import User, UserSettings, db
     from flask_login import login_user
-    from werkzeug.security import generate_password_hash, check_password_hash
-    import uuid
     from datetime import datetime
+    
+    # Rate limiting check
+    if not check_rate_limit(request.remote_addr, 'login_attempt'):
+        flash('Too many login attempts. Please try again later.', 'danger')
+        logger.warning(f"Rate limit exceeded for login from IP: {request.remote_addr}")
+        return redirect(url_for('auth.login'))
     
     email = request.form.get('email')
     password = request.form.get('password')
@@ -65,58 +80,8 @@ def email_login():
         flash('Please enter both email and password', 'danger')
         return redirect(url_for('auth.login'))
     
-    # Check if this is the admin user with the special password
-    admin_email = 'toledonick98@gmail.com'
-    admin_password = 'nousadmin2025'
-    
     # Look up the user by email
     user = User.query.filter_by(email=email).first()
-    
-    # Special admin login path
-    if email == admin_email and password == admin_password:
-        logger.info(f"Admin login attempt for {email}")
-        
-        # If admin user doesn't exist, create it
-        if not user:
-            logger.info(f"Creating admin user for {email}")
-            user = User()
-            user.id = str(uuid.uuid4())
-            user.email = email
-            user.username = 'admin_' + email.split('@')[0]
-            user.first_name = 'Admin'
-            user.last_name = 'User'
-            user.active = True
-            user.password_hash = generate_password_hash(admin_password)
-            
-            # Add user to database
-            db.session.add(user)
-            db.session.commit()
-            
-            # Create default settings
-            settings = UserSettings()
-            settings.user_id = user.id
-            db.session.add(settings)
-            db.session.commit()
-            
-            # Update admin flag directly in database
-            from sqlalchemy import text
-            try:
-                db.session.execute(text("UPDATE users SET is_admin = TRUE WHERE email = :email"), 
-                                  {"email": email})
-                db.session.commit()
-                logger.info(f"Admin privileges granted to {email}")
-            except Exception as e:
-                logger.error(f"Failed to set admin privileges: {str(e)}")
-        
-        # Log in the admin user
-        user.last_login = datetime.utcnow()
-        db.session.commit()
-        login_user(user)
-        
-        flash("Welcome, Admin! You've been logged in successfully.", "success")
-        logger.info(f"Admin user {email} logged in via email login")
-        
-        return redirect(url_for('dashboard.dashboard'))
     
     # Regular user login path
     if user and user.password_hash and check_password_hash(user.password_hash, password):
@@ -154,59 +119,8 @@ def direct_google_login():
     # Redirect to Google auth login
     return redirect(url_for("google_auth.login"))
 
-@auth_bp.route('/admin-login', methods=['GET'])
-def admin_login():
-    """
-    Special admin login for development and testing
-    
-    Returns:
-        Redirect to dashboard or login page
-    """
-    from models import User, db
-    from flask_login import login_user
-    import uuid
-    from datetime import datetime
-    
-    # This is only for development/testing purposes
-    admin_email = 'toledonick98@gmail.com'
-    
-    # Check if admin user exists
-    user = User.query.filter_by(email=admin_email).first()
-    
-    if not user:
-        # Create admin user if it doesn't exist
-        logger.info(f"Creating admin user for {admin_email}")
-        user = User()
-        user.id = str(uuid.uuid4())
-        user.email = admin_email
-        user.username = 'admin_' + admin_email.split('@')[0]
-        user.first_name = 'Admin'
-        user.last_name = 'User'
-        user.active = True
-        
-        # Add user to database
-        db.session.add(user)
-        db.session.commit()
-        
-        # Update admin flag directly in database
-        from sqlalchemy import text
-        try:
-            db.session.execute(text("UPDATE users SET is_admin = TRUE WHERE email = :email"), 
-                               {"email": admin_email})
-            db.session.commit()
-            logger.info(f"Admin privileges granted to {admin_email}")
-        except Exception as e:
-            logger.error(f"Failed to set admin privileges: {str(e)}")
-    
-    # Log in the admin user
-    user.last_login = datetime.utcnow()
-    db.session.commit()
-    login_user(user)
-    
-    flash("Welcome, Admin! You've been logged in automatically.", "success")
-    logger.info(f"Admin user {admin_email} logged in via admin-login route")
-    
-    return redirect(url_for('dashboard.dashboard'))
+# Remove insecure admin_login route
+# Admin access should only be done through secure authentication
 
 @auth_bp.route('/logout', methods=['GET'])
 @login_required
@@ -232,3 +146,57 @@ def logout():
     
     # Redirect to home page
     return redirect(url_for('index.index'))
+
+def check_rate_limit(ip_address, action_type):
+    """
+    Check if the rate limit has been exceeded for an IP address and action
+    
+    Args:
+        ip_address: The client's IP address
+        action_type: The type of action (login_attempt, etc.)
+        
+    Returns:
+        Boolean indicating if the action should be allowed
+    """
+    try:
+        from models import RateLimit, db
+        from datetime import datetime, timedelta
+        
+        # Define rate limits based on action type
+        limits = {
+            'login_attempt': {'count': 5, 'window': 5},  # 5 attempts in 5 minutes
+            'password_reset': {'count': 3, 'window': 60},  # 3 attempts in 60 minutes
+            'account_creation': {'count': 3, 'window': 60}  # 3 attempts in 60 minutes
+        }
+        
+        if action_type not in limits:
+            return True  # No limit defined for this action
+            
+        limit_config = limits[action_type]
+        
+        # Calculate the start of the window period
+        window_start = datetime.utcnow() - timedelta(minutes=limit_config['window'])
+        
+        # Check for existing rate limit records
+        attempts = RateLimit.query.filter(
+            RateLimit.ip_address == ip_address,
+            RateLimit.action_type == action_type,
+            RateLimit.timestamp > window_start
+        ).count()
+        
+        if attempts >= limit_config['count']:
+            return False  # Rate limit exceeded
+            
+        # Record this attempt
+        rate_limit = RateLimit(
+            ip_address=ip_address,
+            action_type=action_type,
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(rate_limit)
+        db.session.commit()
+        
+        return True  # Rate limit not exceeded
+    except Exception as e:
+        logger.error(f"Error in rate limiting: {str(e)}")
+        return True  # Allow the action in case of error

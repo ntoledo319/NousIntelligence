@@ -8,12 +8,13 @@ the application runs reliably and continuously in production environments.
 import multiprocessing
 import os
 
-# Server socket settings
-bind = "0.0.0.0:5000"
+# Server socket settings - Using PORT from environment or default to 8080 for Replit
+port = int(os.environ.get("PORT", 8080))
+bind = f"0.0.0.0:{port}"
 backlog = 2048
 
-# Worker processes
-workers = multiprocessing.cpu_count() * 2 + 1
+# Worker processes - Adjust based on available memory on Replit
+workers = 2  # Replit has limited resources, so use fewer workers
 worker_class = 'sync'
 worker_connections = 1000
 timeout = 30
@@ -25,7 +26,10 @@ default_proc_name = 'gunicorn'
 
 # Server mechanics
 daemon = False
-raw_env = []
+raw_env = [
+    f"FLASK_APP=main.py",
+    f"FLASK_ENV=production"
+]
 pythonpath = None
 pidfile = None
 umask = 0
@@ -42,7 +46,9 @@ access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"
 # Server hooks
 def on_starting(server):
     """Log when server starts"""
-    print("Starting Gunicorn server with production settings")
+    print(f"Starting Gunicorn server on port {port} with production settings")
+    # Ensure sessions directory exists and has proper permissions
+    os.makedirs('flask_session', exist_ok=True)
 
 def on_exit(server):
     """Log when server exits"""
@@ -69,6 +75,10 @@ def pre_exec(server):
 def when_ready(server):
     """Called just after the server is started"""
     server.log.info("Server is ready. Spawning workers")
+    
+    # Create necessary directories
+    for directory in ['flask_session', 'uploads', 'logs']:
+        os.makedirs(directory, exist_ok=True)
 
 def worker_int(worker):
     """Called when a worker receives SIGINT signal"""

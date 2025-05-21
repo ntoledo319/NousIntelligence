@@ -3,21 +3,21 @@
 {% block title %}NOUS - AI Personal Assistant{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row">
+<div class="container my-md-5">
+    <div class="row g-4 align-items-center">
         <div class="col-lg-6">
-            <h1 class="hero-title">Your Personal AI Assistant</h1>
-            <p class="hero-subtitle">NOUS helps you organize your life, track important information, and stay connected with what matters.</p>
+            <h1 class="hero-title text-gradient-primary">Your Personal AI Assistant</h1>
+            <p class="hero-subtitle mb-4 fs-5">NOUS helps you organize your life, track important information, and stay connected with what matters.</p>
             
             {% if current_user.is_authenticated %}
             <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
-                <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-primary btn-lg px-4 me-md-2">
+                <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-primary btn-lg px-4 me-md-2 shadow">
                     <i class="fas fa-columns me-2"></i> Go to Dashboard
                 </a>
             </div>
             {% else %}
             <!-- Login Card -->
-            <div class="nous-card mt-4">
+            <div class="nous-card mt-4 shadow">
                 <div class="card-body p-4">
                     <div class="text-center mb-4">
                         <div class="card-icon">
@@ -39,7 +39,7 @@
                     {% endwith %}
 
                     <div class="d-grid mb-3">
-                        <a href="{{ url_for('google_auth.login') }}" class="btn btn-primary btn-lg d-flex align-items-center justify-content-center">
+                        <a href="{{ url_for('google_auth.login') }}" class="btn btn-primary btn-lg d-flex align-items-center justify-content-center shadow-sm">
                             <i class="fab fa-google me-2"></i> Sign in with Google
                         </a>
                     </div>
@@ -55,26 +55,28 @@
             </div>
             {% endif %}
         </div>
-        <div class="col-lg-6 d-flex align-items-center justify-content-center">
-            <div class="text-center">
-                <i class="fas fa-brain fa-8x text-gradient-primary mb-4"></i>
-                <h3 class="text-gradient-secondary">Intelligent. Helpful. Personal.</h3>
+        <!-- New Hero Media with Graphics -->
+        <div class="col-lg-6 order-lg-2 text-center mb-4 mb-lg-0">
+            <div class="hero-image">
+                <img src="{{ url_for('static', filename='img/IMG_4875.jpeg') }}" alt="AI assistant illustration" class="img-fluid hero-img-primary">
+                <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" alt="Productivity illustration" class="img-fluid hero-img-secondary">
             </div>
         </div>
+        <!-- End Hero Media -->
     </div>
     
     {% if not current_user.is_authenticated %}
-    <div class="row mt-5">
+    <div class="row mt-5 pt-4">
         <div class="col-lg-12">
-            <h2 class="text-center mb-4">Features</h2>
+            <h2 class="text-center mb-4 text-gradient-primary">Features</h2>
         </div>
     </div>
     
-    <div class="row g-4">
+    <div class="row g-4 mb-5">
         <div class="col-md-4">
-            <div class="card-modern h-100">
-                <div class="card-body text-center">
-                    <div class="card-icon-wrapper">
+            <div class="card-modern h-100 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="card-icon-wrapper mb-3">
                         <i class="fas fa-tasks"></i>
                     </div>
                     <h4 class="feature-title">Task Management</h4>
@@ -83,9 +85,9 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card-modern h-100">
-                <div class="card-body text-center">
-                    <div class="card-icon-wrapper success-soft">
+            <div class="card-modern h-100 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="card-icon-wrapper success-soft mb-3">
                         <i class="fas fa-heartbeat"></i>
                     </div>
                     <h4 class="feature-title">Health Tracking</h4>
@@ -94,9 +96,9 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card-modern h-100">
-                <div class="card-body text-center">
-                    <div class="card-icon-wrapper info-soft">
+            <div class="card-modern h-100 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="card-icon-wrapper info-soft mb-3">
                         <i class="fas fa-cloud-sun"></i>
                     </div>
                     <h4 class="feature-title">Weather Integration</h4>
@@ -107,4 +109,43 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Check if the app has been launched from home screen
+    window.addEventListener('load', function() {
+        let isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+        if (isStandalone) {
+            // Add body class for standalone mode
+            document.body.classList.add('standalone-mode');
+        }
+    });
+</script>
+
+<!-- Interactive 3-D tilt for hero images -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const heroContainers = document.querySelectorAll('.hero-image');
+        heroContainers.forEach(container => {
+            const resetTransform = () => {
+                container.style.transform = 'none';
+            };
+            container.addEventListener('mousemove', (e) => {
+                const rect = container.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const rotateY = ((x / rect.width) - 0.5) * 20; // -10deg to 10deg
+                const rotateX = ((y / rect.height) - 0.5) * -20;
+                container.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            });
+            container.addEventListener('mouseleave', resetTransform);
+            // On mobile devices fallback to subtle scale on tap
+            container.addEventListener('touchstart', () => {
+                container.style.transform = 'scale(1.03)';
+            });
+            container.addEventListener('touchend', resetTransform);
+        });
+    });
+</script>
 {% endblock %}
