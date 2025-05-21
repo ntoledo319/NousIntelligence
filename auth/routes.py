@@ -49,6 +49,7 @@ def login():
                 user.username = 'admin'
                 user.first_name = 'Admin'
                 user.last_name = 'User'
+                user.active = True
                 
                 # Set password
                 user.set_password('admin123')
@@ -61,6 +62,9 @@ def login():
                 settings = UserSettings()
                 settings.user_id = user.id
                 settings.theme = 'light'
+                settings.language = 'en'
+                settings.timezone = 'UTC'
+                settings.notifications_enabled = True
                 
                 # Add settings to database
                 db.session.add(settings)
