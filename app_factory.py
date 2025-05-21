@@ -128,8 +128,15 @@ def create_app(config_class=None):
                 def callback_google():
                     """Root-level Google OAuth callback handler"""
                     logger.info("Google OAuth callback received at root level")
+                    from flask import request, redirect, url_for
+                    # Make sure to preserve all query parameters when redirecting
+                    query_string = request.query_string.decode('utf-8')
+                    target = url_for('google_auth.callback')
+                    if query_string:
+                        target = f"{target}?{query_string}"
+                    logger.info(f"Redirecting to: {target}")
                     # Redirect to the proper callback handler in google_bp
-                    return redirect(url_for('google_auth.callback'))
+                    return redirect(target)
             
             # Create database tables if they don't exist
             if app.config.get('AUTO_CREATE_TABLES', True):
