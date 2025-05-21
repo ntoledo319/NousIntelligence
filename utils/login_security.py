@@ -55,12 +55,11 @@ def track_login_attempt(email, success):
     
     # Record login attempt in database
     try:
-        login_attempt = LoginAttempt(
-            email=email,
-            success=success,
-            ip_address=request.remote_addr,
-            user_agent=request.user_agent.string if request.user_agent else None
-        )
+        login_attempt = LoginAttempt()
+        login_attempt.email = email
+        login_attempt.success = success
+        login_attempt.ip_address = request.remote_addr
+        login_attempt.user_agent = request.user_agent.string if request.user_agent else None
         db.session.add(login_attempt)
         db.session.commit()
     except Exception as e:
@@ -127,13 +126,12 @@ def log_security_event(event_type, user_id=None, details=None):
     """
     try:
         # Create log entry
-        log_entry = SecurityLog(
-            event_type=event_type,
-            user_id=user_id,
-            ip_address=request.remote_addr,
-            user_agent=request.user_agent.string if request.user_agent else None,
-            details=details
-        )
+        log_entry = SecurityLog()
+        log_entry.event_type = event_type
+        log_entry.user_id = user_id
+        log_entry.ip_address = request.remote_addr
+        log_entry.user_agent = request.user_agent.string if request.user_agent else None
+        log_entry.details = details
         db.session.add(log_entry)
         db.session.commit()
         logger.info(f"Security event logged: {event_type} for user {user_id}")
