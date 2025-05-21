@@ -28,7 +28,7 @@ class UserMemory:
     
     def _load_from_db(self):
         """Load memory data from database"""
-        from models import UserMemoryEntry, UserTopicInterest, UserEntityMemory
+        from models.memory_models import UserMemoryEntry, UserTopicInterest, UserEntityMemory
         
         # Initialize empty containers
         self.messages = []
@@ -105,12 +105,11 @@ class UserMemory:
         
         # Persist to database
         try:
-            memory_entry = UserMemoryEntry(
-                user_id=self.user_id,
-                role=role,
-                content=content,
-                timestamp=timestamp
-            )
+            memory_entry = UserMemoryEntry()
+            memory_entry.user_id = self.user_id
+            memory_entry.role = role
+            memory_entry.content = content
+            memory_entry.timestamp = timestamp
             db.session.add(memory_entry)
             db.session.commit()
             
@@ -201,13 +200,12 @@ class UserMemory:
                 topic.last_discussed = now
                 topic.engagement_count += 1
             else:
-                topic = UserTopicInterest(
-                    user_id=self.user_id,
-                    topic_name=topic_name,
-                    interest_level=1,
-                    last_discussed=now,
-                    engagement_count=1
-                )
+                topic = UserTopicInterest()
+                topic.user_id = self.user_id
+                topic.topic_name = topic_name
+                topic.interest_level = 1
+                topic.last_discussed = now
+                topic.engagement_count = 1
                 db.session.add(topic)
                 
             db.session.commit()
@@ -256,14 +254,13 @@ class UserMemory:
                 entity.last_mentioned = now
                 entity.mention_count += 1
             else:
-                entity = UserEntityMemory(
-                    user_id=self.user_id,
-                    entity_name=entity_name,
-                    entity_type=entity_type,
-                    attributes=json.dumps(attributes),
-                    last_mentioned=now,
-                    mention_count=1
-                )
+                entity = UserEntityMemory()
+                entity.user_id = self.user_id
+                entity.entity_name = entity_name
+                entity.entity_type = entity_type
+                entity.attributes = json.dumps(attributes)
+                entity.last_mentioned = now
+                entity.mention_count = 1
                 db.session.add(entity)
                 
             db.session.commit()

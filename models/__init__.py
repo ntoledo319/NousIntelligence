@@ -1,39 +1,14 @@
 """
-Database Models Package
+Models Package
 
-This package contains all database models for the NOUS application organized by feature area.
+This package contains all database models for the NOUS application,
+organized into related modules for better maintainability.
+
+@package models
 """
 
-# Re-export db from app_factory to maintain compatibility with existing code
-from app_factory import db
+# Import memory models to make them available through the models package
+from models.memory_models import UserMemoryEntry, UserTopicInterest, UserEntityMemory
 
-# Import models here
-from models.user_models import User, UserSettings, BetaTester
-from models.task_models import Task
-from models.system_models import SystemSettings
-from models.security_models import SecurityAuditLog as SecurityLog, LoginAttempt, AuthToken
-from models.health_models import (
-    DBTSkillRecommendation, DBTSkillLog, DBTCrisisResource, DBTSkillCategory, 
-    DBTDiaryCard, DBTSkillChallenge, DBTEmotionTrack, AAAchievement
-)
-from models.deal_models import Deal, Product
-
-# Import AI and AA content models
-from models.ai_models import UserAIUsage, AIServiceConfig, AIModelConfig, UserAIPreferences
-from models.aa_content_models import (
-    AABigBook, AABigBookAudio, AASpeakerRecording, AADailyReflection, AAFavorite
-)
-
-# Export all models
-__all__ = [
-    'db',
-    'User', 'UserSettings', 'BetaTester',
-    'Task',
-    'SystemSettings',
-    'SecurityLog', 'LoginAttempt', 'AuthToken',
-    'DBTSkillRecommendation', 'DBTSkillLog', 'DBTCrisisResource', 'DBTSkillCategory',
-    'DBTDiaryCard', 'DBTSkillChallenge', 'DBTEmotionTrack', 'AAAchievement',
-    'Deal', 'Product',
-    'UserAIUsage', 'AIServiceConfig', 'AIModelConfig', 'UserAIPreferences',
-    'AABigBook', 'AABigBookAudio', 'AASpeakerRecording', 'AADailyReflection', 'AAFavorite'
-]
+# Export memory models at the package level
+__all__ = ['UserMemoryEntry', 'UserTopicInterest', 'UserEntityMemory']
