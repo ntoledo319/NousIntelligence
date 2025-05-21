@@ -43,6 +43,102 @@ def login():
     
     # Render the login page with Google authentication option
     return render_template('login.html')
+    
+@auth_bp.route('/email-login', methods=['POST'])
+def email_login():
+    """
+    Handle email/password login
+    
+    Returns:
+        Redirect to dashboard on success or login page on failure
+    """
+    from models import User, UserSettings, db
+    from flask_login import login_user
+    from werkzeug.security import generate_password_hash, check_password_hash
+    import uuid
+    from datetime import datetime
+    
+    email = request.form.get('email')
+    password = request.form.get('password')
+    
+    if not email or not password:
+        flash('Please enter both email and password', 'danger')
+        return redirect(url_for('auth.login'))
+    
+    # Check if this is the admin user with the special password
+    admin_email = 'toledonick98@gmail.com'
+    admin_password = 'nousadmin2025'
+    
+    # Look up the user by email
+    user = User.query.filter_by(email=email).first()
+    
+    # Special admin login path
+    if email == admin_email and password == admin_password:
+        logger.info(f"Admin login attempt for {email}")
+        
+        # If admin user doesn't exist, create it
+        if not user:
+            logger.info(f"Creating admin user for {email}")
+            user = User()
+            user.id = str(uuid.uuid4())
+            user.email = email
+            user.username = 'admin_' + email.split('@')[0]
+            user.first_name = 'Admin'
+            user.last_name = 'User'
+            user.active = True
+            user.password_hash = generate_password_hash(admin_password)
+            
+            # Add user to database
+            db.session.add(user)
+            db.session.commit()
+            
+            # Create default settings
+            settings = UserSettings()
+            settings.user_id = user.id
+            db.session.add(settings)
+            db.session.commit()
+            
+            # Update admin flag directly in database
+            from sqlalchemy import text
+            try:
+                db.session.execute(text("UPDATE users SET is_admin = TRUE WHERE email = :email"), 
+                                  {"email": email})
+                db.session.commit()
+                logger.info(f"Admin privileges granted to {email}")
+            except Exception as e:
+                logger.error(f"Failed to set admin privileges: {str(e)}")
+        
+        # Log in the admin user
+        user.last_login = datetime.utcnow()
+        db.session.commit()
+        login_user(user)
+        
+        flash("Welcome, Admin! You've been logged in successfully.", "success")
+        logger.info(f"Admin user {email} logged in via email login")
+        
+        return redirect(url_for('dashboard.dashboard'))
+    
+    # Regular user login path
+    if user and user.password_hash and check_password_hash(user.password_hash, password):
+        user.last_login = datetime.utcnow()
+        db.session.commit()
+        login_user(user)
+        
+        flash("You have been logged in successfully.", "success")
+        logger.info(f"User {email} logged in via email login")
+        
+        # Redirect to intended page if set, otherwise dashboard
+        next_page = session.get('next')
+        if next_page:
+            session.pop('next', None)
+            return redirect(next_page)
+            
+        return redirect(url_for('dashboard.dashboard'))
+    
+    # Login failed
+    flash("Invalid email or password. Please try again.", "danger")
+    logger.warning(f"Failed login attempt for {email}")
+    return redirect(url_for('auth.login'))
 
 @auth_bp.route('/direct-google-login', methods=['GET'])
 def direct_google_login():
