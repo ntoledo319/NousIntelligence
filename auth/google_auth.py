@@ -51,7 +51,7 @@ creds = _load_client_secret()
 CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID') or creds.get('client_id')
 CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET') or creds.get('client_secret')
 # Get the current Replit URI for callback
-REPLIT_URI = f"https://{os.environ.get('REPL_SLUG')}.{os.environ.get('REPL_OWNER')}.repl.co/callback/google"
+REPLIT_URI = "https://workspace-toledonick981.replit.app/callback/google"
 REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI') or REPLIT_URI
 
 # Log configuration status
@@ -243,14 +243,29 @@ def callback():
             user.active = True
             
             # Make toledonick98@gmail.com the admin
-            if email == 'toledonick98@gmail.com':
-                logger.info("Setting toledonick98@gmail.com as admin")
-                user.is_admin = True
+            # Special admin privilege handling - user must be created first
+            admin_email = 'toledonick98@gmail.com'
+            if email == admin_email:
+                logger.info(f"Identified admin email: {admin_email}")
+                # We'll set the admin flag after user creation
             
             # Add user to database
             db.session.add(user)
             db.session.commit()
             
+            # For admin privileges, attempt to set it directly in the database
+            if email == 'toledonick98@gmail.com':
+                logger.info(f"Setting admin privileges for {email}")
+                with db.session.begin():
+                    try:
+                        from sqlalchemy import text
+                        # Using raw SQL for this specific admin update to avoid model mismatch issues
+                        db.session.execute(text("UPDATE users SET is_admin = TRUE WHERE email = :email"), 
+                                          {"email": email})
+                        logger.info(f"Admin privileges granted to {email}")
+                    except Exception as e:
+                        logger.error(f"Failed to set admin privileges: {str(e)}")
+                
             # Create default settings for the user
             settings = UserSettings()
             settings.user_id = user.id
