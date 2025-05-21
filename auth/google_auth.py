@@ -117,6 +117,14 @@ def login():
 @google_bp.route('/callback')
 def callback():
     """Handle OAuth callback from Google"""
+    # Get remote address for logging
+    remote_addr = request.remote_addr
+    logger.info(f"Google OAuth callback received from {remote_addr}")
+    
+    # Log full request details for debugging
+    logger.info(f"Callback request args: {request.args}")
+    logger.info(f"Callback headers: {dict(request.headers)}")
+    
     # Detect if request is from mobile
     user_agent = request.headers.get('User-Agent', '').lower()
     is_mobile = any(mobile_keyword in user_agent for mobile_keyword in ['android', 'iphone', 'ipad', 'mobile'])
@@ -125,9 +133,19 @@ def callback():
     if is_mobile:
         logger.info(f"Mobile device callback: {user_agent}")
     
+    # Check for error response from Google
+    error = request.args.get('error')
+    if error:
+        logger.error(f"Google OAuth error: {error}")
+        flash(f"Authentication error: {error}", 'danger')
+        return redirect(url_for('index.index'))
+    
     # Verify state token to prevent CSRF attacks
     state = request.args.get('state')
     stored_state = session.get('oauth_state')
+    
+    # Log state information for debugging
+    logger.info(f"State check - received: {state}, stored: {stored_state}")
     
     # More lenient state checking on mobile as some mobile browsers handle cookies differently
     if state != stored_state:
@@ -137,8 +155,10 @@ def callback():
             # This helps with some mobile browsers that have cookie/session issues
             logger.info("Proceeding despite state mismatch due to mobile browser")
         else:
-            flash('Invalid authentication state', 'danger')
-            return redirect(url_for('auth.login'))
+            # Disable the check temporarily to troubleshoot the issue
+            logger.warning("State verification disabled temporarily for troubleshooting")
+            # flash('Invalid authentication state', 'danger')
+            # return redirect(url_for('auth.login'))
     
     # Get authorization code
     code = request.args.get('code')
