@@ -6,21 +6,24 @@
 <div class="container mt-5">
     <div class="row">
         <div class="col-lg-6">
-            <h1 class="display-4 mb-4">Your Personal AI Assistant</h1>
-            <p class="lead">NOUS helps you organize your life, track important information, and stay connected with what matters.</p>
+            <h1 class="hero-title">Your Personal AI Assistant</h1>
+            <p class="hero-subtitle">NOUS helps you organize your life, track important information, and stay connected with what matters.</p>
             
             {% if current_user.is_authenticated %}
             <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
-                <a href="#" class="btn btn-primary btn-lg px-4 me-md-2">
+                <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-primary btn-lg px-4 me-md-2">
                     <i class="fas fa-columns me-2"></i> Go to Dashboard
                 </a>
             </div>
             {% else %}
             <!-- Login Card -->
-            <div class="card shadow-sm mt-4">
+            <div class="nous-card mt-4">
                 <div class="card-body p-4">
                     <div class="text-center mb-4">
-                        <h2 class="mb-1">Welcome to NOUS</h2>
+                        <div class="card-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h2 class="mb-1 text-gradient-primary">Welcome to NOUS</h2>
                         <p class="text-muted">Sign in to continue to your personal assistant</p>
                     </div>
                     
@@ -54,8 +57,8 @@
         </div>
         <div class="col-lg-6 d-flex align-items-center justify-content-center">
             <div class="text-center">
-                <i class="fas fa-brain fa-8x text-primary mb-4"></i>
-                <h3>Intelligent. Helpful. Personal.</h3>
+                <i class="fas fa-brain fa-8x text-gradient-primary mb-4"></i>
+                <h3 class="text-gradient-secondary">Intelligent. Helpful. Personal.</h3>
             </div>
         </div>
     </div>
@@ -69,29 +72,35 @@
     
     <div class="row g-4">
         <div class="col-md-4">
-            <div class="card h-100">
+            <div class="card-modern h-100">
                 <div class="card-body text-center">
-                    <i class="fas fa-tasks fa-3x text-primary mb-3"></i>
-                    <h4 class="card-title">Task Management</h4>
-                    <p class="card-text">Keep track of your tasks, set reminders, and never miss an important deadline.</p>
+                    <div class="card-icon-wrapper">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <h4 class="feature-title">Task Management</h4>
+                    <p class="feature-description">Keep track of your tasks, set reminders, and never miss an important deadline.</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card h-100">
+            <div class="card-modern h-100">
                 <div class="card-body text-center">
-                    <i class="fas fa-heartbeat fa-3x text-primary mb-3"></i>
-                    <h4 class="card-title">Health Tracking</h4>
-                    <p class="card-text">Monitor your health metrics, track medications, and manage appointments.</p>
+                    <div class="card-icon-wrapper success-soft">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <h4 class="feature-title">Health Tracking</h4>
+                    <p class="feature-description">Monitor your health metrics, track medications, and manage appointments.</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card h-100">
+            <div class="card-modern h-100">
                 <div class="card-body text-center">
-                    <i class="fas fa-cloud-sun fa-3x text-primary mb-3"></i>
-                    <h4 class="card-title">Weather Integration</h4>
-                    <p class="card-text">Get personalized weather forecasts and alerts based on your location.</p>
+                    <div class="card-icon-wrapper info-soft">
+                        <i class="fas fa-cloud-sun"></i>
+                    </div>
+                    <h4 class="feature-title">Weather Integration</h4>
+                    <p class="feature-description">Get personalized weather forecasts and alerts based on your location.</p>
                 </div>
             </div>
         </div>

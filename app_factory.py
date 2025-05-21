@@ -136,6 +136,9 @@ def create_app(config_class=None):
                     if query_string:
                         target = f"{target}?{query_string}"
                     logger.info(f"Redirecting to: {target}")
+                    # Log more details for debugging
+                    logger.info(f"Request args: {dict(request.args)}")
+                    logger.info(f"Cookies: {dict(request.cookies)}")
                     # Redirect to the proper callback handler in google_bp
                     return redirect(target)
             

@@ -129,8 +129,12 @@ def login():
 @google_bp.route('/callback')
 def callback():
     """Handle OAuth callback from Google"""
-    # For debugging
-    logger.info(f"Callback route triggered with redirect URI: {REDIRECT_URI}")
+    # Enhanced logging for debugging the callback
+    logger.info(f"Google Auth callback triggered with redirect URI: {REDIRECT_URI}")
+    logger.info(f"Current request path: {request.path}")
+    logger.info(f"Request headers: {dict(request.headers)}")
+    logger.info(f"Request args: {dict(request.args)}")
+    
     # Get remote address for logging
     remote_addr = request.remote_addr
     logger.info(f"Google OAuth callback received from {remote_addr}")
