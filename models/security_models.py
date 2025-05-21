@@ -3,13 +3,14 @@ Security Models Module
 
 This module defines the database models for security-related features
 including account lockout, two-factor authentication, trusted devices,
-and security audit logs.
+security audit logs, and authentication tokens.
 
 @module security_models
 @description Security-related database models
 """
 
 from datetime import datetime, timedelta
+import secrets
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, Index
 from sqlalchemy.orm import relationship
@@ -206,6 +207,112 @@ class SecurityAuditLog(db.Model):
         return f'<SecurityAuditLog {self.id}: {self.event_type} by User {self.user_id} at {self.timestamp}>'
 
 # Add security-related fields to the User model
+class AuthToken(db.Model):
+    """Model for authentication tokens including API keys, access tokens, and refresh tokens"""
+    __tablename__ = 'auth_tokens'
+    
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    token_type = Column(String(20), nullable=False)  # 'api', 'access', 'refresh', etc.
+    token_value = Column(String(255), nullable=False, unique=True, index=True)
+    description = Column(String(255), nullable=True)
+    expires_at = Column(DateTime, nullable=True)
+    last_used_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    revoked = Column(Boolean, default=False, nullable=False)
+    revoked_at = Column(DateTime, nullable=True)
+    revocation_reason = Column(String(255), nullable=True)
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(String(255), nullable=True)
+    scopes = Column(String(255), nullable=True)  # Comma-separated list of permissions
+    
+    # Relationships
+    user = relationship('User')
+    
+    # Indexes for faster queries
+    __table_args__ = (
+        Index('idx_auth_tokens_user_id', user_id),
+        Index('idx_auth_tokens_token_value', token_value),
+        Index('idx_auth_tokens_expires_at', expires_at),
+        Index('idx_auth_tokens_token_type_revoked', token_type, revoked),
+    )
+    
+    def __repr__(self):
+        return f'<AuthToken {self.id}: {self.token_type} for User {self.user_id}>'
+    
+    @property
+    def is_expired(self):
+        """Check if the token has expired"""
+        if self.expires_at and self.expires_at <= datetime.utcnow():
+            return True
+        return False
+    
+    @property
+    def is_valid(self):
+        """Check if the token is valid (not expired and not revoked)"""
+        return not self.revoked and not self.is_expired
+    
+    def revoke(self, reason=None):
+        """Revoke the token"""
+        self.revoked = True
+        self.revoked_at = datetime.utcnow()
+        self.revocation_reason = reason
+        return self
+    
+    def record_usage(self, ip_address=None, user_agent=None):
+        """Record token usage"""
+        self.last_used_at = datetime.utcnow()
+        if ip_address:
+            self.ip_address = ip_address
+        if user_agent:
+            self.user_agent = user_agent
+        return self
+    
+    @classmethod
+    def generate_token(cls, user_id, token_type, description=None, expires_in=None, 
+                      scopes=None, ip_address=None, user_agent=None):
+        """Generate a new token
+        
+        Args:
+            user_id: User ID
+            token_type: Type of token ('api', 'access', 'refresh', etc.)
+            description: Optional description of the token
+            expires_in: Optional timedelta for token expiration
+            scopes: Optional list of permission scopes
+            ip_address: Optional IP address of the client
+            user_agent: Optional user agent of the client
+            
+        Returns:
+            Tuple of (token_obj, token_value)
+        """
+        # Generate a secure random token
+        token_value = secrets.token_urlsafe(32)
+        
+        # Set expiration date if provided
+        expires_at = None
+        if expires_in:
+            expires_at = datetime.utcnow() + expires_in
+        
+        # Convert scopes list to comma-separated string if provided
+        scopes_str = None
+        if scopes:
+            scopes_str = ','.join(scopes)
+        
+        # Create token object
+        token = cls(
+            user_id=user_id,
+            token_type=token_type,
+            token_value=token_value,
+            description=description,
+            expires_at=expires_at,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            scopes=scopes_str
+        )
+        
+        return token, token_value
+
+
 class UserSecurityMixin:
     """Mixin to add security-related fields to the User model"""
     

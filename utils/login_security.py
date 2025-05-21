@@ -514,3 +514,99 @@ def validate_csrf_token(token):
         bool: True if token is valid, False otherwise
     """
     return token and 'csrf_token' in session and session['csrf_token'] == token
+
+
+def log_security_event(event_type, user_id=None, description=None, ip_address=None, 
+                    resource_type=None, resource_id=None, metadata=None, severity='INFO'):
+    """
+    Log a security event to the audit log
+    
+    Args:
+        event_type: Type of security event (e.g., 'login', 'logout', 'password_change')
+        user_id: User ID associated with the event (optional)
+        description: Human-readable description of the event (optional)
+        ip_address: IP address associated with the event (optional)
+        resource_type: Type of resource being accessed (optional)
+        resource_id: ID of the resource being accessed (optional)
+        metadata: Additional metadata about the event (optional)
+        severity: Severity level of the event (default: 'INFO')
+        
+    Returns:
+        bool: True if event was logged successfully
+    """
+    # Get client information if not provided
+    if ip_address is None:
+        ip_address = request.remote_addr
+    
+    # Log the event
+    logger.info(f"Security event: {event_type} - User: {user_id} - IP: {ip_address} - {description}")
+    
+    # In a real implementation, this would save to the database
+    try:
+        # Import here to avoid circular imports
+        from models import db, SecurityLog
+        
+        # Create log entry
+        log = SecurityLog(
+            user_id=user_id,
+            ip_address=ip_address,
+            event_type=event_type,
+            resource_type=resource_type,
+            resource_id=resource_id,
+            description=description,
+            meta_data=json.dumps(metadata) if metadata else None,
+            severity=severity
+        )
+        
+        db.session.add(log)
+        db.session.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Failed to log security event: {str(e)}")
+        return False
+
+
+def is_secure_password(password, user=None):
+    """
+    Check if a password is secure based on strength requirements and user context
+    
+    Args:
+        password: Password to check
+        user: User object (optional) - Used to check for personal information in password
+        
+    Returns:
+        tuple: (bool, str) - (is_secure, error_message)
+    """
+    # Check basic password strength
+    is_strong, error = is_password_strong(password)
+    if not is_strong:
+        return False, error
+    
+    # If user is provided, check for personal information in password
+    if user:
+        # Check if password contains username, email, or name
+        personal_info = [
+            user.username.lower() if hasattr(user, 'username') and user.username else None,
+            user.email.lower() if hasattr(user, 'email') and user.email else None,
+            user.first_name.lower() if hasattr(user, 'first_name') and user.first_name else None,
+            user.last_name.lower() if hasattr(user, 'last_name') and user.last_name else None
+        ]
+        
+        for info in personal_info:
+            if info and len(info) > 3 and info in password.lower():
+                return False, "Password contains personal information. Please choose a different password."
+    
+    return True, ""
+
+
+def cleanup_expired_sessions():
+    """
+    Clean up expired sessions to prevent session buildup
+    
+    Returns:
+        int: Number of sessions cleaned up
+    """
+    # This is a placeholder for session cleanup
+    # In a real implementation, this would clean up expired sessions in the database or file system
+    logger.info("Cleaning up expired sessions")
+    return 0
