@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Language | NOUS{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12 col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Add New Language</h4>
+                </div>
+                <div class="card-body">
+                    {% include "partials/flash_messages.html" %}
+                    
+                    <form method="POST" action="{{ url_for('language.new_profile') }}">
+                        <div class="mb-3">
+                            <label for="learning_language" class="form-label">Language to Learn</label>
+                            <select class="form-select" id="learning_language" name="learning_language" required>
+                                <option value="" selected disabled>Select language...</option>
+                                {% for language in available_languages %}
+                                    <option value="{{ language.code }}">{{ language.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Choose the language you want to learn.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="native_language" class="form-label">Your Native Language</label>
+                            <select class="form-select" id="native_language" name="native_language" required>
+                                <option value="" selected disabled>Select language...</option>
+                                {% for language in available_languages %}
+                                    <option value="{{ language.code }}" {% if language.code == 'en-US' %}selected{% endif %}>{{ language.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">This will be used for translations.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="proficiency_level" class="form-label">Your Current Level</label>
+                            <select class="form-select" id="proficiency_level" name="proficiency_level" required>
+                                <option value="beginner" selected>Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                            <div class="form-text">This helps us adjust the difficulty of learning materials.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="daily_goal_minutes" class="form-label">Daily Goal (minutes)</label>
+                            <input type="number" class="form-control" id="daily_goal_minutes" name="daily_goal_minutes" value="15" min="5" max="120">
+                            <div class="form-text">How many minutes do you want to practice each day?</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="weekly_goal_days" class="form-label">Weekly Goal (days)</label>
+                            <input type="number" class="form-control" id="weekly_goal_days" name="weekly_goal_days" value="5" min="1" max="7">
+                            <div class="form-text">How many days per week do you want to practice?</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Focus Areas</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="focus_areas" value="vocabulary" id="focus_vocabulary" checked>
+                                <label class="form-check-label" for="focus_vocabulary">Vocabulary</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="focus_areas" value="pronunciation" id="focus_pronunciation" checked>
+                                <label class="form-check-label" for="focus_pronunciation">Pronunciation</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="focus_areas" value="conversation" id="focus_conversation" checked>
+                                <label class="form-check-label" for="focus_conversation">Conversation</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="focus_areas" value="grammar" id="focus_grammar">
+                                <label class="form-check-label" for="focus_grammar">Grammar</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="focus_areas" value="reading" id="focus_reading">
+                                <label class="form-check-label" for="focus_reading">Reading</label>
+                            </div>
+                        </div>
+                        
+                        <div class="text-end mt-4">
+                            <a href="{{ url_for('language.index') }}" class="btn btn-outline-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Create Profile</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Prevent same language selection for learning and native
+        const learningSelect = document.getElementById('learning_language');
+        const nativeSelect = document.getElementById('native_language');
+        
+        function checkLanguages() {
+            if (learningSelect.value && learningSelect.value === nativeSelect.value) {
+                document.querySelector('.language-warning') ? null : 
+                    learningSelect.insertAdjacentHTML('afterend', '<div class="alert alert-warning mt-2 language-warning">Your learning language should be different from your native language.</div>');
+            } else {
+                const warning = document.querySelector('.language-warning');
+                if (warning) warning.remove();
+            }
+        }
+        
+        learningSelect.addEventListener('change', checkLanguages);
+        nativeSelect.addEventListener('change', checkLanguages);
+        
+        // Handle focus areas as comma-separated list
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const checkboxes = document.querySelectorAll('input[name="focus_areas"]:checked');
+            const values = Array.from(checkboxes).map(cb => cb.value);
+            
+            // Remove all checkboxes
+            checkboxes.forEach(cb => cb.remove());
+            
+            // Add a hidden input with comma-separated values
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'focus_areas';
+            input.value = values.join(',');
+            this.appendChild(input);
+        });
+    });
+</script>
+{% endblock %}
