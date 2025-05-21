@@ -50,3 +50,6 @@ gTTS
 trafilatura
 pyotp
 qrcode
+flask-dance
+oauthlib
+pyjwt
