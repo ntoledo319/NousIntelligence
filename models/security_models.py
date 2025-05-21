@@ -123,7 +123,7 @@ class TwoFactorBackupCode(db.Model):
     
     # Relationships
     two_factor = relationship('TwoFactorAuth', back_populates='backup_codes')
-    user = relationship('User')
+    user = relationship('User', backref=db.backref('backup_codes', lazy=True))
     
     # Indexes for faster queries
     __table_args__ = (
