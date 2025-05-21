@@ -980,7 +980,48 @@ code, pre {
 
 /* Responsive table adjustments */
 @media (max-width: 991px) {
+  /* Card-style tables for mobile */
+  .table-responsive-cards {
+    border: 0;
+  }
+  
+  .table-responsive-cards thead {
+    display: none; /* Hide table header on mobile */
+  }
+  
   .table-responsive-cards tbody tr {
+    display: block;
+    margin-bottom: 1rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  
+  .table-responsive-cards td {
+    display: flex;
+    justify-content: space-between;
+    text-align: right;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    padding: 0.75rem 1rem;
+  }
+  
+  [data-bs-theme="dark"] .table-responsive-cards td {
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  
+  .table-responsive-cards td:last-child {
+    border-bottom: 0;
+  }
+  
+  .table-responsive-cards td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    text-align: left;
+    padding-right: 1rem;
+  }
+  
+  /* Standard tables on mobile */
+  .table-responsive tbody tr {
     display: block;
     margin-bottom: 1rem;
     border: 1px solid rgba(0,0,0,0.1);
