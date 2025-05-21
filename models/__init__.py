@@ -11,6 +11,7 @@ from app_factory import db
 from models.user_models import User, UserSettings, BetaTester
 from models.task_models import Task
 from models.system_models import SystemSettings
+from models.security_models import SecurityLog, LoginAttempt, AuthToken
 from models.health_models import (
     DBTSkillRecommendation, DBTSkillLog, DBTCrisisResource, DBTSkillCategory, 
     DBTDiaryCard, DBTSkillChallenge, DBTEmotionTrack, AAAchievement
@@ -29,6 +30,7 @@ __all__ = [
     'User', 'UserSettings', 'BetaTester',
     'Task',
     'SystemSettings',
+    'SecurityLog', 'LoginAttempt', 'AuthToken',
     'DBTSkillRecommendation', 'DBTSkillLog', 'DBTCrisisResource', 'DBTSkillCategory',
     'DBTDiaryCard', 'DBTSkillChallenge', 'DBTEmotionTrack', 'AAAchievement',
     'Deal', 'Product',
