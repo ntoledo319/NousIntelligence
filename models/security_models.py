@@ -149,7 +149,7 @@ class TrustedDevice(db.Model):
     expires_at = Column(DateTime, default=lambda: datetime.utcnow() + timedelta(days=90), nullable=True)
     
     # Relationships
-    user = relationship('User')
+    # User relationship defined in User model
     
     # Indexes for faster queries
     __table_args__ = (
@@ -194,7 +194,7 @@ class SecurityAuditLog(db.Model):
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
     
     # Relationships
-    user = relationship('User')
+    # User relationship defined in User model
     
     # Indexes for faster queries
     __table_args__ = (
@@ -227,7 +227,7 @@ class AuthToken(db.Model):
     scopes = Column(String(255), nullable=True)  # Comma-separated list of permissions
     
     # Relationships
-    user = relationship('User')
+    # User relationship defined in User model
     
     # Indexes for faster queries
     __table_args__ = (
