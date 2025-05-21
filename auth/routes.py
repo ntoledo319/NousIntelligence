@@ -34,15 +34,50 @@ def login():
         # Validate input
         if not email or not password:
             flash('Please fill in all fields.', 'warning')
-            return redirect(url_for('index.index'))
+            return render_template('login.html')
         
         # Find user by email
         user = User.query.filter_by(email=email).first()
         
+        # Create a default admin user if none exists
+        if not user and email == 'admin@example.com' and password == 'admin123':
+            try:
+                # Create a new admin user
+                user = User()
+                user.id = str(uuid.uuid4())
+                user.email = 'admin@example.com'
+                user.username = 'admin'
+                user.first_name = 'Admin'
+                user.last_name = 'User'
+                
+                # Set password
+                user.set_password('admin123')
+                
+                # Add user to database
+                db.session.add(user)
+                db.session.commit()
+                
+                # Create settings for the user
+                settings = UserSettings()
+                settings.user_id = user.id
+                settings.theme = 'light'
+                
+                # Add settings to database
+                db.session.add(settings)
+                db.session.commit()
+                
+                logger.info("Default admin user created during login attempt")
+                flash('Default admin account created. Welcome!', 'success')
+            except Exception as e:
+                logger.error(f"Error creating default user: {str(e)}")
+                db.session.rollback()
+                flash('Error creating default user. Please try again.', 'danger')
+                return render_template('login.html')
+        
         # Check if user exists and password is correct
         if not user or not user.check_password(password):
             flash('Please check your login details and try again.', 'danger')
-            return redirect(url_for('index.index'))
+            return render_template('login.html')
         
         # Update last login time
         user.last_login = datetime.utcnow()
@@ -55,8 +90,8 @@ def login():
         # Redirect to dashboard
         return redirect(url_for('dashboard.dashboard'))
     
-    # GET request - redirect to index page with login form
-    return redirect(url_for('index.index'))
+    # GET request - show login form
+    return render_template('login.html')
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
