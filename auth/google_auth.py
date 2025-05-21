@@ -51,8 +51,18 @@ creds = _load_client_secret()
 CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID') or creds.get('client_id')
 CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET') or creds.get('client_secret')
 # Get the current Replit URI for callback
-REPLIT_URI = "https://workspace-toledonick981.replit.app/callback/google"
-REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI') or REPLIT_URI
+current_host = os.environ.get('REPLIT_SLUG')
+if current_host:
+    REPLIT_CALLBACK = f"https://{current_host}.replit.app/callback/google"
+else:
+    # Fallback to the common domain pattern for NOUS app
+    REPLIT_CALLBACK = "https://mynous.replit.app/callback/google"
+    
+# Allow explicit override through environment variable
+REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI') or REPLIT_CALLBACK
+
+# Log the actual redirect URI being used
+logger.info(f"Using Google OAuth redirect URI: {REDIRECT_URI}")
 
 # Log configuration status
 if CLIENT_ID and CLIENT_SECRET:
@@ -119,6 +129,8 @@ def login():
 @google_bp.route('/callback')
 def callback():
     """Handle OAuth callback from Google"""
+    # For debugging
+    logger.info(f"Callback route triggered with redirect URI: {REDIRECT_URI}")
     # Get remote address for logging
     remote_addr = request.remote_addr
     logger.info(f"Google OAuth callback received from {remote_addr}")
