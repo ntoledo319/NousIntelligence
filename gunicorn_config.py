@@ -45,14 +45,37 @@ access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"
 
 # Server hooks
 def on_starting(server):
-    """Log when server starts"""
+    """Log when server starts and verify critical requirements"""
     print(f"Starting Gunicorn server on port {port} with production settings")
-    # Ensure sessions directory exists and has proper permissions
-    os.makedirs('flask_session', exist_ok=True)
+    
+    # Ensure directories exist and have proper permissions
+    for directory in ['flask_session', 'uploads', 'logs', 'instance']:
+        os.makedirs(directory, exist_ok=True)
+        os.chmod(directory, 0o777)  # Ensure directory is writable
+    
+    # Verify critical environment variables
+    critical_vars = ['DATABASE_URL']
+    optional_vars = ['SECRET_KEY', 'SESSION_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET']
+    
+    for var in critical_vars:
+        if not os.environ.get(var):
+            print(f"WARNING: Critical environment variable {var} is not set!")
+    
+    # At least one of SECRET_KEY or SESSION_SECRET must be set
+    if not os.environ.get('SECRET_KEY') and not os.environ.get('SESSION_SECRET'):
+        print("WARNING: Neither SECRET_KEY nor SESSION_SECRET is set!")
+    
+    for var in optional_vars:
+        if not os.environ.get(var):
+            print(f"Note: Optional environment variable {var} is not set")
 
 def on_exit(server):
-    """Log when server exits"""
+    """Log when server exits and perform cleanup"""
     print("Shutting down Gunicorn server")
+    
+    # Close any resources that might need explicit closing
+    import gc
+    gc.collect()  # Force garbage collection to clean up resources
 
 # Process management
 max_requests = 1000

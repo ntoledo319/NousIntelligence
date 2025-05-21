@@ -17,7 +17,7 @@ from flask_login import LoginManager
 from flask_session import Session
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
-from sqlalchemy import event
+from sqlalchemy import event, text
 from sqlalchemy.engine import Engine
 import sqlite3
 
@@ -37,6 +37,23 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
+
+@event.listens_for(Engine, "engine_connect")
+def ping_connection(connection, branch):
+    """Ensure database connections are alive and reset them if needed"""
+    if branch:
+        # Don't ping on sub-connections (like inside a transaction)
+        return
+
+    # Add health check for PostgreSQL connections
+    try:
+        # Run a simple statement to check connection
+        connection.scalar(text("SELECT 1"))
+    except Exception:
+        # Connection is invalid - dispose and get a new connection
+        logging.warning("Database connection invalid, reconnecting...")
+        connection.connection.close()
+        raise  # Force SQLAlchemy to reconnect
 
 def create_app(config_class=None):
     """Create and configure the Flask application
