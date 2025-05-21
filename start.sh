@@ -1,29 +1,70 @@
 #!/bin/bash
-# Start script for NOUS application
-# This script ensures the application runs continuously in production
+# NOUS Personal Assistant Application Startup Script
+# This script sets up and starts the NOUS application
 
-# Environment setup
+echo "Starting NOUS Personal Assistant..."
+
+# Create required directories if they don't exist
+mkdir -p flask_session
+mkdir -p uploads
+mkdir -p logs
+mkdir -p instance
+
+# Set environment variables
 export FLASK_APP=main.py
-export PYTHONUNBUFFERED=1
 
-# Function to handle graceful shutdown
-function cleanup() {
-    echo "Received shutdown signal, gracefully stopping services..."
-    kill -TERM $PID
-    wait $PID
-    echo "Application stopped."
-    exit 0
-}
+# Determine environment based on Replit's environment
+if [ -n "$REPL_ID" ]; then
+    echo "Running in Replit environment"
+    export FLASK_ENV=production
+    export REPLIT_ENVIRONMENT=production
+    export PORT=${PORT:-8080}
+    
+    # Set Replit-specific redirect URI if not already set
+    if [ -z "$GOOGLE_REDIRECT_URI" ]; then
+        # Use REPL_SLUG if available
+        if [ -n "$REPL_SLUG" ]; then
+            export GOOGLE_REDIRECT_URI="https://$REPL_SLUG.replit.app/callback/google"
+            echo "Set Google redirect URI to: $GOOGLE_REDIRECT_URI"
+        else
+            echo "Warning: Could not determine Replit URL. Google authentication may not work."
+        fi
+    fi
+else
+    echo "Running in local environment"
+    export FLASK_ENV=development
+    export PORT=${PORT:-5000}
+fi
 
-# Set up signal handlers
-trap cleanup SIGINT SIGTERM
+# Check permissions on session directory
+chmod -R 777 flask_session
+chmod -R 777 uploads
 
-echo "Starting NOUS application with Gunicorn..."
+# Ensure we have a secret key
+if [ ! -f ".secret_key" ]; then
+    echo "Generating new secret key..."
+    python -c "import secrets; print(secrets.token_hex(24))" > .secret_key
+    chmod 600 .secret_key
+fi
 
-# Start Gunicorn with optimized settings
-exec gunicorn --config gunicorn_config.py --bind 0.0.0.0:5000 --reuse-port --worker-tmp-dir /dev/shm --preload --workers=2 --threads=4 main:app &
+# Run database migrations if needed
+if [ -f "run_migrations.py" ]; then
+    echo "Checking for database migrations..."
+    python run_migrations.py
+fi
 
-PID=$!
+# Install required packages if needed
+if [ -f "requirements.txt" ]; then
+    echo "Installing required packages..."
+    pip install --upgrade pip
+    pip install -r requirements.txt
+fi
 
-# Keep the script running to maintain the container alive
-wait $PID
+# Start application
+if [ "$FLASK_ENV" = "production" ]; then
+    echo "Starting application in production mode on port $PORT..."
+    gunicorn -c gunicorn_config.py main:app
+else
+    echo "Starting application in development mode on port $PORT..."
+    python main.py
+fi

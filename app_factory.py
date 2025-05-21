@@ -15,6 +15,7 @@ from flask import Flask, render_template, g
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_session import Session
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
@@ -24,6 +25,7 @@ import sqlite3
 db = SQLAlchemy()
 login_manager = LoginManager()
 session = Session()
+csrf = CSRFProtect()
 
 # Store a timestamp for startup performance measurement
 _start_time = time.time()
@@ -59,25 +61,35 @@ def create_app(config_class=None):
     # Apply ProxyFix for proper URL generation with HTTPS
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
     
-    # Setup logging
-    log_level = logging.DEBUG if app.config.get('DEBUG', False) else logging.INFO
-    logging.basicConfig(
-        level=log_level,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
+    # Setup logging only if the root logger has no handlers (avoid double logging
+    # when gunicorn or another WSGI server already configured logging).
+    root_logger = logging.getLogger()
+    if not root_logger.handlers:
+        log_level = logging.DEBUG if app.config.get('DEBUG', False) else logging.INFO
+        logging.basicConfig(
+            level=log_level,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
     logger = logging.getLogger(__name__)
     logger.info("Starting NOUS application...")
+    
+    # Ensure a secure SECRET_KEY is configured (defence in depth – already checked
+    # in config.py, but validate here in case create_app is invoked with a custom
+    # config object).
+    if not app.config.get('SECRET_KEY'):
+        raise RuntimeError("SECRET_KEY must be configured before creating the Flask app.")
     
     # Initialize extensions
     db.init_app(app)
     login_manager.init_app(app)
     session.init_app(app)
+    csrf.init_app(app)  # Initialize CSRF protection
     
     # Set up login manager to use Google authentication
     # Configure login options manually to avoid type issues
     # Using setattr to bypass type checking issues with login_manager properties
-    setattr(login_manager, 'login_view', 'google_auth.login')  # Redirect to Google login page directly
-    setattr(login_manager, 'login_message', 'Please sign in with Google to access this page.')
+    setattr(login_manager, 'login_view', 'auth.login')  # Redirect to login page
+    setattr(login_manager, 'login_message', 'Please sign in to access this page.')
     setattr(login_manager, 'login_message_category', 'info')
     
     # Configure user loader
@@ -122,28 +134,10 @@ def create_app(config_class=None):
                 def index():
                     return render_template('index.html')
                 logger.info("Root route registered")
-                
-            # Register Google OAuth callback at root level
-            if 'callback_google' not in app.view_functions:
-                @app.route('/callback/google')
-                def callback_google():
-                    """Root-level Google OAuth callback handler"""
-                    logger.info("Google OAuth callback received at root level")
-                    from flask import request, redirect, url_for
-                    # Make sure to preserve all query parameters when redirecting
-                    query_string = request.query_string.decode('utf-8')
-                    target = url_for('google_auth.callback')
-                    if query_string:
-                        target = f"{target}?{query_string}"
-                    logger.info(f"Redirecting to: {target}")
-                    # Log more details for debugging
-                    logger.info(f"Request args: {dict(request.args)}")
-                    logger.info(f"Cookies: {dict(request.cookies)}")
-                    # Redirect to the proper callback handler in google_bp
-                    return redirect(target)
             
-            # Create database tables if they don't exist
-            if app.config.get('AUTO_CREATE_TABLES', True):
+            # Create database tables only when explicitly enabled.
+            if app.config.get('AUTO_CREATE_TABLES', False):
+                logger.warning("AUTO_CREATE_TABLES is enabled – creating tables automatically.")
                 db.create_all()
                 logger.info("Database tables created/verified")
                 

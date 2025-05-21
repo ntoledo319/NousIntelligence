@@ -1177,3 +1177,21 @@ class DBTEmotionTrack(db.Model):
             'skill_used': self.skill_used,
             'date_recorded': self.date_recorded.isoformat() if self.date_recorded else None
         }
+
+class RateLimit(db.Model):
+    """
+    Model for tracking rate limiting information.
+    Used to prevent brute force attacks on login and other sensitive actions.
+    
+    @module models.RateLimit
+    @description Rate limiting tracking model
+    """
+    __tablename__ = 'rate_limits'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    ip_address = db.Column(db.String(45), nullable=False, index=True)
+    action_type = db.Column(db.String(50), nullable=False, index=True)
+    timestamp = db.Column(db.DateTime, nullable=False, index=True)
+    
+    def __repr__(self):
+        return f'<RateLimit {self.ip_address} {self.action_type}>'

@@ -11,11 +11,39 @@ from datetime import timedelta
 class Config:
     """Base configuration with common settings"""
     # Flask settings
-    SECRET_KEY = os.environ.get("SECRET_KEY") or os.environ.get("SESSION_SECRET") or "change_this_in_production!"
+    SECRET_KEY = os.environ.get("SECRET_KEY") or os.environ.get("SESSION_SECRET")
+
+    # Allow loading a secret key from a file *only* if the env vars are not set.
+    # This supports container-secret mounts while preventing an insecure default.
+    if not SECRET_KEY and os.path.exists('.secret_key'):
+        with open('.secret_key', 'r') as f:
+            file_key = f.read().strip()
+            if file_key:
+                SECRET_KEY = file_key
+
+    # Fail fast if no secure secret key is configured.
+    if not SECRET_KEY or len(SECRET_KEY) < 16:
+        # A 128-bit key (16 raw bytes / 32 hex chars) is a reasonable minimum.
+        raise RuntimeError(
+            "SECRET_KEY is not configured. Set the SECRET_KEY environment "
+            "variable or mount a .secret_key file containing a strong random value."
+        )
+
+    # Cookie security – make SameSite default to Lax for all environments.
+    SESSION_COOKIE_SAMESITE = "Lax"
+
+    # Toggle automatic table creation (dangerous in prod) via env variable.
+    AUTO_CREATE_TABLES = os.environ.get("AUTO_CREATE_TABLES", "false").lower() == "true"
+    
+    # Improve session persistence
     SESSION_PERMANENT = True
-    PERMANENT_SESSION_LIFETIME = timedelta(days=7)
+    PERMANENT_SESSION_LIFETIME = timedelta(days=14)  # Extend session lifetime
     SESSION_TYPE = "filesystem"
     SESSION_USE_SIGNER = True
+    SESSION_KEY_PREFIX = "nous_session:"
+    SESSION_FILE_DIR = os.path.join(os.getcwd(), 'flask_session')
+    SESSION_REFRESH_EACH_REQUEST = True  # Refresh session on each request
+    SESSION_FILE_THRESHOLD = 500  # Max number of sessions stored (decreased from default)
 
     # Database settings
     database_url = os.environ.get("DATABASE_URL")
@@ -49,7 +77,7 @@ class Config:
     GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
     GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
     # Update the Google redirect URI to use the correct path structure
-    GOOGLE_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI", "https://mynous.replit.app/callback/google")
+    GOOGLE_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI", "https://mynous.replit.app/auth/google/callback")
     
     SPOTIFY_CLIENT_ID = os.environ.get("SPOTIFY_CLIENT_ID")
     SPOTIFY_CLIENT_SECRET = os.environ.get("SPOTIFY_CLIENT_SECRET")
@@ -65,6 +93,9 @@ class Config:
     # File uploads
     UPLOAD_FOLDER = "uploads"
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
+    
+    # Mobile settings
+    MOBILE_REDIRECT_AFTER_LOGIN = 'dashboard.dashboard'
 
 
 class DevelopmentConfig(Config):
@@ -96,6 +127,8 @@ class ProductionConfig(Config):
     SESSION_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_SECURE = True
     REMEMBER_COOKIE_HTTPONLY = True
+    # Don't refresh session on every request in production to reduce load
+    SESSION_REFRESH_EACH_REQUEST = False
 
 
 # Dictionary to map environment names to config classes
@@ -103,10 +136,11 @@ config_by_name = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,
     'production': ProductionConfig,
-    'default': DevelopmentConfig
+    'default': ProductionConfig
 }
 
-# Get config by environment name, defaulting to development
+# Get config by environment name, defaulting to production
 def get_config():
-    env = os.environ.get('FLASK_ENV', 'development')
+    """Return the configuration class based on FLASK_ENV (production default)."""
+    env = os.environ.get('FLASK_ENV', 'production')
     return config_by_name.get(env, config_by_name['default']) 

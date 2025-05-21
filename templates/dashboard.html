@@ -3,13 +3,13 @@
 {% block title %}Dashboard | NOUS{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row mb-4">
+<div class="container my-3 my-md-4">
+    <div class="row mb-4 align-items-center">
         <div class="col-md-8">
-            <h1 class="mb-3">Welcome, {{ current_user.first_name }}</h1>
+            <h1 class="mb-2 text-gradient-primary">Welcome, {{ current_user.first_name }}</h1>
             <p class="lead">Here's an overview of your personal information and important updates.</p>
         </div>
-        <div class="col-md-4 text-md-end">
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
             <a href="{{ url_for('settings.settings_page') }}" class="btn btn-outline-primary">
                 <i class="fas fa-cog me-2"></i> Settings
             </a>
@@ -19,22 +19,22 @@
     <div class="row g-4">
         <!-- Quick Actions Card -->
         <div class="col-md-6">
-            <div class="card h-100">
+            <div class="card h-100 shadow-sm rounded-4 border-0">
                 <div class="card-header bg-primary text-white">
                     <h5 class="card-title mb-0"><i class="fas fa-bolt me-2"></i> Quick Actions</h5>
                 </div>
                 <div class="card-body">
-                    <div class="list-group">
-                        <a href="{{ url_for('dashboard.tasks') }}" class="list-group-item list-group-item-action">
+                    <div class="list-group list-group-flush">
+                        <a href="{{ url_for('dashboard.tasks') }}" class="list-group-item list-group-item-action border-0 rounded-3 mb-2 py-3">
                             <i class="fas fa-plus-circle me-2 text-success"></i> Add a new task
                         </a>
-                        <a href="{{ url_for('dashboard.tasks') }}" class="list-group-item list-group-item-action">
+                        <a href="{{ url_for('dashboard.tasks') }}" class="list-group-item list-group-item-action border-0 rounded-3 mb-2 py-3">
                             <i class="fas fa-check-circle me-2 text-primary"></i> Manage tasks
                         </a>
-                        <a href="{{ url_for('settings.settings_page') }}" class="list-group-item list-group-item-action">
+                        <a href="{{ url_for('settings.settings_page') }}" class="list-group-item list-group-item-action border-0 rounded-3 mb-2 py-3">
                             <i class="fas fa-cog me-2 text-secondary"></i> Update settings
                         </a>
-                        <a href="{{ url_for('index.help_page') }}" class="list-group-item list-group-item-action">
+                        <a href="{{ url_for('index.help_page') }}" class="list-group-item list-group-item-action border-0 rounded-3 py-3">
                             <i class="fas fa-question-circle me-2 text-info"></i> Get help
                         </a>
                     </div>
@@ -44,32 +44,32 @@
 
         <!-- Status Overview Card -->
         <div class="col-md-6">
-            <div class="card h-100">
+            <div class="card h-100 shadow-sm rounded-4 border-0">
                 <div class="card-header bg-info text-white">
                     <h5 class="card-title mb-0"><i class="fas fa-chart-pie me-2"></i> Status Overview</h5>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-6">
-                            <div class="p-3 bg-light rounded text-center">
+                            <div class="p-3 bg-light rounded-4 text-center shadow-sm">
                                 <h3 class="mb-1">0</h3>
                                 <p class="mb-0 small">Due Tasks</p>
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="p-3 bg-light rounded text-center">
+                            <div class="p-3 bg-light rounded-4 text-center shadow-sm">
                                 <h3 class="mb-1">0</h3>
                                 <p class="mb-0 small">Appointments</p>
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="p-3 bg-light rounded text-center">
+                            <div class="p-3 bg-light rounded-4 text-center shadow-sm">
                                 <h3 class="mb-1">0</h3>
                                 <p class="mb-0 small">Shopping Items</p>
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="p-3 bg-light rounded text-center">
+                            <div class="p-3 bg-light rounded-4 text-center shadow-sm">
                                 <h3 class="mb-1">0</h3>
                                 <p class="mb-0 small">Medications</p>
                             </div>
@@ -81,7 +81,7 @@
 
         <!-- Upcoming Tasks Card -->
         <div class="col-md-6">
-            <div class="card h-100">
+            <div class="card h-100 shadow-sm rounded-4 border-0">
                 <div class="card-header bg-success text-white">
                     <h5 class="card-title mb-0"><i class="fas fa-tasks me-2"></i> Upcoming Tasks</h5>
                 </div>
@@ -89,7 +89,7 @@
                     {% if tasks %}
                         <ul class="list-group list-group-flush">
                             {% for task in tasks %}
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 py-3">
                                     <div>
                                         <form action="{{ url_for('dashboard.toggle_task', task_id=task.id) }}" method="post" class="d-inline">
                                             <input type="checkbox" class="form-check-input me-2 task-toggle" data-task-id="{{ task.id }}" {% if task.completed %}checked{% endif %}>
@@ -113,7 +113,7 @@
                             </a>
                         </div>
                     {% else %}
-                        <div class="alert alert-info">
+                        <div class="alert alert-info rounded-3 mt-2">
                             <i class="fas fa-info-circle me-2"></i> No upcoming tasks found.
                         </div>
                         <p class="card-text">You don't have any upcoming tasks. Use the quick actions to add tasks.</p>
@@ -124,12 +124,12 @@
 
         <!-- Weather Card -->
         <div class="col-md-6">
-            <div class="card h-100">
+            <div class="card h-100 shadow-sm rounded-4 border-0">
                 <div class="card-header bg-warning text-dark">
                     <h5 class="card-title mb-0"><i class="fas fa-cloud-sun me-2"></i> Weather</h5>
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-info">
+                    <div class="alert alert-info rounded-3 mt-2">
                         <i class="fas fa-info-circle me-2"></i> Weather data not available.
                     </div>
                     <p class="card-text">Configure your location in settings to get weather information.</p>
@@ -150,6 +150,10 @@
                 const taskId = this.dataset.taskId;
                 const form = this.closest('form');
                 
+                // Add visual feedback during request
+                const listItem = checkbox.closest('li');
+                listItem.style.opacity = '0.7';
+                
                 // Submit the form to toggle task status
                 fetch(form.action, {
                     method: 'POST',
@@ -161,7 +165,7 @@
                 .then(response => response.json())
                 .then(data => {
                     // Update UI based on task status
-                    const listItem = checkbox.closest('li');
+                    listItem.style.opacity = '1';
                     const taskTitle = listItem.querySelector('span');
                     
                     if (data.completed) {
@@ -174,6 +178,7 @@
                     console.error('Error toggling task:', error);
                     // Revert checkbox state on error
                     this.checked = !this.checked;
+                    listItem.style.opacity = '1';
                 });
             });
         });

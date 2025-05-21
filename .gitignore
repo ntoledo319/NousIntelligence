@@ -1,0 +1,71 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Flask sessions
+flask_session/
+
+# Virtual environments
+venv/
+.env/
+env/
+.venv/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Secrets & credentials
+.secret_key
+client_secret.json
+*.pem
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+instance/
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.project
+.pydevproject
+.settings/
+
+# Cached files
+.cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Uploads directory content but keep the directory
+uploads/*
+!uploads/.gitkeep
+
+# Temporary files
+.tmp/
+tmp/
+temp/ 
