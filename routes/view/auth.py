@@ -58,6 +58,60 @@ def direct_google_login():
     # Redirect to Google auth login
     return redirect(url_for("google_auth.login"))
 
+@auth_bp.route('/admin-login', methods=['GET'])
+def admin_login():
+    """
+    Special admin login for development and testing
+    
+    Returns:
+        Redirect to dashboard or login page
+    """
+    from models import User, db
+    from flask_login import login_user
+    import uuid
+    from datetime import datetime
+    
+    # This is only for development/testing purposes
+    admin_email = 'toledonick98@gmail.com'
+    
+    # Check if admin user exists
+    user = User.query.filter_by(email=admin_email).first()
+    
+    if not user:
+        # Create admin user if it doesn't exist
+        logger.info(f"Creating admin user for {admin_email}")
+        user = User()
+        user.id = str(uuid.uuid4())
+        user.email = admin_email
+        user.username = 'admin_' + admin_email.split('@')[0]
+        user.first_name = 'Admin'
+        user.last_name = 'User'
+        user.active = True
+        
+        # Add user to database
+        db.session.add(user)
+        db.session.commit()
+        
+        # Update admin flag directly in database
+        from sqlalchemy import text
+        try:
+            db.session.execute(text("UPDATE users SET is_admin = TRUE WHERE email = :email"), 
+                               {"email": admin_email})
+            db.session.commit()
+            logger.info(f"Admin privileges granted to {admin_email}")
+        except Exception as e:
+            logger.error(f"Failed to set admin privileges: {str(e)}")
+    
+    # Log in the admin user
+    user.last_login = datetime.utcnow()
+    db.session.commit()
+    login_user(user)
+    
+    flash("Welcome, Admin! You've been logged in automatically.", "success")
+    logger.info(f"Admin user {admin_email} logged in via admin-login route")
+    
+    return redirect(url_for('dashboard.dashboard'))
+
 @auth_bp.route('/logout', methods=['GET'])
 @login_required
 def logout():
