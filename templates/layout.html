@@ -647,21 +647,21 @@
     <!-- Mobile Bottom Navigation - Visible on small screens only -->
     {% if current_user.is_authenticated %}
     <nav class="bottom-nav d-lg-none">
-        <a href="{{ url_for('index.index') }}" class="bottom-nav-item {% if request.endpoint == 'index' %}active{% endif %}">
+        <a href="{{ url_for('index.index') }}" class="bottom-nav-item {% if request.endpoint == 'index.index' %}active{% endif %}">
             <i class="fas fa-home bottom-nav-icon"></i>
             <span>Home</span>
         </a>
-        <a href="{{ url_for('dashboard.dashboard') }}" class="bottom-nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+        <a href="{{ url_for('dashboard.dashboard') }}" class="bottom-nav-item {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}">
             <i class="fas fa-tachometer-alt bottom-nav-icon"></i>
             <span>Dashboard</span>
         </a>
-        <a href="{{ url_for('settings.settings_page') }}" class="bottom-nav-item {% if request.endpoint == 'settings' %}active{% endif %}">
+        <a href="{{ url_for('chat.chat_interface') }}" class="bottom-nav-item {% if request.endpoint == 'chat.chat_interface' %}active{% endif %}">
+            <i class="fas fa-comment-alt bottom-nav-icon"></i>
+            <span>Chat</span>
+        </a>
+        <a href="{{ url_for('settings.settings_page') }}" class="bottom-nav-item {% if request.endpoint == 'settings.settings_page' %}active{% endif %}">
             <i class="fas fa-cog bottom-nav-icon"></i>
             <span>Settings</span>
-        </a>
-        <a href="{{ url_for('index.index') }}" class="bottom-nav-item {% if request.endpoint == 'index' %}active{% endif %}">
-            <i class="fas fa-book bottom-nav-icon"></i>
-            <span>Guide</span>
         </a>
     </nav>
     {% endif %}
