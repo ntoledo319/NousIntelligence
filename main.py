@@ -14,6 +14,10 @@ logger = logging.getLogger(__name__)
 
 app = create_app()
 
+# Initialize database tables
+with app.app_context():
+    db.create_all()
+
 @app.route('/callback/google')
 def root_google_callback():
     """Root-level Google OAuth callback handler"""
