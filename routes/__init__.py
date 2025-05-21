@@ -38,6 +38,7 @@ from routes.price_routes import price_tracking_bp
 from routes.voice_routes import voice_bp
 from routes.view.auth import auth_bp
 from auth.google_auth import google_bp
+from routes.language_learning_routes import language_bp
 
 # Blueprint module organization
 # This comment serves as documentation for the blueprint structure
@@ -94,6 +95,9 @@ def register_blueprints(app: Flask):
     
     # Register voice interface blueprint
     app.register_blueprint(voice_bp)
+    
+    # Register language learning blueprint
+    app.register_blueprint(language_bp)
     
     # Register authentication blueprints
     app.register_blueprint(auth_bp)

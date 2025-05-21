@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Language Learning | NOUS{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Language Learning</h1>
+            
+            {% include "partials/flash_messages.html" %}
+            
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between">
+                    <h5 class="mb-0">Your Language Profiles</h5>
+                    <a href="{{ url_for('language.new_profile') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus"></i> Add New Language
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if profiles %}
+                        <div class="row">
+                            {% for profile_data in profiles %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100 border-{% if profile_data.profile.proficiency_level == 'beginner' %}success{% elif profile_data.profile.proficiency_level == 'intermediate' %}warning{% else %}danger{% endif %}">
+                                        <div class="card-header">
+                                            <h5>{{ profile_data.language_name }}</h5>
+                                            <p class="mb-0 small">Native: {{ profile_data.native_language_name }}</p>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <span class="badge bg-{% if profile_data.profile.proficiency_level == 'beginner' %}success{% elif profile_data.profile.proficiency_level == 'intermediate' %}warning{% else %}danger{% endif %}">
+                                                    {{ profile_data.profile.proficiency_level|title }}
+                                                </span>
+                                            </div>
+                                            
+                                            <div class="row stats">
+                                                <div class="col-6">
+                                                    <p class="mb-1 small">Vocabulary</p>
+                                                    <h4>{{ profile_data.vocabulary_count }}</h4>
+                                                </div>
+                                                <div class="col-6">
+                                                    <p class="mb-1 small">Total Practice</p>
+                                                    <h4>{{ profile_data.total_minutes }} min</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer">
+                                            <div class="btn-group w-100">
+                                                <a href="{{ url_for('language.profile', profile_id=profile_data.profile.id) }}" class="btn btn-outline-primary">
+                                                    <i class="fas fa-dashboard"></i> Dashboard
+                                                </a>
+                                                <a href="{{ url_for('language.practice_dashboard', profile_id=profile_data.profile.id) }}" class="btn btn-outline-success">
+                                                    <i class="fas fa-play"></i> Practice
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <img src="{{ url_for('static', filename='images/illustrations/language.svg') }}" alt="Language Learning" class="mb-3" style="max-width: 150px;">
+                            <h4>No language profiles yet</h4>
+                            <p class="text-muted">Start your language learning journey by adding a new language!</p>
+                            <a href="{{ url_for('language.new_profile') }}" class="btn btn-primary mt-2">
+                                <i class="fas fa-plus"></i> Add Language
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Available Languages</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for language in available_languages %}
+                            <div class="col-md-3 col-sm-4 col-6 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <h5>{{ language.name }}</h5>
+                                        <div class="language-features mt-2">
+                                            {% if language.tts_available %}
+                                                <span class="badge bg-success me-1"><i class="fas fa-volume-up"></i> Text-to-Speech</span>
+                                            {% endif %}
+                                            {% if language.stt_available %}
+                                                <span class="badge bg-primary"><i class="fas fa-microphone"></i> Speech Recognition</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animations for cards
+        const cards = document.querySelectorAll('.col-md-4 .card');
+        cards.forEach((card, index) => {
+            setTimeout(() => {
+                card.classList.add('fadeIn');
+            }, index * 100);
+        });
+    });
+</script>
+{% endblock %}

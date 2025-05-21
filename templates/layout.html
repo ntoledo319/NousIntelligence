@@ -284,6 +284,34 @@
                                     </a>
                                 </li>
                             </ul>
+                            
+                            <!-- Language Learning Section -->
+                            <div class="d-flex align-items-center px-3 py-2 text-light">
+                                <i class="fas fa-language me-2 text-warning"></i>
+                                <span class="fw-medium">Language Learning</span>
+                            </div>
+                            <ul class="list-unstyled ms-3 mb-2">
+                                <li>
+                                    <a class="nav-link py-1" href="{{ url_for('language.index') }}">
+                                        <i class="fas fa-home me-2"></i>Dashboard
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="nav-link py-1" href="{{ url_for('language.new_profile') }}">
+                                        <i class="fas fa-plus me-2"></i>Add Language
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="nav-link py-1" href="{{ url_for('language.index') }}">
+                                        <i class="fas fa-flag me-2"></i>Spanish
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="nav-link py-1" href="{{ url_for('language.index') }}">
+                                        <i class="fas fa-flag me-2"></i>French
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
                         
                         {% if current_user.is_authenticated %}
@@ -444,6 +472,29 @@
                             </li>
                             <li><a class="dropdown-item" href="{{ url_for('index.index') }}?cmd=show%20upcoming%20trips">
                                 <i class="fas fa-calendar-alt me-2"></i>Upcoming Trips</a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-language me-1"></i>
+                            <span>Languages</span>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="languageDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('language.index') }}">
+                                <i class="fas fa-home me-2"></i>Dashboard</a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('language.new_profile') }}">
+                                <i class="fas fa-plus me-2"></i>Add Language</a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('language.index') }}">
+                                <i class="fas fa-flag me-2"></i>Spanish</a>
+                            </li>
+                            <li><a class="dropdown-item" href="{{ url_for('language.index') }}">
+                                <i class="fas fa-flag me-2"></i>French</a>
                             </li>
                         </ul>
                     </li>
