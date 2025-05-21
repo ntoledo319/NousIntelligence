@@ -124,11 +124,26 @@
   box-shadow: var(--shadow);
   transition: all var(--transition-fast);
   margin: 1rem auto;
+  -webkit-tap-highlight-color: transparent; /* Removes tap highlight on mobile */
 }
 
 .voice-record-btn:hover {
   transform: scale(1.05);
   box-shadow: var(--shadow-lg);
+}
+
+.voice-record-btn:active {
+  transform: scale(0.95);
+  box-shadow: var(--shadow);
+}
+
+/* Improved accessibility for touch devices */
+@media (pointer: coarse) {
+  .voice-record-btn {
+    width: 4.5rem;
+    height: 4.5rem;
+    font-size: 1.75rem;
+  }
 }
 
 .voice-record-btn.recording {
