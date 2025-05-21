@@ -1,3 +1,12 @@
+#!/bin/bash
+
+echo "Starting NOUS Personal Assistant (Public-No-Auth Version)..."
+
+# Create directories
+mkdir -p templates static
+
+# Create a simple index page
+cat > templates/index.html << 'EOF'
 <!DOCTYPE html>
 <html>
 <head>
@@ -109,3 +118,7 @@
     </footer>
 </body>
 </html>
+EOF
+
+# Run the simplified app without authentication
+PORT=8080 python nous_public.py
