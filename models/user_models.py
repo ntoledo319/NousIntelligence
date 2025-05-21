@@ -37,11 +37,11 @@ class User(UserMixin, db.Model):
     lockout_until = db.Column(db.DateTime, nullable=True)
     
     # Security relationships
-    login_attempts = db.relationship('LoginAttempt', backref=db.backref('user', uselist=False), cascade='all, delete-orphan')
-    lockouts = db.relationship('AccountLockout', foreign_keys='AccountLockout.user_id', backref=db.backref('user', uselist=False), cascade='all, delete-orphan')
-    two_factor_auth = db.relationship('TwoFactorAuth', backref=db.backref('user', uselist=False), uselist=False, cascade='all, delete-orphan')
-    auth_tokens = db.relationship('AuthToken', backref=db.backref('user', uselist=False), cascade='all, delete-orphan')
-    security_logs = db.relationship('SecurityAuditLog', backref=db.backref('user', uselist=False), cascade='all, delete-orphan')
+    login_attempts = db.relationship('LoginAttempt', backref='user_account', cascade='all, delete-orphan')
+    lockouts = db.relationship('AccountLockout', foreign_keys='AccountLockout.user_id', backref='user_account', cascade='all, delete-orphan')
+    two_factor_auth = db.relationship('TwoFactorAuth', backref='user_account', uselist=False, cascade='all, delete-orphan')
+    auth_tokens = db.relationship('AuthToken', backref='user_account', cascade='all, delete-orphan')
+    security_logs = db.relationship('SecurityAuditLog', backref='user_account', cascade='all, delete-orphan')
     
     @property
     def is_active(self):
