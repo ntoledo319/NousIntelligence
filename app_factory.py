@@ -143,6 +143,15 @@ def create_app(config_class=None):
                 db.create_all()
                 logger.info("Database tables created/verified")
                 
+                # Create default admin user if no users exist
+                try:
+                    from utils.create_default_user import create_default_admin
+                    create_default_admin(app, db)
+                except ImportError:
+                    logger.warning("Could not import create_default_user module")
+                except Exception as e:
+                    logger.warning(f"Error creating default user: {str(e)}")
+                
             # Setup database optimization utilities if enabled
             if app.config.get('DB_OPTIMIZE', True):
                 try:
