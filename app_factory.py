@@ -64,6 +64,7 @@ def create_app(config_class=None):
     Returns:
         Configured Flask application
     """
+    from utils.memory_initializer import initialize_memory_system
     # Create Flask app
     app = Flask(__name__)
     
@@ -139,6 +140,27 @@ def create_app(config_class=None):
             from routes import register_blueprints
             register_blueprints(app)
             logger.info("All blueprints registered successfully")
+            
+            # Initialize memory system
+            from utils.memory_initializer import initialize_memory_system
+            initialize_memory_system(app)
+            logger.info("Memory system initialized")
+            
+            # Register memory routes
+            try:
+                from routes.memory_routes import register_memory_routes
+                register_memory_routes(app)
+                logger.info("Memory API routes registered")
+            except Exception as e:
+                logger.error(f"Error registering memory routes: {str(e)}")
+            
+            # Register memory dashboard
+            try:
+                from routes.memory_dashboard_routes import register_memory_dashboard_routes
+                register_memory_dashboard_routes(app)
+                logger.info("Memory dashboard routes registered")
+            except Exception as e:
+                logger.error(f"Error registering memory dashboard: {str(e)}")
             
             # Set up middleware
             from middleware import register_middleware

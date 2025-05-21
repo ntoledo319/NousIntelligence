@@ -1,0 +1,763 @@
+{% extends "base.html" %}
+
+{% block title %}Memory Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="display-5">Your Personal Memory</h1>
+            <p class="lead">NOUS builds and maintains a personalized memory of your conversations over time.</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="memory-quality-indicator">
+                <div class="mb-2">Memory Quality</div>
+                <div class="progress">
+                    <div id="memoryQualityBar" class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">Basic</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Memory Overview</h5>
+                    <button id="refreshMemoryBtn" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Conversations</span>
+                            <span id="messageCount" class="badge bg-primary">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2">
+                            <span>Topics Tracked</span>
+                            <span id="topicCount" class="badge bg-success">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2">
+                            <span>Entities Remembered</span>
+                            <span id="entityCount" class="badge bg-info">0</span>
+                        </div>
+                    </div>
+                    <hr>
+                    <div>
+                        <h6>Top Interests</h6>
+                        <ul id="topTopics" class="list-group list-group-flush">
+                            <li class="list-group-item text-muted text-center">No topics yet</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-footer bg-white">
+                    <small class="text-muted">Last updated: <span id="lastUpdated">Never</span></small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Conversations</h5>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="showOnlyUserMessages">
+                        <label class="form-check-label" for="showOnlyUserMessages">User messages only</label>
+                    </div>
+                </div>
+                <div class="card-body conversation-container">
+                    <div id="conversationsList">
+                        <div class="text-center text-muted p-4">
+                            <i class="bi bi-chat-dots" style="font-size: 2rem;"></i>
+                            <p class="mt-2">Loading your conversation history...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white">
+                    <button id="loadMoreBtn" class="btn btn-sm btn-outline-secondary">Load more</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Topics of Interest</h5>
+                    <select id="topicSortOption" class="form-select form-select-sm" style="width: auto;">
+                        <option value="interest">Sort by Interest</option>
+                        <option value="recent">Sort by Recent</option>
+                        <option value="name">Sort by Name</option>
+                    </select>
+                </div>
+                <div class="card-body">
+                    <div id="topicsContainer">
+                        <div class="text-center text-muted p-4">
+                            <i class="bi bi-tags" style="font-size: 2rem;"></i>
+                            <p class="mt-2">Loading your topics of interest...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white">
+                    <form id="addTopicForm" class="d-flex">
+                        <input type="text" id="newTopicName" class="form-control me-2" placeholder="Add new topic">
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Remembered Entities</h5>
+                    <select id="entityTypeFilter" class="form-select form-select-sm" style="width: auto;">
+                        <option value="all">All Types</option>
+                        <option value="person">People</option>
+                        <option value="place">Places</option>
+                        <option value="thing">Things</option>
+                    </select>
+                </div>
+                <div class="card-body">
+                    <div id="entitiesContainer">
+                        <div class="text-center text-muted p-4">
+                            <i class="bi bi-person-lines-fill" style="font-size: 2rem;"></i>
+                            <p class="mt-2">Loading remembered entities...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white">
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addEntityModal">
+                        Add Entity
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Entity Modal -->
+<div class="modal fade" id="addEntityModal" tabindex="-1" aria-labelledby="addEntityModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addEntityModalLabel">Add Entity to Memory</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addEntityForm">
+                    <div class="mb-3">
+                        <label for="entityName" class="form-label">Entity Name</label>
+                        <input type="text" class="form-control" id="entityName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="entityType" class="form-label">Entity Type</label>
+                        <select class="form-select" id="entityType" required>
+                            <option value="person">Person</option>
+                            <option value="place">Place</option>
+                            <option value="thing">Thing</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="entityImportance" class="form-label">Importance (1-10)</label>
+                        <input type="range" class="form-range" min="1" max="10" value="5" id="entityImportance">
+                        <div class="d-flex justify-content-between">
+                            <small>Low</small>
+                            <small>High</small>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="entityAttributes" class="form-label">Attributes (JSON)</label>
+                        <textarea class="form-control" id="entityAttributes" rows="4" placeholder='{"relation": "friend", "since": "2020"}'></textarea>
+                        <div class="form-text">Enter attributes as a JSON object. For example, for a person you might include relation, birthday, etc.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveEntityBtn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Memory Settings Modal -->
+<div class="modal fade" id="memorySettingsModal" tabindex="-1" aria-labelledby="memorySettingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="memorySettingsModalLabel">Memory Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="memorySettingsForm">
+                    <div class="mb-3">
+                        <label class="form-label">Memory Retention</label>
+                        <select class="form-select" id="memoryRetention">
+                            <option value="forever">Remember Everything</option>
+                            <option value="year">Up to 1 Year</option>
+                            <option value="month">Up to 1 Month</option>
+                            <option value="week">Up to 1 Week</option>
+                        </select>
+                        <div class="form-text">How long NOUS should remember your conversations.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Conversation Analysis</label>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="enableEntityExtraction" checked>
+                            <label class="form-check-label" for="enableEntityExtraction">Extract entities from conversations</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="enableTopicTracking" checked>
+                            <label class="form-check-label" for="enableTopicTracking">Track topics of interest</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="enableEmotionTracking" checked>
+                            <label class="form-check-label" for="enableEmotionTracking">Track emotions in voice interactions</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Privacy</label>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="enablePrivateMode">
+                            <label class="form-check-label" for="enablePrivateMode">Private mode (don't store conversations)</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger me-auto" id="clearMemoryBtn">Clear All Memory</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveSettingsBtn">Save Settings</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .conversation-container {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .memory-message {
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+    }
+    
+    .memory-message-user {
+        background-color: #f0f7ff;
+        border-left: 4px solid #0d6efd;
+    }
+    
+    .memory-message-assistant {
+        background-color: #f8f9fa;
+        border-left: 4px solid #6c757d;
+    }
+    
+    .memory-message-system {
+        background-color: #fff3cd;
+        border-left: 4px solid #ffc107;
+    }
+    
+    .message-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+        font-size: 0.85rem;
+    }
+    
+    .message-timestamp {
+        color: #6c757d;
+    }
+    
+    .message-content {
+        word-break: break-word;
+    }
+    
+    .topic-card {
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    
+    .topic-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .entity-card {
+        margin-bottom: 10px;
+        border-radius: 8px;
+    }
+    
+    .entity-person {
+        border-left: 4px solid #0d6efd;
+    }
+    
+    .entity-place {
+        border-left: 4px solid #198754;
+    }
+    
+    .entity-thing {
+        border-left: 4px solid #6f42c1;
+    }
+    
+    .entity-other {
+        border-left: 4px solid #fd7e14;
+    }
+    
+    .memory-quality-indicator {
+        padding: 10px;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initial data loading
+    loadMemorySummary();
+    loadRecentMessages();
+    loadTopics();
+    loadEntities();
+    
+    // Set up event listeners
+    document.getElementById('refreshMemoryBtn').addEventListener('click', loadMemorySummary);
+    document.getElementById('showOnlyUserMessages').addEventListener('change', loadRecentMessages);
+    document.getElementById('loadMoreBtn').addEventListener('click', loadMoreMessages);
+    document.getElementById('topicSortOption').addEventListener('change', loadTopics);
+    document.getElementById('entityTypeFilter').addEventListener('change', loadEntities);
+    document.getElementById('addTopicForm').addEventListener('submit', addNewTopic);
+    document.getElementById('saveEntityBtn').addEventListener('click', addNewEntity);
+    
+    // Memory quality indicator setup
+    updateMemoryQualityIndicator('basic');  // Default
+});
+
+// Load memory summary data
+function loadMemorySummary() {
+    fetch('/api/memory/summary')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const summary = data.data;
+                document.getElementById('messageCount').textContent = summary.message_count;
+                document.getElementById('topicCount').textContent = summary.topic_count;
+                document.getElementById('entityCount').textContent = summary.entity_count;
+                
+                // Update top topics list
+                const topTopicsList = document.getElementById('topTopics');
+                topTopicsList.innerHTML = '';
+                
+                if (summary.top_topics && summary.top_topics.length > 0) {
+                    summary.top_topics.forEach(topic => {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                        li.textContent = topic;
+                        topTopicsList.appendChild(li);
+                    });
+                } else {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item text-muted text-center';
+                    li.textContent = 'No topics yet';
+                    topTopicsList.appendChild(li);
+                }
+                
+                // Update memory quality
+                updateMemoryQualityIndicator(summary.memory_quality || 'basic');
+                
+                // Update last updated time
+                document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+            } else {
+                console.error('Error loading memory summary:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Failed to load memory summary:', error);
+        });
+}
+
+// Load recent messages
+function loadRecentMessages(fromId = null) {
+    let url = '/api/memory/recent?count=20';
+    if (fromId) {
+        url += `&from_id=${fromId}`;
+    }
+    
+    const showOnlyUser = document.getElementById('showOnlyUserMessages').checked;
+    if (showOnlyUser) {
+        url += '&role=user';
+    }
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const conversationsList = document.getElementById('conversationsList');
+                
+                if (!fromId) {
+                    conversationsList.innerHTML = '';
+                }
+                
+                if (data.data.length === 0) {
+                    if (!fromId) {
+                        conversationsList.innerHTML = `
+                            <div class="text-center text-muted p-4">
+                                <i class="bi bi-chat-dots" style="font-size: 2rem;"></i>
+                                <p class="mt-2">No conversation history yet</p>
+                            </div>
+                        `;
+                    }
+                    
+                    // Hide load more button if no more data
+                    document.getElementById('loadMoreBtn').style.display = 'none';
+                    return;
+                }
+                
+                // Show load more button
+                document.getElementById('loadMoreBtn').style.display = 'block';
+                
+                // Add messages to the list
+                data.data.forEach(message => {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = `memory-message memory-message-${message.role}`;
+                    messageDiv.dataset.id = message.id;
+                    
+                    const timestamp = new Date(message.timestamp).toLocaleString();
+                    let emotion = '';
+                    if (message.emotion) {
+                        emotion = `<span class="badge bg-secondary ms-2">${message.emotion}</span>`;
+                    }
+                    
+                    let sourceType = '';
+                    if (message.source_type && message.source_type !== 'text') {
+                        sourceType = `<span class="badge bg-info ms-2">${message.source_type}</span>`;
+                    }
+                    
+                    messageDiv.innerHTML = `
+                        <div class="message-header">
+                            <strong>${message.role.charAt(0).toUpperCase() + message.role.slice(1)}</strong>
+                            <span class="message-timestamp">${timestamp} ${sourceType} ${emotion}</span>
+                        </div>
+                        <div class="message-content">${message.content}</div>
+                    `;
+                    
+                    conversationsList.appendChild(messageDiv);
+                });
+                
+                // Set the last message ID for pagination
+                if (data.data.length > 0) {
+                    document.getElementById('loadMoreBtn').dataset.lastId = data.data[data.data.length - 1].id;
+                }
+            } else {
+                console.error('Error loading messages:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Failed to load messages:', error);
+        });
+}
+
+// Load more messages (pagination)
+function loadMoreMessages() {
+    const lastId = document.getElementById('loadMoreBtn').dataset.lastId;
+    if (lastId) {
+        loadRecentMessages(lastId);
+    }
+}
+
+// Load topics of interest
+function loadTopics() {
+    fetch('/api/memory/topics')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const topicsContainer = document.getElementById('topicsContainer');
+                topicsContainer.innerHTML = '';
+                
+                if (data.data.length === 0) {
+                    topicsContainer.innerHTML = `
+                        <div class="text-center text-muted p-4">
+                            <i class="bi bi-tags" style="font-size: 2rem;"></i>
+                            <p class="mt-2">No topics of interest yet</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Sort topics based on selected option
+                const sortOption = document.getElementById('topicSortOption').value;
+                if (sortOption === 'interest') {
+                    data.data.sort((a, b) => b.interest_level - a.interest_level);
+                } else if (sortOption === 'recent') {
+                    data.data.sort((a, b) => new Date(b.last_discussed) - new Date(a.last_discussed));
+                } else if (sortOption === 'name') {
+                    data.data.sort((a, b) => a.topic_name.localeCompare(b.topic_name));
+                }
+                
+                // Create grid for topics
+                const row = document.createElement('div');
+                row.className = 'row g-3';
+                
+                data.data.forEach(topic => {
+                    const lastDiscussed = topic.last_discussed ? new Date(topic.last_discussed).toLocaleDateString() : 'Never';
+                    
+                    const col = document.createElement('div');
+                    col.className = 'col-md-6 col-lg-4';
+                    
+                    col.innerHTML = `
+                        <div class="card topic-card h-100 shadow-sm" data-id="${topic.id}">
+                            <div class="card-body">
+                                <h6 class="card-title">${topic.topic_name}</h6>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <small>Interest:</small>
+                                    <div class="badge bg-primary">${topic.interest_level}/10</div>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <small>Discussions:</small>
+                                    <div>${topic.engagement_count}</div>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <small>Last Discussed:</small>
+                                    <div>${lastDiscussed}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    row.appendChild(col);
+                });
+                
+                topicsContainer.appendChild(row);
+            } else {
+                console.error('Error loading topics:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Failed to load topics:', error);
+        });
+}
+
+// Load entity memories
+function loadEntities() {
+    const entityType = document.getElementById('entityTypeFilter').value;
+    let url = '/api/memory/entities';
+    if (entityType !== 'all') {
+        url += `?type=${entityType}`;
+    }
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const entitiesContainer = document.getElementById('entitiesContainer');
+                entitiesContainer.innerHTML = '';
+                
+                if (data.data.length === 0) {
+                    entitiesContainer.innerHTML = `
+                        <div class="text-center text-muted p-4">
+                            <i class="bi bi-person-lines-fill" style="font-size: 2rem;"></i>
+                            <p class="mt-2">No entities remembered yet</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Sort entities by importance and mention count
+                data.data.sort((a, b) => {
+                    if (b.importance === a.importance) {
+                        return b.mention_count - a.mention_count;
+                    }
+                    return b.importance - a.importance;
+                });
+                
+                data.data.forEach(entity => {
+                    const lastMentioned = entity.last_mentioned ? new Date(entity.last_mentioned).toLocaleDateString() : 'Never';
+                    
+                    const entityDiv = document.createElement('div');
+                    entityDiv.className = `card entity-card entity-${entity.entity_type} mb-2 shadow-sm`;
+                    entityDiv.dataset.id = entity.id;
+                    
+                    let attributesHtml = '';
+                    if (entity.attributes && Object.keys(entity.attributes).length > 0) {
+                        attributesHtml = '<ul class="list-unstyled mb-0 small">';
+                        for (const [key, value] of Object.entries(entity.attributes)) {
+                            attributesHtml += `<li><strong>${key}:</strong> ${value}</li>`;
+                        }
+                        attributesHtml += '</ul>';
+                    }
+                    
+                    entityDiv.innerHTML = `
+                        <div class="card-body py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">${entity.entity_name}</h6>
+                                <span class="badge bg-secondary">${entity.entity_type}</span>
+                            </div>
+                            <div class="d-flex justify-content-between small mt-1">
+                                <span>Importance: ${entity.importance}/10</span>
+                                <span>Mentions: ${entity.mention_count}</span>
+                            </div>
+                            ${attributesHtml}
+                        </div>
+                    `;
+                    
+                    entitiesContainer.appendChild(entityDiv);
+                });
+            } else {
+                console.error('Error loading entities:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Failed to load entities:', error);
+        });
+}
+
+// Add a new topic
+function addNewTopic(event) {
+    event.preventDefault();
+    
+    const topicInput = document.getElementById('newTopicName');
+    const topicName = topicInput.value.trim();
+    
+    if (!topicName) {
+        return;
+    }
+    
+    fetch('/api/memory/topics', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            topic_name: topicName,
+            interest_delta: 2  // Start with slightly higher interest
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Clear input and reload topics
+            topicInput.value = '';
+            loadTopics();
+            loadMemorySummary();  // Refresh summary too
+        } else {
+            console.error('Error adding topic:', data.message);
+            alert('Failed to add topic: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Failed to add topic:', error);
+        alert('Failed to add topic: ' + error.message);
+    });
+}
+
+// Add a new entity
+function addNewEntity() {
+    const entityName = document.getElementById('entityName').value.trim();
+    const entityType = document.getElementById('entityType').value;
+    const importance = parseInt(document.getElementById('entityImportance').value, 10);
+    let attributes = {};
+    
+    try {
+        const attributesText = document.getElementById('entityAttributes').value.trim();
+        if (attributesText) {
+            attributes = JSON.parse(attributesText);
+        }
+    } catch (e) {
+        alert('Invalid JSON for attributes. Please check the format.');
+        return;
+    }
+    
+    if (!entityName) {
+        alert('Entity name is required');
+        return;
+    }
+    
+    fetch('/api/memory/entities', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            entity_name: entityName,
+            entity_type: entityType,
+            importance: importance,
+            attributes: attributes
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Close modal and reload entities
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addEntityModal'));
+            modal.hide();
+            
+            // Clear form
+            document.getElementById('entityName').value = '';
+            document.getElementById('entityType').value = 'person';
+            document.getElementById('entityImportance').value = '5';
+            document.getElementById('entityAttributes').value = '';
+            
+            // Reload data
+            loadEntities();
+            loadMemorySummary();  // Refresh summary too
+        } else {
+            console.error('Error adding entity:', data.message);
+            alert('Failed to add entity: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Failed to add entity:', error);
+        alert('Failed to add entity: ' + error.message);
+    });
+}
+
+// Update memory quality indicator
+function updateMemoryQualityIndicator(quality) {
+    const qualityBar = document.getElementById('memoryQualityBar');
+    
+    // Reset classes
+    qualityBar.classList.remove('bg-danger', 'bg-warning', 'bg-info', 'bg-success', 'bg-primary');
+    
+    // Set quality based on level
+    switch (quality) {
+        case 'minimal':
+            qualityBar.style.width = '10%';
+            qualityBar.classList.add('bg-danger');
+            qualityBar.textContent = 'Minimal';
+            break;
+        case 'basic':
+            qualityBar.style.width = '25%';
+            qualityBar.classList.add('bg-warning');
+            qualityBar.textContent = 'Basic';
+            break;
+        case 'good':
+            qualityBar.style.width = '50%';
+            qualityBar.classList.add('bg-info');
+            qualityBar.textContent = 'Good';
+            break;
+        case 'comprehensive':
+            qualityBar.style.width = '75%';
+            qualityBar.classList.add('bg-success');
+            qualityBar.textContent = 'Comprehensive';
+            break;
+        case 'exceptional':
+            qualityBar.style.width = '100%';
+            qualityBar.classList.add('bg-primary');
+            qualityBar.textContent = 'Exceptional';
+            break;
+        default:
+            qualityBar.style.width = '25%';
+            qualityBar.classList.add('bg-warning');
+            qualityBar.textContent = 'Basic';
+    }
+}
+</script>
+{% endblock %}
