@@ -36,16 +36,16 @@ def create_default_admin(app: Flask, db):
                 logger.info("No users found. Creating default admin user...")
                 
                 # Create default admin user
-                admin_user = User(
-                    id=str(uuid.uuid4()),
-                    email='admin@example.com',
-                    first_name='Admin',
-                    last_name='User',
-                    is_admin=True,
-                    account_active=True,
-                    created_at=datetime.utcnow(),
-                    email_verified=True
-                )
+                admin_user = User()
+                admin_user.id = str(uuid.uuid4())
+                admin_user.email = 'admin@example.com'
+                admin_user.first_name = 'Admin'
+                admin_user.last_name = 'User'
+                admin_user.is_admin = True
+                admin_user.account_active = True
+                admin_user.created_at = datetime.utcnow()
+                admin_user.email_verified = True
+                admin_user.username = 'admin'
                 
                 # Set password to 'admin123'
                 admin_user.set_password('admin123')
@@ -55,13 +55,12 @@ def create_default_admin(app: Flask, db):
                 db.session.commit()
                 
                 # Create default settings for admin user
-                admin_settings = UserSettings(
-                    user_id=admin_user.id,
-                    theme='light',
-                    ai_name='NOUS',
-                    ai_personality='helpful',
-                    preferred_language='en'
-                )
+                admin_settings = UserSettings()
+                admin_settings.user_id = admin_user.id
+                admin_settings.theme = 'light'
+                admin_settings.ai_name = 'NOUS'
+                admin_settings.ai_personality = 'helpful'
+                admin_settings.preferred_language = 'en'
                 
                 # Add settings to database
                 db.session.add(admin_settings)
