@@ -1,136 +1,96 @@
 """
-NOUS Personal Assistant - Public Deployment Version
-This file provides a version of the application that can be publicly accessed without login.
+NOUS Personal Assistant - Public Web Application
+
+This is the main entry point for the deployed public version of the NOUS
+personal assistant application, optimized for Replit deployment.
 """
 
 import os
-from flask import Flask, jsonify, render_template_string
+import logging
+from flask import Flask, render_template, jsonify, request, redirect, url_for
 
-# Create a Flask application configured for public access
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Create the Flask application
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "temporary-secret-key")
+app.secret_key = os.environ.get("SESSION_SECRET", os.urandom(24).hex())
 
-# Basic HTML template with improved styling
-HOMEPAGE_TEMPLATE = """
-<!DOCTYPE html>
-<html>
-<head>
-    <title>NOUS Personal Assistant</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f7fa;
-        }
-        .container {
-            background-color: white;
-            border-radius: 12px;
-            padding: 40px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            color: #6f42c1;
-            margin-top: 0;
-        }
-        .status {
-            background-color: #e9f7ef;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-            border-left: 5px solid #27ae60;
-        }
-        .feature-list {
-            margin-top: 30px;
-        }
-        .feature-list h2 {
-            color: #5a32a3;
-            font-size: 1.3em;
-        }
-        .feature-list ul {
-            padding-left: 20px;
-        }
-        .feature-list li {
-            margin-bottom: 8px;
-        }
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            color: #666;
-            font-size: 0.9em;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>NOUS Personal Assistant</h1>
-        <p>Your advanced AI-powered personal assistant application is up and running.</p>
-        
-        <div class="status">
-            <strong>Status:</strong> Online
-            <br>
-            <strong>Deployment:</strong> Public Access Enabled
-        </div>
-        
-        <div class="feature-list">
-            <h2>System Features</h2>
-            <ul>
-                <li>AI-powered personal assistance</li>
-                <li>Multi-modal interactions</li>
-                <li>Robust deployment and monitoring</li>
-                <li>Automated health checks</li>
-                <li>Intelligent error recovery</li>
-            </ul>
-        </div>
-        
-        <footer>
-            NOUS Personal Assistant - Deployed on Replit - {{ current_date }}
-        </footer>
-    </div>
-</body>
-</html>
-"""
-
+# Routes
 @app.route('/')
 def index():
-    """Render the homepage with status information"""
-    from datetime import datetime
-    current_date = datetime.now().strftime('%B %d, %Y')
-    
-    # Render template with the current date
-    return render_template_string(HOMEPAGE_TEMPLATE, current_date=current_date)
+    """Homepage with welcome message and features"""
+    try:
+        return render_template('index.html')
+    except Exception as e:
+        logger.error(f"Error rendering index template: {str(e)}")
+        return jsonify({
+            "status": "online",
+            "message": "Welcome to NOUS Personal Assistant",
+            "info": "The application is running correctly"
+        })
 
 @app.route('/health')
 def health():
-    """Health check endpoint for monitoring"""
+    """Health check endpoint"""
+    import platform
+    import datetime
+    
     return jsonify({
-        "status": "online",
-        "version": "public-1.0",
+        "status": "healthy",
+        "version": "1.0.0",
+        "timestamp": datetime.datetime.now().isoformat(),
         "environment": os.environ.get("FLASK_ENV", "production"),
-        "database": "configured" if os.environ.get("DATABASE_URL") else "not configured"
+        "platform": platform.platform()
     })
 
-@app.route('/api/status')
-def api_status():
-    """Simple API endpoint for testing connectivity"""
+@app.route('/api/info')
+def api_info():
+    """API information"""
     return jsonify({
-        "service": "NOUS Personal Assistant",
-        "status": "operational",
-        "timestamp": __import__('datetime').datetime.now().isoformat()
+        "name": "NOUS Personal Assistant API",
+        "version": "1.0.0",
+        "description": "Advanced AI-powered personal assistant web application",
+        "endpoints": [
+            {"path": "/", "description": "Homepage"},
+            {"path": "/health", "description": "Health check endpoint"},
+            {"path": "/api/info", "description": "API information"}
+        ]
     })
 
-if __name__ == '__main__':
-    # Get the port from environment variable with fallback to 8080
+# Error handlers
+@app.errorhandler(404)
+def page_not_found(e):
+    """Handle 404 errors"""
+    if request.path.startswith('/api/'):
+        return jsonify({"error": "Resource not found", "status": 404}), 404
+    try:
+        return render_template('errors/404.html'), 404
+    except:
+        return jsonify({"error": "Page not found"}), 404
+
+@app.errorhandler(500)
+def server_error(e):
+    """Handle 500 errors"""
+    logger.error(f"Server error: {str(e)}")
+    if request.path.startswith('/api/'):
+        return jsonify({"error": "Internal server error", "status": 500}), 500
+    try:
+        return render_template('errors/500.html'), 500
+    except:
+        return jsonify({"error": "Internal server error"}), 500
+
+if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
+    debug = os.environ.get("FLASK_ENV", "production") == "development"
     
     # Log startup information
-    print(f"Starting NOUS Public Server on port {port}")
-    print(f"Application will be available at: http://localhost:{port}/")
+    logger.info(f"Starting NOUS Personal Assistant on port {port}")
+    logger.info(f"Debug mode: {debug}")
     
-    # Run the app on the specified port, binding to all interfaces for public access
-    app.run(host='0.0.0.0', port=port)
+    # Start the application
+    app.run(host="0.0.0.0", port=port, debug=debug)
