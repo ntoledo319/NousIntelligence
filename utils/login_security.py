@@ -1,197 +1,516 @@
 """
-Login Security Utilities
+Login Security Module
 
-This module provides security functions for the login system, including:
-- Failed login attempt tracking
-- Account lockout protection
-- Login rate limiting
-- Security event logging
+This module provides enhanced security features for login functionality.
+It includes brute force protection, account lockout, and IP-based security controls.
 
-@module login_security
-@description Login security utilities
+@module utils.login_security
+@description Enhanced login security utilities
 """
 
 import logging
 import time
+import json
+import re
+import secrets
 from datetime import datetime, timedelta
-from flask import request, session, current_app, g
-from models.system_models import SystemSettings
-from models.user_models import User
-from models.security_models import SecurityLog, LoginAttempt
-from app_factory import db
+from flask import session, request, current_app, g
+from functools import wraps
+import ipaddress
+from werkzeug.security import generate_password_hash, check_password_hash
 
+# Configure logging
 logger = logging.getLogger(__name__)
 
-# In-memory cache to store failed login attempts
-# Format: {email: {'attempts': count, 'last_attempt': timestamp, 'locked_until': timestamp}}
-_failed_attempts = {}
+# In-memory storage for rate limiting and lockouts
+# In production this would use Redis or a database
+_rate_limit_store = {}
+_lockout_store = {}
+_suspicious_ips = {}
 
-def track_login_attempt(email, success):
+def track_login_attempt(user_id, email, success, ip_address=None, user_agent=None):
     """
-    Track login attempts and implement account lockout after multiple failures
+    Track login attempt for security monitoring and brute force protection
     
     Args:
-        email: User's email address
-        success: Whether the login attempt was successful
+        user_id: User ID (can be None for failed attempts with non-existent users)
+        email: Email used in the login attempt
+        success: Whether the login was successful
+        ip_address: IP address of the request (optional)
+        user_agent: User agent of the request (optional)
         
     Returns:
-        tuple: (is_allowed, lockout_minutes) - whether login is allowed and minutes until unlock
+        bool: True if account is now locked, False otherwise
     """
-    # Get max login attempts and lockout duration from system settings
-    max_attempts = 5  # Default value
-    lockout_minutes = 15  # Default value
+    # Get client information
+    ip = ip_address or request.remote_addr
+    ua = user_agent or (request.user_agent.string if request.user_agent else "Unknown")
     
-    # Try to get settings from database
-    try:
-        setting = SystemSettings.query.filter_by(key='max_login_attempts').first()
-        if setting and setting.value:
-            max_attempts = int(setting.value)
-            
-        setting = SystemSettings.query.filter_by(key='account_lockout_duration').first()
-        if setting and setting.value:
-            lockout_minutes = int(setting.value)
-    except Exception as e:
-        logger.warning(f"Failed to get login security settings: {str(e)}")
+    # Create entry in memory store
+    timestamp = datetime.utcnow()
     
-    # Record login attempt in database
-    try:
-        login_attempt = LoginAttempt()
-        login_attempt.email = email
-        login_attempt.success = success
-        login_attempt.ip_address = request.remote_addr
-        login_attempt.user_agent = request.user_agent.string if request.user_agent else None
-        db.session.add(login_attempt)
-        db.session.commit()
-    except Exception as e:
-        logger.error(f"Failed to record login attempt: {str(e)}")
-        db.session.rollback()
+    # Track by user email
+    if email:
+        if email not in _rate_limit_store:
+            _rate_limit_store[email] = {
+                'attempts': [],
+                'last_success': None,
+                'failed_count': 0
+            }
+        
+        # Add attempt
+        _rate_limit_store[email]['attempts'].append({
+            'timestamp': timestamp,
+            'ip': ip,
+            'user_agent': ua,
+            'success': success
+        })
+        
+        # Update counters
+        if success:
+            _rate_limit_store[email]['last_success'] = timestamp
+            _rate_limit_store[email]['failed_count'] = 0
+        else:
+            _rate_limit_store[email]['failed_count'] += 1
     
-    # Reset attempts on successful login
-    if success:
-        if email in _failed_attempts:
-            del _failed_attempts[email]
-        return True, 0
+    # Track by IP address
+    if ip:
+        if ip not in _rate_limit_store:
+            _rate_limit_store[ip] = {
+                'attempts': [],
+                'unique_accounts': set(),
+                'failed_count': 0
+            }
+        
+        # Add attempt
+        _rate_limit_store[ip]['attempts'].append({
+            'timestamp': timestamp,
+            'email': email,
+            'success': success
+        })
+        
+        # Update counters
+        if email:
+            _rate_limit_store[ip]['unique_accounts'].add(email)
+        
+        if not success:
+            _rate_limit_store[ip]['failed_count'] += 1
     
-    # Initialize entry if not present
-    if email not in _failed_attempts:
-        _failed_attempts[email] = {
-            'attempts': 1,
-            'last_attempt': time.time(),
-            'locked_until': None
-        }
-        return True, 0
+    # Check for account lockout conditions
+    if email and _rate_limit_store[email]['failed_count'] >= 5:
+        lock_account(email, ip, 'Too many failed login attempts')
+        return True
     
-    # Check if account is locked
-    entry = _failed_attempts[email]
-    current_time = time.time()
+    # Check for IP-based throttling
+    if ip and _rate_limit_store[ip]['failed_count'] >= 10:
+        throttle_ip(ip, reason='High rate of failed login attempts')
     
-    if entry['locked_until'] and current_time < entry['locked_until']:
-        # Account is locked, calculate remaining time
-        remaining_seconds = entry['locked_until'] - current_time
-        remaining_minutes = int(remaining_seconds / 60) + 1  # Round up
-        logger.warning(f"Login attempt for locked account: {email}")
-        return False, remaining_minutes
+    # Check for suspicious behavior (multiple accounts from same IP)
+    if ip and len(_rate_limit_store[ip]['unique_accounts']) > 5:
+        flag_suspicious_ip(ip, 'Multiple account access attempts')
     
-    # Account was locked but lockout expired
-    if entry['locked_until'] and current_time >= entry['locked_until']:
-        # Reset after lockout period
-        entry['attempts'] = 1
-        entry['last_attempt'] = current_time
-        entry['locked_until'] = None
-        return True, 0
-    
-    # Increment failed attempts
-    entry['attempts'] += 1
-    entry['last_attempt'] = current_time
-    
-    # Check if account should be locked
-    if entry['attempts'] >= max_attempts:
-        # Lock account for specified duration
-        lockout_seconds = lockout_minutes * 60
-        entry['locked_until'] = current_time + lockout_seconds
-        logger.warning(f"Account locked due to {entry['attempts']} failed login attempts: {email}")
-        return False, lockout_minutes
-    
-    # Login still allowed
-    return True, 0
+    return False
 
-def log_security_event(event_type, user_id=None, details=None):
+def lock_account(email, ip_address=None, reason='Security policy'):
     """
-    Log security-related events for auditing
+    Lock an account for security reasons
     
     Args:
-        event_type: Type of security event (login, logout, etc.)
-        user_id: ID of the user (if applicable)
-        details: Additional event details
+        email: Email of the account to lock
+        ip_address: IP address that triggered the lockout (optional)
+        reason: Reason for the lockout (optional)
+        
+    Returns:
+        tuple: (bool, str) - (success, message)
     """
-    try:
-        # Create log entry
-        log_entry = SecurityLog()
-        log_entry.event_type = event_type
-        log_entry.user_id = user_id
-        log_entry.ip_address = request.remote_addr
-        log_entry.user_agent = request.user_agent.string if request.user_agent else None
-        log_entry.details = details
-        db.session.add(log_entry)
-        db.session.commit()
-        logger.info(f"Security event logged: {event_type} for user {user_id}")
-    except Exception as e:
-        logger.error(f"Failed to log security event: {str(e)}")
-        db.session.rollback()
+    # Log the event
+    logger.warning(f"Account locked: {email} from IP {ip_address} - Reason: {reason}")
+    
+    # Set lockout in memory store
+    _lockout_store[email] = {
+        'locked_at': datetime.utcnow(),
+        'reason': reason,
+        'ip': ip_address,
+        'unlock_at': datetime.utcnow() + timedelta(hours=1),
+        'unlock_code': secrets.token_urlsafe(16)
+    }
+    
+    # In a real implementation, this would update a user record in the database
+    return True, "Account locked for security reasons"
 
-def is_secure_password(password):
+def is_account_locked(email):
     """
-    Check if a password meets security requirements
+    Check if an account is currently locked
+    
+    Args:
+        email: Email of the account to check
+        
+    Returns:
+        tuple: (bool, dict) - (is_locked, lockout_info)
+    """
+    if email not in _lockout_store:
+        return False, None
+    
+    lockout = _lockout_store[email]
+    
+    # Check if lockout has expired
+    if lockout['unlock_at'] <= datetime.utcnow():
+        # Auto-unlock expired lockouts
+        del _lockout_store[email]
+        return False, None
+    
+    return True, lockout
+
+def unlock_account(email, unlock_code=None):
+    """
+    Unlock a locked account
+    
+    Args:
+        email: Email of the account to unlock
+        unlock_code: Unlock code (required for self-service unlock)
+        
+    Returns:
+        tuple: (bool, str) - (success, message)
+    """
+    if email not in _lockout_store:
+        return False, "Account is not locked"
+    
+    # If unlock code provided, verify it
+    if unlock_code:
+        if unlock_code != _lockout_store[email]['unlock_code']:
+            logger.warning(f"Failed unlock attempt with invalid code for {email}")
+            return False, "Invalid unlock code"
+    
+    # Unlock the account
+    del _lockout_store[email]
+    
+    # Clear failed attempts
+    if email in _rate_limit_store:
+        _rate_limit_store[email]['failed_count'] = 0
+    
+    logger.info(f"Account unlocked: {email}")
+    return True, "Account unlocked successfully"
+
+def throttle_ip(ip_address, duration_minutes=15, reason=None):
+    """
+    Throttle requests from an IP address
+    
+    Args:
+        ip_address: IP address to throttle
+        duration_minutes: Duration of throttling in minutes (optional)
+        reason: Reason for throttling (optional)
+        
+    Returns:
+        bool: True if throttling was applied
+    """
+    if not ip_address:
+        return False
+    
+    _suspicious_ips[ip_address] = {
+        'flagged_at': datetime.utcnow(),
+        'expires_at': datetime.utcnow() + timedelta(minutes=duration_minutes),
+        'reason': reason or 'Security policy',
+        'throttle_level': 'medium'
+    }
+    
+    logger.warning(f"IP throttled: {ip_address} - Reason: {reason or 'Security policy'}")
+    return True
+
+def flag_suspicious_ip(ip_address, reason=None):
+    """
+    Flag an IP address as suspicious
+    
+    Args:
+        ip_address: IP address to flag
+        reason: Reason for flagging (optional)
+        
+    Returns:
+        bool: True if IP was flagged
+    """
+    if not ip_address:
+        return False
+    
+    _suspicious_ips[ip_address] = {
+        'flagged_at': datetime.utcnow(),
+        'expires_at': datetime.utcnow() + timedelta(hours=24),
+        'reason': reason or 'Suspicious activity',
+        'throttle_level': 'low'
+    }
+    
+    logger.warning(f"IP flagged as suspicious: {ip_address} - Reason: {reason or 'Suspicious activity'}")
+    return True
+
+def block_ip(ip_address, duration_hours=24, reason=None):
+    """
+    Block an IP address completely
+    
+    Args:
+        ip_address: IP address to block
+        duration_hours: Duration of block in hours (optional)
+        reason: Reason for blocking (optional)
+        
+    Returns:
+        bool: True if IP was blocked
+    """
+    if not ip_address:
+        return False
+    
+    _suspicious_ips[ip_address] = {
+        'flagged_at': datetime.utcnow(),
+        'expires_at': datetime.utcnow() + timedelta(hours=duration_hours),
+        'reason': reason or 'Security threat',
+        'throttle_level': 'high'
+    }
+    
+    logger.warning(f"IP blocked: {ip_address} - Reason: {reason or 'Security threat'}")
+    return True
+
+def is_ip_restricted(ip_address):
+    """
+    Check if an IP address is restricted
+    
+    Args:
+        ip_address: IP address to check
+        
+    Returns:
+        tuple: (bool, str, str) - (is_restricted, level, reason)
+    """
+    if not ip_address or ip_address not in _suspicious_ips:
+        return False, None, None
+    
+    data = _suspicious_ips[ip_address]
+    
+    # Check if restriction has expired
+    if data['expires_at'] <= datetime.utcnow():
+        # Auto-remove expired restrictions
+        del _suspicious_ips[ip_address]
+        return False, None, None
+    
+    return True, data['throttle_level'], data['reason']
+
+def get_client_security_info():
+    """
+    Get security-related information about the client
+    
+    Returns:
+        dict: Dictionary with client security information
+    """
+    ip = request.remote_addr
+    
+    info = {
+        'ip_address': ip,
+        'user_agent': request.user_agent.string if request.user_agent else 'Unknown',
+        'is_tor': is_tor_exit_node(ip),
+        'is_proxy': is_known_proxy(ip),
+        'is_vpn': is_known_vpn(ip),
+        'country': get_country_from_ip(ip) if ip else None,
+        'risk_score': calculate_request_risk_score(ip)
+    }
+    
+    # Add restriction info if any
+    restricted, level, reason = is_ip_restricted(ip)
+    if restricted:
+        info['restricted'] = True
+        info['restriction_level'] = level
+        info['restriction_reason'] = reason
+    
+    return info
+
+def is_request_suspicious():
+    """
+    Check if the current request has suspicious characteristics
+    
+    Returns:
+        tuple: (bool, str) - (is_suspicious, reason)
+    """
+    # Check for missing or suspicious headers
+    has_user_agent = bool(request.user_agent)
+    has_referer = 'Referer' in request.headers
+    
+    if not has_user_agent:
+        return True, "Missing User-Agent header"
+    
+    # Check if IP is restricted
+    ip = request.remote_addr
+    restricted, level, reason = is_ip_restricted(ip)
+    if restricted and level in ['medium', 'high']:
+        return True, f"IP restriction: {reason}"
+    
+    # Check for abnormal request characteristics
+    if is_tor_exit_node(ip) or is_known_proxy(ip) or is_known_vpn(ip):
+        return True, "Request from anonymizing network"
+    
+    # Calculate overall risk score
+    risk_score = calculate_request_risk_score(ip)
+    if risk_score >= 70:
+        return True, f"High risk score: {risk_score}/100"
+    
+    return False, None
+
+def calculate_request_risk_score(ip_address):
+    """
+    Calculate a risk score for a request
+    
+    Args:
+        ip_address: IP address of the request
+        
+    Returns:
+        int: Risk score (0-100)
+    """
+    score = 0
+    
+    # Check IP reputation
+    if ip_address in _suspicious_ips:
+        level = _suspicious_ips[ip_address]['throttle_level']
+        if level == 'low':
+            score += 20
+        elif level == 'medium':
+            score += 40
+        elif level == 'high':
+            score += 60
+    
+    # Check for anonymizing networks
+    if is_tor_exit_node(ip_address):
+        score += 30
+    
+    if is_known_proxy(ip_address) or is_known_vpn(ip_address):
+        score += 20
+    
+    # Check for high rate of failed attempts
+    if ip_address in _rate_limit_store:
+        failed_count = _rate_limit_store[ip_address].get('failed_count', 0)
+        unique_accounts = len(_rate_limit_store[ip_address].get('unique_accounts', set()))
+        
+        if failed_count > 20:
+            score += 30
+        elif failed_count > 10:
+            score += 20
+        elif failed_count > 5:
+            score += 10
+        
+        # Multiple account access attempts
+        if unique_accounts > 10:
+            score += 30
+        elif unique_accounts > 5:
+            score += 20
+        elif unique_accounts > 3:
+            score += 10
+    
+    # Cap the score at 100
+    return min(score, 100)
+
+def is_tor_exit_node(ip_address):
+    """Simplified check if IP is a Tor exit node (replace with real data in production)"""
+    # In a real implementation, this would use a database of Tor exit nodes
+    return False
+
+def is_known_proxy(ip_address):
+    """Simplified check if IP is a known proxy (replace with real data in production)"""
+    # In a real implementation, this would use a database of proxy IPs
+    return False
+
+def is_known_vpn(ip_address):
+    """Simplified check if IP is a known VPN (replace with real data in production)"""
+    # In a real implementation, this would use a database of VPN IPs
+    return False
+
+def get_country_from_ip(ip_address):
+    """Simplified country detection (replace with real geolocation in production)"""
+    # In a real implementation, this would use a geolocation database
+    return "Unknown"
+
+def require_secure_login(f):
+    """
+    Decorator to apply enhanced security checks on login routes
+    
+    Args:
+        f: View function to decorate
+        
+    Returns:
+        function: Decorated function
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Apply rate limiting
+        ip = request.remote_addr
+        
+        # Check if IP is blocked
+        restricted, level, reason = is_ip_restricted(ip)
+        if restricted and level == 'high':
+            logger.warning(f"Blocked login attempt from restricted IP: {ip} - {reason}")
+            return "Access denied due to security restrictions", 403
+        
+        # Check for suspicious request characteristics
+        suspicious, reason = is_request_suspicious()
+        if suspicious:
+            logger.warning(f"Suspicious login attempt blocked: {ip} - {reason}")
+            return "Access denied due to security restrictions", 403
+        
+        # If IP is throttled, add a delay
+        if restricted and level == 'medium':
+            time.sleep(2)  # Add delay to throttle brute force attempts
+        
+        # Proceed with the login
+        return f(*args, **kwargs)
+    
+    return decorated_function
+
+def is_password_strong(password):
+    """
+    Check if a password meets strong password requirements
     
     Args:
         password: Password to check
         
     Returns:
-        tuple: (is_secure, reason) - whether password is secure and reason if not
+        tuple: (bool, str) - (is_valid, error_message)
     """
-    # Get minimum length from system settings
-    min_length = 12  # Default value
+    if len(password) < 12:
+        return False, "Password must be at least 12 characters long."
     
-    try:
-        setting = SystemSettings.query.filter_by(key='password_min_length').first()
-        if setting and setting.value:
-            min_length = int(setting.value)
-    except Exception as e:
-        logger.warning(f"Failed to get password settings: {str(e)}")
+    checks = [
+        (re.search(r'[A-Z]', password), "Password must contain at least one uppercase letter."),
+        (re.search(r'[a-z]', password), "Password must contain at least one lowercase letter."),
+        (re.search(r'[0-9]', password), "Password must contain at least one number."),
+        (re.search(r'[^A-Za-z0-9]', password), "Password must contain at least one special character.")
+    ]
     
-    # Check length
-    if len(password) < min_length:
-        return False, f"Password must be at least {min_length} characters long"
+    for check, message in checks:
+        if not check:
+            return False, message
     
-    # Check complexity
-    has_upper = any(c.isupper() for c in password)
-    has_lower = any(c.islower() for c in password)
-    has_digit = any(c.isdigit() for c in password)
-    has_special = any(not c.isalnum() for c in password)
+    # Check for common passwords
+    common_passwords = [
+        "password", "123456", "qwerty", "admin", "welcome",
+        "letmein", "monkey", "1234", "12345", "football",
+        "iloveyou", "1234567", "123123", "abc123", "111111",
+        "123456789", "trustno1", "princess", "sunshine", "nicole"
+    ]
     
-    if not (has_upper and has_lower and has_digit):
-        return False, "Password must contain uppercase, lowercase, and numeric characters"
+    if any(pwd in password.lower() for pwd in common_passwords):
+        return False, "Password is too common. Please choose a stronger password."
     
-    if not has_special:
-        return False, "Password must contain at least one special character"
-    
-    return True, None
+    return True, ""
 
-def cleanup_expired_sessions():
+def generate_csrf_token():
     """
-    Clean up expired sessions to prevent session fixation attacks
+    Generate a new CSRF token and store it in the session
+    
+    Returns:
+        str: The generated CSRF token
     """
-    try:
-        # Default timeout
-        timeout_minutes = 60
+    if 'csrf_token' not in session:
+        session['csrf_token'] = secrets.token_hex(32)
+    return session['csrf_token']
+
+def validate_csrf_token(token):
+    """
+    Validate a CSRF token against the one stored in the session
+    
+    Args:
+        token: CSRF token to validate
         
-        # Try to get from database
-        setting = SystemSettings.query.filter_by(key='session_timeout').first()
-        if setting and setting.value:
-            timeout_minutes = int(setting.value)
-            
-        # Set timeout for current session
-        session.permanent = True
-        current_app.permanent_session_lifetime = timedelta(minutes=timeout_minutes)
-    except Exception as e:
-        logger.error(f"Failed to configure session timeout: {str(e)}")
+    Returns:
+        bool: True if token is valid, False otherwise
+    """
+    return token and 'csrf_token' in session and session['csrf_token'] == token

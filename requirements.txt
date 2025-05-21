@@ -48,3 +48,5 @@ pygame
 SpeechRecognition
 gTTS
 trafilatura
+pyotp
+qrcode
