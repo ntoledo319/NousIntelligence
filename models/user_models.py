@@ -36,6 +36,13 @@ class User(UserMixin, db.Model):
     failed_login_attempts = db.Column(db.Integer, default=0)
     lockout_until = db.Column(db.DateTime, nullable=True)
     
+    # Security relationships
+    login_attempts = db.relationship('LoginAttempt', backref=db.backref('user', uselist=False), cascade='all, delete-orphan')
+    lockouts = db.relationship('AccountLockout', foreign_keys='AccountLockout.user_id', backref=db.backref('user', uselist=False), cascade='all, delete-orphan')
+    two_factor_auth = db.relationship('TwoFactorAuth', backref=db.backref('user', uselist=False), uselist=False, cascade='all, delete-orphan')
+    auth_tokens = db.relationship('AuthToken', backref=db.backref('user', uselist=False), cascade='all, delete-orphan')
+    security_logs = db.relationship('SecurityAuditLog', backref=db.backref('user', uselist=False), cascade='all, delete-orphan')
+    
     @property
     def is_active(self):
         """Return whether the user is active (required by Flask-Login)"""

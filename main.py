@@ -9,6 +9,7 @@ import os
 import logging
 from flask import redirect, request, url_for
 from app_factory import create_app
+from app_factory import db
 
 logger = logging.getLogger(__name__)
 
