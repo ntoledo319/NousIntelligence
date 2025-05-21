@@ -50,7 +50,7 @@ creds = _load_client_secret()
 # OAuth configuration
 CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID') or creds.get('client_id')
 CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET') or creds.get('client_secret')
-REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI') or creds.get('redirect_uri') or 'https://mynous.replit.app/callback/google'
+REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI') or 'https://48ac8f3f-e8af-4e1d-aadf-382ae2e97292-00-1lz9pq72doghm.worf.replit.dev/callback/google'
 
 # Log configuration status
 if CLIENT_ID and CLIENT_SECRET:
@@ -124,6 +124,7 @@ def callback():
     # Log full request details for debugging
     logger.info(f"Callback request args: {request.args}")
     logger.info(f"Callback headers: {dict(request.headers)}")
+    logger.info(f"Using redirect URI: {REDIRECT_URI}")
     
     # Detect if request is from mobile
     user_agent = request.headers.get('User-Agent', '').lower()
