@@ -50,7 +50,9 @@ creds = _load_client_secret()
 # OAuth configuration
 CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID') or creds.get('client_id')
 CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET') or creds.get('client_secret')
-REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI') or 'https://48ac8f3f-e8af-4e1d-aadf-382ae2e97292-00-1lz9pq72doghm.worf.replit.dev/callback/google'
+# Get the current Replit URI for callback
+REPLIT_URI = f"https://{os.environ.get('REPL_SLUG')}.{os.environ.get('REPL_OWNER')}.repl.co/callback/google"
+REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI') or REPLIT_URI
 
 # Log configuration status
 if CLIENT_ID and CLIENT_SECRET:
