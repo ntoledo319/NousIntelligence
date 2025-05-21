@@ -24,7 +24,7 @@ class LoginAttempt(db.Model):
     __tablename__ = 'login_attempts'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=True)
+    user_id = Column(String(36), ForeignKey('users.id', ondelete='CASCADE'), nullable=True)
     ip_address = Column(String(45), nullable=False, index=True)
     user_agent = Column(String(255), nullable=True)
     email = Column(String(120), nullable=True)
@@ -32,7 +32,7 @@ class LoginAttempt(db.Model):
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
     
     # Relationships
-    user = relationship('User', back_populates='login_attempts')
+    # The User model side defines this relationship
     
     # Indexes for faster queries
     __table_args__ = (
@@ -59,7 +59,7 @@ class AccountLockout(db.Model):
     active = Column(Boolean, default=True, nullable=False, index=True)
     
     # Relationships
-    user = relationship('User', foreign_keys=[user_id], back_populates='lockouts')
+    # User relationship defined in User model
     admin = relationship('User', foreign_keys=[unlocked_by])
     
     # Indexes for faster queries
@@ -95,7 +95,7 @@ class TwoFactorAuth(db.Model):
     __tablename__ = 'two_factor_auth'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False, unique=True)
+    user_id = Column(String(36), ForeignKey('users.id', ondelete='CASCADE'), nullable=False, unique=True)
     secret_key = Column(String(64), nullable=False)
     enabled = Column(Boolean, default=False, nullable=False)
     verified = Column(Boolean, default=False, nullable=False)
@@ -103,7 +103,7 @@ class TwoFactorAuth(db.Model):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
     # Relationships
-    user = relationship('User', back_populates='two_factor_auth')
+    # User relationship is defined on the User model side
     backup_codes = relationship('TwoFactorBackupCode', back_populates='two_factor', cascade='all, delete-orphan')
     
     def __repr__(self):
@@ -115,7 +115,7 @@ class TwoFactorBackupCode(db.Model):
     
     id = Column(Integer, primary_key=True)
     two_factor_id = Column(Integer, ForeignKey('two_factor_auth.id', ondelete='CASCADE'), nullable=False)
-    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    user_id = Column(String(36), ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     code = Column(String(16), nullable=False)
     used = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -138,7 +138,7 @@ class TrustedDevice(db.Model):
     __tablename__ = 'trusted_devices'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    user_id = Column(String(36), ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     device_id = Column(String(64), nullable=False, index=True)
     name = Column(String(128), nullable=True)
     ip_address = Column(String(45), nullable=True)
@@ -183,7 +183,7 @@ class SecurityAuditLog(db.Model):
     __tablename__ = 'security_audit_logs'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    user_id = Column(String(36), ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
     ip_address = Column(String(45), nullable=True)
     event_type = Column(String(64), nullable=False, index=True)
     resource_type = Column(String(64), nullable=True)
@@ -212,7 +212,7 @@ class AuthToken(db.Model):
     __tablename__ = 'auth_tokens'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    user_id = Column(String(36), ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     token_type = Column(String(20), nullable=False)  # 'api', 'access', 'refresh', etc.
     token_value = Column(String(255), nullable=False, unique=True, index=True)
     description = Column(String(255), nullable=True)
