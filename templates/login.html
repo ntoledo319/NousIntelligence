@@ -37,21 +37,48 @@
                         <span class="text-muted">or sign in with email</span>
                     </div>
                     
-                    <form action="{{ url_for('auth.email_login') }}" method="POST" class="mb-3">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <form action="{{ url_for('auth.login') }}" method="POST" class="mb-3">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
                         <div class="mb-3">
                             <label for="email" class="form-label">Email address</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
+                            <input type="email" class="form-control" id="email" name="email" required autocomplete="email">
                         </div>
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
-                            <div class="form-text">For admin access, use your email and the password: nousadmin2025</div>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password" name="password" required autocomplete="current-password">
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword" aria-label="Toggle password visibility">
+                                    <i class="fas fa-eye" id="toggleIcon"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">Secure your account with a strong password</div>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                            <label class="form-check-label" for="remember">Remember me</label>
                         </div>
                         <div class="d-grid">
                             <button type="submit" class="btn btn-success">Sign In</button>
                         </div>
                     </form>
+                    
+                    <script>
+                        // Toggle password visibility
+                        document.getElementById('togglePassword').addEventListener('click', function() {
+                            const passwordInput = document.getElementById('password');
+                            const icon = document.getElementById('toggleIcon');
+                            
+                            if (passwordInput.type === 'password') {
+                                passwordInput.type = 'text';
+                                icon.classList.remove('fa-eye');
+                                icon.classList.add('fa-eye-slash');
+                            } else {
+                                passwordInput.type = 'password';
+                                icon.classList.remove('fa-eye-slash');
+                                icon.classList.add('fa-eye');
+                            }
+                        });
+                    </script>
                     
                     <div class="alert alert-info" role="alert">
                         <small>
