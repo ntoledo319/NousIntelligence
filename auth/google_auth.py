@@ -50,7 +50,7 @@ creds = _load_client_secret()
 # OAuth configuration
 CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID') or creds.get('client_id')
 CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET') or creds.get('client_secret')
-REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI') or creds.get('redirect_uri') or 'https://mynous.replit.app/callback/google'
+REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI') or creds.get('redirect_uri') or 'https://nous.replit.app/callback/google'
 
 # Log configuration status
 if CLIENT_ID and CLIENT_SECRET:
@@ -238,6 +238,11 @@ def callback():
             user.last_name = user_info.get('family_name', '')
             user.google_id = google_id  # Set Google ID for linking
             user.active = True
+            
+            # Make toledonick98@gmail.com the admin
+            if email == 'toledonick98@gmail.com':
+                logger.info("Setting toledonick98@gmail.com as admin")
+                user.is_admin = True
             
             # Add user to database
             db.session.add(user)
