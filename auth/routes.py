@@ -203,7 +203,7 @@ def register():
             return redirect(url_for('auth.register'))
         
         try:
-            # Create new user
+            # Create new user - manually setting properties to avoid constructor issues
             new_user = User()
             new_user.id = str(uuid.uuid4())
             new_user.email = email

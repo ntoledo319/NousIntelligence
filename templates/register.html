@@ -3,14 +3,17 @@
 {% block title %}Register | NOUS{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container mt-4 mt-md-5">
     <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card shadow-sm">
+        <div class="col-sm-10 col-md-8 col-lg-6">
+            <div class="text-center mb-4 d-block d-md-none">
+                <img src="{{ url_for('static', filename='img/IMG_4876.jpeg') }}" alt="NOUS Logo" class="img-fluid mb-3" style="max-width: 80px; border-radius: 10px;">
+            </div>
+            <div class="card shadow">
                 <div class="card-body p-4">
                     <div class="text-center mb-4">
-                        <h2 class="mb-1">Create an Account</h2>
-                        <p class="text-muted">Register to begin using your personal assistant</p>
+                        <h2 class="mb-1">Create Your Account</h2>
+                        <p class="text-muted">Join NOUS and unlock your personal assistant</p>
                     </div>
                     
                     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -24,11 +27,19 @@
                         {% endif %}
                     {% endwith %}
 
-                    <form method="POST" action="{{ url_for('auth.register') }}">
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email address</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
-                        </div>
+                    <div class="d-grid mb-4">
+                        <a href="{{ url_for('google_auth.login') }}" class="btn btn-primary btn-lg d-flex align-items-center justify-content-center">
+                            <i class="fab fa-google me-2"></i> Sign up with Google
+                        </a>
+                    </div>
+                    
+                    <div class="text-center my-3">
+                        <span class="text-muted">or sign up with email</span>
+                    </div>
+                    
+                    <form action="{{ url_for('auth.register') }}" method="POST" class="mb-3" id="registerForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+                        
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="first_name" class="form-label">First Name</label>
@@ -36,38 +47,193 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="last_name" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="last_name" name="last_name">
+                                <input type="text" class="form-control" id="last_name" name="last_name" required>
                             </div>
                         </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" required autocomplete="email">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                            <div class="form-text">Choose a unique username for your account</div>
+                        </div>
+                        
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password" name="password" required autocomplete="new-password">
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword" aria-label="Toggle password visibility">
+                                    <i class="fas fa-eye" id="toggleIcon"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength mt-2">
+                                <div class="progress" style="height: 5px;">
+                                    <div class="progress-bar" id="passwordStrength" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <small class="text-muted" id="passwordFeedback">Password strength</small>
+                            </div>
                         </div>
+                        
                         <div class="mb-3">
                             <label for="confirm_password" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required autocomplete="new-password">
+                            <div id="passwordMatch" class="form-text"></div>
                         </div>
+                        
+                        <div class="mb-4 form-check">
+                            <input type="checkbox" class="form-check-input" id="terms" name="terms" required>
+                            <label class="form-check-label" for="terms">
+                                I agree to the <a href="#" target="_blank">Terms of Service</a> and <a href="#" target="_blank">Privacy Policy</a>
+                            </label>
+                        </div>
+                        
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Create Account</button>
+                            <button type="submit" class="btn btn-success" id="submitBtn">Create Account</button>
                         </div>
                     </form>
                     
-                    <div class="divider d-flex align-items-center my-4">
-                        <p class="text-center mx-3 mb-0 text-muted">OR</p>
-                    </div>
-                    
-                    <div class="d-grid">
-                        <a href="{{ url_for('google_auth.login') }}" class="btn btn-outline-secondary">
-                            <i class="fab fa-google me-2"></i> Sign up with Google
-                        </a>
-                    </div>
-                    
-                    <div class="mt-4 text-center">
-                        <p class="mb-0">Already have an account? <a href="{{ url_for('index.index') }}">Login</a></p>
+                    <div class="text-center mt-3">
+                        <p class="mb-0">Already have an account? <a href="{{ url_for('auth.login') }}" class="text-decoration-none">Sign in</a></p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %} 
+
+<script>
+    // Toggle password visibility
+    document.getElementById('togglePassword').addEventListener('click', function() {
+        const passwordInput = document.getElementById('password');
+        const icon = document.getElementById('toggleIcon');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    });
+    
+    // Check password strength
+    document.getElementById('password').addEventListener('input', function() {
+        const password = this.value;
+        const strength = checkPasswordStrength(password);
+        
+        const strengthBar = document.getElementById('passwordStrength');
+        const feedback = document.getElementById('passwordFeedback');
+        
+        // Update strength meter
+        strengthBar.style.width = strength.score + '%';
+        strengthBar.className = 'progress-bar';
+        strengthBar.classList.add(strength.class);
+        
+        // Update feedback text
+        feedback.textContent = strength.message;
+    });
+    
+    // Check if passwords match
+    document.getElementById('confirm_password').addEventListener('input', function() {
+        const password = document.getElementById('password').value;
+        const confirm = this.value;
+        const matchElement = document.getElementById('passwordMatch');
+        
+        if (confirm.length === 0) {
+            matchElement.textContent = '';
+        } else if (password === confirm) {
+            matchElement.textContent = 'Passwords match!';
+            matchElement.className = 'form-text text-success';
+        } else {
+            matchElement.textContent = 'Passwords do not match';
+            matchElement.className = 'form-text text-danger';
+        }
+    });
+    
+    // Password strength checker
+    function checkPasswordStrength(password) {
+        // Initialize result
+        let result = {
+            score: 0,
+            class: 'bg-danger',
+            message: 'Password is too weak'
+        };
+        
+        if (password.length === 0) {
+            return { score: 0, class: '', message: 'Password strength' };
+        }
+        
+        // Calculate base score
+        let score = 0;
+        
+        // Length check (up to 40%)
+        const lengthScore = Math.min(password.length * 3, 40);
+        score += lengthScore;
+        
+        // Character variety (up to 60%)
+        if (/[A-Z]/.test(password)) score += 10; // Uppercase
+        if (/[a-z]/.test(password)) score += 10; // Lowercase
+        if (/[0-9]/.test(password)) score += 10; // Numbers
+        if (/[^A-Za-z0-9]/.test(password)) score += 15; // Special characters
+        
+        // Bonus for mixing character types (up to 15%)
+        let typesCount = 0;
+        if (/[A-Z]/.test(password)) typesCount++;
+        if (/[a-z]/.test(password)) typesCount++;
+        if (/[0-9]/.test(password)) typesCount++;
+        if (/[^A-Za-z0-9]/.test(password)) typesCount++;
+        score += (typesCount - 1) * 5; // Bonus for each additional type
+        
+        // Set color and message based on score
+        if (score >= 80) {
+            result = {
+                score: score,
+                class: 'bg-success',
+                message: 'Password is strong'
+            };
+        } else if (score >= 60) {
+            result = {
+                score: score,
+                class: 'bg-info',
+                message: 'Password is good'
+            };
+        } else if (score >= 30) {
+            result = {
+                score: score,
+                class: 'bg-warning',
+                message: 'Password is moderate'
+            };
+        }
+        
+        return result;
+    }
+    
+    // Form validation
+    document.getElementById('registerForm').addEventListener('submit', function(event) {
+        const password = document.getElementById('password').value;
+        const confirm = document.getElementById('confirm_password').value;
+        
+        if (password !== confirm) {
+            event.preventDefault();
+            alert('Passwords do not match. Please try again.');
+            return false;
+        }
+        
+        const strength = checkPasswordStrength(password);
+        if (strength.score < 60) {
+            if (!confirm('Your password is weak. This may put your account at risk. Continue anyway?')) {
+                event.preventDefault();
+                return false;
+            }
+        }
+        
+        return true;
+    });
+</script>
+{% endblock %}

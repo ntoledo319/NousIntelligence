@@ -73,23 +73,31 @@ def apply_security_middleware(app: Flask):
     Args:
         app: Flask application instance
     """
-    @app.before_request
-    def security_requirements():
-        """Apply security requirements on each request"""
-        try:
-            # Import here to avoid circular import issues
-            from utils.settings import get_setting
-            
-            # HTTPS requirement
-            require_https = get_setting('require_https', True)
-            if require_https and not request.is_secure and not app.debug:
-                # Check if we're behind a proxy that handles HTTPS
-                proto = request.headers.get('X-Forwarded-Proto')
-                if proto and proto == 'http' and request.url.startswith('http://'):
-                    url = request.url.replace('http://', 'https://', 1)
-                    return redirect(url, code=301)
-        except Exception as e:
-            logger.error(f"Error in security middleware: {str(e)}")
+    try:
+        # Use our enhanced security middleware
+        from utils.security_middleware import setup_security_middleware
+        setup_security_middleware(app)
+        logger.info("Enhanced security middleware applied")
+    except ImportError:
+        logger.warning("Enhanced security middleware not available, falling back to basic security")
+        
+        @app.before_request
+        def security_requirements():
+            """Apply security requirements on each request"""
+            try:
+                # Import here to avoid circular import issues
+                from utils.settings import get_setting
+                
+                # HTTPS requirement
+                require_https = get_setting('require_https', True)
+                if require_https and not request.is_secure and not app.debug:
+                    # Check if we're behind a proxy that handles HTTPS
+                    proto = request.headers.get('X-Forwarded-Proto')
+                    if proto and proto == 'http' and request.url.startswith('http://'):
+                        url = request.url.replace('http://', 'https://', 1)
+                        return redirect(url, code=301)
+            except Exception as e:
+                logger.error(f"Error in security middleware: {str(e)}")
 
 def register_middleware(app: Flask):
     """Register all middleware with the Flask application
