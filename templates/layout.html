@@ -838,7 +838,7 @@
     });
     </script>
     
-    <!-- Mobile Viewport Height Fix -->
+    <!-- Mobile Optimizations -->
     <script>
     // Fix for mobile viewport height issues with 100vh
     function setMobileHeight() {
@@ -846,9 +846,58 @@
         document.documentElement.style.setProperty('--vh', `${vh}px`);
     }
     
+    // Smooth scrolling for anchor links
+    function setupSmoothScrolling() {
+        document.querySelectorAll('a[href^="#"]:not([href="#"])').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    }
+    
+    // Add touch-friendly data attributes to tables
+    function enhanceTables() {
+        const responsiveTables = document.querySelectorAll('.table-responsive-cards');
+        
+        responsiveTables.forEach(table => {
+            const headerCells = table.querySelectorAll('thead th');
+            const headerTexts = Array.from(headerCells).map(cell => cell.textContent.trim());
+            
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                cells.forEach((cell, index) => {
+                    if (index < headerTexts.length) {
+                        cell.setAttribute('data-label', headerTexts[index]);
+                    }
+                });
+            });
+        });
+    }
+    
+    // Handle delayed orientation change properly
+    function handleOrientationChange() {
+        // Small delay to ensure correct height after orientation change
+        setTimeout(setMobileHeight, 250);
+    }
+    
+    // Initialize all mobile enhancements
     window.addEventListener('resize', setMobileHeight);
-    window.addEventListener('orientationchange', setMobileHeight);
-    setMobileHeight();
+    window.addEventListener('orientationchange', handleOrientationChange);
+    window.addEventListener('DOMContentLoaded', function() {
+        setMobileHeight();
+        setupSmoothScrolling();
+        enhanceTables();
+    });
     </script>
 </body>
 </html>
