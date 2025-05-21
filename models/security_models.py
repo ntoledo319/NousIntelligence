@@ -49,13 +49,13 @@ class AccountLockout(db.Model):
     __tablename__ = 'account_lockouts'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), nullable=True)
+    user_id = Column(String(36), ForeignKey('users.id', ondelete='CASCADE'), nullable=True)
     ip_address = Column(String(45), nullable=False, index=True)
     reason = Column(String(255), nullable=False)
     locked_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     unlock_at = Column(DateTime, nullable=True)
     unlocked_at = Column(DateTime, nullable=True)
-    unlocked_by = Column(Integer, ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    unlocked_by = Column(String(36), ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
     active = Column(Boolean, default=True, nullable=False, index=True)
     
     # Relationships
