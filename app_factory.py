@@ -75,9 +75,10 @@ def create_app(config_class=None):
     
     # Set up login manager to use Google authentication
     # Configure login options manually to avoid type issues
-    login_manager.login_view = 'auth.login'  # type: ignore # Redirect to login page which has Google sign-in
-    login_manager.login_message = 'Please sign in with Google to access this page.'  # type: ignore
-    login_manager.login_message_category = 'info'  # type: ignore
+    # Using setattr to bypass type checking issues with login_manager properties
+    setattr(login_manager, 'login_view', 'google_auth.login')  # Redirect to Google login page directly
+    setattr(login_manager, 'login_message', 'Please sign in with Google to access this page.')
+    setattr(login_manager, 'login_message_category', 'info')
     
     # Configure user loader
     @login_manager.user_loader
