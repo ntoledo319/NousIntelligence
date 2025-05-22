@@ -34,16 +34,23 @@ fuser -k 8080/tcp 2>/dev/null || true
 echo "✅ Starting Gunicorn with production configuration"
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] INFO in deployment_logger: [STARTUP] Starting gunicorn" >> "logs/deployment_${TIMESTAMP}.log"
 
-# Use full path to gunicorn to ensure we're using the right executable
-GUNICORN_PATH=$(which gunicorn)
+# Use the absolute path to gunicorn to ensure we're using the right executable
+GUNICORN_PATH="/home/runner/workspace/.pythonlibs/bin/gunicorn"
 echo "Using gunicorn at: $GUNICORN_PATH" >> "logs/deployment_${TIMESTAMP}.log"
 
-# Start with explicit gunicorn command using wsgi.py
-exec $GUNICORN_PATH \
-    --bind 0.0.0.0:8080 \
-    --workers 2 \
-    --timeout 120 \
-    --access-logfile - \
-    --error-logfile - \
-    --log-level info \
-    "wsgi:app"
+# Make sure the Gunicorn path exists and is executable
+if [ -x "$GUNICORN_PATH" ]; then
+    # Start with explicit gunicorn command using wsgi.py
+    exec "$GUNICORN_PATH" \
+        --bind 0.0.0.0:8080 \
+        --workers 2 \
+        --timeout 120 \
+        --access-logfile - \
+        --error-logfile - \
+        --log-level info \
+        "wsgi:app"
+else
+    echo "⚠️ Gunicorn not found at $GUNICORN_PATH, falling back to Flask"
+    echo "[$(date +'%Y-%m-%d %H:%M:%S')] ERROR in deployment_logger: Gunicorn not found, using Flask development server" >> "logs/deployment_${TIMESTAMP}.log"
+    python app.py
+fi
