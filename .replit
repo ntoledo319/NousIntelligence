@@ -65,7 +65,11 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "export PORT=5000"
+args = "pkill -f \"python.*app.py\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "export PORT=8080"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
