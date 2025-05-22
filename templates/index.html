@@ -1,108 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="NOUS - Your AI-powered personal assistant for productivity and organization">
-    <title>NOUS Personal Assistant</title>
-    <link rel="manifest" href="/static/manifest.json">
-    <link rel="icon" type="image/png" href="/static/img/favicon.png">
-    <link rel="stylesheet" href="/static/css/main.css">
-</head>
-<body>
-    <header>
-        <div class="container">
-            <div class="header-content">
-                <div class="logo">NOUS</div>
-                <nav class="main-nav">
-                    <a href="/">Home</a>
-                    <a href="/api/status">API</a>
-                    <a href="/health">Status</a>
-                </nav>
-            </div>
-        </div>
-    </header>
+{% extends "base.html" %}
 
-    <section class="hero">
-        <div class="container">
-            <h1>Welcome to NOUS Personal Assistant</h1>
-            <p>Your AI-powered personal assistant designed to help you manage tasks, analyze data, and provide intelligent recommendations.</p>
-        </div>
-    </section>
+{% block title %}NOUS - Home{% endblock %}
 
-    <div class="container">
-        <div class="features">
-            <div class="feature">
-                <div class="feature-icon">📊</div>
-                <h2>Data Analysis</h2>
-                <p>Get insights from your data with advanced analytics and visualization capabilities.</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">✓</div>
-                <h2>Task Management</h2>
-                <p>Stay organized with intelligent task tracking and priority management.</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🔍</div>
-                <h2>Information Retrieval</h2>
-                <p>Quickly find and summarize information from various sources.</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">📱</div>
-                <h2>Multi-platform</h2>
-                <p>Access your assistant from any device with our responsive interface.</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🛡️</div>
-                <h2>Secure & Private</h2>
-                <p>Your data is encrypted and handled with the highest security standards.</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">⚡</div>
-                <h2>Fast & Reliable</h2>
-                <p>Get quick responses with our optimized backend infrastructure.</p>
-            </div>
-        </div>
-
-        <div class="status-container">
-            <h2>System Status</h2>
-            <p><span class="status-indicator"></span> All systems operational</p>
-            <p>For detailed status information, check our <a href="/health">health page</a>.</p>
-        </div>
-
-        <section class="cta">
-            <h2>Ready to experience NOUS?</h2>
-            <p>Explore our features and discover how NOUS can assist you.</p>
-            <a href="/api/status" class="btn">Check API Status</a>
-        </section>
+{% block content %}
+    <div class="card">
+        <h2>Welcome to NOUS</h2>
+        <p>Your AI-powered personal assistant is up and running!</p>
+        <p>System status: <span class="status-ok">✓ Operational</span></p>
     </div>
-
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <p>&copy; 2025 NOUS Personal Assistant | Advanced AI-Powered Technology</p>
-                <div class="footer-links">
-                    <a href="/health">Status</a>
-                    <a href="/api/info">API</a>
-                </div>
-            </div>
-        </div>
-    </footer>
     
-    <script src="/static/js/main.js"></script>
-    <script>
-        // Check if service worker is supported
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/static/js/service-worker.js')
-                    .then(registration => {
-                        console.log('Service worker registered:', registration);
-                    })
-                    .catch(error => {
-                        console.log('Service worker registration failed:', error);
-                    });
-            });
-        }
-    </script>
-</body>
-</html>
+    <div class="card">
+        <h2>System Status</h2>
+        <p>All services are operational.</p>
+        <p>Check detailed status at the <a href="/health">health page</a>.</p>
+    </div>
+    
+    <div class="card">
+        <h2>Features</h2>
+        <ul>
+            <li>Advanced AI assistance with task management</li>
+            <li>Health monitoring and data analysis</li>
+            <li>Secure authentication and user profiles</li>
+            <li>Multi-modal interaction capabilities</li>
+        </ul>
+    </div>
+{% endblock %}
