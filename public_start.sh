@@ -34,13 +34,24 @@ fuser -k 8080/tcp 2>/dev/null || true
 echo "✅ Starting Gunicorn with production configuration"
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] INFO in deployment_logger: [STARTUP] Starting gunicorn" >> "logs/deployment_${TIMESTAMP}.log"
 
-# Use the absolute path to gunicorn to ensure we're using the right executable
-GUNICORN_PATH="/home/runner/workspace/.pythonlibs/bin/gunicorn"
+# Find gunicorn executable using which command
+GUNICORN_PATH=$(which gunicorn)
+if [ -z "$GUNICORN_PATH" ]; then
+    # Try common locations if which fails
+    for path in "/home/runner/.pythonlibs/bin/gunicorn" "/home/runner/workspace/.pythonlibs/bin/gunicorn" "/nix/store/*/bin/gunicorn"; do
+        if [ -x "$path" ]; then
+            GUNICORN_PATH="$path"
+            break
+        fi
+    done
+fi
+
 echo "Using gunicorn at: $GUNICORN_PATH" >> "logs/deployment_${TIMESTAMP}.log"
 
 # Make sure the Gunicorn path exists and is executable
-if [ -x "$GUNICORN_PATH" ]; then
+if [ -n "$GUNICORN_PATH" ] && [ -x "$GUNICORN_PATH" ]; then
     # Start with explicit gunicorn command using wsgi.py
+    echo "✅ Starting Gunicorn server"
     exec "$GUNICORN_PATH" \
         --bind 0.0.0.0:8080 \
         --workers 2 \
@@ -50,7 +61,7 @@ if [ -x "$GUNICORN_PATH" ]; then
         --log-level info \
         "wsgi:app"
 else
-    echo "⚠️ Gunicorn not found at $GUNICORN_PATH, falling back to Flask"
+    echo "⚠️ Gunicorn not found, falling back to Flask development server"
     echo "[$(date +'%Y-%m-%d %H:%M:%S')] ERROR in deployment_logger: Gunicorn not found, using Flask development server" >> "logs/deployment_${TIMESTAMP}.log"
-    python app.py
+    python main.py
 fi
