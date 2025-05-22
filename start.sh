@@ -34,15 +34,24 @@ fuser -k 8080/tcp 2>/dev/null || true
 
 echo "🌐 Starting web server on port 8080..."
 
-# Check if gunicorn is available
-if command -v gunicorn &> /dev/null; then
-    # Use full path to gunicorn to ensure we're using the right executable
-    GUNICORN_PATH=$(which gunicorn)
+# Find gunicorn executable using which command
+GUNICORN_PATH=$(which gunicorn)
+if [ -z "$GUNICORN_PATH" ]; then
+    # Try common locations if which fails
+    for path in "/home/runner/.pythonlibs/bin/gunicorn" "/home/runner/workspace/.pythonlibs/bin/gunicorn" "/nix/store/*/bin/gunicorn"; do
+        if [ -x "$path" ]; then
+            GUNICORN_PATH="$path"
+            break
+        fi
+    done
+fi
+
+if [ -n "$GUNICORN_PATH" ] && [ -x "$GUNICORN_PATH" ]; then
     echo "✅ Using gunicorn at: $GUNICORN_PATH"
     echo "[$(date +'%Y-%m-%d %H:%M:%S')] INFO in deployment_logger: [STARTUP] Starting gunicorn from: $GUNICORN_PATH" >> "logs/deployment_${TIMESTAMP}.log"
     
     # Start with explicit gunicorn command using wsgi.py
-    exec $GUNICORN_PATH \
+    exec "$GUNICORN_PATH" \
         --bind 0.0.0.0:8080 \
         --workers 2 \
         --timeout 120 \
