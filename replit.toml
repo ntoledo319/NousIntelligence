@@ -6,6 +6,9 @@ run = ["sh", "-c", "bash public_start.sh"]
 deploymentTarget = "cloudrun"
 ignorePorts = false
 
+[periodic-jobs]
+monitor = { cron = "*/15 * * * *", command = "bash monitor_deploy.sh" }
+
 [env]
 PORT = "8080"
 FLASK_APP = "main.py"
