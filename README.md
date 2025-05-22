@@ -2,6 +2,8 @@
 
 An advanced AI-powered personal assistant web application with robust multi-modal interaction capabilities and intelligent system management.
 
+[![Deploy on Replit](https://replit.com/badge/github/replit/deployreplit)](https://replit.com/new/deploy)
+
 ## Project Structure
 
 The application has been consolidated into a cleaner, more maintainable structure:
@@ -68,3 +70,17 @@ The application uses SQLAlchemy with PostgreSQL. To initialize or update the dat
 ```bash
 python run_migrations.py
 ```
+
+## Deployment on Replit
+
+This project is configured for one-click deployment on Replit:
+
+1. Click the "Deploy on Replit" button at the top of this README
+2. Wait for the project to be cloned and dependencies to be installed
+3. The application will automatically start once deployment is complete
+4. To deploy to production, click the "Deploy" button in the Replit interface
+
+The deployment process will:
+- Set up a PostgreSQL database
+- Configure the necessary environment variables
+- Start the application using Gunicorn for production performance
