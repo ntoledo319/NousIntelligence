@@ -11,7 +11,8 @@ import logging
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, current_user
 from datetime import datetime
-from models import User, db
+from models.user import User
+from app_factory import db
 
 # Create blueprint
 index_bp = Blueprint('index', __name__)
@@ -21,6 +22,11 @@ logger = logging.getLogger(__name__)
 @index_bp.route('/index', methods=['GET', 'POST'])
 def index():
     """Render the index page with integrated login functionality"""
+    # For public preview access - always render the welcome page
+    # This change is for Replit deploy button to work without login
+    if request.host.endswith('.repl.co') or 'REPLIT_DEPLOYMENT' in request.environ:
+        return render_template('index_public.html', public_preview=True)
+        
     # If user is already logged in, just show the index page
     if current_user.is_authenticated:
         return render_template('index.html')

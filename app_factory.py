@@ -56,6 +56,9 @@ def create_app(test_config=None):
     # Initialize SQLAlchemy with the app
     db.init_app(app)
     
+    # Setup public preview mode for Replit deployment
+    setup_public_preview_mode(app)
+    
     # Register blueprints and routes
     register_blueprints(app)
     
@@ -70,6 +73,53 @@ def create_app(test_config=None):
     logger.info("NOUS Personal Assistant initialized")
     
     return app
+    
+def setup_public_preview_mode(app):
+    """Setup public preview mode for Replit deployment
+    
+    This disables login_required for Replit preview URLs
+    
+    Args:
+        app: Flask application instance
+    """
+    # Public preview configuration
+    app.config['PUBLIC_PREVIEW_MODE'] = True
+    
+    # Override Flask-Login's login_required decorator for Replit preview
+    from flask import request, g
+    from functools import wraps
+    from flask_login import current_user
+    
+    # Store the original login_required decorator
+    from flask_login import login_required as original_login_required
+    
+    # Create a modified login_required decorator
+    def public_preview_login_required(func):
+        @wraps(func)
+        def decorated_view(*args, **kwargs):
+            # Check if this is a Replit preview URL
+            is_replit_preview = (
+                request.host.endswith('.repl.co') or 
+                request.host.endswith('.replit.app') or 
+                'REPLIT_DEPLOYMENT' in os.environ
+            )
+            
+            # If it's a Replit preview, bypass login requirement
+            if is_replit_preview and app.config['PUBLIC_PREVIEW_MODE']:
+                # Set a flag for templates to know we're in preview mode
+                g.public_preview = True
+                return func(*args, **kwargs)
+            
+            # Otherwise, use the original login_required
+            return original_login_required(func)(*args, **kwargs)
+        
+        return decorated_view
+    
+    # Replace the original login_required with our modified version
+    import flask_login
+    flask_login.login_required = public_preview_login_required
+    
+    logger.info("Public preview mode configured for Replit deployment")
 
 def register_blueprints(app):
     """Register Flask blueprints
