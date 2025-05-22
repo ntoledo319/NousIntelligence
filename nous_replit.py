@@ -1,7 +1,7 @@
 """
-NOUS Personal Assistant - Simple Version
+NOUS Personal Assistant - Replit Optimized Version
 
-A clean, minimalist version that will reliably build and run on Replit.
+A streamlined version designed specifically to work smoothly on Replit.
 """
 
 from flask import Flask, jsonify, render_template_string, send_from_directory
@@ -123,9 +123,11 @@ def serve_static(path):
     """Serve static files"""
     return send_from_directory('static', path)
 
-# Start the application when run directly
-if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 8080))
-    print(f"\n* NOUS Personal Assistant running on http://0.0.0.0:{port}")
-    print(f"* Access your app at your Replit URL\n")
-    app.run(host="0.0.0.0", port=port)
+# Catch-all route to ensure no 404 errors for undefined routes
+@app.route('/<path:path>')
+def catch_all(path):
+    """Catch-all route to handle any undefined route"""
+    return index()
+
+# This is the only entry point for Replit
+app.run(host="0.0.0.0", port=8080)
