@@ -32,26 +32,31 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", os.environ.get("SECRET_KEY", os.urandom(24).hex()))
 
-# Configure database
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-    "pool_size": 10,
-    "max_overflow": 20,
-    "pool_timeout": 20,
-    "connect_args": {
-        "connect_timeout": 10,
-        "application_name": "NOUS",
-    },
-}
-
 # Apply ProxyFix for proper URL generation with HTTPS
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-# Create database instance
-db = SQLAlchemy(app)
+# Initialize database
+db = SQLAlchemy()
+
+# Configure database
+database_url = os.environ.get("DATABASE_URL")
+if database_url:
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_recycle": 300,
+        "pool_pre_ping": True,
+        "pool_size": 10,
+        "max_overflow": 20,
+        "pool_timeout": 20,
+    }
+    
+    # Initialize the app with the extension
+    db.init_app(app)
+    
+    logger.info("Database configuration loaded successfully")
+else:
+    logger.warning("DATABASE_URL not found, running without database support")
 
 # Create required directories
 os.makedirs('static', exist_ok=True)
@@ -94,14 +99,19 @@ def health():
         }
     }
     
-    # Check database connection
-    try:
-        db.session.execute(text("SELECT 1"))
-        db.session.commit()
-        health_data["database"] = "connected"
-    except Exception as e:
-        health_data["status"] = "degraded"
-        health_data["database"] = f"error: {str(e)}"
+    # Check database connection if database is configured
+    if database_url and app.config.get("SQLALCHEMY_DATABASE_URI"):
+        try:
+            with app.app_context():
+                db.session.execute(text("SELECT 1"))
+                db.session.commit()
+            health_data["database"] = "connected"
+        except Exception as e:
+            health_data["status"] = "degraded"
+            health_data["database"] = f"error: {str(e)}"
+            logger.error(f"Database connection error: {str(e)}")
+    else:
+        health_data["database"] = "not configured"
     
     return jsonify(health_data)
 
@@ -182,12 +192,13 @@ def handle_exception(e):
         return e
     
     # Database connection errors - attempt to reconnect
-    if 'psycopg2.OperationalError' in error_traceback:
+    if 'psycopg2.OperationalError' in error_traceback and database_url:
         logger.warning("Database connection error detected, attempting to reconnect...")
         try:
-            db.session.rollback()  # Roll back any active transaction
-            db.session.close()     # Close the current session
-            db.engine.dispose()    # Dispose all connections in the pool
+            with app.app_context():
+                db.session.rollback()  # Roll back any active transaction
+                db.session.close()     # Close the current session
+                db.engine.dispose()    # Dispose all connections in the pool
             logger.info("Database connection pool reset successfully")
         except Exception as db_err:
             logger.error(f"Failed to reset database connection: {str(db_err)}")
@@ -214,4 +225,11 @@ if __name__ == "__main__":
     debug = os.environ.get('FLASK_ENV', 'production') == 'development'
     logger.info(f"Starting NOUS Personal Assistant on port {port}")
     logger.info(f"Debug mode: {debug}")
-    app.run(host="0.0.0.0", port=port, debug=debug)
+    print(f"\n* NOUS Application running on http://0.0.0.0:{port}")
+    print(f"* Public URL: https://{os.environ.get('REPL_SLUG', 'your-app')}.replit.app\n")
+    try:
+        app.run(host="0.0.0.0", port=port, debug=debug)
+    except Exception as e:
+        logger.error(f"Error starting application: {str(e)}")
+        print(f"Error starting application: {str(e)}")
+        sys.exit(1)

@@ -1,15 +1,17 @@
 """
-NOUS Personal Assistant - Application Entry Point
+NOUS Personal Assistant - Main Entry Point
 
-This is the main entry point for the NOUS personal assistant application.
-It imports the app object from app.py for use by Python interpreters and WSGI servers.
+This file serves as the entry point for the NOUS Personal Assistant application.
+It imports and runs the cleaned version of the application.
 """
 
-from app import app
+# Import the application from the clean version
+from app_clean import app
 
-# This file serves as the main entry point for the application
-# All functionality is imported from app.py
-
+# Run the application if this file is executed directly
 if __name__ == "__main__":
-    # Start the application if this file is run directly
-    app.run(host="0.0.0.0", port=int(app.config.get("PORT", 8080)))
+    import os
+    port = int(os.environ.get('PORT', 8080))
+    print(f"\n* NOUS Application running on http://0.0.0.0:{port}")
+    print(f"* Public URL: https://{os.environ.get('REPL_SLUG', 'your-app')}.replit.app\n")
+    app.run(host='0.0.0.0', port=port)

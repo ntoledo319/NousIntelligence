@@ -1,131 +1,93 @@
 """
 NOUS Personal Assistant - Public Version
 
-This is a public version of NOUS that doesn't require any login.
-It provides basic features and API access without authentication.
+A simplified, reliable version designed for public use without login requirements.
 """
 
 import os
 import logging
-from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
-from werkzeug.middleware.proxy_fix import ProxyFix
-from sqlalchemy import text
+from flask import Flask, jsonify, render_template, send_from_directory, request, redirect
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, 
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 # Create app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", os.urandom(24).hex())
+app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24).hex())
 
-# Configure database
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
-
-# Apply ProxyFix for proper URL generation with HTTPS
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
-
-# Create database instance
-db = SQLAlchemy(app)
-
-# Check and create directories
+# Create required directories
 os.makedirs('static', exist_ok=True)
-os.makedirs('templates/errors', exist_ok=True)
+os.makedirs('templates', exist_ok=True)
+os.makedirs('logs', exist_ok=True)
 
-# Main index route - no login required
 @app.route('/')
 def index():
-    """Render homepage without requiring login"""
-    return render_template('index_public.html')
+    """Homepage with welcome message"""
+    try:
+        return render_template('minimal.html')
+    except Exception as e:
+        logging.error(f"Error rendering template: {str(e)}")
+        return f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>NOUS Personal Assistant</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }}
+                h1 {{ color: #4a6fa5; }}
+                .container {{ max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>NOUS Personal Assistant</h1>
+                <p>Your AI-powered personal assistant is up and running!</p>
+                <p>System Status: <strong>Operational</strong></p>
+                <p><a href="/health">Check System Health</a></p>
+            </div>
+        </body>
+        </html>
+        """
 
-# Health check endpoint for monitoring
 @app.route('/health')
 def health():
     """Health check endpoint"""
-    health_data = {
-        "status": "ok",
-        "timestamp": str(os.path.getmtime(__file__)),
-    }
-    
-    # Check database connection
-    try:
-        db.session.execute(text("SELECT 1"))
-        db.session.commit()
-        health_data["database"] = "connected"
-    except Exception as e:
-        health_data["status"] = "degraded"
-        health_data["database"] = f"error: {str(e)}"
-    
-    return jsonify(health_data)
-
-# API status route 
-@app.route('/api/status')
-def api_status():
-    """API status endpoint"""
     return jsonify({
-        "status": "operational",
+        "status": "healthy",
         "version": "1.0.0",
-        "features": ["task_management", "information_retrieval", "data_analysis"]
+        "environment": os.environ.get("FLASK_ENV", "production"),
+        "timestamp": logging.Formatter().formatTime(logging.LogRecord("", logging.INFO, "", 0, "", (), None))
     })
 
-# API info route
-@app.route('/api/info')
-def api_info():
-    """API information endpoint"""
-    return jsonify({
-        "name": "NOUS Personal Assistant API",
-        "version": "1.0.0",
-        "description": "Access the features of NOUS programmatically",
-        "endpoints": [
-            {
-                "path": "/api/status",
-                "method": "GET",
-                "description": "Check API operational status"
-            },
-            {
-                "path": "/api/info",
-                "method": "GET",
-                "description": "Get API documentation"
-            }
-        ]
-    })
+@app.route('/static/<path:path>')
+def serve_static(path):
+    """Serve static files"""
+    return send_from_directory('static', path)
 
-# Error handlers
+@app.before_request
+def before_request():
+    """Redirect to HTTPS if not already secured"""
+    # Check if we're already on HTTPS
+    if request.headers.get('X-Forwarded-Proto') == 'http':
+        url = request.url.replace('http://', 'https://', 1)
+        return redirect(url, code=301)
+
 @app.errorhandler(404)
 def page_not_found(e):
     """Handle 404 errors"""
-    return render_template('errors/404.html'), 404
+    return jsonify({"error": "Page not found", "status": 404}), 404
 
 @app.errorhandler(500)
 def server_error(e):
     """Handle 500 errors"""
-    return render_template('errors/500.html'), 500
+    logging.error(f"Server error: {str(e)}")
+    return jsonify({"error": "Internal server error", "status": 500}), 500
 
-# Legacy route handling - for backward compatibility
-@app.route('/dashboard')
-@app.route('/login')
-@app.route('/auth/login')
-def redirect_to_home():
-    """Redirect old routes to home page"""
-    return redirect(url_for('index'))
-
-# Serve static files
-@app.route('/static/<path:filename>')
-def serve_static(filename):
-    """Serve static files"""
-    return send_from_directory('static', filename)
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     port = int(os.environ.get('PORT', 8080))
-    host = os.environ.get('HOST', '0.0.0.0')
-    debug = os.environ.get('FLASK_ENV', 'development') == 'development'
-    
-    logger.info(f"NOUS Public Assistant starting on {host}:{port}")
-    app.run(host=host, port=port, debug=debug)
+    print(f"\n* NOUS Personal Assistant running on http://0.0.0.0:{port}")
+    print(f"* Public URL: https://{os.environ.get('REPL_SLUG', 'your-app')}.replit.app\n")
+    app.run(host='0.0.0.0', port=port)

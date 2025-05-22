@@ -1,19 +1,21 @@
 #!/bin/bash
-# NOUS Application Workflow Startup Script
-# This script starts the application in a Replit workflow
+# Workflow startup script for NOUS Personal Assistant
 
-echo "Starting NOUS application in workflow..."
+echo "🚀 Starting NOUS Personal Assistant Workflow..."
 
 # Create required directories
-mkdir -p flask_session uploads logs instance
+mkdir -p static templates logs
 
-# Set permissions
-chmod -R 777 flask_session uploads logs
+# Generate a secret key if it doesn't exist
+if [ ! -f ".secret_key" ]; then
+    echo "🔑 Generating new secret key..."
+    python -c "import secrets; print(secrets.token_hex(24))" > .secret_key
+    chmod 600 .secret_key
+fi
 
-# Environment variables
-export FLASK_APP=main.py
-export FLASK_ENV=production
-export PORT=8080
+# Set secret key
+export SECRET_KEY=$(cat .secret_key)
 
-# Start the application using Gunicorn for stability
-exec gunicorn -c gunicorn_config.py main:app
+# Start the application with gunicorn for better performance
+echo "🌐 Starting web server on port 8080..."
+python -m gunicorn 'app_clean:app' --bind '0.0.0.0:8080' --access-logfile - --error-logfile -
