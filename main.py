@@ -1,16 +1,16 @@
 """
-Main Application Entry Point
+Main Application Entry Point - No Login Required
 
-This is the single entry point for the NOUS personal assistant application.
-The application is created using the factory pattern defined in app_factory.py.
+This is a modified version of the NOUS personal assistant application that
+doesn't require any login. It provides a public interface to the app.
 """
 
 import os
 import logging
 import sys
-from flask import redirect, request, url_for, abort, jsonify
-from app_factory import create_app
-from app_factory import db
+from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.exceptions import HTTPException
 from sqlalchemy import text
 
@@ -29,20 +29,32 @@ logging.basicConfig(
 try:
     from utils.deployment_logger import configure_deployment_logging, log_deployment_event
     deployment_logger = configure_deployment_logging()
-    log_deployment_event('startup', 'Application starting up')
+    log_deployment_event('startup', 'Public application starting up')
 except ImportError:
     logger.warning("Deployment logger not available, using standard logging only")
     deployment_logger = None
 
-app = create_app()
+# Create app
+app = Flask(__name__)
+app.secret_key = os.environ.get("SESSION_SECRET", os.urandom(24).hex())
 
-# Initialize database tables
-with app.app_context():
-    try:
-        db.create_all()
-        logger.info("Database tables created successfully")
-    except Exception as e:
-        logger.error(f"Error creating database tables: {str(e)}")
+# Configure database
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_recycle": 300,
+    "pool_pre_ping": True,
+}
+
+# Apply ProxyFix for proper URL generation with HTTPS
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
+# Create database instance
+db = SQLAlchemy(app)
+
+# Create directories if needed
+os.makedirs('static', exist_ok=True)
+os.makedirs('templates/errors', exist_ok=True)
 
 @app.before_request
 def before_request():
@@ -51,6 +63,87 @@ def before_request():
     if not request.is_secure and 'REPLIT_ENVIRONMENT' in os.environ:
         url = request.url.replace('http://', 'https://', 1)
         return redirect(url, code=301)
+
+# Main index route - no login required
+@app.route('/')
+def index():
+    """Render homepage without requiring login"""
+    return render_template('index_public.html')
+
+# Health check endpoint for monitoring
+@app.route('/health')
+def health_status():
+    """Health check endpoint for monitoring and diagnostics"""
+    import datetime
+    import platform
+    
+    health_data = {
+        "status": "ok",
+        "version": "1.0.0",
+        "timestamp": datetime.datetime.now().isoformat(),
+        "environment": os.environ.get("FLASK_ENV", "development"),
+        "system": {
+            "python_version": sys.version,
+            "platform": platform.platform(),
+        }
+    }
+    
+    # Check database connection
+    try:
+        db.session.execute(text("SELECT 1"))
+        db.session.commit()
+        health_data["database"] = "connected"
+    except Exception as e:
+        health_data["status"] = "degraded"
+        health_data["database"] = f"error: {str(e)}"
+    
+    return jsonify(health_data)
+
+# API status route 
+@app.route('/api/status')
+def api_status():
+    """API status endpoint"""
+    return jsonify({
+        "status": "operational",
+        "version": "1.0.0",
+        "features": ["task_management", "information_retrieval", "data_analysis"]
+    })
+
+# API info route
+@app.route('/api/info')
+def api_info():
+    """API information endpoint"""
+    return jsonify({
+        "name": "NOUS Personal Assistant API",
+        "version": "1.0.0",
+        "description": "Access the features of NOUS programmatically",
+        "endpoints": [
+            {
+                "path": "/api/status",
+                "method": "GET",
+                "description": "Check API operational status"
+            },
+            {
+                "path": "/api/info",
+                "method": "GET",
+                "description": "Get API documentation"
+            }
+        ]
+    })
+
+# Legacy route handling - for backward compatibility
+@app.route('/dashboard')
+@app.route('/login')
+@app.route('/auth/login')
+def redirect_to_home():
+    """Redirect old routes to home page"""
+    return redirect(url_for('index'))
+
+# Serve static files
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    """Serve static files"""
+    return send_from_directory('static', filename)
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -101,58 +194,6 @@ def handle_exception(e):
     
     # Handle unexpected errors with a user-friendly response
     return jsonify(error="An unexpected error occurred. Please try again later."), 500
-
-@app.route('/health')
-def health_check():
-    """Enhanced health check endpoint for monitoring and diagnostics"""
-    import os
-    import sys
-    import datetime
-    import platform
-    
-    health_data = {
-        "status": "ok",
-        "version": "1.0.0",
-        "timestamp": datetime.datetime.now().isoformat(),
-        "environment": os.environ.get("FLASK_ENV", "unknown"),
-        "system": {
-            "python_version": sys.version,
-            "platform": platform.platform(),
-        }
-    }
-    
-    # Check database connection
-    try:
-        db.session.execute(text("SELECT 1"))
-        db.session.commit()
-        health_data["database"] = "connected"
-    except Exception as e:
-        health_data["status"] = "degraded"
-        health_data["database"] = f"error: {str(e)}"
-    
-    # Check disk space
-    try:
-        import shutil
-        total, used, free = shutil.disk_usage("/")
-        health_data["disk"] = {
-            "total_gb": round(total / (1024**3), 2),
-            "used_gb": round(used / (1024**3), 2),
-            "free_gb": round(free / (1024**3), 2),
-            "percent_used": round((used / total) * 100, 2)
-        }
-    except Exception as e:
-        health_data["disk"] = f"error: {str(e)}"
-    
-    # Check environment variables (redacted for security)
-    required_vars = ["DATABASE_URL", "SECRET_KEY", "SESSION_SECRET"]
-    health_data["environment_vars"] = {}
-    for var in required_vars:
-        health_data["environment_vars"][var] = "set" if os.environ.get(var) else "missing"
-    
-    # Set status code based on health
-    status_code = 200 if health_data["status"] == "ok" else 200  # Still return 200 for monitoring tools
-    
-    return jsonify(health_data), status_code
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
