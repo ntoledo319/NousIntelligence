@@ -1,15 +1,17 @@
 """
-NOUS Personal Assistant - Backward Compatibility Layer
+NOUS Personal Assistant - Application Factory
 
-This file provides backward compatibility with existing references
-to the app module, redirecting to the unified application entry point.
+This module provides a factory function for creating and configuring
+the Flask application with all necessary extensions, blueprints, and middleware.
 """
 
-# Import the Flask app instance from our main entry point
-from main import app
+from app_factory import create_app
 
-# This file now simply re-exports the app object
+# Create the Flask application
+app = create_app()
 
-# When run directly, execute the main module
 if __name__ == "__main__":
-    import main
+    # Run the app with the correct port
+    import os
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host="0.0.0.0", port=port)
