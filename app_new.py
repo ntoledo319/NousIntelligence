@@ -1,17 +1,17 @@
 """
-NOUS Personal Assistant - Main Entry Point
+NOUS Personal Assistant - New App
 
-This file serves as the primary entry point for Replit to run the application.
+A simplified version that will display properly on Replit.
 """
 
-from flask import Flask, jsonify, redirect
+from flask import Flask, render_template, jsonify, send_from_directory, redirect, url_for
 
-# Create app
 app = Flask(__name__)
+app.secret_key = "nous-secure-key-2025"
 
+# Create a simple route
 @app.route('/')
 def index():
-    """Homepage with welcome message"""
     return """
     <!DOCTYPE html>
     <html lang="en">
@@ -107,7 +107,7 @@ def catch_all(path):
     """Catch-all route to handle any undefined route"""
     return redirect('/')
 
-# Start the application
+# Run the application
 if __name__ == "__main__":
     import os
     port = int(os.environ.get('PORT', 8080))

@@ -1,13 +1,30 @@
 """
-NOUS Personal Assistant - Main Entry Point
+NOUS Personal Assistant - Server File
 
-This file serves as the primary entry point for Replit to run the application.
+This is a standalone server that will run properly on Replit
+without being overridden by the default page.
 """
 
-from flask import Flask, jsonify, redirect
+import os
+import sys
+import logging
+from flask import Flask, render_template, jsonify, send_from_directory, redirect, request
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+logger = logging.getLogger("nous")
 
 # Create app
 app = Flask(__name__)
+app.secret_key = os.environ.get("SESSION_SECRET", os.environ.get("SECRET_KEY", os.urandom(24).hex()))
+
+# Create required directories
+os.makedirs('static', exist_ok=True)
+os.makedirs('templates', exist_ok=True)
 
 @app.route('/')
 def index():
@@ -98,18 +115,41 @@ def health():
     """Health check endpoint"""
     return jsonify({
         "status": "healthy",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "environment": os.environ.get("FLASK_ENV", "production")
     })
 
-# Catch-all route to handle any undefined route
+@app.route('/api')
+def api_info():
+    """API information"""
+    return jsonify({
+        "name": "NOUS API",
+        "version": "1.0.0",
+        "endpoints": [
+            {"path": "/", "description": "Home page"},
+            {"path": "/health", "description": "Health check"}
+        ]
+    })
+
+@app.route('/static/<path:path>')
+def serve_static(path):
+    """Serve static files"""
+    return send_from_directory('static', path)
+
+@app.errorhandler(404)
+def page_not_found(e):
+    """Handle 404 errors"""
+    logger.warning(f"404 error: {request.path}")
+    return redirect('/')
+
+# This is critical - catch all undefined routes
 @app.route('/<path:path>')
 def catch_all(path):
     """Catch-all route to handle any undefined route"""
+    logger.info(f"Catching undefined route: {path}")
     return redirect('/')
 
-# Start the application
 if __name__ == "__main__":
-    import os
     port = int(os.environ.get('PORT', 8080))
     print(f"\n* NOUS Personal Assistant running on http://0.0.0.0:{port}")
     print(f"* Access your app at your Replit URL\n")

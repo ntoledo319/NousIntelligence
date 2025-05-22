@@ -1,1 +1,1 @@
-run = "python run.py"
+{"onBoot": "", "onFileChange": {"commands": []}, "runners": {"python3": {"cmd": ["bash", "start.sh"], "packager": {"language": "python", "specfile": "requirements.txt"}}}}
