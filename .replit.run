@@ -1,1 +1,4 @@
-{"onBoot": "", "onFileChange": {"commands": []}, "runners": {"python3": {"cmd": ["bash", "start.sh"], "packager": {"language": "python", "specfile": "requirements.txt"}}}}
+language = "python3"
+entrypoint = "app.py"
+run = "python app.py"
+hidden = [".pythonlibs"]
