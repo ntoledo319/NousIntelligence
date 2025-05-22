@@ -1,2 +1,26 @@
 [run]
-command = "./start_nous_app.sh"
+command = "bash start.sh"
+
+[deployment]
+run = ["sh", "-c", "bash public_start.sh"]
+deploymentTarget = "cloudrun"
+ignorePorts = false
+
+[env]
+PORT = "8080"
+FLASK_APP = "main.py"
+FLASK_ENV = "production"
+PYTHONUNBUFFERED = "1"
+
+[languages.python]
+pattern = "**/*.py"
+
+[nix]
+channel = "stable-24_05"
+
+[unitTest]
+language = "python"
+
+[auth]
+pageEnabled = true
+buttonEnabled = true
