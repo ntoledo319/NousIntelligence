@@ -6,6 +6,11 @@ This version is specially designed to work with Replit's deployment system.
 
 from flask import Flask, jsonify, redirect, send_from_directory, render_template_string
 import os
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Create app
 app = Flask(__name__)
@@ -13,6 +18,11 @@ app.secret_key = os.environ.get("SESSION_SECRET", os.environ.get("SECRET_KEY", "
 
 # Create required directories
 os.makedirs('static', exist_ok=True)
+os.makedirs('logs', exist_ok=True)
+os.makedirs('flask_session', exist_ok=True)
+
+# Log startup information
+logger.info("NOUS Personal Assistant starting up...")
 
 @app.route('/')
 def index():
@@ -127,11 +137,25 @@ def serve_static(path):
 @app.route('/<path:path>')
 def catch_all(path):
     """Catch-all route to handle any undefined route"""
+    logger.info(f"Redirecting undefined path: {path}")
     return redirect('/')
+
+@app.errorhandler(404)
+def page_not_found(e):
+    """Handle 404 errors"""
+    logger.warning(f"404 error: {e}")
+    return redirect('/')
+
+@app.errorhandler(500)
+def server_error(e):
+    """Handle 500 errors"""
+    logger.error(f"500 error: {e}")
+    return render_template_string("<h1>Internal Server Error</h1><p>The server encountered an error. Please try again later.</p>"), 500
 
 # Start the application when run directly
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 8080))
+    logger.info(f"Starting NOUS Personal Assistant on port {port}")
     print(f"\n* NOUS Personal Assistant running on http://0.0.0.0:{port}")
     print(f"* Access your app at your Replit URL\n")
     app.run(host="0.0.0.0", port=port)

@@ -2,11 +2,11 @@
 NOUS Personal Assistant - Main Entry Point
 
 This file serves as the primary entry point for Replit to run the application.
-It imports and runs the Flask application from run_nous_app.py
+It imports and runs the Flask application from app.py
 """
 
 # Simply import and run the app from our dedicated app file
-from run_nous_app import app
+from app import app
 
 # This will make the app run when executed by Replit
 if __name__ == "__main__":
