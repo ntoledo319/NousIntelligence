@@ -18,6 +18,8 @@ mkdir -p flask_session
 mkdir -p uploads
 mkdir -p logs
 mkdir -p instance
+mkdir -p static
+mkdir -p templates/errors
 
 # Set environment variables
 export FLASK_APP=main.py
@@ -28,33 +30,16 @@ if [ -n "$REPL_ID" ]; then
     export FLASK_ENV=production
     export REPLIT_ENVIRONMENT=production
     export PORT=${PORT:-8080}
-    
-    # Set Replit-specific redirect URI if not already set
-    if [ -z "$GOOGLE_REDIRECT_URI" ]; then
-        # Use REPL_SLUG if available
-        if [ -n "$REPL_SLUG" ]; then
-            export GOOGLE_REDIRECT_URI="https://$REPL_SLUG.replit.app/callback/google"
-            log_message "Set Google redirect URI to: $GOOGLE_REDIRECT_URI"
-        else
-            log_message "Warning: Could not determine Replit URL. Google authentication may not work."
-        fi
-    fi
-    
-    # Set Spotify redirect URI if not already set
-    if [ -z "$SPOTIFY_REDIRECT_URI" ] && [ -n "$REPL_SLUG" ]; then
-        export SPOTIFY_REDIRECT_URI="https://$REPL_SLUG.replit.app/callback/spotify"
-        log_message "Set Spotify redirect URI to: $SPOTIFY_REDIRECT_URI"
-    fi
 else
     log_message "Running in local environment"
     export FLASK_ENV=development
     export PORT=${PORT:-5000}
 fi
 
-# Check permissions on session directory
-chmod -R 777 flask_session
-chmod -R 777 uploads
-chmod -R 777 logs
+# Check permissions on important directories
+chmod -R 755 flask_session
+chmod -R 755 uploads
+chmod -R 755 logs
 
 # Ensure we have a secret key
 if [ ! -f ".secret_key" ]; then
@@ -72,11 +57,11 @@ fi
 
 # Verify critical environment variables
 if [ -z "$DATABASE_URL" ]; then
-    log_message "ERROR: DATABASE_URL is not set. Application may not function correctly."
+    log_message "WARNING: DATABASE_URL is not set. Application may not function correctly."
 fi
 
 if [ -z "$SECRET_KEY" ] && [ -z "$SESSION_SECRET" ]; then
-    log_message "ERROR: Neither SECRET_KEY nor SESSION_SECRET is set. Application may not function correctly."
+    log_message "WARNING: Neither SECRET_KEY nor SESSION_SECRET is set. Application may not function correctly."
 fi
 
 # Check if database is accessible
@@ -91,22 +76,15 @@ except Exception as e:
     # Continue despite error
 " || log_message "Database connection test failed, but continuing startup"
 
-# Run deployment recovery checks first
-if [ -f "deployment_recovery.py" ]; then
-    log_message "Running deployment recovery checks..."
-    python deployment_recovery.py --fix-all || log_message "Warning: Some deployment issues could not be automatically fixed"
-fi
-
-# Run database migrations if needed
-if [ -f "run_migrations.py" ]; then
-    log_message "Running database migrations..."
-    python run_migrations.py || log_message "Warning: Database migrations reported errors, but continuing startup"
-fi
-
 # Start application
 if [ "$FLASK_ENV" = "production" ]; then
     log_message "Starting application in production mode on port $PORT..."
-    exec gunicorn -c gunicorn_config.py main:app
+    if command -v gunicorn &> /dev/null; then
+        exec gunicorn -b 0.0.0.0:$PORT main:app
+    else
+        log_message "Gunicorn not found, starting with Flask's built-in server..."
+        exec python main.py
+    fi
 else
     log_message "Starting application in development mode on port $PORT..."
     exec python main.py
