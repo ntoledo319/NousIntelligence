@@ -20,6 +20,7 @@ if ! curl -s http://localhost:8080/health > /dev/null; then
   
   # Kill any existing processes
   pkill -f "python.*main.py" 2>/dev/null || true
+  pkill -f "python.*wsgi.py" 2>/dev/null || true
   pkill -f "gunicorn" 2>/dev/null || true
   fuser -k 8080/tcp 2>/dev/null || true
   

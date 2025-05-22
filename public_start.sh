@@ -4,22 +4,14 @@
 
 echo "🚀 Starting NOUS Personal Assistant for Production Deployment..."
 
-# Run initialization script for deployment
-if [ -f "./deploy_init.sh" ]; then
-    echo "Running deployment initialization..."
-    chmod +x ./deploy_init.sh
-    ./deploy_init.sh
-else
-    # Fallback if init script doesn't exist
-    # Create required directories
-    mkdir -p static templates logs flask_session instance
+# Create required directories
+mkdir -p static templates logs flask_session instance
 
-    # Generate a secret key if it doesn't exist
-    if [ ! -f ".secret_key" ]; then
-        echo "🔑 Generating new secret key..."
-        python -c "import secrets; print(secrets.token_hex(24))" > .secret_key
-        chmod 600 .secret_key
-    fi
+# Generate a secret key if it doesn't exist
+if [ ! -f ".secret_key" ]; then
+    echo "🔑 Generating new secret key..."
+    python -c "import secrets; print(secrets.token_hex(24))" > .secret_key
+    chmod 600 .secret_key
 fi
 
 # Set environment variables
@@ -38,6 +30,20 @@ pkill -f "python.*main.py" 2>/dev/null || true
 pkill -f "gunicorn" 2>/dev/null || true
 fuser -k 8080/tcp 2>/dev/null || true
 
-# Start with gunicorn using our configuration file for better production settings
+# Start with gunicorn directly to ensure it works properly
 echo "✅ Starting Gunicorn with production configuration"
-exec gunicorn -c gunicorn_config.py "main:app"
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] INFO in deployment_logger: [STARTUP] Starting gunicorn" >> "logs/deployment_${TIMESTAMP}.log"
+
+# Use full path to gunicorn to ensure we're using the right executable
+GUNICORN_PATH=$(which gunicorn)
+echo "Using gunicorn at: $GUNICORN_PATH" >> "logs/deployment_${TIMESTAMP}.log"
+
+# Start with explicit gunicorn command using wsgi.py
+exec $GUNICORN_PATH \
+    --bind 0.0.0.0:8080 \
+    --workers 2 \
+    --timeout 120 \
+    --access-logfile - \
+    --error-logfile - \
+    --log-level info \
+    "wsgi:app"
