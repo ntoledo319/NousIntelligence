@@ -1,88 +1,64 @@
-# NOUS Deployment Guide
+# NOUS Personal Assistant - Continuous Deployment Guide
 
-This guide outlines the deployment process and improvements made to ensure reliable deployment of the NOUS application.
+This guide provides step-by-step instructions to ensure your NOUS Personal Assistant runs continuously on Replit.
 
-## Deployment Improvements
+## Setting Up Continuous Operation
 
-The following improvements have been made to ensure reliable deployment:
+### Option 1: Using Replit's Run Button
 
-### 1. Error Handling and Recovery
-- Enhanced error handling in `start.sh` with better logging and error recovery
-- Improved exception handling in `main.py` to gracefully handle and recover from errors
-- Added database connection health checks and automatic reconnection
-- Created custom error pages (404, 500, 503) for better user experience
+1. Click the **Run** button at the top of your Replit workspace.
+2. Replit will automatically use your `.replit` configuration to run the application.
+3. The application will continue running as long as your Replit is active.
 
-### 2. Deployment Verification
-- Created `verify_deployment.py` to check all prerequisites before deployment
-- Implemented `deployment_recovery.py` to automatically fix common deployment issues
-- Added comprehensive health check endpoint at `/health` for system monitoring
-- Enhanced logging through `utils/deployment_logger.py` for better visibility into issues
+### Option 2: Using Deployment Scripts
 
-### 3. Configuration Enhancements
-- Improved Gunicorn configuration with environment validation
-- Better environment variable handling with defaults and validation
-- Enhanced directory and permission management
-- Added proper workflow configuration for Replit
+We've provided several deployment scripts to help you run your application:
 
-## Deployment Process
+- **`replit_deploy.sh`** (Recommended): Optimized for Replit with proper environment setup.
+- **`run_public.sh`**: Simple script for quickly running the public version.
+- **`clean_start.sh`**: Enhanced script with better error handling.
 
-To deploy the NOUS application, follow these steps:
+To use any of these scripts:
+```bash
+# Example:
+./replit_deploy.sh
+```
 
-1. **Verify Deployment Readiness**:
-   ```
-   python verify_deployment.py
-   ```
-   Resolve any critical issues reported before proceeding.
+### Option 3: Manual Startup
 
-2. **Set Required Environment Variables**:
-   - `DATABASE_URL`: PostgreSQL connection string
-   - `SECRET_KEY` or `SESSION_SECRET`: For secure session management
-   - `FLASK_ENV`: Set to "production" for deployment
+If you prefer to start the application manually:
+```bash
+# Start with Python directly
+python replit_app.py
 
-3. **Optional Environment Variables**:
-   - `GOOGLE_CLIENT_ID` & `GOOGLE_CLIENT_SECRET`: For Google authentication
-   - `SPOTIFY_CLIENT_ID` & `SPOTIFY_CLIENT_SECRET`: For Spotify integration
+# Or use gunicorn for production (if installed)
+gunicorn 'nous_public:app' --bind '0.0.0.0:8080'
+```
 
-4. **Deploy the Application**:
-   Use Replit's deployment feature to deploy the application.
+## Keeping Your App Running Continuously
+
+To ensure your app runs continuously (even when you're not using the editor):
+
+1. Go to the **Tools** panel in your Replit workspace
+2. Select **Deployments**
+3. Click "Deploy" to deploy your application
+4. Your app will now run continuously on its own URL
+
+For more persistent operation, consider upgrading to Replit's Deployment service, which provides continuous uptime.
+
+## File Structure
+
+- **`nous_public.py`**: The main application file (public version, no login required)
+- **`replit_app.py`**: Replit-specific entry point
+- **`static/`**: Static files (CSS, JS, images)
+- **`templates/`**: HTML templates
+- **`logs/`**: Application logs
 
 ## Troubleshooting
 
-If deployment issues occur, you can use the following tools:
+If you encounter any issues:
 
-1. **Automatic Recovery**:
-   ```
-   python deployment_recovery.py --fix-all
-   ```
-   This will automatically fix common deployment issues.
-
-2. **Health Check**:
-   Access the `/health` endpoint to see detailed system status.
-
-3. **Check Logs**:
-   Examine logs in the `logs` directory, particularly the deployment logs.
-
-## Maintenance
-
-For ongoing maintenance:
-
-1. **Database Migrations**:
-   ```
-   python run_migrations.py
-   ```
-
-2. **Verify Secret Key**:
-   Ensure the `.secret_key` file exists and has proper permissions.
-
-3. **Directory Permissions**:
-   Periodically verify that critical directories (`flask_session`, `uploads`, `logs`, `instance`) have proper permissions.
-
-## Deployment Best Practices
-
-1. Always run `verify_deployment.py` before deploying
-2. Test the application thoroughly after deployment
-3. Monitor the application using the `/health` endpoint
-4. Keep database migrations up to date
-5. Ensure proper error pages are in place
-6. Configure OAuth redirects to match the deployed domain
-7. Use production-grade settings in `gunicorn_config.py`
+1. Check the console for error messages
+2. Verify port 8080 is being used 
+3. Try restarting the Replit environment
+4. If one script doesn't work, try an alternative deployment script
