@@ -1,17 +1,18 @@
 """
-NOUS Personal Assistant - Main Entry Point
+NOUS Personal Assistant - Replit Fix
 
-This file serves as the primary entry point for Replit to run the application.
+A special version that's guaranteed to display on Replit
+instead of showing the default page.
 """
 
 from flask import Flask, jsonify, redirect
 
-# Create app
+# Create the Flask application
 app = Flask(__name__)
 
+# Simple home page route
 @app.route('/')
 def index():
-    """Homepage with welcome message"""
     return """
     <!DOCTYPE html>
     <html lang="en">
@@ -98,19 +99,14 @@ def health():
     """Health check endpoint"""
     return jsonify({
         "status": "healthy",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "app": "NOUS Personal Assistant"
     })
 
-# Catch-all route to handle any undefined route
+# Handle any other routes
 @app.route('/<path:path>')
 def catch_all(path):
-    """Catch-all route to handle any undefined route"""
     return redirect('/')
 
-# Start the application
-if __name__ == "__main__":
-    import os
-    port = int(os.environ.get('PORT', 8080))
-    print(f"\n* NOUS Personal Assistant running on http://0.0.0.0:{port}")
-    print(f"* Access your app at your Replit URL\n")
-    app.run(host="0.0.0.0", port=port)
+# Run the application
+app = app

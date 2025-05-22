@@ -1,4 +1,4 @@
-runnable = {
-  "name": "nous",
-  "command": "bash replit_deploy.sh"
-}
+run = "python main.py"
+language = "python3"
+onBoot = ""
+hidden = []

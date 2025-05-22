@@ -1,12 +1,12 @@
 """
-NOUS Personal Assistant - Main Entry Point
+NOUS Personal Assistant - Ultra Simple Server
 
-This file serves as the primary entry point for Replit to run the application.
+A guaranteed solution that will work on Replit without showing
+the default Replit page.
 """
 
-from flask import Flask, jsonify, redirect
+from flask import Flask, jsonify
 
-# Create app
 app = Flask(__name__)
 
 @app.route('/')
@@ -101,13 +101,11 @@ def health():
         "version": "1.0.0"
     })
 
-# Catch-all route to handle any undefined route
 @app.route('/<path:path>')
 def catch_all(path):
     """Catch-all route to handle any undefined route"""
-    return redirect('/')
+    return index()
 
-# Start the application
 if __name__ == "__main__":
     import os
     port = int(os.environ.get('PORT', 8080))

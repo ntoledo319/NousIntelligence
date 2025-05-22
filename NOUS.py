@@ -1,13 +1,19 @@
 """
-NOUS Personal Assistant - Main Entry Point
+NOUS Personal Assistant - Main Application
 
-This file serves as the primary entry point for Replit to run the application.
+This file uses a special name to make it work properly on Replit.
 """
 
-from flask import Flask, jsonify, redirect
+from flask import Flask, jsonify, redirect, send_from_directory
+import os
 
 # Create app
 app = Flask(__name__)
+app.secret_key = os.environ.get("SESSION_SECRET", os.environ.get("SECRET_KEY", "nous-secure-key-2025"))
+
+# Create required directories
+os.makedirs('static', exist_ok=True)
+os.makedirs('templates', exist_ok=True)
 
 @app.route('/')
 def index():
@@ -98,18 +104,23 @@ def health():
     """Health check endpoint"""
     return jsonify({
         "status": "healthy",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "environment": os.environ.get("FLASK_ENV", "production")
     })
 
-# Catch-all route to handle any undefined route
+@app.route('/static/<path:path>')
+def serve_static(path):
+    """Serve static files"""
+    return send_from_directory('static', path)
+
+# This is critical - catch all undefined routes
 @app.route('/<path:path>')
 def catch_all(path):
     """Catch-all route to handle any undefined route"""
     return redirect('/')
 
-# Start the application
+# Run the application if this file is executed directly
 if __name__ == "__main__":
-    import os
     port = int(os.environ.get('PORT', 8080))
     print(f"\n* NOUS Personal Assistant running on http://0.0.0.0:{port}")
     print(f"* Access your app at your Replit URL\n")

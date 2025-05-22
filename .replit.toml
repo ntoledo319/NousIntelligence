@@ -1,20 +1,5 @@
-[deployment]
-run = "bash public_start.sh"
-deploymentTarget = "cloudrun"
-
-[nix]
-channel = "stable-24_05"
-
-[[ports]]
-localPort = 8080
-externalPort = 80
-
-[env]
-PORT = "8080"
-FLASK_ENV = "production"
-FLASK_APP = "main.py"
-PYTHONPATH = "${PYTHONPATH}:${REPL_HOME}"
-PYTHONUNBUFFERED = "1"
-
-[languages]
-pattern = "**/*.py"
+[run]
+language = "python3"
+run = "bash start.sh"
+entrypoint = "app.py"
+onBoot = "bash start.sh"
