@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /health
+Disallow: /api/
+
+Sitemap: https://mynous.replit.app/sitemap.xml
