@@ -22,5 +22,5 @@ channel = "stable-24_05"
 language = "python"
 
 [auth]
-pageEnabled = true
+pageEnabled = false
 buttonEnabled = true
