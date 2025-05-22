@@ -1,3 +1,10 @@
-webapp = "bash flask_app.sh"
-minimal = "bash minimal_start.sh"
-public = "bash public_start.sh"
+{
+  "name": "nous-app",
+  "command": "./clean_start.sh",
+  "entrypoint": "app_clean.py",
+  "language": "python3",
+  "template": "default",
+  "nix": {
+    "channel": "stable-23_11"
+  }
+}
