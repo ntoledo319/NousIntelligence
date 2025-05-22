@@ -221,7 +221,7 @@ def handle_exception(e):
         return jsonify(error="An unexpected error occurred. Please try again later."), 500
 
 if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 8080))
+    port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_ENV', 'production') == 'development'
     logger.info(f"Starting NOUS Personal Assistant on port {port}")
     logger.info(f"Debug mode: {debug}")

@@ -1,14 +1,13 @@
 """
-NOUS Personal Assistant - Main Entry Point
+NOUS Personal Assistant - Direct Version
 
-This file serves as the entry point for the NOUS Personal Assistant application.
-It provides a simple and reliable web interface.
+A streamlined version designed for direct execution and reliable deployment.
 """
 
 import os
 import sys
 import logging
-from flask import Flask, render_template, jsonify, send_from_directory, redirect, url_for, request
+from flask import Flask, render_template, jsonify, send_from_directory, request
 
 # Configure logging
 logging.basicConfig(
@@ -21,10 +20,6 @@ logger = logging.getLogger("nous")
 # Create app
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", os.environ.get("SECRET_KEY", "nous-secure-key-2025"))
-
-# Create required directories
-os.makedirs('static', exist_ok=True)
-os.makedirs('templates', exist_ok=True)
 
 @app.route('/')
 def index():
@@ -49,18 +44,6 @@ def health():
         "environment": os.environ.get("FLASK_ENV", "production")
     })
 
-@app.route('/api')
-def api_info():
-    """API information"""
-    return jsonify({
-        "name": "NOUS API",
-        "version": "1.0.0",
-        "endpoints": [
-            {"path": "/", "description": "Home page"},
-            {"path": "/health", "description": "Health check"}
-        ]
-    })
-
 @app.route('/static/<path:path>')
 def serve_static(path):
     """Serve static files"""
@@ -77,13 +60,6 @@ def page_not_found(e):
     except:
         return jsonify({"error": "Page not found", "status": 404}), 404
 
-@app.errorhandler(500)
-def server_error(e):
-    """Handle 500 errors"""
-    logger.error(f"500 error: {str(e)}")
-    return jsonify({"error": "Internal server error", "status": 500}), 500
-
-# Run the application if this file is executed directly
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 8080))
     logger.info(f"Starting NOUS Personal Assistant on port {port}")
