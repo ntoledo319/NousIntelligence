@@ -1,18 +1,29 @@
 """
-NOUS Personal Assistant - Simple Version
+NOUS Personal Assistant - Main Runner
 
-A clean, minimalist version that will reliably build and run on Replit.
+This is a simplified version specifically designed to work reliably on Replit.
 """
 
-from flask import Flask, jsonify, render_template_string, send_from_directory
+# Import necessary libraries
+from flask import Flask, jsonify, render_template_string, send_from_directory, redirect
 import os
+import logging
 
-# Create app
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Create Flask application
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", os.environ.get("SECRET_KEY", "nous-secure-key-2025"))
 
 # Create required directories
 os.makedirs('static', exist_ok=True)
+os.makedirs('logs', exist_ok=True)
+os.makedirs('flask_session', exist_ok=True)
+
+# Log startup information
+logger.info("NOUS Personal Assistant starting up...")
 
 @app.route('/')
 def index():
@@ -107,11 +118,13 @@ def index():
     </body>
     </html>
     """
+    logger.info("Homepage accessed")
     return render_template_string(template)
 
 @app.route('/health')
 def health():
     """Health check endpoint"""
+    logger.info("Health check endpoint accessed")
     return jsonify({
         "status": "healthy",
         "version": "1.0.0",
@@ -123,9 +136,31 @@ def serve_static(path):
     """Serve static files"""
     return send_from_directory('static', path)
 
-# Start the application when run directly
+@app.route('/<path:path>')
+def catch_all(path):
+    """Catch-all route to handle any undefined route"""
+    logger.info(f"Redirecting undefined path: {path}")
+    return redirect('/')
+
+@app.errorhandler(404)
+def page_not_found(e):
+    """Handle 404 errors"""
+    logger.warning(f"404 error: {e}")
+    return redirect('/')
+
+@app.errorhandler(500)
+def server_error(e):
+    """Handle 500 errors"""
+    logger.error(f"500 error: {e}")
+    return render_template_string("<h1>Internal Server Error</h1><p>The server encountered an error. Please try again later.</p>"), 500
+
+# Run the application
 if __name__ == "__main__":
+    # Get the port from environment variables or use 8080 as default
     port = int(os.environ.get('PORT', 8080))
+    # Log the startup message
+    logger.info(f"Starting NOUS Personal Assistant on port {port}")
     print(f"\n* NOUS Personal Assistant running on http://0.0.0.0:{port}")
     print(f"* Access your app at your Replit URL\n")
+    # Run the Flask app
     app.run(host="0.0.0.0", port=port)

@@ -1,9 +1,8 @@
 """
-NOUS Personal Assistant - Simple Version
+NOUS Personal Assistant - Runner Script
 
-A clean, minimalist version that will reliably build and run on Replit.
+A simple script to run the NOUS Personal Assistant.
 """
-
 from flask import Flask, jsonify, render_template_string, send_from_directory
 import os
 
@@ -123,9 +122,15 @@ def serve_static(path):
     """Serve static files"""
     return send_from_directory('static', path)
 
-# Start the application when run directly
+# Catch-all route to ensure no 404 errors for undefined routes
+@app.route('/<path:path>')
+def catch_all(path):
+    """Catch-all route to handle any undefined route"""
+    return index()
+
+# This will make the app run when this file is executed directly
 if __name__ == "__main__":
+    # Get the port from environment variables or use 8080 as default
     port = int(os.environ.get('PORT', 8080))
-    print(f"\n* NOUS Personal Assistant running on http://0.0.0.0:{port}")
-    print(f"* Access your app at your Replit URL\n")
+    # Run the Flask app
     app.run(host="0.0.0.0", port=port)
