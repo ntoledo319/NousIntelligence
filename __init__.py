@@ -8,8 +8,8 @@ and features for task management, health monitoring, weather forecasting, and mo
 @author NOUS Development Team
 """
 
-# Import and provide access to application factory
-from app_factory import create_app
+# Import the main application directly
+from app import app
 
 # Set the version
-__version__ = '1.0.0' 
+__version__ = '1.0.0'
