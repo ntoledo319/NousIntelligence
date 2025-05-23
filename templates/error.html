@@ -1,10 +1,9 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="container error-container">
-    <div class="error-code">{{ error_code }}</div>
-    <h1>{{ title }}</h1>
-    <p>{{ message }}</p>
-    <a href="{{ url_for('index') }}" class="btn">Return to Home</a>
+<div style="text-align: center; padding: 2rem; background: #fff1f0; border-radius: 8px; margin: 2rem 0;">
+    <h1>{{ code }} Error</h1>
+    <p>{{ error }}</p>
+    <a href="{{ url_for('index') }}" class="btn" style="background: #1e3a8a; color: white;">Return to Home</a>
 </div>
 {% endblock %}

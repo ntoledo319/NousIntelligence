@@ -2,34 +2,40 @@
 
 {% block content %}
 <section class="hero">
-    <div class="container">
-        <h1>Welcome to NOUS Personal Assistant</h1>
-        <p>Your AI-powered personal assistant with multi-modal interaction capabilities</p>
-        <a href="{{ url_for('dashboard') }}" class="btn">Go to Dashboard</a>
-    </div>
+    <h1>Welcome to NOUS Personal Assistant</h1>
+    <p>Your AI-powered personal assistant with multi-modal interaction capabilities</p>
+    <a href="{{ url_for('health') }}" class="btn">Check System Health</a>
 </section>
 
 <section class="features">
-    <div class="container">
-        <h2>Key Features</h2>
-        <div class="feature-grid">
-            <div class="feature-card">
-                <h3>AI Integration</h3>
-                <p>Advanced AI capabilities across multiple service domains</p>
-            </div>
-            <div class="feature-card">
-                <h3>Multi-Modal Interaction</h3>
-                <p>Interact through text, voice, and visual interfaces</p>
-            </div>
-            <div class="feature-card">
-                <h3>Intelligent Management</h3>
-                <p>Smart system monitoring and error handling</p>
-            </div>
-            <div class="feature-card">
-                <h3>Scalable Architecture</h3>
-                <p>Built on a robust and scalable microservice architecture</p>
-            </div>
+    <h2>Key Features</h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <h3>AI Integration</h3>
+            <p>Advanced AI capabilities across multiple service domains</p>
         </div>
+        <div class="feature-card">
+            <h3>Multi-Modal Interaction</h3>
+            <p>Interact through text, voice, and visual interfaces</p>
+        </div>
+        <div class="feature-card">
+            <h3>Intelligent Management</h3>
+            <p>Smart system monitoring and error handling</p>
+        </div>
+        <div class="feature-card">
+            <h3>Scalable Architecture</h3>
+            <p>Built on a robust and scalable microservice architecture</p>
+        </div>
+    </div>
+</section>
+
+<section>
+    <h2>System Status</h2>
+    <p>The NOUS system is currently running and ready to use. You can visit the <a href="{{ url_for('health') }}">health check page</a> to verify system status.</p>
+    
+    <div style="margin-top: 2rem; background: #e6f7ff; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #1890ff;">
+        <h3 style="margin-top: 0;">Deployment Information</h3>
+        <p>This is the NOUS Personal Assistant running in a deployment-ready configuration. All key features have been preserved.</p>
     </div>
 </section>
 {% endblock %}
