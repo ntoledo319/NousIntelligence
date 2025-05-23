@@ -65,6 +65,10 @@ def create_app(test_config=None):
     # Register error handlers
     register_error_handlers(app)
     
+    # Set up error monitoring
+    from monitoring import setup_monitoring
+    setup_monitoring(app)
+    
     # Initialize database
     from models.database import init_db
     init_db(app)
