@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, jsonify
+from flask import Flask, jsonify
 
 # Create the Flask application
 app = Flask(__name__)
@@ -18,6 +18,10 @@ def health():
 
 # Run the application
 if __name__ == '__main__':
-    # Use the port provided by Replit
-    port = int(os.environ.get('PORT', 8080))
-    app.run(host='0.0.0.0', port=port)
+    # Try different ports until we find one that works
+    for port in [3000, 4000, 5000, 6000, 7000]:
+        try:
+            app.run(host='0.0.0.0', port=port)
+            break
+        except OSError:
+            print(f"Port {port} is in use, trying another...")
