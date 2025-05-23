@@ -82,8 +82,9 @@ def setup_public_preview_mode(app):
     Args:
         app: Flask application instance
     """
-    # Public preview configuration
+    # Public preview configuration - forced to True for public access
     app.config['PUBLIC_PREVIEW_MODE'] = True
+    app.config['PUBLIC_ACCESS'] = os.environ.get('PUBLIC_ACCESS', 'true').lower() == 'true'
     
     # Override Flask-Login's login_required decorator for Replit preview
     from flask import request, g
@@ -97,6 +98,12 @@ def setup_public_preview_mode(app):
     def public_preview_login_required(func):
         @wraps(func)
         def decorated_view(*args, **kwargs):
+            # Always bypass login requirement if PUBLIC_ACCESS is true
+            if app.config['PUBLIC_ACCESS']:
+                # Set a flag for templates to know we're in public access mode
+                g.public_preview = True
+                return func(*args, **kwargs)
+                
             # Check if this is a Replit preview URL
             is_replit_preview = (
                 request.host.endswith('.repl.co') or 
