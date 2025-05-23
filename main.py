@@ -1,28 +1,12 @@
+"""
+NOUS Personal Assistant - Main Application File
+"""
 import os
 from flask import Flask, render_template, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
 
-# Base class for SQLAlchemy models
-class Base(DeclarativeBase):
-    pass
-
-db = SQLAlchemy(model_class=Base)
-
-# Create the Flask application
+# Create and configure Flask application
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "nous-secure-key-2025")
-
-# Configure database
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    'pool_pre_ping': True,
-    'pool_recycle': 300,
-}
-
-# Initialize extensions
-db.init_app(app)
 
 # Routes
 @app.route('/')
@@ -53,10 +37,7 @@ def server_error(e):
     return render_template('error.html', title='Server Error', 
                            error_code=500, message="An internal server error occurred."), 500
 
-# Create database tables within application context
-with app.app_context():
-    db.create_all()
-
+# Run the app when this file is executed directly
 if __name__ == '__main__':
     # Use 0.0.0.0 to make the app accessible externally
     port = int(os.environ.get('PORT', 5000))
