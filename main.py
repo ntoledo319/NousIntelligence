@@ -40,5 +40,6 @@ def server_error(e):
 # Run the app when this file is executed directly
 if __name__ == '__main__':
     # Use 0.0.0.0 to make the app accessible externally
-    port = int(os.environ.get('PORT', 3000))
+    # Use port 5000 for web applications as it forwards to port 80 in production
+    port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)

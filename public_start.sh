@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # NOUS Personal Assistant - Public Deployment Script
@@ -12,8 +13,10 @@ export FLASK_ENV=production
 export PORT=${PORT:-8080}
 export PUBLIC_MODE=true
 
-# Make script executable
-chmod +x start.sh
+# Install dependencies with pip (only if needed)
+if [ "$INSTALL_DEPS" = "true" ]; then
+  pip install -r requirements.txt
+fi
 
 # Start the application using Gunicorn
 exec gunicorn --bind 0.0.0.0:$PORT --workers=2 --threads=2 --timeout=60 main:app
