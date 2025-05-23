@@ -86,7 +86,7 @@ def generate_openapi_spec(app: Flask) -> Dict[str, Any]:
             continue
             
         # Check for standardized API documentation
-        api_doc = getattr(view_func, 'api_doc', None)
+        api_doc = getattr(view_func, 'api_doc', {})
             
         # Extract path parameters from the route
         path = str(rule)
