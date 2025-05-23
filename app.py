@@ -39,12 +39,16 @@ def create_app():
     os.makedirs('static', exist_ok=True)
     os.makedirs('templates', exist_ok=True)
     
-    # Register all blueprints
+    # Register all blueprints with standardized routing
     from routes import register_all_blueprints
     register_all_blueprints(app)
     
     # Register error handlers
     register_error_handlers(app)
+    
+    # Set up route validation
+    from utils.route_validator import init_app as init_route_validator
+    init_route_validator(app)
     
     # Set up additional middleware and utilities
     setup_middleware(app)
