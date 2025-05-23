@@ -1,41 +1,40 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="dashboard-header">
+<div class="container">
     <h1>Dashboard</h1>
     <p>Welcome to your personal assistant dashboard</p>
-</div>
-
-<div class="dashboard-cards">
-    <div class="card">
-        <div class="card-header">
-            <h3>System Status</h3>
-        </div>
-        <div class="card-body">
-            <p>All systems operational</p>
-            <div class="status-indicator green"></div>
-        </div>
-    </div>
     
-    <div class="card">
-        <div class="card-header">
-            <h3>Quick Actions</h3>
+    <div class="dashboard-cards">
+        <div class="card">
+            <div class="card-header">
+                <h3>System Status</h3>
+            </div>
+            <div class="card-body">
+                <p>All systems operational <span class="status-indicator green"></span></p>
+            </div>
         </div>
-        <div class="card-body">
-            <ul class="action-list">
-                <li><a href="#" class="btn btn-sm">Check Weather</a></li>
-                <li><a href="#" class="btn btn-sm">View Tasks</a></li>
-                <li><a href="#" class="btn btn-sm">Health Monitoring</a></li>
-            </ul>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3>Quick Actions</h3>
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li><a href="#" class="btn">Check Weather</a></li>
+                    <li style="margin-top: 10px;"><a href="#" class="btn">View Tasks</a></li>
+                    <li style="margin-top: 10px;"><a href="#" class="btn">Health Monitoring</a></li>
+                </ul>
+            </div>
         </div>
-    </div>
-    
-    <div class="card">
-        <div class="card-header">
-            <h3>Recent Activity</h3>
-        </div>
-        <div class="card-body">
-            <p>No recent activity to display</p>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3>Recent Activity</h3>
+            </div>
+            <div class="card-body">
+                <p>No recent activity to display</p>
+            </div>
         </div>
     </div>
 </div>

@@ -7,8 +7,6 @@ from sqlalchemy.orm import DeclarativeBase
 class Base(DeclarativeBase):
     pass
 
-db = SQLAlchemy(model_class=Base)
-
 # Create the Flask application
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "nous-secure-key-2025")
@@ -21,8 +19,18 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     'pool_recycle': 300,
 }
 
-# Initialize extensions
+# Initialize SQLAlchemy with the app
+db = SQLAlchemy(model_class=Base)
 db.init_app(app)
+
+# Simple User model for demonstration
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    
+    def __repr__(self):
+        return f'<User {self.username}>'
 
 # Routes
 @app.route('/')
@@ -59,4 +67,5 @@ with app.app_context():
 
 if __name__ == '__main__':
     # Use 0.0.0.0 to make the app accessible externally
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8080)), debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
