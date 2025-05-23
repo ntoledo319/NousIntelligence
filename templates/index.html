@@ -1,31 +1,33 @@
-{% extends 'base.html' %}
-
-{% block title %}NOUS Personal Assistant{% endblock %}
+{% extends "layout.html" %}
 
 {% block content %}
-<div class="welcome-container">
-    <h1>Welcome to NOUS Personal Assistant</h1>
-    <p>Your intelligent personal assistant for task management, health monitoring, and more.</p>
-    
-    <div class="feature-cards">
+<section class="hero">
+    <div class="hero-content">
+        <h1>Welcome to NOUS Personal Assistant</h1>
+        <p>Your AI-powered personal assistant with multi-modal interaction capabilities.</p>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+    </div>
+</section>
+
+<section class="features">
+    <h2>Key Features</h2>
+    <div class="feature-grid">
         <div class="feature-card">
-            <h3>Task Management</h3>
-            <p>Organize your tasks with intelligent prioritization</p>
+            <h3>AI Integration</h3>
+            <p>Advanced AI capabilities across multiple service domains</p>
         </div>
-        
         <div class="feature-card">
-            <h3>Health Monitoring</h3>
-            <p>Track your health metrics with personalized insights</p>
+            <h3>Multi-Modal Interaction</h3>
+            <p>Interact through text, voice, and visual interfaces</p>
         </div>
-        
         <div class="feature-card">
-            <h3>Weather Forecasts</h3>
-            <p>Stay updated with accurate weather predictions</p>
+            <h3>Intelligent Management</h3>
+            <p>Smart system monitoring and error handling</p>
+        </div>
+        <div class="feature-card">
+            <h3>Scalable Architecture</h3>
+            <p>Built on a robust and scalable microservice architecture</p>
         </div>
     </div>
-    
-    <div class="cta-container">
-        <a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
-    </div>
-</div>
+</section>
 {% endblock %}
