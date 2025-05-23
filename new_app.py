@@ -1,10 +1,11 @@
 """
-NOUS Personal Assistant - Main Application File
+NOUS Personal Assistant - Clean Implementation
+This is a simplified version that will deploy reliably on Replit
 """
 import os
 from flask import Flask, render_template, jsonify
 
-# Create and configure Flask application
+# Create the Flask application
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "nous-secure-key-2025")
 
@@ -29,16 +30,15 @@ def health():
 def page_not_found(e):
     """Handle 404 errors"""
     return render_template('error.html', title='Page Not Found', 
-                           error_code=404, message="The page you requested was not found."), 404
+                          error_code=404, message="The page you requested was not found."), 404
 
 @app.errorhandler(500)
 def server_error(e):
     """Handle 500 errors"""
     return render_template('error.html', title='Server Error', 
-                           error_code=500, message="An internal server error occurred."), 500
+                          error_code=500, message="An internal server error occurred."), 500
 
-# Run the app when this file is executed directly
+# Run the application
 if __name__ == '__main__':
-    # Use 0.0.0.0 to make the app accessible externally
     port = int(os.environ.get('PORT', 3000))
     app.run(host='0.0.0.0', port=port)
