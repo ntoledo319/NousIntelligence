@@ -1,20 +1,20 @@
-[run]
-command = "bash public_start.sh"
+# NOUS Personal Assistant Replit Configuration
 
+run = ["bash", "start.sh"]
+
+# Deployment configuration
 [deployment]
-run = ["sh", "-c", "bash public_deploy.sh"]
+run = ["bash", "public_start.sh"]
 deploymentTarget = "cloudrun"
-ignorePorts = false
 
-[periodic-jobs]
-monitor = { cron = "*/15 * * * *", command = "bash monitor_deploy.sh" }
-
+# Environment variables
 [env]
 PORT = "8080"
 FLASK_APP = "main.py"
 FLASK_ENV = "production"
 PYTHONUNBUFFERED = "1"
 
+# Language configuration for Python
 [languages.python]
 pattern = "**/*.py"
 
@@ -24,6 +24,17 @@ channel = "stable-24_05"
 [unitTest]
 language = "python"
 
+# Auth settings
 [auth]
 pageEnabled = false
 buttonEnabled = false
+
+# Server settings
+[server]
+host = "0.0.0.0"
+port = 8080
+
+# Define port mappings
+[[ports]]
+localPort = 8080
+externalPort = 80

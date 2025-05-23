@@ -1,27 +1,19 @@
 #!/bin/bash
 
-# NOUS Personal Assistant - Public Deployment Starter
-# This script starts the application for production deployment
+# NOUS Personal Assistant - Public Deployment Script
+echo "Starting NOUS Personal Assistant for public deployment..."
 
-echo "===== NOUS Personal Assistant - Public Deployment ====="
-echo "Starting application in production mode..."
-
-# Create necessary directories
+# Ensure needed directories exist
 mkdir -p static/css static/js templates flask_session logs
 
-# Set environment variables
+# Set environment variables for public deployment
 export FLASK_APP=main.py
 export FLASK_ENV=production
+export PORT=${PORT:-8080}
+export PUBLIC_MODE=true
 
-# Get the port from environment or use 8080 as default
-PORT="${PORT:-8080}"
-echo "Using port: $PORT"
+# Make script executable
+chmod +x start.sh
 
-# Run the application with gunicorn if available
-if command -v gunicorn &>/dev/null; then
-    echo "Starting with Gunicorn..."
-    gunicorn --bind 0.0.0.0:$PORT main:app --log-level info
-else
-    echo "Gunicorn not found, using Flask development server..."
-    python main.py
-fi
+# Start the application using Gunicorn
+exec gunicorn --bind 0.0.0.0:$PORT --workers=2 --threads=2 --timeout=60 main:app
