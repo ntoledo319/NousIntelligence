@@ -12,8 +12,8 @@ import datetime
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# Create blueprint
-main_bp = Blueprint('main', __name__)
+# Create blueprint with standard naming
+main_bp = Blueprint('main', __name__, url_prefix='/')
 
 @main_bp.route('/')
 def index():

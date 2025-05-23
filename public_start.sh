@@ -21,6 +21,13 @@ if [ ! -f ".deps_installed" ] || [ "$REFRESH_DEPS" = "true" ]; then
   touch .deps_installed
 fi
 
-# Start the application using Gunicorn
-echo "Starting application on port $PORT..."
-exec gunicorn --bind 0.0.0.0:$PORT --workers=2 --threads=2 --timeout=60 app:app
+# Start the application using Gunicorn with standardized configuration
+echo "Starting NOUS application on port $PORT..."
+exec gunicorn --bind 0.0.0.0:$PORT \
+  --workers=2 \
+  --threads=2 \
+  --timeout=60 \
+  --access-logfile=logs/access.log \
+  --error-logfile=logs/error.log \
+  --log-level=info \
+  app:app

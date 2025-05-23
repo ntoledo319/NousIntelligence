@@ -78,4 +78,8 @@ args = "export FLASK_ENV=development"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
+args = "mkdir -p logs static templates flask_session"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
 args = "python app.py"
