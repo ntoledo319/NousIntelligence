@@ -1,42 +1,27 @@
 #!/bin/bash
-# NOUS Personal Assistant - Public Workflow Startup Script
 
-# Create required directories
-mkdir -p static templates logs flask_session instance uploads/voice
+# NOUS Personal Assistant - Public Deployment Starter
+# This script starts the application for production deployment
 
-# Setup logging
-TIMESTAMP=$(date +%Y%m%d)
-LOG_FILE="logs/deployment_${TIMESTAMP}.log"
+echo "===== NOUS Personal Assistant - Public Deployment ====="
+echo "Starting application in production mode..."
 
-log_message() {
-  echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
-  echo "$1"
-}
+# Create necessary directories
+mkdir -p static/css static/js templates flask_session logs
 
-log_message "INFO: Starting NOUS Personal Assistant (Public Mode)"
-
-# Generate a secret key if it doesn't exist
-if [ ! -f ".secret_key" ]; then
-    log_message "INFO: Generating new secret key"
-    python -c "import secrets; print(secrets.token_hex(24))" > .secret_key
-    chmod 600 .secret_key
-fi
-
-# Set environment variables for public access
-export SECRET_KEY=$(cat .secret_key)
-export PORT=8080
+# Set environment variables
 export FLASK_APP=main.py
 export FLASK_ENV=production
-export PYTHONUNBUFFERED=1
-export PUBLIC_ACCESS=true
 
-# Clean up any existing processes
-log_message "INFO: Cleaning up any existing processes"
-pkill -f "python.*app.py" 2>/dev/null || true
-pkill -f "python.*main.py" 2>/dev/null || true
-pkill -f "gunicorn" 2>/dev/null || true
-fuser -k 8080/tcp 2>/dev/null || true
+# Get the port from environment or use 8080 as default
+PORT="${PORT:-8080}"
+echo "Using port: $PORT"
 
-# Start the Flask application
-log_message "INFO: Starting Flask application in public mode"
-python main.py
+# Run the application with gunicorn if available
+if command -v gunicorn &>/dev/null; then
+    echo "Starting with Gunicorn..."
+    gunicorn --bind 0.0.0.0:$PORT main:app --log-level info
+else
+    echo "Gunicorn not found, using Flask development server..."
+    python main.py
+fi

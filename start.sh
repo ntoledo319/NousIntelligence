@@ -1,66 +1,19 @@
 #!/bin/bash
-# NOUS Personal Assistant - Unified Startup Script
 
-echo "🚀 Starting NOUS Personal Assistant..."
+# NOUS Personal Assistant Starter Script
+# This script ensures the app runs on the correct port
 
-# Create required directories
-mkdir -p static templates logs flask_session instance
+echo "===== NOUS Personal Assistant ====="
+echo "Starting your app..."
 
-# Generate a secret key if it doesn't exist
-if [ ! -f ".secret_key" ]; then
-    echo "🔑 Generating new secret key..."
-    python -c "import secrets; print(secrets.token_hex(24))" > .secret_key
-    chmod 600 .secret_key
-fi
+# Create necessary directories
+mkdir -p static/css static/js templates flask_session logs
 
-# Set environment variables
-export SECRET_KEY=$(cat .secret_key)
-export PORT=8080
-export FLASK_ENV=${FLASK_ENV:-"production"}
-export PYTHONUNBUFFERED=1
+# Set port to 5000 to avoid conflicts 
+export PORT=5000
+export FLASK_APP=main.py
+export FLASK_ENV=development
 
-# Set the Python path to include the current directory
-export PYTHONPATH="${PYTHONPATH}:$(pwd)"
-
-# Set up deployment logs
-mkdir -p logs
-TIMESTAMP=$(date +%Y%m%d)
-echo "[$(date +'%Y-%m-%d %H:%M:%S')] INFO in deployment_logger: [STARTUP] Application starting up" >> "logs/deployment_${TIMESTAMP}.log"
-
-# Kill any existing processes that might conflict
-pkill -f "python.*main.py" 2>/dev/null || true
-pkill -f "gunicorn" 2>/dev/null || true
-fuser -k 8080/tcp 2>/dev/null || true
-
-echo "🌐 Starting web server on port 8080..."
-
-# Find gunicorn executable using which command
-GUNICORN_PATH=$(which gunicorn)
-if [ -z "$GUNICORN_PATH" ]; then
-    # Try common locations if which fails
-    for path in "/home/runner/.pythonlibs/bin/gunicorn" "/home/runner/workspace/.pythonlibs/bin/gunicorn" "/nix/store/*/bin/gunicorn"; do
-        if [ -x "$path" ]; then
-            GUNICORN_PATH="$path"
-            break
-        fi
-    done
-fi
-
-if [ -n "$GUNICORN_PATH" ] && [ -x "$GUNICORN_PATH" ]; then
-    echo "✅ Using gunicorn at: $GUNICORN_PATH"
-    echo "[$(date +'%Y-%m-%d %H:%M:%S')] INFO in deployment_logger: [STARTUP] Starting gunicorn from: $GUNICORN_PATH" >> "logs/deployment_${TIMESTAMP}.log"
-    
-    # Start with explicit gunicorn command using wsgi.py
-    exec "$GUNICORN_PATH" \
-        --bind 0.0.0.0:8080 \
-        --workers 2 \
-        --timeout 120 \
-        --access-logfile - \
-        --error-logfile - \
-        --log-level info \
-        "wsgi:app"
-else
-    echo "⚠️ Gunicorn not found, using Flask development server (not recommended for production)"
-    echo "[$(date +'%Y-%m-%d %H:%M:%S')] WARNING in deployment_logger: [STARTUP] Using development server in production" >> "logs/deployment_${TIMESTAMP}.log"
-    python main.py
-fi
+# Run the application
+echo "Starting Flask application on port 5000..."
+python main.py
