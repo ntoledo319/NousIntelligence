@@ -82,51 +82,75 @@ def setup_public_preview_mode(app):
     Args:
         app: Flask application instance
     """
-    # Public preview configuration - forced to True for public access
-    app.config['PUBLIC_PREVIEW_MODE'] = True
-    app.config['PUBLIC_ACCESS'] = os.environ.get('PUBLIC_ACCESS', 'true').lower() == 'true'
-    
-    # Override Flask-Login's login_required decorator for Replit preview
-    from flask import request, g
-    from functools import wraps
-    from flask_login import current_user
-    
-    # Store the original login_required decorator
-    from flask_login import login_required as original_login_required
-    
-    # Create a modified login_required decorator
-    def public_preview_login_required(func):
-        @wraps(func)
-        def decorated_view(*args, **kwargs):
-            # Always bypass login requirement if PUBLIC_ACCESS is true
-            if app.config['PUBLIC_ACCESS']:
-                # Set a flag for templates to know we're in public access mode
-                g.public_preview = True
-                return func(*args, **kwargs)
-                
-            # Check if this is a Replit preview URL
-            is_replit_preview = (
-                request.host.endswith('.repl.co') or 
-                request.host.endswith('.replit.app') or 
-                'REPLIT_DEPLOYMENT' in os.environ
-            )
-            
-            # If it's a Replit preview, bypass login requirement
-            if is_replit_preview and app.config['PUBLIC_PREVIEW_MODE']:
-                # Set a flag for templates to know we're in preview mode
-                g.public_preview = True
-                return func(*args, **kwargs)
-            
-            # Otherwise, use the original login_required
-            return original_login_required(func)(*args, **kwargs)
+    try:
+        # Public preview configuration - force to True for public access
+        app.config['PUBLIC_PREVIEW_MODE'] = True
+        public_access = os.environ.get('PUBLIC_ACCESS', 'true').lower()
+        app.config['PUBLIC_ACCESS'] = (public_access == 'true')
         
-        return decorated_view
-    
-    # Replace the original login_required with our modified version
-    import flask_login
-    flask_login.login_required = public_preview_login_required
-    
-    logger.info("Public preview mode configured for Replit deployment")
+        logger.info(f"PUBLIC_ACCESS environment variable: '{public_access}'")
+        logger.info(f"PUBLIC_ACCESS setting: {app.config['PUBLIC_ACCESS']}")
+        
+        # Override Flask-Login's login_required decorator for Replit preview
+        from flask import request, g
+        from functools import wraps
+        
+        # Check if Flask-Login is installed before trying to use it
+        try:
+            # Store the original login_required decorator
+            from flask_login import login_required as original_login_required
+            from flask_login import current_user
+            
+            # Create a modified login_required decorator
+            def public_preview_login_required(func):
+                @wraps(func)
+                def decorated_view(*args, **kwargs):
+                    # Debug information
+                    logger.info(f"Request host: {request.host}")
+                    logger.info(f"PUBLIC_ACCESS: {app.config['PUBLIC_ACCESS']}")
+                    logger.info(f"PUBLIC_PREVIEW_MODE: {app.config['PUBLIC_PREVIEW_MODE']}")
+                    
+                    # Always bypass login requirement if PUBLIC_ACCESS is true
+                    if app.config['PUBLIC_ACCESS']:
+                        logger.info("Access granted: PUBLIC_ACCESS is enabled")
+                        # Set a flag for templates to know we're in public access mode
+                        g.public_preview = True
+                        return func(*args, **kwargs)
+                        
+                    # Check if this is a Replit preview URL
+                    is_replit_preview = (
+                        request.host.endswith('.repl.co') or 
+                        request.host.endswith('.replit.app') or 
+                        'REPLIT_DEPLOYMENT' in os.environ
+                    )
+                    
+                    logger.info(f"Is Replit preview URL: {is_replit_preview}")
+                    
+                    # If it's a Replit preview, bypass login requirement
+                    if is_replit_preview and app.config['PUBLIC_PREVIEW_MODE']:
+                        logger.info("Access granted: Preview URL with PUBLIC_PREVIEW_MODE enabled")
+                        # Set a flag for templates to know we're in preview mode
+                        g.public_preview = True
+                        return func(*args, **kwargs)
+                    
+                    logger.info("Access restricted: Requiring login")
+                    # Otherwise, use the original login_required
+                    return original_login_required(func)(*args, **kwargs)
+                
+                return decorated_view
+            
+            # Replace the original login_required with our modified version
+            import flask_login
+            flask_login.login_required = public_preview_login_required
+            logger.info("Successfully overrode Flask-Login's login_required")
+            
+        except ImportError:
+            logger.warning("Flask-Login not installed, skipping login_required override")
+        
+        logger.info("Public preview mode configured for Replit deployment")
+    except Exception as e:
+        logger.error(f"Error setting up public preview mode: {str(e)}")
+        logger.exception("Full traceback for public preview mode error:")
 
 def register_blueprints(app):
     """Register Flask blueprints
@@ -136,9 +160,11 @@ def register_blueprints(app):
     """
     # Import blueprints here to avoid circular imports
     from routes.main import main_bp
+    from routes.dashboard import dashboard_bp
     
     # Register blueprints
     app.register_blueprint(main_bp)
+    app.register_blueprint(dashboard_bp)
     
     # Add more blueprint registrations as needed
     # app.register_blueprint(auth_bp)

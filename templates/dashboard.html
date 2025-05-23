@@ -1,187 +1,243 @@
-{% extends "simplified_layout.html" %}
+{% extends 'base.html' %}
 
-{% block title %}Dashboard | NOUS{% endblock %}
+{% block title %}NOUS Dashboard{% endblock %}
 
 {% block content %}
-<div class="container my-3 my-md-4">
-    <div class="row mb-4 align-items-center">
-        <div class="col-md-8">
-            <h1 class="mb-2 text-gradient-primary">Welcome, {{ current_user.first_name }}</h1>
-            <p class="lead">Here's an overview of your personal information and important updates.</p>
+<div class="dashboard-container">
+    <h1>NOUS Dashboard</h1>
+    <p>Welcome to your personal assistant dashboard. Here you can manage all of your tasks and information.</p>
+    
+    <div class="dashboard-cards">
+        <div class="dashboard-card">
+            <h3>Today's Tasks</h3>
+            <ul class="task-list">
+                <li class="task-item complete">
+                    <span class="task-status">✓</span>
+                    <span class="task-title">Morning check-in</span>
+                </li>
+                <li class="task-item in-progress">
+                    <span class="task-status">→</span>
+                    <span class="task-title">Work on project presentation</span>
+                </li>
+                <li class="task-item">
+                    <span class="task-status">○</span>
+                    <span class="task-title">Schedule doctor appointment</span>
+                </li>
+                <li class="task-item">
+                    <span class="task-status">○</span>
+                    <span class="task-title">Evening workout</span>
+                </li>
+            </ul>
+            <a href="#" class="card-action">Manage Tasks</a>
         </div>
-        <div class="col-md-4 text-md-end mt-3 mt-md-0">
-            <a href="{{ url_for('settings.settings_page') }}" class="btn btn-outline-primary">
-                <i class="fas fa-cog me-2"></i> Settings
-            </a>
+        
+        <div class="dashboard-card">
+            <h3>Health Overview</h3>
+            <div class="stat-container">
+                <div class="stat-item">
+                    <span class="stat-label">Steps Today</span>
+                    <span class="stat-value">6,240</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Sleep</span>
+                    <span class="stat-value">7h 20m</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Heart Rate</span>
+                    <span class="stat-value">68 bpm</span>
+                </div>
+            </div>
+            <a href="#" class="card-action">Health Details</a>
+        </div>
+        
+        <div class="dashboard-card">
+            <h3>Weather</h3>
+            <div class="weather-display">
+                <div class="weather-main">
+                    <span class="weather-temp">24°C</span>
+                    <span class="weather-condition">Partly Cloudy</span>
+                </div>
+                <div class="weather-details">
+                    <div class="weather-detail-item">
+                        <span class="detail-label">Humidity</span>
+                        <span class="detail-value">65%</span>
+                    </div>
+                    <div class="weather-detail-item">
+                        <span class="detail-label">Wind</span>
+                        <span class="detail-value">8 km/h</span>
+                    </div>
+                </div>
+            </div>
+            <a href="#" class="card-action">Weather Forecast</a>
         </div>
     </div>
-
-    <div class="row g-4">
-        <!-- Quick Actions Card -->
-        <div class="col-md-6">
-            <div class="card h-100 shadow-sm rounded-4 border-0">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="card-title mb-0"><i class="fas fa-bolt me-2"></i> Quick Actions</h5>
-                </div>
-                <div class="card-body">
-                    <div class="list-group list-group-flush">
-                        <a href="{{ url_for('dashboard.tasks') }}" class="list-group-item list-group-item-action border-0 rounded-3 mb-2 py-3">
-                            <i class="fas fa-plus-circle me-2 text-success"></i> Add a new task
-                        </a>
-                        <a href="{{ url_for('dashboard.tasks') }}" class="list-group-item list-group-item-action border-0 rounded-3 mb-2 py-3">
-                            <i class="fas fa-check-circle me-2 text-primary"></i> Manage tasks
-                        </a>
-                        <a href="{{ url_for('settings.settings_page') }}" class="list-group-item list-group-item-action border-0 rounded-3 mb-2 py-3">
-                            <i class="fas fa-cog me-2 text-secondary"></i> Update settings
-                        </a>
-                        <a href="{{ url_for('index.help_page') }}" class="list-group-item list-group-item-action border-0 rounded-3 py-3">
-                            <i class="fas fa-question-circle me-2 text-info"></i> Get help
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Status Overview Card -->
-        <div class="col-md-6">
-            <div class="card h-100 shadow-sm rounded-4 border-0">
-                <div class="card-header bg-info text-white">
-                    <h5 class="card-title mb-0"><i class="fas fa-chart-pie me-2"></i> Status Overview</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-6">
-                            <div class="p-3 bg-light rounded-4 text-center shadow-sm">
-                                <h3 class="mb-1">0</h3>
-                                <p class="mb-0 small">Due Tasks</p>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="p-3 bg-light rounded-4 text-center shadow-sm">
-                                <h3 class="mb-1">0</h3>
-                                <p class="mb-0 small">Appointments</p>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="p-3 bg-light rounded-4 text-center shadow-sm">
-                                <h3 class="mb-1">0</h3>
-                                <p class="mb-0 small">Shopping Items</p>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="p-3 bg-light rounded-4 text-center shadow-sm">
-                                <h3 class="mb-1">0</h3>
-                                <p class="mb-0 small">Medications</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Upcoming Tasks Card -->
-        <div class="col-md-6">
-            <div class="card h-100 shadow-sm rounded-4 border-0">
-                <div class="card-header bg-success text-white">
-                    <h5 class="card-title mb-0"><i class="fas fa-tasks me-2"></i> Upcoming Tasks</h5>
-                </div>
-                <div class="card-body">
-                    {% if tasks %}
-                        <ul class="list-group list-group-flush">
-                            {% for task in tasks %}
-                                <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 py-3">
-                                    <div>
-                                        <form action="{{ url_for('dashboard.toggle_task', task_id=task.id) }}" method="post" class="d-inline">
-                                            <input type="checkbox" class="form-check-input me-2 task-toggle" data-task-id="{{ task.id }}" {% if task.completed %}checked{% endif %}>
-                                        </form>
-                                        <span class="{% if task.completed %}text-decoration-line-through{% endif %}">{{ task.title }}</span>
-                                        {% if task.priority == 'high' %}
-                                            <span class="badge bg-danger ms-2">High</span>
-                                        {% elif task.priority == 'medium' %}
-                                            <span class="badge bg-warning text-dark ms-2">Medium</span>
-                                        {% endif %}
-                                    </div>
-                                    {% if task.due_date %}
-                                        <small class="text-muted">{{ task.due_date|format_date }}</small>
-                                    {% endif %}
-                                </li>
-                            {% endfor %}
-                        </ul>
-                        <div class="mt-3 text-end">
-                            <a href="{{ url_for('dashboard.tasks') }}" class="btn btn-sm btn-primary">
-                                <i class="fas fa-tasks me-1"></i> View All Tasks
-                            </a>
-                        </div>
-                    {% else %}
-                        <div class="alert alert-info rounded-3 mt-2">
-                            <i class="fas fa-info-circle me-2"></i> No upcoming tasks found.
-                        </div>
-                        <p class="card-text">You don't have any upcoming tasks. Use the quick actions to add tasks.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Weather Card -->
-        <div class="col-md-6">
-            <div class="card h-100 shadow-sm rounded-4 border-0">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="card-title mb-0"><i class="fas fa-cloud-sun me-2"></i> Weather</h5>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-info rounded-3 mt-2">
-                        <i class="fas fa-info-circle me-2"></i> Weather data not available.
-                    </div>
-                    <p class="card-text">Configure your location in settings to get weather information.</p>
-                </div>
-            </div>
-        </div>
+    
+    <div class="action-panel">
+        <a href="/" class="btn btn-secondary">Return Home</a>
+        <a href="#" class="btn btn-primary">Open Assistant</a>
     </div>
 </div>
 {% endblock %}
 
-{% block scripts %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Task toggle checkboxes
-        const taskToggles = document.querySelectorAll('.task-toggle');
-        taskToggles.forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const taskId = this.dataset.taskId;
-                const form = this.closest('form');
-                
-                // Add visual feedback during request
-                const listItem = checkbox.closest('li');
-                listItem.style.opacity = '0.7';
-                
-                // Submit the form to toggle task status
-                fetch(form.action, {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    // Update UI based on task status
-                    listItem.style.opacity = '1';
-                    const taskTitle = listItem.querySelector('span');
-                    
-                    if (data.completed) {
-                        taskTitle.classList.add('text-decoration-line-through');
-                    } else {
-                        taskTitle.classList.remove('text-decoration-line-through');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error toggling task:', error);
-                    // Revert checkbox state on error
-                    this.checked = !this.checked;
-                    listItem.style.opacity = '1';
-                });
-            });
-        });
-    });
-</script>
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        padding: 1rem 0;
+    }
+    
+    .dashboard-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+    
+    .dashboard-card {
+        background-color: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    
+    .dashboard-card h3 {
+        margin-top: 0;
+        color: #395f9d;
+        border-bottom: 2px solid #f0f4f9;
+        padding-bottom: 0.5rem;
+    }
+    
+    .task-list {
+        list-style: none;
+        padding: 0;
+        margin: 1rem 0;
+    }
+    
+    .task-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f0f4f9;
+    }
+    
+    .task-status {
+        font-size: 1.2rem;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.5rem;
+    }
+    
+    .task-item.complete .task-title {
+        color: #888;
+        text-decoration: line-through;
+    }
+    
+    .task-item.in-progress .task-title {
+        font-weight: 600;
+        color: #4a6fa5;
+    }
+    
+    .card-action {
+        display: block;
+        text-align: center;
+        margin-top: 1rem;
+        color: #4a6fa5;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    .card-action:hover {
+        text-decoration: underline;
+    }
+    
+    .stat-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        margin: 1rem 0;
+    }
+    
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem;
+        background-color: #f8f9fc;
+        border-radius: 4px;
+    }
+    
+    .stat-label {
+        color: #666;
+    }
+    
+    .stat-value {
+        font-weight: 600;
+        color: #395f9d;
+    }
+    
+    .weather-display {
+        margin: 1rem 0;
+    }
+    
+    .weather-main {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+    
+    .weather-temp {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #395f9d;
+    }
+    
+    .weather-condition {
+        color: #666;
+    }
+    
+    .weather-details {
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .weather-detail-item {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        background-color: #f8f9fc;
+        padding: 0.5rem;
+        border-radius: 4px;
+        flex: 1;
+        margin: 0 0.5rem;
+    }
+    
+    .detail-label {
+        font-size: 0.8rem;
+        color: #666;
+    }
+    
+    .detail-value {
+        font-weight: 600;
+        color: #395f9d;
+    }
+    
+    .action-panel {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .btn-secondary {
+        background-color: #e9ecef;
+        color: #495057;
+    }
+    
+    .btn-secondary:hover {
+        background-color: #dee2e6;
+    }
+</style>
 {% endblock %}
