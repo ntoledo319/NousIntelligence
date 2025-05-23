@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 CORE_BLUEPRINTS = [
     {'name': 'main', 'module': 'routes.main', 'attr': 'main_bp', 'url_prefix': None},
     {'name': 'health_api', 'module': 'routes.api.health', 'attr': 'health_bp', 'url_prefix': '/api'},
+    {'name': 'auth', 'module': 'routes.auth', 'attr': 'auth_bp', 'url_prefix': None},  # Auth routes are essential
 ]
 
 # Optional blueprint definitions
