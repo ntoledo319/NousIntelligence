@@ -1,85 +1,86 @@
-{% extends "base.html" %}
-
-{% block title %}NOUS - System Health{% endblock %}
-
-{% block extra_css %}
-<style>
-    .health-info {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-    
-    .health-item {
-        background-color: #f1f9ff;
-        border-radius: 4px;
-        padding: 10px 15px;
-        margin-bottom: 10px;
-    }
-    
-    .health-item span {
-        font-weight: bold;
-    }
-    
-    .timestamp {
-        color: #666;
-        font-size: 0.9em;
-        margin-top: 20px;
-    }
-</style>
-{% endblock %}
-
-{% block content %}
-    <div class="card">
-        <h2>System Health</h2>
-        <p>Current status: <span class="status-ok">✓ Operational</span></p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOUS Health Check</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <style>
+        .health-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
         
-        <h3>System Information</h3>
-        <div class="health-info">
-            <div class="health-item">
-                <span>Version:</span> {{ version }}
-            </div>
-            <div class="health-item">
-                <span>Environment:</span> {{ environment }}
-            </div>
-            <div class="health-item">
-                <span>Database:</span> Connected
-            </div>
-            <div class="health-item">
-                <span>Memory Usage:</span> Optimal
-            </div>
+        .health-status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            background-color: #4ade80;
+            color: #134e29;
+        }
+        
+        .status-list {
+            margin: 2rem 0;
+            padding: 0;
+            list-style: none;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            background-color: #f8f9fc;
+            border-radius: 5px;
+        }
+        
+        .status-label {
+            font-weight: 500;
+            color: #4b5563;
+        }
+        
+        .status-value {
+            font-weight: 600;
+            color: #1f2937;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>NOUS Personal Assistant</h1>
+    </header>
+    
+    <div class="container">
+        <div class="health-container">
+            <h1>System Health</h1>
+            <div class="health-status">Healthy</div>
+            
+            <ul class="status-list">
+                <li class="status-item">
+                    <span class="status-label">Version</span>
+                    <span class="status-value">{{ version }}</span>
+                </li>
+                <li class="status-item">
+                    <span class="status-label">Environment</span>
+                    <span class="status-value">{{ environment }}</span>
+                </li>
+                <li class="status-item">
+                    <span class="status-label">Timestamp</span>
+                    <span class="status-value">{{ timestamp }}</span>
+                </li>
+            </ul>
+            
+            <a href="/" class="btn btn-primary">Return to Home</a>
         </div>
-        
-        <p class="timestamp">Last checked: {{ timestamp }}</p>
     </div>
     
-    <div class="card">
-        <h2>Components Status</h2>
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr>
-                    <th style="text-align: left; padding: 10px; border-bottom: 1px solid #ddd;">Component</th>
-                    <th style="text-align: left; padding: 10px; border-bottom: 1px solid #ddd;">Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd;">Web Server</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd;"><span class="status-ok">✓ Operational</span></td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd;">Database Connection</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd;"><span class="status-ok">✓ Operational</span></td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd;">File Storage</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd;"><span class="status-ok">✓ Operational</span></td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd;">Session Management</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #ddd;"><span class="status-ok">✓ Operational</span></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-{% endblock %}
+    <footer>
+        <p>&copy; 2025 NOUS Personal Assistant</p>
+    </footer>
+</body>
+</html>
