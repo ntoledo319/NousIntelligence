@@ -62,7 +62,19 @@ args = "pkill -f \"python.*app.py\" || true"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
+args = "pkill -f \"gunicorn\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
 args = "export PORT=8080"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "export FLASK_APP=app.py"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "export FLASK_ENV=development"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"

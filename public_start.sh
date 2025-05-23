@@ -1,28 +1,24 @@
 
 #!/bin/bash
 
-# NOUS Personal Assistant - Deployment Script
-echo "Starting NOUS Personal Assistant..."
+echo "======= NOUS Application Startup ======="
 
-# Ensure needed directories exist
-mkdir -p static templates logs flask_session
+# Set default port
+export PORT=${PORT:-8080}
+
+# Ensure required directories exist
+mkdir -p static templates logs flask_session instance
 
 # Set environment variables
 export FLASK_APP=app.py
 export FLASK_ENV=production
-export PORT=${PORT:-8080}
 export PUBLIC_MODE=true
 
 # Install dependencies if needed
-if [ "$INSTALL_DEPS" = "true" ] || [ "$REFRESH_DEPS" = "true" ]; then
+if [ ! -f ".deps_installed" ] || [ "$REFRESH_DEPS" = "true" ]; then
   echo "Installing dependencies..."
   pip install -r requirements.txt
-  
-  # Ensure markupsafe is properly installed (common issue)
-  if ! pip show markupsafe > /dev/null; then
-    echo "Installing markupsafe separately..."
-    pip install --user markupsafe==2.1.5
-  fi
+  touch .deps_installed
 fi
 
 # Start the application using Gunicorn
