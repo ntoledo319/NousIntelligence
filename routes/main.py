@@ -78,3 +78,29 @@ def catch_all(path):
     """Catch-all route to handle any undefined route"""
     logger.info(f"Redirecting undefined path: {path}")
     return redirect('/')
+"""
+Main application routes
+"""
+
+from flask import Blueprint, render_template, redirect, url_for, current_app
+
+main_bp = Blueprint('main', __name__)
+
+@main_bp.route('/')
+def index():
+    """Homepage route"""
+    return render_template('index.html', title='NOUS Personal Assistant')
+
+@main_bp.route('/dashboard')
+def dashboard():
+    """Dashboard route"""
+    try:
+        return render_template('dashboard.html', title='Dashboard')
+    except:
+        # Fallback to simple template if dashboard template is missing
+        return render_template('minimal.html', title='Dashboard')
+
+@main_bp.route('/help')
+def help():
+    """Help page route"""
+    return render_template('help.html', title='Help')

@@ -62,7 +62,11 @@ args = "pkill -f \"python.*app.py\" || true"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pkill -f \"gunicorn\" || true"
+args = "pkill -f \"gunicorn.*app:app\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "mkdir -p logs static templates flask_session instance"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
@@ -75,10 +79,6 @@ args = "export FLASK_APP=app.py"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "export FLASK_ENV=development"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "mkdir -p logs static templates flask_session"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"

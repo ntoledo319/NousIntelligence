@@ -28,3 +28,56 @@ def health_check():
         "environment": os.environ.get("FLASK_ENV", "production"),
         "timestamp": datetime.datetime.now().isoformat()
     })
+"""
+Health check API routes
+"""
+
+import os
+import platform
+import psutil
+from datetime import datetime
+from flask import Blueprint, jsonify
+
+health_bp = Blueprint('health', __name__)
+
+@health_bp.route('/health')
+def health_check():
+    """
+    Health check endpoint for monitoring and deployment verification
+    """
+    return jsonify({
+        "status": "healthy",
+        "version": "1.0.0",
+        "timestamp": datetime.utcnow().isoformat(),
+        "environment": os.environ.get("FLASK_ENV", "production")
+    })
+
+@health_bp.route('/health/system')
+def system_health():
+    """
+    Extended health check with system information
+    """
+    return jsonify({
+        "status": "healthy",
+        "version": "1.0.0",
+        "timestamp": datetime.utcnow().isoformat(),
+        "environment": os.environ.get("FLASK_ENV", "production"),
+        "system": {
+            "platform": platform.platform(),
+            "python": platform.python_version(),
+            "memory": {
+                "total": round(psutil.virtual_memory().total / (1024 * 1024), 2),
+                "available": round(psutil.virtual_memory().available / (1024 * 1024), 2),
+                "percent": psutil.virtual_memory().percent
+            },
+            "cpu": {
+                "percent": psutil.cpu_percent(interval=1),
+                "cores": psutil.cpu_count()
+            },
+            "disk": {
+                "total": round(psutil.disk_usage('/').total / (1024 * 1024 * 1024), 2),
+                "free": round(psutil.disk_usage('/').free / (1024 * 1024 * 1024), 2),
+                "percent": psutil.disk_usage('/').percent
+            }
+        }
+    })
