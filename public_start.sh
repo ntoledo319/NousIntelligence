@@ -26,7 +26,7 @@ fi
 export SECRET_KEY=$(cat .secret_key)
 export PORT=8080
 export FLASK_APP=main.py
-export FLASK_ENV=development
+export FLASK_ENV=production
 export PYTHONUNBUFFERED=1
 export PUBLIC_ACCESS=true
 
@@ -39,4 +39,4 @@ fuser -k 8080/tcp 2>/dev/null || true
 
 # Start the Flask application
 log_message "INFO: Starting Flask application in public mode"
-python app.py
+python main.py
