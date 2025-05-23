@@ -30,10 +30,12 @@ def main():
     app_file = os.environ.get('NOUS_APP_FILE', 'app.py')
     app_var = os.environ.get('NOUS_APP_VAR', 'app')
     
+    # Get the app module name without .py extension
+    app_module = app_file.replace('.py', '')
+    
     # In development mode, run directly through Flask
     if os.environ.get('FLASK_ENV') == 'development':
         logger.info(f"Starting app in development mode using {app_file}")
-        app_module = app_file.replace('.py', '')
         try:
             module = importlib.import_module(app_module)
             app = getattr(module, app_var)
