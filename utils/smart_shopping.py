@@ -6,7 +6,6 @@ Uses AI to generate and organize shopping lists based on user's needs
 import os
 import json
 import logging
-import datetime
 from datetime import datetime, timedelta
 
 # Import OpenAI for generating personalized lists

@@ -51,41 +51,16 @@ def create_app():
     
     return app
 
-def register_error_handlers(app):
-    """Register error handlers for the application"""
-    
-    @app.errorhandler(404)
-    def page_not_found(e):
-        """Handle 404 errors"""
-        return render_template('errors/404.html', title='Page Not Found', 
-                            error_code=404, message="The page you requested was not found."), 404
+# Import the more comprehensive error handlers
+from error_handlers import register_error_handlers
 
-    @app.errorhandler(500)
-    def server_error(e):
-        """Handle 500 errors"""
-        return render_template('errors/500.html', title='Server Error', 
-                            error_code=500, message="An internal server error occurred."), 500
-
-def setup_middleware(app):
-    """Set up middleware and utilities for the application"""
-    # Try to apply security middleware if available
-    try:
-        from utils.security_middleware import setup_security_middleware
-        setup_security_middleware(app)
-    except ImportError:
-        pass
-    
-    # Try to set up database optimizations if available
-    try:
-        from utils.db_optimizations import setup_db_optimizations
-        setup_db_optimizations(app)
-    except ImportError:
-        pass
+# Import the comprehensive middleware setup
+from middleware import setup_middleware
 
 # Create the Flask application
 app = create_app()
 
 # Run the app when this file is executed directly
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8080))
+    port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=os.environ.get('FLASK_ENV') == 'development')
