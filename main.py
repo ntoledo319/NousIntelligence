@@ -6,10 +6,7 @@ It creates and runs the Flask application using our application factory.
 """
 
 import os
-from app_factory import create_app
-
-# Create application
-app = create_app()
+from app import app
 
 # Run the application when executed directly
 if __name__ == "__main__":
