@@ -25,13 +25,6 @@ resetDb = "rm -rf instance/*.sqlite && python run_migrations.py"
 paths = ["*.py", "templates/**/*.html", "static/**/*"]
 ignore = ["__pycache__", "*.pyc", "instance", "flask_session"]
 
-[languages.python]
-pattern = "**/*.py"
-snippet = "# Your code here"
-
-[languages.python.languageServer]
-start = ["pylsp"]
-
 [unitTest]
 language = "python"
 
