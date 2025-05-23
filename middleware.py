@@ -186,19 +186,22 @@ def apply_security_middleware(app: Flask):
         except Exception as e:
             logger.error(f"Error validating content type: {str(e)}")
     
-    # Path traversal prevention
+    # Path traversal prevention using standardized URL validation
     @app.before_request
     def prevent_path_traversal():
-        """Prevent path traversal attacks"""
+        """Prevent path traversal attacks using standardized URL validation"""
         try:
+            from utils.url_utils import validate_url_path
+            
             path = request.path
-            # Check for suspicious path patterns
-            if '../' in path or '..\\' in path:
-                logger.warning(f"Potential path traversal attack detected: {path}")
+            
+            # Use our standardized URL validation
+            if not validate_url_path(path):
+                logger.warning(f"Invalid URL path detected: {path}")
                 abort(400, description="Invalid request path")
                 
             # Additional checks for file extensions that should never be requested directly
-            suspicious_extensions = ['.py', '.pyc', '.db', '.sqlite', '.env', '.git']
+            suspicious_extensions = ['.py', '.pyc', '.db', '.sqlite', '.env', '.git', '.ini', '.cfg', '.conf']
             if any(path.endswith(ext) for ext in suspicious_extensions):
                 logger.warning(f"Suspicious file extension requested: {path}")
                 abort(403, description="Access denied")

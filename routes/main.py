@@ -4,7 +4,7 @@ Main Routes Blueprint
 This module defines the main routes for the NOUS application.
 """
 
-from flask import Blueprint, jsonify, send_from_directory, render_template_string, render_template, redirect, request
+from flask import Blueprint, jsonify, send_from_directory, render_template_string, render_template, redirect, request, url_for, current_app
 import os
 import logging
 import datetime
@@ -20,7 +20,7 @@ def index():
     """Homepage with welcome message"""
     try:
         # Get the flask app instance
-        from flask import current_app, g
+        from flask import g
         
         # Log debugging information
         logger.info("Rendering index page")
@@ -32,9 +32,8 @@ def index():
         is_public = getattr(g, 'public_preview', False)
         logger.info(f"Is public preview (g.public_preview): {is_public}")
         
-        # Force public access for demonstration
         # Use the public index for demonstration purposes
-        return render_template('index_public.html')
+        return render_template('index_public.html', title='NOUS Personal Assistant')
     except Exception as e:
         logger.error(f"Error rendering index: {str(e)}")
         logger.exception("Full traceback for index error:")
@@ -48,6 +47,21 @@ def index():
                 </body>
             </html>
         """, error_message=str(e))
+
+@main_bp.route('/dashboard')
+def dashboard():
+    """Dashboard route"""
+    try:
+        return render_template('dashboard.html', title='Dashboard')
+    except Exception as e:
+        logger.error(f"Error rendering dashboard: {str(e)}")
+        # Fallback to simple template if dashboard template is missing
+        return render_template('minimal.html', title='Dashboard')
+
+@main_bp.route('/help')
+def help():
+    """Help page route"""
+    return render_template('help.html', title='Help')
 
 @main_bp.route('/health')
 def health():
@@ -77,30 +91,4 @@ def serve_static(path):
 def catch_all(path):
     """Catch-all route to handle any undefined route"""
     logger.info(f"Redirecting undefined path: {path}")
-    return redirect('/')
-"""
-Main application routes
-"""
-
-from flask import Blueprint, render_template, redirect, url_for, current_app
-
-main_bp = Blueprint('main', __name__)
-
-@main_bp.route('/')
-def index():
-    """Homepage route"""
-    return render_template('index.html', title='NOUS Personal Assistant')
-
-@main_bp.route('/dashboard')
-def dashboard():
-    """Dashboard route"""
-    try:
-        return render_template('dashboard.html', title='Dashboard')
-    except:
-        # Fallback to simple template if dashboard template is missing
-        return render_template('minimal.html', title='Dashboard')
-
-@main_bp.route('/help')
-def help():
-    """Help page route"""
-    return render_template('help.html', title='Help')
+    return redirect(url_for('main.index'))
