@@ -1,29 +1,29 @@
+
 #!/bin/bash
 
-# Simple health check script for NOUS application
-LOG_FILE="logs/health_check_$(date +%Y%m%d).log"
+echo "$(date +'[%Y-%m-%d %H:%M:%S]') Running NOUS health check"
 
-log_message() {
-  echo "$(date +'[%Y-%m-%d %H:%M:%S]') $1" | tee -a "$LOG_FILE"
-}
+# Create logs directory if it doesn't exist
+mkdir -p logs
+LOGFILE="logs/health_check.log"
 
-log_message "Running health check"
-
-# Check if application is running
-PORT=${PORT:-8080}
-if curl -s http://localhost:$PORT/health > /dev/null; then
-  log_message "Health check passed"
-  exit 0
-else
-  log_message "Health check failed - attempting restart"
-  pkill -f "gunicorn" || true
-  ./public_start.sh &
-  sleep 3
-  if curl -s http://localhost:$PORT/health > /dev/null; then
-    log_message "Application successfully restarted"
+# Check if the application is running
+if curl -s http://localhost:${PORT:-8080}/health >/dev/null; then
+    echo "$(date +'[%Y-%m-%d %H:%M:%S]') Health check passed" | tee -a $LOGFILE
     exit 0
-  else
-    log_message "Failed to restart application"
-    exit 1
-  fi
+else
+    echo "$(date +'[%Y-%m-%d %H:%M:%S]') Health check failed - attempting restart" | tee -a $LOGFILE
+    
+    # Restart the application
+    bash public_start.sh &
+    
+    # Wait a moment and check again
+    sleep 5
+    if curl -s http://localhost:${PORT:-8080}/health >/dev/null; then
+        echo "$(date +'[%Y-%m-%d %H:%M:%S]') Application successfully restarted" | tee -a $LOGFILE
+        exit 0
+    else
+        echo "$(date +'[%Y-%m-%d %H:%M:%S]') Failed to restart application" | tee -a $LOGFILE
+        exit 1
+    fi
 fi
