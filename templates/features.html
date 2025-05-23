@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h1>NOUS Features</h1>
+<p>This page showcases all the amazing features of the NOUS Personal Assistant.</p>
+
+<div class="feature-grid">
+    {% for feature in features %}
+    <div class="feature-card">
+        <h3>{{ feature.name }}</h3>
+        <p>{{ feature.description }}</p>
+        <div class="feature-status">
+            {% if feature.available %}
+            <span style="color: #0e6245; font-weight: bold;">✓ Available</span>
+            {% else %}
+            <span style="color: #a8071a; font-weight: bold;">✗ Coming Soon</span>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div style="margin-top: 2rem; text-align: center;">
+    <a href="{{ url_for('index') }}" class="btn">Return to Home</a>
+</div>
+{% endblock %}

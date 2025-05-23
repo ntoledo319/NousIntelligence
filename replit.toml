@@ -1,6 +1,6 @@
 # NOUS Personal Assistant Replit Configuration
 
-run = ["bash", "start.sh"]
+run = ["bash", "public_start.sh"]
 
 # Deployment configuration
 [deployment]
@@ -13,21 +13,6 @@ PORT = "8080"
 FLASK_APP = "main.py"
 FLASK_ENV = "production"
 PYTHONUNBUFFERED = "1"
-
-# Language configuration for Python
-[languages.python]
-pattern = "**/*.py"
-
-[nix]
-channel = "stable-24_05"
-
-[unitTest]
-language = "python"
-
-# Auth settings
-[auth]
-pageEnabled = false
-buttonEnabled = false
 
 # Server settings
 [server]

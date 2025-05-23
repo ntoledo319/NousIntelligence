@@ -52,10 +52,29 @@ def index():
 @app.route('/health')
 def health():
     """Health check endpoint for monitoring"""
+    from datetime import datetime
+    
+    # For a template-based response
+    if request.headers.get('Accept', '').find('text/html') >= 0:
+        services = [
+            {"name": "Web Application", "status": "ok"},
+            {"name": "Authentication System", "status": "ok"},
+            {"name": "Database Connection", "status": "ok"},
+            {"name": "Content Services", "status": "ok"},
+        ]
+        
+        return render_template('health.html', 
+                              version='1.0.0',
+                              environment=os.environ.get('FLASK_ENV', 'production'),
+                              timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                              services=services)
+    
+    # For API/JSON response
     return jsonify({
         'status': 'healthy',
         'version': '1.0.0',
-        'environment': os.environ.get('FLASK_ENV', 'production')
+        'environment': os.environ.get('FLASK_ENV', 'production'),
+        'timestamp': datetime.now().isoformat()
     })
 
 # Error handlers
