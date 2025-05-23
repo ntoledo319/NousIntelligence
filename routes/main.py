@@ -18,7 +18,36 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 def index():
     """Homepage with welcome message"""
-    return render_template('index.html')
+    try:
+        # Get the flask app instance
+        from flask import current_app, g
+        
+        # Log debugging information
+        logger.info("Rendering index page")
+        logger.info(f"PUBLIC_ACCESS: {current_app.config.get('PUBLIC_ACCESS', False)}")
+        logger.info(f"PUBLIC_PREVIEW_MODE: {current_app.config.get('PUBLIC_PREVIEW_MODE', False)}")
+        logger.info(f"Request host: {request.host}")
+        
+        # Check if public preview is enabled
+        is_public = getattr(g, 'public_preview', False)
+        logger.info(f"Is public preview (g.public_preview): {is_public}")
+        
+        # Force public access for demonstration
+        # Use the public index for demonstration purposes
+        return render_template('index_public.html')
+    except Exception as e:
+        logger.error(f"Error rendering index: {str(e)}")
+        logger.exception("Full traceback for index error:")
+        return render_template_string("""
+            <html>
+                <head><title>NOUS - Error Recovery</title></head>
+                <body>
+                    <h1>NOUS Personal Assistant</h1>
+                    <p>We encountered an error, but we're still here! Please try refreshing the page.</p>
+                    <p>Error details (for debugging): {{ error_message }}</p>
+                </body>
+            </html>
+        """, error_message=str(e))
 
 @main_bp.route('/health')
 def health():
