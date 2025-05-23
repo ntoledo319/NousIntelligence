@@ -1,5 +1,5 @@
 [run]
 language = "python3"
-run = "bash start.sh"
+run = "bash public_deploy.sh"
 entrypoint = "app.py"
-onBoot = "bash start.sh"
+onBoot = "bash public_deploy.sh"

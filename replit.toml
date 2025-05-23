@@ -1,8 +1,8 @@
 [run]
-command = "bash start.sh"
+command = "bash public_start.sh"
 
 [deployment]
-run = ["sh", "-c", "bash public_start.sh"]
+run = ["sh", "-c", "bash public_deploy.sh"]
 deploymentTarget = "cloudrun"
 ignorePorts = false
 
@@ -26,4 +26,4 @@ language = "python"
 
 [auth]
 pageEnabled = false
-buttonEnabled = true
+buttonEnabled = false
