@@ -34,6 +34,9 @@ def generate_openapi_spec(app: Flask) -> Dict[str, Any]:
     Returns:
         Dict containing the OpenAPI specification
     """
+    # Import our URL utilities
+    from utils.url_utils import normalize_path
+    
     # Base OpenAPI structure
     openapi_spec = {
         "openapi": OPENAPI_VERSION,
@@ -54,12 +57,17 @@ def generate_openapi_spec(app: Flask) -> Dict[str, Any]:
         ],
         "paths": {},
         "components": {
-            "schemas": {},
+            "schemas": generate_standard_schemas(),
             "securitySchemes": {
                 "sessionAuth": {
                     "type": "apiKey",
                     "in": "cookie",
                     "name": "session"
+                },
+                "bearerAuth": {
+                    "type": "http",
+                    "scheme": "bearer",
+                    "bearerFormat": "JWT"
                 }
             }
         }
@@ -68,7 +76,7 @@ def generate_openapi_spec(app: Flask) -> Dict[str, Any]:
     # Process all routes in the application
     for rule in app.url_map.iter_rules():
         # Skip static files and non-API routes
-        if "static" in rule.endpoint or not rule.endpoint.startswith(("api", "async_api")):
+        if "static" in rule.endpoint or not (rule.endpoint.startswith(("api", "async_api")) or "api" in rule.rule):
             continue
             
         # Get route function
@@ -76,6 +84,9 @@ def generate_openapi_spec(app: Flask) -> Dict[str, Any]:
             view_func = app.view_functions[rule.endpoint]
         except KeyError:
             continue
+            
+        # Check for standardized API documentation
+        api_doc = getattr(view_func, 'api_doc', None)
             
         # Extract path parameters from the route
         path = str(rule)
