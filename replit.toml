@@ -1,16 +1,16 @@
 # NOUS Personal Assistant Replit Configuration
 
-run = ["bash", "start_simple.sh"]
+run = ["bash", "deploy.sh"]
 
 # Deployment configuration
 [deployment]
-run = ["bash", "deploy_app.sh"]
+run = ["bash", "deploy.sh"]
 deploymentTarget = "cloudrun"
 
 # Environment variables
 [env]
 PORT = "8080"
-FLASK_APP = "app_simple.py"
+FLASK_APP = "nous_deployment.py"
 FLASK_ENV = "production"
 PYTHONUNBUFFERED = "1"
 
@@ -23,3 +23,7 @@ port = 8080
 [[ports]]
 localPort = 8080
 externalPort = 80
+
+[auth]
+pageEnabled = false
+buttonEnabled = false
