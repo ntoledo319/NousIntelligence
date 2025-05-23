@@ -5,7 +5,7 @@ This module configures the database connection and provides
 utility functions for database operations.
 """
 
-from app_factory import db
+from app import db
 import logging
 
 logger = logging.getLogger(__name__)

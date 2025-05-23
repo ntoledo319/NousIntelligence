@@ -51,8 +51,8 @@ def create_app():
     
     return app
 
-# Import the more comprehensive error handlers
-from error_handlers import register_error_handlers
+# Import the comprehensive error handlers
+from utils.error_handler import register_error_handlers
 
 # Import the comprehensive middleware setup
 from middleware import setup_middleware

@@ -6,7 +6,7 @@ including user account data, preferences, and authentication.
 """
 
 from flask_login import UserMixin
-from app_factory import db
+from app import db
 
 class User(UserMixin, db.Model):
     """User account model"""
