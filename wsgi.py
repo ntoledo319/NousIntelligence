@@ -6,7 +6,10 @@ It includes application initialization and configuration for production deployme
 """
 
 import os
-from app import app
+from app_factory import create_app
+
+# Create the Flask application with production configuration
+app = create_app()
 
 # Configure for production
 app.config.update(

@@ -1,27 +1,31 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-{% block title %}NOUS - Home{% endblock %}
+{% block title %}NOUS Personal Assistant{% endblock %}
 
 {% block content %}
-    <div class="card">
-        <h2>Welcome to NOUS</h2>
-        <p>Your AI-powered personal assistant is up and running!</p>
-        <p>System status: <span class="status-ok">✓ Operational</span></p>
+<div class="welcome-container">
+    <h1>Welcome to NOUS Personal Assistant</h1>
+    <p>Your intelligent personal assistant for task management, health monitoring, and more.</p>
+    
+    <div class="feature-cards">
+        <div class="feature-card">
+            <h3>Task Management</h3>
+            <p>Organize your tasks with intelligent prioritization</p>
+        </div>
+        
+        <div class="feature-card">
+            <h3>Health Monitoring</h3>
+            <p>Track your health metrics with personalized insights</p>
+        </div>
+        
+        <div class="feature-card">
+            <h3>Weather Forecasts</h3>
+            <p>Stay updated with accurate weather predictions</p>
+        </div>
     </div>
     
-    <div class="card">
-        <h2>System Status</h2>
-        <p>All services are operational.</p>
-        <p>Check detailed status at the <a href="/health">health page</a>.</p>
+    <div class="cta-container">
+        <a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
     </div>
-    
-    <div class="card">
-        <h2>Features</h2>
-        <ul>
-            <li>Advanced AI assistance with task management</li>
-            <li>Health monitoring and data analysis</li>
-            <li>Secure authentication and user profiles</li>
-            <li>Multi-modal interaction capabilities</li>
-        </ul>
-    </div>
+</div>
 {% endblock %}
