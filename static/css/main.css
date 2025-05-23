@@ -92,3 +92,29 @@ footer {
     font-size: 0.9rem;
     margin-top: 2rem;
 }
+
+/* Status indicators */
+.status-info {
+    background-color: #e8f5e9;
+    border-radius: 5px;
+    padding: 0.8rem;
+    margin: 2rem auto;
+    max-width: 800px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #d0e8d4;
+}
+
+.status-item:last-child {
+    border-bottom: none;
+}
+
+.status-label {
+    font-weight: 600;
+    color: #2e7d32;
+}
