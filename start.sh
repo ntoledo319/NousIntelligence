@@ -9,7 +9,7 @@ mkdir -p static/css static/js templates flask_session logs
 # Set environment variables
 export FLASK_APP=main.py
 export FLASK_ENV=production
-export PORT=${PORT:-8080}
+export PORT=${PORT:-5000}
 
-# Start the application using Gunicorn
-exec gunicorn --bind 0.0.0.0:$PORT main:app
+# Run the Flask application directly
+python main.py
