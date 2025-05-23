@@ -1,19 +1,15 @@
 #!/bin/bash
 
-# NOUS Personal Assistant Starter Script
-# This script ensures the app runs on the correct port
+# NOUS Personal Assistant - Start Script
+echo "Starting NOUS Personal Assistant..."
 
-echo "===== NOUS Personal Assistant ====="
-echo "Starting your app..."
-
-# Create necessary directories
+# Ensure needed directories exist
 mkdir -p static/css static/js templates flask_session logs
 
-# Set port to 5000 to avoid conflicts 
-export PORT=5000
+# Set environment variables
 export FLASK_APP=main.py
-export FLASK_ENV=development
+export FLASK_ENV=production
+export PORT=${PORT:-8080}
 
-# Run the application
-echo "Starting Flask application on port 5000..."
-python main.py
+# Start the application using Gunicorn
+exec gunicorn --bind 0.0.0.0:$PORT main:app
