@@ -4,13 +4,6 @@ from flask import url_for
 import re
 from utils.logger import log_workout, log_mood
 from utils.scraper import scrape_aa_reflection
-
-import datetime
-import logging
-import re
-from flask import url_for
-from utils.logger import log_workout, log_mood
-from utils.scraper import scrape_aa_reflection
 from utils.ai_helper import parse_natural_language
 from utils.doctor_appointment_helper import (
     get_doctors, get_doctor_by_name, add_doctor, 
