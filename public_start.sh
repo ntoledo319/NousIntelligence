@@ -1,67 +1,42 @@
-
 #!/bin/bash
-# NOUS Personal Assistant - Production Deployment Script
-
-echo "🚀 Starting NOUS Personal Assistant for Production Deployment..."
+# NOUS Personal Assistant - Public Workflow Startup Script
 
 # Create required directories
-mkdir -p static templates logs flask_session instance
+mkdir -p static templates logs flask_session instance uploads/voice
+
+# Setup logging
+TIMESTAMP=$(date +%Y%m%d)
+LOG_FILE="logs/deployment_${TIMESTAMP}.log"
+
+log_message() {
+  echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
+  echo "$1"
+}
+
+log_message "INFO: Starting NOUS Personal Assistant (Public Mode)"
 
 # Generate a secret key if it doesn't exist
 if [ ! -f ".secret_key" ]; then
-    echo "🔑 Generating new secret key..."
+    log_message "INFO: Generating new secret key"
     python -c "import secrets; print(secrets.token_hex(24))" > .secret_key
     chmod 600 .secret_key
 fi
 
-# Set environment variables
-export FLASK_ENV=production
-export PORT=8080
-export PYTHONUNBUFFERED=1
+# Set environment variables for public access
 export SECRET_KEY=$(cat .secret_key)
+export PORT=8080
+export FLASK_APP=main.py
+export FLASK_ENV=development
+export PYTHONUNBUFFERED=1
+export PUBLIC_ACCESS=true
 
-# Set up deployment logs
-mkdir -p logs
-TIMESTAMP=$(date +%Y%m%d)
-echo "[$(date +'%Y-%m-%d %H:%M:%S')] INFO in deployment_logger: [STARTUP] Production application starting up" >> "logs/deployment_${TIMESTAMP}.log"
-
-# Kill any existing processes on port 8080
+# Clean up any existing processes
+log_message "INFO: Cleaning up any existing processes"
+pkill -f "python.*app.py" 2>/dev/null || true
 pkill -f "python.*main.py" 2>/dev/null || true
 pkill -f "gunicorn" 2>/dev/null || true
 fuser -k 8080/tcp 2>/dev/null || true
 
-# Start with gunicorn directly to ensure it works properly
-echo "✅ Starting Gunicorn with production configuration"
-echo "[$(date +'%Y-%m-%d %H:%M:%S')] INFO in deployment_logger: [STARTUP] Starting gunicorn" >> "logs/deployment_${TIMESTAMP}.log"
-
-# Find gunicorn executable using which command
-GUNICORN_PATH=$(which gunicorn)
-if [ -z "$GUNICORN_PATH" ]; then
-    # Try common locations if which fails
-    for path in "/home/runner/.pythonlibs/bin/gunicorn" "/home/runner/workspace/.pythonlibs/bin/gunicorn" "/nix/store/*/bin/gunicorn"; do
-        if [ -x "$path" ]; then
-            GUNICORN_PATH="$path"
-            break
-        fi
-    done
-fi
-
-echo "Using gunicorn at: $GUNICORN_PATH" >> "logs/deployment_${TIMESTAMP}.log"
-
-# Make sure the Gunicorn path exists and is executable
-if [ -n "$GUNICORN_PATH" ] && [ -x "$GUNICORN_PATH" ]; then
-    # Start with explicit gunicorn command using wsgi.py
-    echo "✅ Starting Gunicorn server"
-    exec "$GUNICORN_PATH" \
-        --bind 0.0.0.0:8080 \
-        --workers 2 \
-        --timeout 120 \
-        --access-logfile - \
-        --error-logfile - \
-        --log-level info \
-        "wsgi:app"
-else
-    echo "⚠️ Gunicorn not found, falling back to Flask development server"
-    echo "[$(date +'%Y-%m-%d %H:%M:%S')] ERROR in deployment_logger: Gunicorn not found, using Flask development server" >> "logs/deployment_${TIMESTAMP}.log"
-    python main.py
-fi
+# Start the Flask application
+log_message "INFO: Starting Flask application in public mode"
+python app.py
