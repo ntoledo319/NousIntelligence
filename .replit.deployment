@@ -1,5 +1,7 @@
-{
-  "run": ["sh", "-c", "./deploy_production.sh"],
-  "ignorePorts": false,
-  "onBoot": ["mkdir -p logs static templates flask_session instance uploads"]
-}
+[deployment]
+run = ["bash", "deploy_public.sh"]
+ignorePorts = false
+
+[auth]
+pageEnabled = false
+buttonEnabled = false
