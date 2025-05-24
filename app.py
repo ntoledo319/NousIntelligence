@@ -43,6 +43,15 @@ os.makedirs('uploads', exist_ok=True)
 # Initialize extensions
 db = SQLAlchemy(app)
 
+# Verify database connection
+try:
+    with app.app_context():
+        db.engine.connect()
+        logger.info("Database connection successful")
+except Exception as e:
+    logger.error(f"Database connection failed: {str(e)}")
+    # Don't crash the app, continue without database if needed
+
 # Basic routes for testing deployment
 @app.route('/')
 def index():
@@ -52,29 +61,89 @@ def index():
 @app.route('/health')
 def health():
     """Health check endpoint for monitoring"""
+    import psutil
+    import platform
     from datetime import datetime
+    
+    # Check database connectivity
+    db_status = "ok"
+    db_message = "Connected"
+    try:
+        with app.app_context():
+            db.engine.connect()
+    except Exception as e:
+        db_status = "error"
+        db_message = str(e)
+        logger.error(f"Health check: Database error: {str(e)}")
+    
+    # Check file system
+    fs_status = "ok"
+    try:
+        if not os.path.exists("static/styles.css"):
+            fs_status = "warning"
+            logger.warning("Health check: Missing static files")
+    except Exception:
+        fs_status = "error"
+        logger.error("Health check: File system error")
+    
+    # System resource information
+    try:
+        memory = psutil.virtual_memory()
+        memory_used_percent = memory.percent
+        memory_status = "ok" if memory_used_percent < 90 else "warning"
+        
+        disk = psutil.disk_usage('/')
+        disk_used_percent = disk.percent
+        disk_status = "ok" if disk_used_percent < 90 else "warning"
+    except Exception as e:
+        memory_status = "unknown"
+        memory_used_percent = 0
+        disk_status = "unknown"
+        disk_used_percent = 0
+        logger.error(f"Health check: System resource check error: {str(e)}")
+    
+    # Build services status
+    services = [
+        {"name": "Web Application", "status": "ok", "message": "Running"},
+        {"name": "Database Connection", "status": db_status, "message": db_message},
+        {"name": "File System", "status": fs_status, "message": "Static files available" if fs_status == "ok" else "Missing static files"},
+        {"name": "Memory Usage", "status": memory_status, "message": f"{memory_used_percent}% used"},
+        {"name": "Disk Usage", "status": disk_status, "message": f"{disk_used_percent}% used"}
+    ]
+    
+    # Determine overall status
+    if any(service["status"] == "error" for service in services):
+        overall_status = "error"
+    elif any(service["status"] == "warning" for service in services):
+        overall_status = "warning"
+    else:
+        overall_status = "healthy"
+    
+    # Log health check
+    logger.info(f"Health check: Status {overall_status}")
     
     # For a template-based response
     if request.headers.get('Accept', '').find('text/html') >= 0:
-        services = [
-            {"name": "Web Application", "status": "ok"},
-            {"name": "Authentication System", "status": "ok"},
-            {"name": "Database Connection", "status": "ok"},
-            {"name": "Content Services", "status": "ok"},
-        ]
-        
         return render_template('health.html', 
                               version='1.0.0',
                               environment=os.environ.get('FLASK_ENV', 'production'),
                               timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                              services=services)
+                              overall_status=overall_status,
+                              services=services,
+                              system=platform.system(),
+                              python_version=platform.python_version())
     
     # For API/JSON response
     return jsonify({
-        'status': 'healthy',
+        'status': overall_status,
         'version': '1.0.0',
         'environment': os.environ.get('FLASK_ENV', 'production'),
-        'timestamp': datetime.now().isoformat()
+        'timestamp': datetime.now().isoformat(),
+        'services': {service["name"]: {"status": service["status"], "message": service["message"]} for service in services},
+        'system': {
+            'platform': platform.system(),
+            'python_version': platform.python_version()
+        }
     })
 
 # Error handlers
