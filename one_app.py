@@ -1,7 +1,6 @@
-
 """
-NOUS Personal Assistant - Main Application
-A public Flask application accessible to everyone without login
+NOUS Personal Assistant - Single Consolidated Application
+A completely public Flask application with no login required
 """
 import os
 import logging
@@ -52,7 +51,7 @@ except Exception as e:
     logger.error(f"Database connection failed: {str(e)}")
     # Don't crash the app, continue without database if needed
 
-# Basic routes for testing deployment
+# Basic routes for public access
 @app.route('/')
 def index():
     """Main landing page"""
@@ -125,19 +124,19 @@ def health():
     # For a template-based response
     if request.headers.get('Accept', '').find('text/html') >= 0:
         return render_template('health.html', 
-                              version='1.0.0',
-                              environment=os.environ.get('FLASK_ENV', 'production'),
-                              timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                              overall_status=overall_status,
-                              services=services,
-                              system=platform.system(),
-                              python_version=platform.python_version())
+                             version='1.0.0',
+                             environment="production",
+                             timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                             overall_status=overall_status,
+                             services=services,
+                             system=platform.system(),
+                             python_version=platform.python_version())
     
     # For API/JSON response
     return jsonify({
         'status': overall_status,
         'version': '1.0.0',
-        'environment': os.environ.get('FLASK_ENV', 'production'),
+        'environment': "production",
         'timestamp': datetime.now().isoformat(),
         'services': {service["name"]: {"status": service["status"], "message": service["message"]} for service in services},
         'system': {
@@ -145,6 +144,16 @@ def health():
             'python_version': platform.python_version()
         }
     })
+
+@app.route('/features')
+def features():
+    """Features overview page"""
+    return render_template('features.html')
+
+@app.route('/about')
+def about():
+    """About page"""
+    return render_template('about.html')
 
 # Error handlers
 @app.errorhandler(404)
@@ -156,35 +165,23 @@ def server_error(e):
     logger.error(f"Server error: {str(e)}")
     return render_template('error.html', error="Internal server error", code=500), 500
 
-# Import and register routes after the app is created
-def register_routes():
-    try:
-        # Import the main blueprint registration function
-        from routes import register_all_blueprints
-        register_all_blueprints(app)
-        logger.info("Successfully registered application routes")
-    except Exception as e:
-        logger.error(f"Error registering routes: {str(e)}")
-        # Continue without routes for basic functionality
+# Add public header to all responses
+@app.after_request
+def add_public_header(response):
+    response.headers['X-NOUS-Access'] = 'Public'
+    return response
 
-# Register routes if they exist
-register_routes()
-
-# Check if running in deployment mode
-is_production = os.environ.get('FLASK_ENV') == 'production'
-is_deployed = os.environ.get('REPLIT_DEPLOYMENT') == 'true'
-
-# Add deployment header for deployed production instances
-if is_production or is_deployed:
-    @app.after_request
-    def add_deployment_header(response):
-        response.headers['X-NOUS-Deployment'] = 'Production'
-        return response
-    logger.info("Running in production deployment mode")
+# Import and register routes if they exist
+try:
+    from routes import register_all_blueprints
+    register_all_blueprints(app)
+    logger.info("Successfully registered application routes")
+except Exception as e:
+    logger.error(f"Error registering routes: {str(e)}")
+    # Continue without routes for basic functionality
 
 # Run the app when this file is executed directly
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
-    debug_mode = not (is_production or is_deployed)
-    logger.info(f"Starting server on port {port}, debug mode: {debug_mode}")
-    app.run(host='0.0.0.0', port=port, debug=debug_mode)
+    logger.info(f"Starting public server on port {port}")
+    app.run(host='0.0.0.0', port=port, debug=False)
