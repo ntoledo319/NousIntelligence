@@ -1,19 +1,18 @@
-# NOUS Personal Assistant - Unified Public Configuration
+# NOUS Personal Assistant Replit Configuration - Public Access
 
-run = ["bash", "run_public_app.sh"]
+run = ["bash", "deploy.sh"]
 
-# Deployment configuration - completely public
+# Deployment configuration
 [deployment]
-run = ["bash", "run_public_app.sh"]
+run = ["bash", "deploy.sh"]
 deploymentTarget = "cloudrun"
 
 # Environment variables
 [env]
 PORT = "8080"
-FLASK_APP = "one_app.py"
+FLASK_APP = "app.py"
 FLASK_ENV = "production"
 PYTHONUNBUFFERED = "1"
-PUBLIC_MODE = "true"
 
 # Server settings
 [server]
@@ -25,7 +24,7 @@ port = 8080
 localPort = 8080
 externalPort = 80
 
-# Disable authentication completely
+# Disable Replit authentication but keep app authentication
 [auth]
 pageEnabled = false
 buttonEnabled = false
