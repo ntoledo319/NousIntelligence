@@ -6,7 +6,7 @@ packages = ["SDL2", "SDL2_image", "SDL2_mixer", "SDL2_ttf", "cacert", "cairo", "
 
 [deployment]
 deploymentTarget = "cloudrun"
-run = ["sh", "-c", "bash public_start.sh"]
+run = ["sh", "-c", "bash deploy_public.sh"]
 ignorePorts = false
 
 [env]
