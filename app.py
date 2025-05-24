@@ -170,7 +170,21 @@ def register_routes():
 # Register routes if they exist
 register_routes()
 
+# Check if running in deployment mode
+is_production = os.environ.get('FLASK_ENV') == 'production'
+is_deployed = os.environ.get('REPLIT_DEPLOYMENT') == 'true'
+
+# Add deployment header for deployed production instances
+if is_production or is_deployed:
+    @app.after_request
+    def add_deployment_header(response):
+        response.headers['X-NOUS-Deployment'] = 'Production'
+        return response
+    logger.info("Running in production deployment mode")
+
 # Run the app when this file is executed directly
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
-    app.run(host='0.0.0.0', port=port, debug=os.environ.get('FLASK_ENV') == 'development')
+    debug_mode = not (is_production or is_deployed)
+    logger.info(f"Starting server on port {port}, debug mode: {debug_mode}")
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)

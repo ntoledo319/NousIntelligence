@@ -4,6 +4,12 @@
 echo "======= NOUS Application Startup ======="
 echo "Starting at $(date)"
 
+# Detect if running via Replit deploy button
+if [[ "$REPL_SLUG" != "" && "$REPL_OWNER" != "" ]]; then
+    echo "Detected Replit deployment environment"
+    export REPLIT_DEPLOYMENT=true
+fi
+
 # Set up environment variables
 export PORT=${PORT:-8080}
 export FLASK_APP=app.py
