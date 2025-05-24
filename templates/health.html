@@ -4,14 +4,16 @@
 <div class="health-container">
     <h1>System Health Status</h1>
     
-    <div class="health-status status-healthy">
-        System Status: HEALTHY
+    <div class="health-status {% if overall_status == 'healthy' %}status-healthy{% elif overall_status == 'warning' %}status-warning{% else %}status-error{% endif %}">
+        System Status: {{ overall_status|upper }}
     </div>
     
     <h2>System Information</h2>
     <ul>
         <li><strong>Version:</strong> {{ version }}</li>
         <li><strong>Environment:</strong> {{ environment }}</li>
+        <li><strong>Platform:</strong> {{ system }}</li>
+        <li><strong>Python Version:</strong> {{ python_version }}</li>
         <li><strong>Timestamp:</strong> {{ timestamp }}</li>
     </ul>
     
@@ -21,6 +23,7 @@
             <tr style="background: #f0f5ff; border-bottom: 2px solid #1e3a8a;">
                 <th style="padding: 10px; text-align: left;">Service</th>
                 <th style="padding: 10px; text-align: left;">Status</th>
+                <th style="padding: 10px; text-align: left;">Details</th>
             </tr>
         </thead>
         <tbody>
@@ -36,13 +39,23 @@
                     <span style="color: #a8071a; font-weight: bold;">✗ Error</span>
                     {% endif %}
                 </td>
+                <td style="padding: 10px;">
+                    {{ service.message }}
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     
     <div style="margin-top: 2rem;">
+        <a href="{{ url_for('health') }}" class="btn" style="margin-right: 10px;">Refresh</a>
         <a href="{{ url_for('index') }}" class="btn">Return to Home</a>
+    </div>
+    
+    <div style="margin-top: 2rem; padding: 1rem; background: #f0f5ff; border-radius: 8px; border-left: 4px solid #1e3a8a;">
+        <h3 style="margin-top: 0;">Deployment Information</h3>
+        <p>Last checked: {{ timestamp }}</p>
+        <p>To ensure continued monitoring, the health endpoint is available at: <code>/health</code></p>
     </div>
 </div>
 {% endblock %}

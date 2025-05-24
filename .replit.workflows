@@ -1,21 +1,18 @@
-[deployment]
-run = "bash public_start.sh"
-
-[nix]
-channel = "stable-23_11"
-
-[[ports]]
-localPort = 8080
-externalPort = 80
-
-[env]
-PORT = "8080"
-FLASK_ENV = "production"
-PYTHONPATH = "${PYTHONPATH}:${REPL_HOME}"
-PYTHONUNBUFFERED = "1"
-
-[[runners]]
-name = "nous"
-language = "python"
-onBoot = true
-run = "bash public_start.sh"
+[
+  {
+    "name": "Run NOUS App",
+    "language": "python3",
+    "workdir": ".",
+    "mode": "sequential",
+    "tasks": [
+      {
+        "task": "shell.exec",
+        "args": "mkdir -p logs static templates flask_session instance uploads"
+      },
+      {
+        "task": "shell.exec",
+        "args": "python app.py"
+      }
+    ]
+  }
+]
