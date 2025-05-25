@@ -1,9 +1,31 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div style="text-align: center; padding: 2rem; background: #fff1f0; border-radius: 8px; margin: 2rem 0;">
-    <h1>{{ code }} Error</h1>
+<section class="hero" style="background: linear-gradient(135deg, #d32f2f 0%, #f44336 100%);">
+    <h1>Error {{ code }}</h1>
     <p>{{ error }}</p>
-    <a href="{{ url_for('index') }}" class="btn" style="background: #1e3a8a; color: white;">Return to Home</a>
-</div>
+</section>
+
+<section style="text-align: center; padding: 2rem 0;">
+    <div style="max-width: 600px; margin: 0 auto;">
+        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto; display: block;">
+            <path d="M12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4Z" stroke="#d32f2f" stroke-width="2"/>
+            <path d="M12 8V12" stroke="#d32f2f" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="12" cy="16" r="1" fill="#d32f2f"/>
+        </svg>
+        
+        <h2 style="margin-top: 1.5rem;">Something went wrong</h2>
+        <p>We apologize for the inconvenience. Please try again or return to the home page.</p>
+        
+        <div style="margin-top: 2rem;">
+            <a href="{{ url_for('index') }}" class="btn" style="background: #d32f2f; color: white;">Return Home</a>
+        </div>
+    </div>
+</section>
+
+<section style="margin-top: 2rem; background: #fff3f0; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #d32f2f; max-width: 600px; margin: 2rem auto;">
+    <h3 style="margin-top: 0; color: #d32f2f;">Need Help?</h3>
+    <p>If you continue to experience issues, please check the system health status or try again later.</p>
+    <a href="{{ url_for('health') }}" class="btn" style="background: transparent; border: 1px solid #d32f2f; color: #d32f2f;">Check System Status</a>
+</section>
 {% endblock %}

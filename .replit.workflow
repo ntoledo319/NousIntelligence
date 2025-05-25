@@ -1,16 +1,2 @@
-{
-  "name": "Run NOUS App",
-  "language": "python3",
-  "workdir": ".",
-  "mode": "sequential",
-  "tasks": [
-    {
-      "task": "shell.exec",
-      "args": "mkdir -p logs static templates flask_session instance uploads"
-    },
-    {
-      "task": "shell.exec",
-      "args": "python app.py"
-    }
-  ]
-}
+run = "bash quick_run.sh"
+language = "python3"

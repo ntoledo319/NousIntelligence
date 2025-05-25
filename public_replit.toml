@@ -1,30 +1,40 @@
-# NOUS Personal Assistant Replit Configuration - Public Access
+run = ["bash", "quick_run.sh"]
+entrypoint = "simple_app.py"
+hidden = [".config", ".env", "logs", "__pycache__", ".git"]
 
-run = ["bash", "deploy.sh"]
-
-# Deployment configuration
-[deployment]
-run = ["bash", "deploy.sh"]
-deploymentTarget = "cloudrun"
-
-# Environment variables
 [env]
-PORT = "8080"
-FLASK_APP = "app.py"
-FLASK_ENV = "production"
 PYTHONUNBUFFERED = "1"
+PUBLIC_ACCESS = "true"
+PORT = "8080"
+SESSION_SECRET = "nous-secure-key-2025"
 
-# Server settings
-[server]
-host = "0.0.0.0"
-port = 8080
+[nix]
+channel = "stable-22_11"
 
-# Define port mappings
-[[ports]]
-localPort = 8080
-externalPort = 80
+[packager]
+language = "python3"
 
-# Disable Replit authentication but keep app authentication
+[packager.features]
+enabledForHosting = true
+packageSearch = true
+guessImports = true
+
+[unitTest]
+language = "python3"
+
+[languages.python3]
+pattern = "**/*.py"
+syntax = "python"
+
+[languages.python3.languageServer]
+start = ["pylsp"]
+
+[deployment]
+run = ["bash", "quick_run.sh"]
+deploymentTarget = "cloudrun"
+publicDir = "/"
+ignorePorts = false
+
 [auth]
 pageEnabled = false
 buttonEnabled = false

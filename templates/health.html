@@ -1,61 +1,55 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="health-container">
-    <h1>System Health Status</h1>
-    
-    <div class="health-status {% if overall_status == 'healthy' %}status-healthy{% elif overall_status == 'warning' %}status-warning{% else %}status-error{% endif %}">
-        System Status: {{ overall_status|upper }}
+<section class="hero">
+    <h1>System Health</h1>
+    <p>Check the current status of the NOUS system</p>
+</section>
+
+<section>
+    <div class="health-container">
+        <h2>System Status</h2>
+        
+        {% if status == "healthy" %}
+        <div class="health-status status-healthy">All Systems Operational</div>
+        {% elif status == "warning" %}
+        <div class="health-status status-warning">Some Issues Detected</div>
+        {% else %}
+        <div class="health-status status-error">System Errors</div>
+        {% endif %}
+        
+        <div style="margin-top: 1.5rem;">
+            <h3>System Information</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 0.5rem 0; font-weight: bold;">Timestamp</td>
+                    <td>{{ timestamp }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 0.5rem 0; font-weight: bold;">Operating System</td>
+                    <td>{{ system }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 0.5rem 0; font-weight: bold;">Python Version</td>
+                    <td>{{ python_version }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div style="margin-top: 1.5rem;">
+            <h3>Resources</h3>
+            <p>The application is monitoring the following resources:</p>
+            <ul style="list-style-type: disc; margin-left: 20px;">
+                <li>Application Server</li>
+                <li>Database Connections</li>
+                <li>Memory Usage</li>
+                <li>CPU Usage</li>
+            </ul>
+        </div>
     </div>
-    
-    <h2>System Information</h2>
-    <ul>
-        <li><strong>Version:</strong> {{ version }}</li>
-        <li><strong>Environment:</strong> {{ environment }}</li>
-        <li><strong>Platform:</strong> {{ system }}</li>
-        <li><strong>Python Version:</strong> {{ python_version }}</li>
-        <li><strong>Timestamp:</strong> {{ timestamp }}</li>
-    </ul>
-    
-    <h2>Services</h2>
-    <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
-        <thead>
-            <tr style="background: #f0f5ff; border-bottom: 2px solid #1e3a8a;">
-                <th style="padding: 10px; text-align: left;">Service</th>
-                <th style="padding: 10px; text-align: left;">Status</th>
-                <th style="padding: 10px; text-align: left;">Details</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for service in services %}
-            <tr style="border-bottom: 1px solid #e5e7eb;">
-                <td style="padding: 10px;">{{ service.name }}</td>
-                <td style="padding: 10px;">
-                    {% if service.status == 'ok' %}
-                    <span style="color: #0e6245; font-weight: bold;">✓ Operational</span>
-                    {% elif service.status == 'warning' %}
-                    <span style="color: #874d00; font-weight: bold;">⚠ Warning</span>
-                    {% else %}
-                    <span style="color: #a8071a; font-weight: bold;">✗ Error</span>
-                    {% endif %}
-                </td>
-                <td style="padding: 10px;">
-                    {{ service.message }}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    
-    <div style="margin-top: 2rem;">
-        <a href="{{ url_for('health') }}" class="btn" style="margin-right: 10px;">Refresh</a>
-        <a href="{{ url_for('index') }}" class="btn">Return to Home</a>
-    </div>
-    
-    <div style="margin-top: 2rem; padding: 1rem; background: #f0f5ff; border-radius: 8px; border-left: 4px solid #1e3a8a;">
-        <h3 style="margin-top: 0;">Deployment Information</h3>
-        <p>Last checked: {{ timestamp }}</p>
-        <p>To ensure continued monitoring, the health endpoint is available at: <code>/health</code></p>
-    </div>
-</div>
+</section>
+
+<section style="margin-top: 2rem; text-align: center;">
+    <a href="{{ url_for('index') }}" class="btn">Return Home</a>
+</section>
 {% endblock %}
