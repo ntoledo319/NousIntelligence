@@ -1,26 +1,58 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<h1>NOUS Features</h1>
-<p>This page showcases all the amazing features of the NOUS Personal Assistant.</p>
+<section class="hero">
+    <h1>NOUS Features</h1>
+    <p>Discover the powerful capabilities of your AI-powered personal assistant</p>
+</section>
 
-<div class="feature-grid">
-    {% for feature in features %}
-    <div class="feature-card">
-        <h3>{{ feature.name }}</h3>
-        <p>{{ feature.description }}</p>
-        <div class="feature-status">
-            {% if feature.available %}
-            <span style="color: #0e6245; font-weight: bold;">✓ Available</span>
-            {% else %}
-            <span style="color: #a8071a; font-weight: bold;">✗ Coming Soon</span>
-            {% endif %}
+<section class="features">
+    <h2>Core Features</h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <h3>AI Integration</h3>
+            <p>Advanced AI capabilities across multiple service domains, allowing for intelligent responses and actions based on your needs.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Multi-Modal Interaction</h3>
+            <p>Interact through text, voice, and visual interfaces for a more natural and intuitive experience across different situations.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Intelligent Management</h3>
+            <p>Smart system monitoring and error handling ensure reliable operation and quick recovery from any issues.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Scalable Architecture</h3>
+            <p>Built on a robust and scalable microservice architecture that can grow with your needs.</p>
         </div>
     </div>
-    {% endfor %}
-</div>
+</section>
 
-<div style="margin-top: 2rem; text-align: center;">
-    <a href="{{ url_for('index') }}" class="btn">Return to Home</a>
-</div>
+<section>
+    <h2>Technical Capabilities</h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <h3>Health Monitoring</h3>
+            <p>Comprehensive system health checks and monitoring to ensure optimal performance.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Secure Authentication</h3>
+            <p>Robust authentication mechanisms to protect your data and privacy.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Responsive Design</h3>
+            <p>Adaptive interface that works seamlessly across devices and screen sizes.</p>
+        </div>
+        <div class="feature-card">
+            <h3>API Integration</h3>
+            <p>Connect with various external services and APIs to extend functionality.</p>
+        </div>
+    </div>
+</section>
+
+<section style="margin-top: 2rem; background: #e6f7ff; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #1890ff;">
+    <h3 style="margin-top: 0;">Coming Soon</h3>
+    <p>We're constantly improving NOUS with new features and capabilities. Stay tuned for upcoming enhancements!</p>
+    <a href="{{ url_for('health') }}" class="btn">Check System Status</a>
+</section>
 {% endblock %}
