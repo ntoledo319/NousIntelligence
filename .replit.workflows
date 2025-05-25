@@ -1,8 +1,4 @@
-[Run App]
-run = "bash quick_run.sh"
-language = "python3"
-
-[Deploy Public]
-run = "bash deploy_public.sh"
+[Public App]
+run = "bash run_nous_public.sh"
 language = "python3"
 persistent = true
