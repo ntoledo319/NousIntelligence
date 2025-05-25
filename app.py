@@ -179,6 +179,9 @@ if is_production or is_deployed:
     @app.after_request
     def add_deployment_header(response):
         response.headers['X-NOUS-Deployment'] = 'Production'
+        # Add headers to prevent Replit from requiring login
+        response.headers['X-Frame-Options'] = 'ALLOWALL'
+        response.headers['Access-Control-Allow-Origin'] = '*'
         return response
     logger.info("Running in production deployment mode")
 
