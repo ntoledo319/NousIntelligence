@@ -2,39 +2,41 @@
 
 {% block content %}
 <section class="hero">
-    <h1>About NOUS Personal Assistant</h1>
-    <p>An advanced AI-powered personal assistant designed to make your life easier</p>
+    <h1>About NOUS</h1>
+    <p>Learn more about your advanced AI-powered personal assistant</p>
 </section>
 
 <section>
     <h2>Our Mission</h2>
-    <p>NOUS Personal Assistant aims to provide intelligent, adaptive, and user-friendly multi-modal interactions through cutting-edge AI technologies and a robust microservice architecture.</p>
+    <p>NOUS aims to provide an intelligent, adaptive, and user-friendly personal assistant that enhances your productivity and simplifies your digital interactions. Our system leverages cutting-edge AI technologies to offer a seamless and intuitive experience.</p>
     
-    <div class="feature-grid" style="margin-top: 2rem;">
-        <div class="feature-card">
-            <h3>User-Centered Design</h3>
-            <p>We prioritize intuitive, accessible interactions that adapt to your needs and preferences.</p>
-        </div>
-        <div class="feature-card">
-            <h3>Privacy First</h3>
-            <p>Your data privacy and security are our top priorities, with advanced protection measures.</p>
-        </div>
-        <div class="feature-card">
-            <h3>Continuous Innovation</h3>
-            <p>We're constantly improving our systems with the latest advancements in AI and machine learning.</p>
-        </div>
-    </div>
-</section>
-
-<section>
     <h2>Technology Stack</h2>
     <p>NOUS is built on a robust foundation of modern technologies:</p>
-    <ul style="list-style-type: disc; margin-left: 2rem;">
-        <li>Flask-based backend with comprehensive microservice architecture</li>
+    <ul style="list-style-type: disc; margin-left: 20px;">
+        <li>Flask-based backend with a comprehensive microservice architecture</li>
         <li>Advanced AI integration supporting diverse interaction modes</li>
         <li>Robust multi-stage authentication and security mechanisms</li>
         <li>Intelligent system health monitoring and error handling</li>
         <li>Scalable infrastructure for complex user interactions</li>
     </ul>
+    
+    <h2>Our Team</h2>
+    <p>NOUS is developed by a team of passionate technologists dedicated to creating intelligent, useful applications that make a difference in people's lives. Our diverse team brings together expertise in artificial intelligence, web development, user experience design, and systems architecture.</p>
+    
+    <h2>Development Approach</h2>
+    <p>We follow a user-centered design approach, focusing on creating applications that are not just technically sophisticated but also intuitive and enjoyable to use. Our development process emphasizes:</p>
+    <ul style="list-style-type: disc; margin-left: 20px;">
+        <li>User-centered design principles</li>
+        <li>Continuous integration and deployment</li>
+        <li>Rigorous testing and quality assurance</li>
+        <li>Regular updates and improvements based on user feedback</li>
+        <li>Open standards and interoperability</li>
+    </ul>
+</section>
+
+<section style="margin-top: 2rem; background: #e6f7ff; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #1890ff;">
+    <h3 style="margin-top: 0;">Get in Touch</h3>
+    <p>We're always looking to improve NOUS and would love to hear your feedback or suggestions.</p>
+    <a href="{{ url_for('index') }}" class="btn">Return Home</a>
 </section>
 {% endblock %}
