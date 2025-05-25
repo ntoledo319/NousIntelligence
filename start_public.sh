@@ -1,21 +1,23 @@
 #!/bin/bash
 
-# NOUS Personal Assistant - Public Starter Script
-# Use this script to start your app without Replit login requirements
+# NOUS Personal Assistant - Public Start Script
+# This script ensures the application is publicly accessible without login
 
-echo "======= Starting NOUS Public App ======="
+echo "======= NOUS Public Start ======="
 echo "Starting at $(date)"
 
 # Create required directories
-mkdir -p static templates logs instance flask_session uploads
+mkdir -p static templates logs
 
-# Set environment variables
+# Clean up any existing processes
+pkill -f "python.*app.py" 2>/dev/null || true
+pkill -f "python.*simple_app.py" 2>/dev/null || true
+
+# Set environment variables for public access
 export PORT=8080
-export FLASK_APP=app.py
-export FLASK_ENV=production
+export FLASK_APP=simple_app.py
 export PYTHONUNBUFFERED=1
 export PUBLIC_ACCESS=true
 
-# Start the application
-echo "Starting public application on port 8080..."
-python app.py
+echo "Starting public app on port 8080..."
+python simple_app.py

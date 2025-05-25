@@ -1,0 +1,8 @@
+[workflow]
+name = "Public Deploy"
+onBoot = true
+persistent = true
+
+[workflow.tasks.public_deploy]
+task = "shell.exec"
+args = "bash quick_run.sh"
