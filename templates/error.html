@@ -1,31 +1,139 @@
-{% extends "layout.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - NOUS Personal Assistant</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+        }
+        .container {
+            width: 85%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            flex: 1;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+        .highlight {
+            color: #f9ca24;
+        }
+        .error-container {
+            text-align: center;
+            margin: 4rem auto;
+            max-width: 600px;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .error-code {
+            font-size: 6rem;
+            font-weight: bold;
+            color: #4a6cf7;
+            margin: 0;
+            line-height: 1;
+        }
+        .error-message {
+            font-size: 1.5rem;
+            margin: 1rem 0 2rem;
+        }
+        .error-details {
+            color: #666;
+            margin-bottom: 2rem;
+        }
+        .btn {
+            display: inline-block;
+            background: #4a6cf7;
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+        .btn:hover {
+            background: #3451b2;
+        }
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            margin-top: auto;
+        }
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+        .nav-link:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="/" class="logo">NOUS<span class="highlight">Assistant</span></a>
+                <div class="nav-links">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/features" class="nav-link">Features</a>
+                    <a href="/about" class="nav-link">About</a>
+                    <a href="/login" class="nav-link">Login</a>
+                </div>
+            </nav>
+        </div>
+    </header>
 
-{% block content %}
-<section class="hero" style="background: linear-gradient(135deg, #d32f2f 0%, #f44336 100%);">
-    <h1>Error {{ code }}</h1>
-    <p>{{ error }}</p>
-</section>
-
-<section style="text-align: center; padding: 2rem 0;">
-    <div style="max-width: 600px; margin: 0 auto;">
-        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto; display: block;">
-            <path d="M12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4Z" stroke="#d32f2f" stroke-width="2"/>
-            <path d="M12 8V12" stroke="#d32f2f" stroke-width="2" stroke-linecap="round"/>
-            <circle cx="12" cy="16" r="1" fill="#d32f2f"/>
-        </svg>
-        
-        <h2 style="margin-top: 1.5rem;">Something went wrong</h2>
-        <p>We apologize for the inconvenience. Please try again or return to the home page.</p>
-        
-        <div style="margin-top: 2rem;">
-            <a href="{{ url_for('index') }}" class="btn" style="background: #d32f2f; color: white;">Return Home</a>
+    <div class="container">
+        <div class="error-container">
+            <h1 class="error-code">{{ code }}</h1>
+            <h2 class="error-message">{{ error }}</h2>
+            <p class="error-details">
+                We're sorry, but something went wrong. 
+                Please try again or return to the homepage.
+            </p>
+            <a href="/" class="btn">Back to Home</a>
         </div>
     </div>
-</section>
 
-<section style="margin-top: 2rem; background: #fff3f0; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #d32f2f; max-width: 600px; margin: 2rem auto;">
-    <h3 style="margin-top: 0; color: #d32f2f;">Need Help?</h3>
-    <p>If you continue to experience issues, please check the system health status or try again later.</p>
-    <a href="{{ url_for('health') }}" class="btn" style="background: transparent; border: 1px solid #d32f2f; color: #d32f2f;">Check System Status</a>
-</section>
-{% endblock %}
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 NOUS Personal Assistant. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
