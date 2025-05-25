@@ -1,23 +1,19 @@
 #!/bin/bash
 
-# NOUS Personal Assistant - Simple Run Script
-# This script starts the application for development or deployment
+# NOUS Personal Assistant - Main Runner
+# This script ensures public access with no login requirements
 
-echo "======= Starting NOUS Application ======="
+echo "======= NOUS Application Runner ======="
 echo "Starting at $(date)"
 
-# Ensure required directories exist
-mkdir -p logs static templates flask_session instance uploads
+# Create required directories
+mkdir -p static templates logs
 
-# Set up environment variables
+# Set environment variables for public access
 export PORT=8080
-export FLASK_APP=app.py
 export PYTHONUNBUFFERED=1
+export PUBLIC_URL="true"
 
-# Kill any existing processes
-pkill -f "python.*app.py" 2>/dev/null || true
-pkill -f "gunicorn.*app:app" 2>/dev/null || true
-
-# Start the application
-echo "Starting application on port $PORT..."
-python app.py
+# Start the public application
+echo "Starting NOUS on port 8080..."
+python public_app.py
