@@ -1,5 +1,5 @@
 [deployment]
-run = ["sh", "-c", "bash run_deploy_app.sh"]
+run = ["sh", "-c", "bash start.sh"]
 deploymentTarget = "cloudrun"
 ignorePorts = false
 
