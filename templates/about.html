@@ -1,42 +1,469 @@
-{% extends "layout.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - NOUS Personal Assistant</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            text-align: center;
+            padding: 1.5rem 0;
+        }
+        .container {
+            width: 85%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        .subtitle {
+            opacity: 0.9;
+            margin-top: 0.5rem;
+        }
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+        .nav-link:hover {
+            opacity: 1;
+        }
+        .highlight {
+            color: #f9ca24;
+        }
+        .about-section {
+            padding: 4rem 0;
+        }
+        .about-section:nth-child(even) {
+            background-color: #f0f4ff;
+        }
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .section-title h2 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+        .section-title p {
+            font-size: 1.1rem;
+            color: #666;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+        .about-text h3 {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .about-image {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .about-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        .team-member {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .team-member:hover {
+            transform: translateY(-5px);
+        }
+        .member-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #4a6cf7;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .member-name {
+            font-size: 1.5rem;
+            margin: 0 0 0.5rem;
+            color: #2c3e50;
+        }
+        .member-role {
+            color: #4a6cf7;
+            font-weight: 500;
+            margin: 0 0 1rem;
+        }
+        .timeline {
+            margin: 4rem 0;
+            position: relative;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 2px;
+            background: #e0e0e0;
+            transform: translateX(-50%);
+        }
+        .timeline-item {
+            display: flex;
+            justify-content: flex-end;
+            padding-right: 30px;
+            position: relative;
+            margin-bottom: 2rem;
+            width: 50%;
+        }
+        .timeline-item:nth-child(even) {
+            align-self: flex-end;
+            justify-content: flex-start;
+            padding-left: 30px;
+            padding-right: 0;
+            left: 50%;
+        }
+        .timeline-content {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .timeline-content::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            right: -15px;
+            width: 15px;
+            height: 15px;
+            background: white;
+            transform: rotate(45deg);
+        }
+        .timeline-item:nth-child(even) .timeline-content::after {
+            right: auto;
+            left: -15px;
+        }
+        .timeline-date {
+            color: #4a6cf7;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .timeline-title {
+            margin: 0 0 0.5rem;
+            color: #2c3e50;
+        }
+        .values-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        .value-card {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .value-card:hover {
+            transform: translateY(-5px);
+        }
+        .value-icon {
+            width: 60px;
+            height: 60px;
+            background: #f0f4ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: #4a6cf7;
+            font-size: 1.5rem;
+        }
+        .value-title {
+            font-size: 1.5rem;
+            margin: 0 0 1rem;
+            color: #2c3e50;
+        }
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 1.5rem 0;
+        }
+        
+        /* Responsive layout */
+        @media (max-width: 768px) {
+            .about-content {
+                grid-template-columns: 1fr;
+            }
+            .timeline::before {
+                left: 40px;
+            }
+            .timeline-item {
+                width: 100%;
+                padding-right: 0;
+                padding-left: 80px;
+                justify-content: flex-start;
+            }
+            .timeline-item:nth-child(even) {
+                left: 0;
+                padding-left: 80px;
+            }
+            .timeline-item:nth-child(even) .timeline-content::after {
+                left: -15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="/" class="logo">NOUS<span class="highlight">Assistant</span></a>
+                <div class="nav-links">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/features" class="nav-link">Features</a>
+                    <a href="/about" class="nav-link">About</a>
+                    <a href="/login" class="nav-link">Login</a>
+                </div>
+            </nav>
+            <h1>About NOUS</h1>
+            <p class="subtitle">Learn about our story, mission, and the team behind NOUS</p>
+        </div>
+    </header>
 
-{% block content %}
-<section class="hero">
-    <h1>About NOUS</h1>
-    <p>Learn more about your advanced AI-powered personal assistant</p>
-</section>
+    <main>
+        <section class="about-section">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Our Story</h2>
+                    <p>From a small idea to a revolutionary personal assistant</p>
+                </div>
+                
+                <div class="about-content">
+                    <div class="about-text">
+                        <h3>Reimagining Personal Assistance</h3>
+                        <p>NOUS began with a simple question: What if your digital assistant truly understood you?</p>
+                        <p>Founded in 2022, NOUS set out to create a personal assistant that goes beyond basic commands and queries. We envisioned an intelligent companion that learns from your habits, anticipates your needs, and adapts to your lifestyle.</p>
+                        <p>After years of research and development in artificial intelligence, natural language processing, and user experience design, we're proud to offer a solution that transforms how people organize their lives and accomplish their goals.</p>
+                    </div>
+                    <div class="about-image">
+                        <!-- Placeholder for about image -->
+                        <div style="background-color: #4a6cf7; height: 300px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">NOUS Story Illustration</div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-<section>
-    <h2>Our Mission</h2>
-    <p>NOUS aims to provide an intelligent, adaptive, and user-friendly personal assistant that enhances your productivity and simplifies your digital interactions. Our system leverages cutting-edge AI technologies to offer a seamless and intuitive experience.</p>
-    
-    <h2>Technology Stack</h2>
-    <p>NOUS is built on a robust foundation of modern technologies:</p>
-    <ul style="list-style-type: disc; margin-left: 20px;">
-        <li>Flask-based backend with a comprehensive microservice architecture</li>
-        <li>Advanced AI integration supporting diverse interaction modes</li>
-        <li>Robust multi-stage authentication and security mechanisms</li>
-        <li>Intelligent system health monitoring and error handling</li>
-        <li>Scalable infrastructure for complex user interactions</li>
-    </ul>
-    
-    <h2>Our Team</h2>
-    <p>NOUS is developed by a team of passionate technologists dedicated to creating intelligent, useful applications that make a difference in people's lives. Our diverse team brings together expertise in artificial intelligence, web development, user experience design, and systems architecture.</p>
-    
-    <h2>Development Approach</h2>
-    <p>We follow a user-centered design approach, focusing on creating applications that are not just technically sophisticated but also intuitive and enjoyable to use. Our development process emphasizes:</p>
-    <ul style="list-style-type: disc; margin-left: 20px;">
-        <li>User-centered design principles</li>
-        <li>Continuous integration and deployment</li>
-        <li>Rigorous testing and quality assurance</li>
-        <li>Regular updates and improvements based on user feedback</li>
-        <li>Open standards and interoperability</li>
-    </ul>
-</section>
+        <section class="about-section">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Our Mission & Vision</h2>
+                    <p>Empowering individuals through intelligent technology</p>
+                </div>
+                
+                <div class="about-content">
+                    <div class="about-image">
+                        <!-- Placeholder for mission image -->
+                        <div style="background-color: #4a6cf7; height: 300px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">NOUS Mission Visualization</div>
+                    </div>
+                    <div class="about-text">
+                        <h3>Mission</h3>
+                        <p>To create intelligent technology that enhances human potential by understanding, adapting to, and anticipating individual needs.</p>
+                        <h3>Vision</h3>
+                        <p>A world where everyone has access to personalized AI assistance that helps them live more organized, productive, and fulfilling lives.</p>
+                        <h3>Purpose</h3>
+                        <p>We believe that technology should work for people, not the other way around. By developing intuitive and adaptive solutions, we aim to reduce cognitive load and free up mental space for what truly matters.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-<section style="margin-top: 2rem; background: #e6f7ff; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #1890ff;">
-    <h3 style="margin-top: 0;">Get in Touch</h3>
-    <p>We're always looking to improve NOUS and would love to hear your feedback or suggestions.</p>
-    <a href="{{ url_for('index') }}" class="btn">Return Home</a>
-</section>
-{% endblock %}
+        <section class="about-section">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Our Values</h2>
+                    <p>The principles that guide everything we do</p>
+                </div>
+                
+                <div class="values-grid">
+                    <div class="value-card">
+                        <div class="value-icon">P</div>
+                        <h3 class="value-title">Privacy First</h3>
+                        <p>We believe your data belongs to you. We design our systems with privacy as a fundamental principle, not an afterthought.</p>
+                    </div>
+                    
+                    <div class="value-card">
+                        <div class="value-icon">I</div>
+                        <h3 class="value-title">Inclusive Design</h3>
+                        <p>We create technology that works for everyone, regardless of technical ability, background, or accessibility needs.</p>
+                    </div>
+                    
+                    <div class="value-card">
+                        <div class="value-icon">T</div>
+                        <h3 class="value-title">Transparency</h3>
+                        <p>We're open about how our technology works and maintain honest communication with our users and partners.</p>
+                    </div>
+                    
+                    <div class="value-card">
+                        <div class="value-icon">C</div>
+                        <h3 class="value-title">Continuous Learning</h3>
+                        <p>We constantly evolve, improve, and refine our approaches based on new information and feedback.</p>
+                    </div>
+                    
+                    <div class="value-card">
+                        <div class="value-icon">E</div>
+                        <h3 class="value-title">Ethical AI</h3>
+                        <p>We develop AI systems that are fair, accountable, and designed to augment human capabilities rather than replace them.</p>
+                    </div>
+                    
+                    <div class="value-card">
+                        <div class="value-icon">U</div>
+                        <h3 class="value-title">User-Centered</h3>
+                        <p>Every decision we make starts with a simple question: How does this benefit our users?</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="about-section">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Our Team</h2>
+                    <p>Meet the passionate experts behind NOUS</p>
+                </div>
+                
+                <div class="team-grid">
+                    <div class="team-member">
+                        <div class="member-avatar">A</div>
+                        <h3 class="member-name">Alex Chen</h3>
+                        <p class="member-role">Founder & CEO</p>
+                        <p>AI researcher with a vision for technology that adapts to human needs rather than the other way around.</p>
+                    </div>
+                    
+                    <div class="team-member">
+                        <div class="member-avatar">M</div>
+                        <h3 class="member-name">Maya Johnson</h3>
+                        <p class="member-role">Chief Technology Officer</p>
+                        <p>Expert in machine learning and natural language processing with a background in cognitive science.</p>
+                    </div>
+                    
+                    <div class="team-member">
+                        <div class="member-avatar">D</div>
+                        <h3 class="member-name">David Patel</h3>
+                        <p class="member-role">Head of Product</p>
+                        <p>User experience advocate with a passion for creating intuitive and accessible interfaces.</p>
+                    </div>
+                    
+                    <div class="team-member">
+                        <div class="member-avatar">S</div>
+                        <h3 class="member-name">Sofia Rodriguez</h3>
+                        <p class="member-role">Lead Data Scientist</p>
+                        <p>Data ethics specialist focusing on privacy-preserving machine learning techniques.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="about-section">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Our Journey</h2>
+                    <p>Key milestones in the evolution of NOUS</p>
+                </div>
+                
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="timeline-date">2022</div>
+                            <h3 class="timeline-title">Foundation</h3>
+                            <p>NOUS was founded with the mission to create truly personalized AI assistance.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="timeline-date">2023</div>
+                            <h3 class="timeline-title">First Prototype</h3>
+                            <p>Launched our first prototype with core task management and personalization features.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="timeline-date">2024</div>
+                            <h3 class="timeline-title">AI Innovation Award</h3>
+                            <p>Recognized for our advances in adaptive personal assistant technology.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="timeline-date">2025</div>
+                            <h3 class="timeline-title">Global Launch</h3>
+                            <p>Officially launched NOUS to the public with comprehensive features and capabilities.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 NOUS Personal Assistant. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

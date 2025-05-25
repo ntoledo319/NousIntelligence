@@ -1,58 +1,351 @@
-{% extends "layout.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Features - NOUS Personal Assistant</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            text-align: center;
+            padding: 1.5rem 0;
+        }
+        .container {
+            width: 85%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        .subtitle {
+            opacity: 0.9;
+            margin-top: 0.5rem;
+        }
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+        .nav-link:hover {
+            opacity: 1;
+        }
+        .highlight {
+            color: #f9ca24;
+        }
+        .feature-section {
+            padding: 4rem 0;
+        }
+        .feature-section:nth-child(even) {
+            background-color: #f0f4ff;
+        }
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .section-title h2 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+        .section-title p {
+            font-size: 1.1rem;
+            color: #666;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .feature-card {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: #f0f4ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: #4a6cf7;
+            font-size: 1.5rem;
+        }
+        .feature-title {
+            font-size: 1.5rem;
+            margin: 0 0 1rem;
+            color: #2c3e50;
+        }
+        .feature-description {
+            color: #666;
+        }
+        .feature-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 4rem;
+            align-items: center;
+            margin: 4rem 0;
+        }
+        .feature-content h3 {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .feature-image {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .feature-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .feature-list {
+            padding-left: 1.2rem;
+        }
+        .feature-list li {
+            margin-bottom: 0.8rem;
+        }
+        .cta-section {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            text-align: center;
+            padding: 4rem 0;
+            margin-top: 2rem;
+        }
+        .cta-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .cta-section p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #4a6cf7;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: background 0.3s ease;
+        }
+        .cta-button:hover {
+            background: #f0f4ff;
+        }
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 1.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="/" class="logo">NOUS<span class="highlight">Assistant</span></a>
+                <div class="nav-links">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/features" class="nav-link">Features</a>
+                    <a href="/about" class="nav-link">About</a>
+                    <a href="/login" class="nav-link">Login</a>
+                </div>
+            </nav>
+            <h1>Features</h1>
+            <p class="subtitle">Discover what makes NOUS the ultimate personal assistant</p>
+        </div>
+    </header>
 
-{% block content %}
-<section class="hero">
-    <h1>NOUS Features</h1>
-    <p>Discover the powerful capabilities of your AI-powered personal assistant</p>
-</section>
+    <main>
+        <section class="feature-section">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Core Capabilities</h2>
+                    <p>NOUS combines cutting-edge AI technology with intuitive design to deliver a comprehensive personal assistant experience.</p>
+                </div>
+                
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">AI</div>
+                        <h3 class="feature-title">Advanced AI Integration</h3>
+                        <p class="feature-description">Powered by state-of-the-art artificial intelligence that learns from your interactions to deliver increasingly personalized experiences.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">S</div>
+                        <h3 class="feature-title">Robust Security</h3>
+                        <p class="feature-description">Enterprise-grade security with multi-factor authentication and end-to-end encryption keeps your data safe and private.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">V</div>
+                        <h3 class="feature-title">Voice Interface</h3>
+                        <p class="feature-description">Natural language processing enables intuitive voice interactions for a hands-free experience across all your devices.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">C</div>
+                        <h3 class="feature-title">Cross-Platform Sync</h3>
+                        <p class="feature-description">Seamlessly sync your data across all your devices, ensuring you always have access to your information.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">A</div>
+                        <h3 class="feature-title">Automated Workflows</h3>
+                        <p class="feature-description">Create custom automated workflows to streamline repetitive tasks and boost your productivity.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">M</div>
+                        <h3 class="feature-title">Microservice Architecture</h3>
+                        <p class="feature-description">Modular design allows for rapid feature deployment and ensures system reliability even during updates.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-<section class="features">
-    <h2>Core Features</h2>
-    <div class="feature-grid">
-        <div class="feature-card">
-            <h3>AI Integration</h3>
-            <p>Advanced AI capabilities across multiple service domains, allowing for intelligent responses and actions based on your needs.</p>
-        </div>
-        <div class="feature-card">
-            <h3>Multi-Modal Interaction</h3>
-            <p>Interact through text, voice, and visual interfaces for a more natural and intuitive experience across different situations.</p>
-        </div>
-        <div class="feature-card">
-            <h3>Intelligent Management</h3>
-            <p>Smart system monitoring and error handling ensure reliable operation and quick recovery from any issues.</p>
-        </div>
-        <div class="feature-card">
-            <h3>Scalable Architecture</h3>
-            <p>Built on a robust and scalable microservice architecture that can grow with your needs.</p>
-        </div>
-    </div>
-</section>
+        <section class="feature-section">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Smart Task Management</h2>
+                    <p>NOUS helps you stay organized with intelligent task prioritization and contextual reminders.</p>
+                </div>
+                
+                <div class="feature-row">
+                    <div class="feature-content">
+                        <h3>Intelligent Task Prioritization</h3>
+                        <p>NOUS analyzes your tasks, deadlines, and work patterns to suggest optimal task sequences that maximize your productivity.</p>
+                        <ul class="feature-list">
+                            <li>AI-powered task sorting based on urgency and importance</li>
+                            <li>Smart deadline recommendations</li>
+                            <li>Workload balancing to prevent burnout</li>
+                            <li>Contextual reminders that adapt to your location and schedule</li>
+                            <li>Integration with calendar and email to automatically create tasks</li>
+                        </ul>
+                    </div>
+                    <div class="feature-image">
+                        <!-- Placeholder for task management illustration -->
+                        <div style="background-color: #4a6cf7; height: 300px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">Task Management Visualization</div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-<section>
-    <h2>Technical Capabilities</h2>
-    <div class="feature-grid">
-        <div class="feature-card">
-            <h3>Health Monitoring</h3>
-            <p>Comprehensive system health checks and monitoring to ensure optimal performance.</p>
-        </div>
-        <div class="feature-card">
-            <h3>Secure Authentication</h3>
-            <p>Robust authentication mechanisms to protect your data and privacy.</p>
-        </div>
-        <div class="feature-card">
-            <h3>Responsive Design</h3>
-            <p>Adaptive interface that works seamlessly across devices and screen sizes.</p>
-        </div>
-        <div class="feature-card">
-            <h3>API Integration</h3>
-            <p>Connect with various external services and APIs to extend functionality.</p>
-        </div>
-    </div>
-</section>
+        <section class="feature-section">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Health Monitoring</h2>
+                    <p>Keep track of your physical and mental wellbeing with personalized health insights.</p>
+                </div>
+                
+                <div class="feature-row">
+                    <div class="feature-image">
+                        <!-- Placeholder for health monitoring illustration -->
+                        <div style="background-color: #4a6cf7; height: 300px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">Health Monitoring Dashboard</div>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Comprehensive Health Tracking</h3>
+                        <p>NOUS integrates with wearable devices and health apps to provide a holistic view of your health metrics and actionable insights.</p>
+                        <ul class="feature-list">
+                            <li>Activity and exercise tracking</li>
+                            <li>Sleep quality analysis</li>
+                            <li>Stress level monitoring</li>
+                            <li>Personalized wellness recommendations</li>
+                            <li>Medication and appointment reminders</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-<section style="margin-top: 2rem; background: #e6f7ff; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #1890ff;">
-    <h3 style="margin-top: 0;">Coming Soon</h3>
-    <p>We're constantly improving NOUS with new features and capabilities. Stay tuned for upcoming enhancements!</p>
-    <a href="{{ url_for('health') }}" class="btn">Check System Status</a>
-</section>
-{% endblock %}
+        <section class="feature-section">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Weather Forecasting</h2>
+                    <p>Stay prepared with accurate weather predictions and smart recommendations.</p>
+                </div>
+                
+                <div class="feature-row">
+                    <div class="feature-content">
+                        <h3>Intelligent Weather Insights</h3>
+                        <p>Beyond basic forecasts, NOUS provides context-aware weather information that helps you plan your activities effectively.</p>
+                        <ul class="feature-list">
+                            <li>Hyperlocal weather forecasting</li>
+                            <li>Activity recommendations based on weather conditions</li>
+                            <li>Severe weather alerts</li>
+                            <li>Travel planning with weather considerations</li>
+                            <li>Historical weather pattern analysis</li>
+                        </ul>
+                    </div>
+                    <div class="feature-image">
+                        <!-- Placeholder for weather forecasting illustration -->
+                        <div style="background-color: #4a6cf7; height: 300px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">Weather Forecast Visualization</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <div class="container">
+                <h2>Ready to Transform Your Productivity?</h2>
+                <p>Join thousands of users who are already experiencing the future of personal assistance with NOUS.</p>
+                <a href="/login" class="cta-button">Get Started Today</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 NOUS Personal Assistant. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
