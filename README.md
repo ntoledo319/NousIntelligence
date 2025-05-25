@@ -1,86 +1,70 @@
 # NOUS Personal Assistant
 
-An advanced AI-powered personal assistant web application with robust multi-modal interaction capabilities and intelligent system management.
+NOUS is an advanced AI-powered personal assistant web application that leverages cutting-edge technologies to provide intelligent, adaptive, and user-friendly interactions.
 
-[![Deploy on Replit](https://replit.com/badge/github/replit/deployreplit)](https://replit.com/new/deploy)
+## Features
 
-## Project Structure
+- **Public Access**: Accessible to everyone without requiring Replit login
+- **Secure Authentication**: Maintains Google authentication for protected routes
+- **Modern UI**: Beautiful responsive design across all pages
+- **Intelligent Task Management**: Smart organization and prioritization of tasks
+- **Health Monitoring**: Track and analyze health metrics
+- **Weather Forecasting**: Get accurate weather predictions with smart recommendations
 
-The application has been consolidated into a cleaner, more maintainable structure:
+## Deployment Instructions
 
-- **main.py**: Primary entry point that creates and runs the Flask application
-- **app_factory.py**: Application factory for creating and configuring the Flask app
-- **config.py**: Configuration classes for different environments (development, testing, production)
-- **routes/**: Directory containing route blueprints organized by feature
-- **models/**: Directory containing database models organized by domain
-- **templates/**: Jinja2 HTML templates with a base template structure
-- **static/**: Static files including CSS, JavaScript, and images
-- **utils/**: Utility functions and helper modules
+### Using the Deploy Button
 
-## Running the Application
+The easiest way to deploy NOUS is using the Replit deploy button:
 
-To start the application:
+1. Click the **Deploy** button in your Replit interface
+2. Wait for the deployment process to complete
+3. Your application will be available at your deployment URL (shown after deployment)
 
-```bash
-# Run with the unified start script
-./start.sh
+The deploy button automatically:
+- Sets up the required environment
+- Starts the application server
+- Makes it publicly accessible without requiring Replit login
+- Maintains Google authentication for protected routes
 
-# OR run with Python directly
-python main.py
-```
+### Manual Deployment
 
-## Development
+If you prefer to deploy manually, follow these steps:
 
-### Local Setup
+1. Ensure all dependencies are installed
+2. Run `python main.py` or `python deployment.py`
+3. The application will be available at port 8080
 
-1. Set up a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+## Accessing the Application
 
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+After deployment, your NOUS Personal Assistant will be accessible at:
+- Your deployment URL (when using the deploy button)
+- `http://localhost:8080` (when running locally)
 
-3. Run the application:
-   ```bash
-   python main.py
-   ```
+No Replit login is required to access the application, but protected routes still use Google authentication.
 
-## Key Features
+## Login Information
 
-- Advanced AI assistance with task management
-- Health monitoring and data analysis
-- Secure authentication and user profiles
-- Multi-modal interaction capabilities
+For demo purposes, you can use:
+- Email: demo@example.com
+- Password: demo123
 
-## Configuration
+## Application Structure
 
-The application uses environment variables for configuration:
-- `FLASK_ENV`: Set to "development", "testing", or "production" (default)
-- `SECRET_KEY` or `SESSION_SECRET`: Secret key for session security
-- `DATABASE_URL`: Database connection URL
+- `app_public_final.py`: Main application with public access configuration
+- `run_nous.py`: Application runner
+- `deployment.py`: Deployment helper script
+- `main.py`: Entry point for deployment
+- `templates/`: HTML templates for all pages
+- `static/`: Static assets (CSS, JS, images)
 
-## Database
+## Getting Help
 
-The application uses SQLAlchemy with PostgreSQL. To initialize or update the database schema:
+If you encounter any issues with deployment or using the application, please check:
+- The application logs for error messages
+- That all required directories exist
+- That the port (8080) is available
 
-```bash
-python run_migrations.py
-```
+## License
 
-## Deployment on Replit
-
-This project is configured for one-click deployment on Replit:
-
-1. Click the "Deploy on Replit" button at the top of this README
-2. Wait for the project to be cloned and dependencies to be installed
-3. The application will automatically start once deployment is complete
-4. To deploy to production, click the "Deploy" button in the Replit interface
-
-The deployment process will:
-- Set up a PostgreSQL database
-- Configure the necessary environment variables
-- Start the application using Gunicorn for production performance
+© 2025 NOUS Personal Assistant. All rights reserved.

@@ -1,13 +1,20 @@
 """
-NOUS Personal Assistant - Entry Point
+NOUS Personal Assistant - Main Entry Point for Deployment
 
-This module serves as the entry point for the NOUS application.
-It imports and runs the public application to ensure it's 
-accessible without requiring login.
+This file serves as the main entry point for the application
+when using the deploy button. It imports and runs the deployment script.
 """
-from public_app import app
+import os
+import sys
 
 if __name__ == "__main__":
-    import os
-    port = int(os.environ.get('PORT', 8080))
-    app.run(host='0.0.0.0', port=port)
+    # Run the deployment script
+    from deployment import setup_deployment, run_application
+    
+    # Setup deployment environment
+    if setup_deployment():
+        # Run the application
+        run_application()
+    else:
+        print("Failed to set up deployment environment")
+        sys.exit(1)
