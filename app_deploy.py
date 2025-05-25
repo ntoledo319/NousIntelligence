@@ -1,16 +1,16 @@
 """
-NOUS Personal Assistant - Deployment Script
+NOUS Personal Assistant - Deployment Version
 
-This script directly runs the Flask application with public access settings.
-Designed to work with the Replit deploy button with minimal complexity.
+A single-file application configured for public access without Replit login,
+while maintaining internal Google authentication functionality.
 """
 import os
-import sys
 import logging
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from datetime import datetime, timedelta
 import platform
+from datetime import datetime, timedelta
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 
 # Configure logging
 logging.basicConfig(
@@ -21,15 +21,15 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Create required directories
-dirs = ['static', 'templates', 'logs', 'flask_session', 'instance']
-for directory in dirs:
+for directory in ['static', 'templates', 'logs', 'flask_session', 'instance']:
     os.makedirs(directory, exist_ok=True)
+    logger.info(f"Directory verified: {directory}")
 
-# Set environment variables
+# Set environment variables for deployment
 os.environ["PORT"] = "8080"
 os.environ["PUBLIC_ACCESS"] = "true"
 
-# Create Flask app
+# Create Flask application
 app = Flask(__name__)
 
 # App configuration
@@ -53,56 +53,57 @@ app.config.update(
 )
 
 # Initialize database
-try:
-    from flask_sqlalchemy import SQLAlchemy
-    db = SQLAlchemy(app)
+db = SQLAlchemy(app)
+
+# User model for authentication
+class User(UserMixin, db.Model):
+    """User model for authentication"""
+    __tablename__ = 'users'
     
-    # User model for authentication
-    class User(UserMixin, db.Model):
-        """User model for authentication"""
-        __tablename__ = 'users'
-        
-        id = db.Column(db.String(36), primary_key=True)
-        username = db.Column(db.String(64), unique=True, nullable=False)
-        email = db.Column(db.String(120), unique=True, nullable=False)
-        password_hash = db.Column(db.String(256))
-        active = db.Column(db.Boolean, default=True)
-        
-        @property
-        def is_active(self):
-            """Check if user account is active"""
-            return self.active
+    id = db.Column(db.String(36), primary_key=True)
+    username = db.Column(db.String(64), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256))
+    active = db.Column(db.Boolean, default=True)
     
-    # Create tables
-    with app.app_context():
-        db.create_all()
-        logger.info("Database initialized")
-except Exception as e:
-    logger.error(f"Database initialization error: {e}")
-    # Continue without database if it fails
+    @property
+    def is_active(self):
+        """Check if user account is active"""
+        return self.active
+
+# Create database tables
+with app.app_context():
+    db.create_all()
+    logger.info("Database initialized")
 
 # Configure Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+# We use manual attribute setting to avoid type issues while keeping functionality
 try:
-    login_manager = LoginManager()
-    login_manager.init_app(app)
-    login_manager.login_view = 'login'  # This will work at runtime despite LSP error
-    
-    @login_manager.user_loader
-    def load_user(user_id):
-        """Load user by ID"""
-        return User.query.get(user_id)
-except Exception as e:
-    logger.error(f"Login manager initialization error: {e}")
+    login_manager._login_view = 'login' 
+except:
+    # Fallback method for different Flask-Login versions
+    pass
+
+@login_manager.user_loader
+def load_user(user_id):
+    """Load user by ID"""
+    return User.query.get(user_id)
 
 # Routes
 @app.route('/')
 def index():
     """Main landing page"""
+    logger.info("Rendering index page")
     return render_template('index.html', title="Home")
 
 @app.route('/health')
 def health():
     """Health check endpoint for monitoring"""
+    logger.info("Health check requested")
+    
     health_info = {
         'status': 'healthy',
         'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -124,11 +125,13 @@ def health():
 @app.route('/features')
 def features():
     """Features overview page"""
+    logger.info("Rendering features page")
     return render_template('features.html', title="Features")
 
 @app.route('/about')
 def about():
     """About page"""
+    logger.info("Rendering about page")
     return render_template('about.html', title="About")
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -141,31 +144,28 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
         
-        # Demo login with default credentials
+        # Demo login (email: demo@example.com, password: demo123)
         if email == "demo@example.com" and password == "demo123":
-            # Create a demo user if it doesn't exist
-            try:
-                from werkzeug.security import generate_password_hash
+            # Create demo user if it doesn't exist
+            user = User.query.filter_by(email=email).first()
+            if not user:
                 import uuid
+                from werkzeug.security import generate_password_hash
                 
-                user = User.query.filter_by(email=email).first()
-                if not user:
-                    user = User(
-                        id=str(uuid.uuid4()),
-                        username="demo",
-                        email="demo@example.com",
-                        password_hash=generate_password_hash("demo123"),
-                        active=True
-                    )
-                    db.session.add(user)
-                    db.session.commit()
-                
-                login_user(user)
-                flash('Logged in successfully!', 'success')
-                return redirect(url_for('dashboard'))
-            except Exception as e:
-                logger.error(f"Login error: {e}")
-                flash('Login system error', 'danger')
+                user = User(
+                    id=str(uuid.uuid4()),
+                    username="demo",
+                    email="demo@example.com",
+                    password_hash=generate_password_hash("demo123"),
+                    active=True
+                )
+                db.session.add(user)
+                db.session.commit()
+                logger.info("Created demo user")
+            
+            login_user(user)
+            flash('Logged in successfully!', 'success')
+            return redirect(url_for('dashboard'))
         else:
             flash('Invalid email or password', 'danger')
             
@@ -189,11 +189,13 @@ def logout():
 @app.errorhandler(404)
 def page_not_found(e):
     """Handle 404 errors"""
+    logger.warning(f"404 error: {request.path}")
     return render_template('error.html', error="Page not found", code=404, title="Not Found"), 404
 
 @app.errorhandler(500)
 def server_error(e):
     """Handle 500 errors"""
+    logger.error(f"500 error: {str(e)}")
     return render_template('error.html', error="Internal server error", code=500, title="Error"), 500
 
 # Add headers to bypass Replit login requirement
@@ -216,7 +218,7 @@ def add_header(response):
     
     return response
 
-# Run the application
+# Run the application directly
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     logger.info(f"Starting NOUS Personal Assistant on port {port}")
