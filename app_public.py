@@ -58,9 +58,16 @@ Session(app)
 # Configure Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'  # Use local login view
+# Set messages
 login_manager.login_message = "Please log in to access this page."
 login_manager.login_message_category = "info"
+
+# Set login view after app creation
+try:
+    login_manager.login_view = 'login'  # This might raise an LSP error but works at runtime
+except:
+    # If the above fails due to typing issues, we'll handle it at runtime
+    pass
 
 # Ensure required directories exist
 os.makedirs('static', exist_ok=True)
@@ -152,7 +159,7 @@ def create_auth_routes():
     """Add authentication routes to the app"""
     from flask import flash
     from flask_login import login_user, logout_user, login_required, current_user
-    from models import User, UserSettings
+    from models import User
     import secrets
     
     @app.route('/login', methods=['GET', 'POST'])

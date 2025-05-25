@@ -1,4 +1,8 @@
 [deployment]
-run = ["sh", "-c", "python app_public.py"]
+run = ["sh", "-c", "bash run_deploy_app.sh"]
 deploymentTarget = "cloudrun"
 ignorePorts = false
+
+[auth]
+pageEnabled = false
+buttonEnabled = false
