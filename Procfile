@@ -1,1 +1,1 @@
-web: bash deploy.sh
+web: python final_deploy.py
