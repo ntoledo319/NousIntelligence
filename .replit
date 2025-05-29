@@ -6,9 +6,8 @@ packages = ["SDL2", "SDL2_image", "SDL2_mixer", "SDL2_ttf", "cacert", "cairo", "
 
 [deployment]
 deploymentTarget = "cloudrun"
-run = ["sh", "-c", "bash deploy.sh"]
+run = ["sh", "-c", "python final_deploy.py"]
 ignorePorts = false
-build = ["sh", "-c", "pip install -r requirements.txt"]
 
 [env]
 PORT = "8080"
