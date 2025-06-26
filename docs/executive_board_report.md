@@ -744,12 +744,13 @@ User Message → Command Detection → AI Processing → Context Integration →
 
 ## 🔎 Complete Feature Index (Auto-Generated)
 
-*Generated: June 26, 2025 - Repository scan of 318 routes, 213 templates, 67 modules*
+*Generated: June 26, 2025 - Repository scan of 318 routes, 213 templates, 67 modules (UPDATED: +3 missing features discovered)*
 
 | Feature Name | Description | Routes/Entry Points | Primary Files | Dependencies |
 |-------------|-------------|-------------------|--------------|-------------|
 | **2FA Authentication** | Two-factor authentication system | `/2fa/setup`, `/2fa/verify` | `routes/two_factor_routes.py`, `templates/2fa/` | `utils/two_factor_auth.py` |
 | **AA Content Management** | Alcoholics Anonymous content & resources | `/aa/*` | `routes/aa_routes.py`, `routes/aa_content.py` | `utils/aa_helper.py` |
+| **AA Step 10 Nightly Inventory** | Daily 10th Step inventory with apology tracking | `/aa/nightly-inventory`, `/aa/inventory-history` | `templates/aa/nightly_inventory.html` | `utils/aa_helper.py` (AANightlyInventory class) |
 | **Admin Dashboard** | System administration interface | `/admin/*` | `routes/admin_routes.py`, `templates/admin/` | `utils/security_helper.py` |
 | **AI Chat Interface** | Intelligent conversational AI system | `/chat/`, `/api/chat/message` | `routes/chat_routes.py`, `templates/chat/` | `utils/cost_optimized_ai.py` |
 | **Amazon Integration** | Shopping & price tracking via Amazon | `/amazon/*` | `routes/amazon_routes.py` | `utils/amazon_helper.py` |
@@ -767,6 +768,7 @@ User Message → Command Detection → AI Processing → Context Integration →
 | **Error Handling** | Comprehensive error pages & logging | `/error/*` | `templates/errors/` | `utils/error_handler.py` |
 | **Forms Management** | Dynamic form creation & processing | `/forms/*` | `routes/forms_routes.py`, `templates/forms/` | `utils/forms_helper.py` |
 | **Google API Integration** | Calendar, Gmail, Drive, Maps access | Multiple endpoints | `utils/google_helper.py` | Google OAuth2 |
+| **Google Tasks Management** | Task creation and management via Google Tasks API | Integrated in Google services | `utils/google_helper.py` (`add_task` function) | Google Tasks API |
 | **Health Monitoring** | System & user health tracking | `/health`, `/healthz` | `routes/health_check.py` | `utils/service_health_checker.py` |
 | **Image Processing** | Upload, analysis & organization | `/image/*` | `routes/image_routes.py` | `utils/image_helper.py` |
 | **Language Learning** | Multi-language learning & practice | `/language/*` | `routes/language_learning_routes.py` | `utils/multilingual_voice.py` |
@@ -780,6 +782,7 @@ User Message → Command Detection → AI Processing → Context Integration →
 | **Setup Wizard** | First-time user onboarding | `/setup/*` | `routes/setup_routes.py`, `templates/setup/` | `utils/setup_wizard.py` |
 | **Smart Shopping** | AI-powered shopping assistance | `/smart-shopping/*` | `routes/smart_shopping_routes.py` | `utils/smart_shopping.py` |
 | **Spotify Integration** | Music streaming & mood tracking | `/spotify/*` | `routes/spotify_routes.py` | `utils/spotify_helper.py` |
+| **Spotify Mood Analysis** | AI-powered mood classification from music listening | Integrated in Spotify services | `utils/spotify_ai_integration.py` (`classify_track_mood` function) | Spotify Web API + Audio Features |
 | **Task Management** | Todo lists & productivity tracking | `/api/tasks` | `routes/api.py` | Database models |
 | **User Management** | Profile & account administration | `/user/*` | `routes/user_routes.py` | `models/user.py` |
 | **Voice Interface** | Speech-to-text & text-to-speech | `/voice/*` | `routes/voice_routes.py` | `voice_interface/` |
