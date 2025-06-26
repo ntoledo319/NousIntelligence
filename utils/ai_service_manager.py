@@ -22,11 +22,8 @@ import random
 from functools import lru_cache
 
 # Import AI service utilities
-try:
-    import openai
-    OPENAI_AVAILABLE = True
-except ImportError:
-    OPENAI_AVAILABLE = False
+# OpenAI integration removed for cost optimization
+OPENAI_AVAILABLE = False
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -74,9 +71,8 @@ class AIServiceManager:
         """Detect which AI services are available based on environment variables"""
         services = {}
         
-        # Check for OpenAI
-        openai_key = os.environ.get("OPENAI_API_KEY")
-        services["openai"] = bool(openai_key and OPENAI_AVAILABLE)
+        # OpenAI disabled for cost optimization
+        services["openai"] = False
         
         # Check for OpenRouter
         openrouter_key = os.environ.get("OPENROUTER_API_KEY") or os.environ.get("OPENROUTER_KEY")
@@ -160,19 +156,16 @@ class AIServiceManager:
                 # Too many errors with this service, avoid it temporarily
                 continue
         
-        # Logic based on task type and complexity
+        # Logic based on task type and complexity - OpenAI removed for cost optimization
         if complexity == TaskComplexity.COMPLEX:
             # Try premium services first for complex tasks
-            for service in ["openai", "openrouter"]:
-                if service in self.available_services and self.available_services[service]:
-                    return self._get_best_model_for_service(service, complexity)
+            if "openrouter" in self.available_services and self.available_services["openrouter"]:
+                return self._get_best_model_for_service("openrouter", complexity)
         
         elif complexity == TaskComplexity.STANDARD:
             # Try standard tier services for regular tasks
             if "openrouter" in self.available_services and self.available_services["openrouter"]:
                 return self._get_best_model_for_service("openrouter", complexity)
-            elif "openai" in self.available_services and self.available_services["openai"]:
-                return self._get_best_model_for_service("openai", complexity)
         
         elif complexity == TaskComplexity.BASIC:
             # Try economy tier services for basic tasks
@@ -181,8 +174,8 @@ class AIServiceManager:
             elif "local" in self.available_services and self.available_services["local"]:
                 return "local", "default"
         
-        # Fallback to whatever is available, in order of preference
-        for service in ["openai", "openrouter", "huggingface", "local"]:
+        # Fallback to whatever is available, in order of preference (OpenAI removed)
+        for service in ["openrouter", "huggingface", "local"]:
             if service in self.available_services and self.available_services[service]:
                 return self._get_best_model_for_service(service, complexity)
         
@@ -191,13 +184,7 @@ class AIServiceManager:
     
     def _get_best_model_for_service(self, service: str, complexity: TaskComplexity) -> Tuple[str, str]:
         """Get the best model for a given service based on complexity and cost"""
-        if service == "openai":
-            if complexity == TaskComplexity.COMPLEX:
-                return "openai", "gpt-4o"
-            else:
-                return "openai", "gpt-3.5-turbo"
-                
-        elif service == "openrouter":
+        if service == "openrouter":
             if complexity == TaskComplexity.COMPLEX:
                 return "openrouter", "anthropic/claude-3-sonnet"
             else:

@@ -194,35 +194,32 @@ class AIIntegration:
                     model: str = "gpt-3.5-turbo", 
                     max_tokens: int = 1000, 
                     temperature: float = 0.7) -> Dict[str, Any]:
-        """Call OpenAI API with cost optimization"""
-        try:
-            # Import the OpenAI client
-            from utils.ai_helper import initialize_openai
-            openai_client = initialize_openai()
-            
-            if not openai_client:
-                return {"success": False, "error": "OpenAI client not available"}
-                
-            # Create chat completion
-            response = openai_client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=max_tokens,
-                temperature=temperature
-            )
-            
+        """Legacy OpenAI API call - now redirects to cost-optimized provider"""
+        logger.warning("Legacy OpenAI call redirected to cost-optimized provider")
+        
+        # Redirect to cost-optimized AI
+        from utils.cost_optimized_ai import get_cost_optimized_ai, TaskComplexity
+        ai_client = get_cost_optimized_ai()
+        
+        messages = [
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt}
+        ]
+        
+        complexity = TaskComplexity.STANDARD
+        if "gpt-4" in model:
+            complexity = TaskComplexity.COMPLEX
+        
+        result = ai_client.chat_completion(messages, max_tokens=max_tokens, temperature=temperature, complexity=complexity)
+        
+        if result.get("success"):
             return {
                 "success": True,
-                "response": response.choices[0].message.content.strip(),
-                "model": model
+                "response": result.get("response", ""),
+                "model": f"cost-optimized-{result.get('model', 'unknown')}"
             }
-            
-        except Exception as e:
-            logger.error(f"Error calling OpenAI: {str(e)}")
-            return {"success": False, "error": str(e)}
+        else:
+            return {"success": False, "error": result.get("error", "Unknown error")}
             
     def _call_openrouter(self, 
                        prompt: str, 
