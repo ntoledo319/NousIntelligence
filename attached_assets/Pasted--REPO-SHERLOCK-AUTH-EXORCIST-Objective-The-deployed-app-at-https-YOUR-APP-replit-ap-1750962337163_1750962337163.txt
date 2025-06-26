@@ -1,0 +1,67 @@
+🚨  REPO SHERLOCK + AUTH EXORCIST 🚨
+Objective:
+  • The deployed app at https://<YOUR-APP>.replit.app loops to “You must be logged in…”.
+  • Kill *all* root causes, clean the repo, and guarantee the loop can’t re-emerge.
+
+Global Rules:
+  1. **Never duplicate**: merge configs, delete zombies, create a new file only if no sane file exists.
+  2. **Cross-stack**: autodetect Node (Express, Next.js, Remix, Astro, SvelteKit, Redwood), Python (Django, Flask, FastAPI), Ruby (Rails, Sinatra), PHP (Laravel).
+  3. **Write comments** every time you assume intent.
+  4. **Errors halt**: if any test fails, abort the commit & print the error.
+
+Step-by-step:
+
+1. INVENTORY
+   • List every env var referenced; cross-check Replit Secrets. Stub or create missing ones.
+   • Locate auth guards: regex for `requireLogin|ensureAuth|withAuth|@login_required|authenticate_user!`.
+   • Identify cookie/session configs and duplicate config files.
+
+2. PROXY PATCHES
+   • If Express/Fastify etc. ⇒ `app.set('trust proxy', 1)` and secure cookies `{ secure: NODE_ENV==='production', sameSite:'lax' }`.
+   • If Django ⇒ add `SECURE_PROXY_SSL_HEADER` and `SESSION_COOKIE_SECURE = True`.
+   • If Flask ⇒ wrap with `ProxyFix(x_for=1, x_proto=1)`.
+   • If Rails ⇒ `config.action_dispatch.trusted_proxies = ["0.0.0.0/0"]` and `config.force_ssl = true`.
+
+3. COOKIE HARDENING
+   • Any cookie used for auth must be `httpOnly`, `SameSite=Lax` (or `None;Secure` for cross-site), `secure` in prod.
+
+4. AUTH-PROVIDER SANITY
+   • Normalise all callback / base URLs (NextAuth `NEXTAUTH_URL`, Auth0 `AUTH0_BASE_URL`, Firebase `authDomain`, Supabase `NEXT_PUBLIC_SUPABASE_URL`, etc.) to the deployed domain.
+   • Remove hard-coded `localhost` and port references.
+
+5. SPA REFRESH FIXES
+   • Detect React/Vite/SvelteKit builds. If no rewrite config, generate `_redirects` (Netlify style) or `vercel.json` or `static.json` (Fly.io style):
+       /*    /index.html   200
+
+6. ROUTE GUARD TUNING
+   • Replace blanket middleware with granular guards:
+       Public: `/`, `/login`, `/signup`, `/api/health`, static assets
+       Protected: everything else
+   • Export a reusable `isAuthenticated()` (Node) or `login_required` (Python) and import where needed.
+
+7. REPO DETOX
+   • Delete: duplicate lockfiles, obsolete migrations, sample code, `.idea/`, `.vscode/`, `.DS_Store`, unused images, old build output, etc.
+   • Merge identical configs; keep the newest.
+
+8. TEST SUITE
+   • Add `/tests/auth-loop.spec.js` (or Python/RSpec equivalent) with cURL or supertest checks:
+       - GET / ⇒ 200
+       - GET /dashboard unauth ⇒ 302 → /login
+       - POST /api/login with fixture creds ⇒ 200
+       - GET /dashboard after session ⇒ 200
+   • Include an npm/pip script `test:smoke` that runs these.
+
+9. GIT & DEPLOY
+   • Commit with message: “chore: auth-loop nuke + repo diet”.
+   • Tag `post-auth-loop-fix`.
+   • Trigger fresh Replit Deployment.
+
+10. ROLLBACK PLAN
+   • If smoke tests redline, run `git reset --hard pre-auth-loop-nuke` and redeploy.
+
+Output:
+  • Diff summary of files changed/added/removed.
+  • List of new env vars to add in Replit Secrets UI.
+  • Smoke-test results table.
+
+⚡  End of prompt — pull the pin and run.
