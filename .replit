@@ -6,7 +6,7 @@ packages = ["SDL2", "SDL2_image", "SDL2_mixer", "SDL2_ttf", "cacert", "cairo", "
 
 [deployment]
 deploymentTarget = "cloudrun"
-run = ["sh", "-c", "python final_deploy.py"]
+run = ["sh", "-c", "python3 main.py"]
 ignorePorts = false
 
 [env]
