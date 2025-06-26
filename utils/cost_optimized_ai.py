@@ -33,31 +33,31 @@ class TaskComplexity(Enum):
 
 class CostOptimizedAI:
     """Unified AI provider with cost optimization"""
-    
+
     def __init__(self):
         self.openrouter_key = os.environ.get("OPENROUTER_API_KEY")
         self.huggingface_key = os.environ.get("HUGGINGFACE_API_KEY")
-        
+
         # Track request costs and usage
         self.total_cost = 0.0
         self.request_count = 0
-        
+
         logger.info(f"CostOptimized AI initialized - OpenRouter: {'✓' if self.openrouter_key else '✗'}, HuggingFace: {'✓' if self.huggingface_key else '✗'}")
-    
-    def chat_completion(self, 
-                       messages: List[Dict[str, str]], 
+
+    def chat_completion(self,
+                       messages: List[Dict[str, str]],
                        max_tokens: int = 1000,
                        temperature: float = 0.7,
                        complexity: TaskComplexity = TaskComplexity.STANDARD) -> Dict[str, Any]:
         """
         Generate chat completion using the most cost-effective provider
-        
+
         Args:
             messages: List of message dicts with 'role' and 'content'
             max_tokens: Maximum tokens to generate
             temperature: Response randomness (0.0-1.0)
             complexity: Task complexity level
-            
+
         Returns:
             Dict with response and metadata
         """
@@ -74,51 +74,51 @@ class CostOptimizedAI:
             model = "google/gemini-pro"  # Still cost-effective for basic tasks
             cost_per_1k_input = 0.00125
             cost_per_1k_output = 0.00375
-        
+
         # Try OpenRouter first
         if self.openrouter_key:
             try:
                 return self._openrouter_chat(messages, model, max_tokens, temperature, cost_per_1k_input, cost_per_1k_output)
             except Exception as e:
                 logger.warning(f"OpenRouter failed: {e}")
-        
+
         # Fallback to local template-based response
         return self._local_chat_fallback(messages)
-    
+
     def _openrouter_chat(self, messages, model, max_tokens, temperature, cost_per_1k_input, cost_per_1k_output):
         """Call OpenRouter API for chat completion"""
         url = "https://openrouter.ai/api/v1/chat/completions"
-        
+
         headers = {
             "Authorization": f"Bearer {self.openrouter_key}",
             "HTTP-Referer": "https://nous.chat",
             "X-Title": "NOUS Assistant",
             "Content-Type": "application/json"
         }
-        
+
         payload = {
             "model": model,
             "messages": messages,
             "max_tokens": max_tokens,
             "temperature": temperature
         }
-        
+
         response = requests.post(url, headers=headers, json=payload, timeout=30)
         response.raise_for_status()
-        
+
         data = response.json()
-        
+
         # Extract response
         response_text = data["choices"][0]["message"]["content"]
-        
+
         # Calculate cost
         input_tokens = data.get("usage", {}).get("prompt_tokens", 0)
         output_tokens = data.get("usage", {}).get("completion_tokens", 0)
-        
+
         cost = (input_tokens * cost_per_1k_input / 1000) + (output_tokens * cost_per_1k_output / 1000)
         self.total_cost += cost
         self.request_count += 1
-        
+
         return {
             "success": True,
             "response": response_text,
@@ -129,14 +129,14 @@ class CostOptimizedAI:
             "cost": cost,
             "total_cost": self.total_cost
         }
-    
+
     def _local_chat_fallback(self, messages):
         """Local fallback for basic chat responses"""
         user_message = ""
         for msg in messages:
             if msg.get("role") == "user":
                 user_message = msg.get("content", "").lower()
-                
+
         # Basic pattern matching for common queries
         if any(word in user_message for word in ["hello", "hi", "greeting"]):
             response = "Hello! I'm NOUS, your personal assistant. How can I help you today?"
@@ -148,7 +148,7 @@ class CostOptimizedAI:
             response = "I'm NOUS, your AI assistant. I can help with tasks like managing your schedule, weather updates, music recommendations, and answering questions."
         else:
             response = "I'm here to help! You can ask me about weather, music, scheduling, or general questions. What would you like to know?"
-        
+
         return {
             "success": True,
             "response": response,
@@ -159,16 +159,16 @@ class CostOptimizedAI:
             "cost": 0.0,
             "total_cost": self.total_cost
         }
-    
+
     def text_to_speech(self, text: str, voice: str = "default", language: str = "en") -> Dict[str, Any]:
         """
         Convert text to speech using cost-effective providers
-        
+
         Args:
             text: Text to convert to speech
             voice: Voice preference
             language: Language code
-            
+
         Returns:
             Dict with audio data and metadata
         """
@@ -178,25 +178,25 @@ class CostOptimizedAI:
                 "error": "Hugging Face API key required for TTS",
                 "audio_base64": None
             }
-        
+
         try:
             # Use Microsoft SpeechT5 TTS model on Hugging Face
             api_url = "https://api-inference.huggingface.co/models/microsoft/speecht5_tts"
             headers = {"Authorization": f"Bearer {self.huggingface_key}"}
-            
+
             payload = {
                 "inputs": text,
                 "parameters": {
                     "speaker_embeddings": "default"
                 }
             }
-            
+
             response = requests.post(api_url, headers=headers, json=payload, timeout=30)
             response.raise_for_status()
-            
+
             # Convert audio to base64
             audio_base64 = base64.b64encode(response.content).decode('utf-8')
-            
+
             return {
                 "success": True,
                 "audio_base64": audio_base64,
@@ -209,7 +209,7 @@ class CostOptimizedAI:
                     "text_length": len(text)
                 }
             }
-            
+
         except Exception as e:
             logger.error(f"HuggingFace TTS failed: {e}")
             return {
@@ -217,15 +217,15 @@ class CostOptimizedAI:
                 "error": str(e),
                 "audio_base64": None
             }
-    
+
     def speech_to_text(self, audio_data: bytes, language: str = "en") -> Dict[str, Any]:
         """
         Convert speech to text using cost-effective providers
-        
+
         Args:
             audio_data: Audio data as bytes
             language: Language code for transcription
-            
+
         Returns:
             Dict with transcription results
         """
@@ -235,18 +235,18 @@ class CostOptimizedAI:
                 "error": "Hugging Face API key required for STT",
                 "text": None
             }
-        
+
         try:
             # Use OpenAI Whisper model on Hugging Face
             api_url = "https://api-inference.huggingface.co/models/openai/whisper-large-v3"
             headers = {"Authorization": f"Bearer {self.huggingface_key}"}
-            
+
             response = requests.post(api_url, headers=headers, data=audio_data, timeout=30)
             response.raise_for_status()
-            
+
             result = response.json()
             transcription = result.get("text", "")
-            
+
             return {
                 "success": True,
                 "text": transcription,
@@ -258,7 +258,7 @@ class CostOptimizedAI:
                     "confidence": 0.9  # Whisper generally has high confidence
                 }
             }
-            
+
         except Exception as e:
             logger.error(f"HuggingFace STT failed: {e}")
             return {
@@ -266,7 +266,7 @@ class CostOptimizedAI:
                 "error": str(e),
                 "text": None
             }
-    
+
     def get_cost_summary(self) -> Dict[str, Any]:
         """Get cost and usage summary"""
         return {

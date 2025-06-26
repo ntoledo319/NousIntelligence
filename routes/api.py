@@ -38,7 +38,7 @@ def get_settings():
     """Get user settings"""
     if not current_user.settings:
         return jsonify({'error': 'Settings not found'}), 404
-    
+
     return jsonify(current_user.settings.to_dict())
 
 @api_bp.route('/settings', methods=['POST'])
@@ -47,27 +47,27 @@ def update_settings():
     """Update user settings"""
     try:
         data = request.get_json()
-        
+
         # Create settings if they don't exist
         if not current_user.settings:
             from models import UserSettings
             settings = UserSettings(user_id=current_user.id)
             db.session.add(settings)
             current_user.settings = settings
-        
+
         # Update valid fields
         valid_fields = [
             'theme', 'ai_name', 'ai_personality', 'preferred_language',
             'enable_voice_responses', 'conversation_difficulty'
         ]
-        
+
         for field in valid_fields:
             if field in data:
                 setattr(current_user.settings, field, data[field])
-        
+
         # Save changes
         db.session.commit()
-        
+
         return jsonify(current_user.settings.to_dict())
     except Exception as e:
         logger.error(f"Error updating settings: {str(e)}")
@@ -86,11 +86,11 @@ def create_task():
     """Create a new task"""
     try:
         data = request.get_json()
-        
+
         # Validate required fields
         if 'title' not in data:
             return jsonify({'error': 'Title is required'}), 400
-            
+
         # Create task
         task = Task(
             user_id=current_user.id,
@@ -99,11 +99,11 @@ def create_task():
             priority=data.get('priority', 'medium'),
             due_date=data.get('due_date')
         )
-        
+
         # Save to database
         db.session.add(task)
         db.session.commit()
-        
+
         return jsonify(task.to_dict()), 201
     except Exception as e:
         logger.error(f"Error creating task: {str(e)}")
@@ -114,10 +114,10 @@ def create_task():
 def get_task(task_id):
     """Get a specific task"""
     task = Task.query.get(task_id)
-    
+
     if not task or task.user_id != current_user.id:
         return jsonify({'error': 'Task not found'}), 404
-        
+
     return jsonify(task.to_dict())
 
 @api_bp.route('/tasks/<int:task_id>', methods=['PUT'])
@@ -126,13 +126,13 @@ def update_task(task_id):
     """Update an existing task"""
     try:
         task = Task.query.get(task_id)
-        
+
         if not task or task.user_id != current_user.id:
             return jsonify({'error': 'Task not found'}), 404
-            
+
         # Update task with request data
         data = request.get_json()
-        
+
         if 'title' in data:
             task.title = data['title']
         if 'description' in data:
@@ -143,10 +143,10 @@ def update_task(task_id):
             task.due_date = data['due_date']
         if 'completed' in data:
             task.completed = data['completed']
-            
+
         # Save changes
         db.session.commit()
-        
+
         return jsonify(task.to_dict())
     except Exception as e:
         logger.error(f"Error updating task: {str(e)}")
@@ -158,14 +158,14 @@ def delete_task(task_id):
     """Delete a task"""
     try:
         task = Task.query.get(task_id)
-        
+
         if not task or task.user_id != current_user.id:
             return jsonify({'error': 'Task not found'}), 404
-            
+
         # Delete the task
         db.session.delete(task)
         db.session.commit()
-        
+
         return jsonify({'message': 'Task deleted successfully'}), 200
     except Exception as e:
         logger.error(f"Error deleting task: {str(e)}")
@@ -176,13 +176,13 @@ def delete_task(task_id):
 def process_chat():
     """
     Process chat messages and return responses
-    
+
     Request JSON format:
     {
         "message": "User's message text",
         "context": {optional context object}
     }
-    
+
     Response JSON format:
     {
         "success": true/false,
@@ -198,7 +198,7 @@ def process_chat():
             "success": False,
             "error": "Authentication required"
         }), 401
-    
+
     # Get chat message from request
     data = request.json
     if not data or 'message' not in data:
@@ -206,9 +206,9 @@ def process_chat():
             "success": False,
             "error": "No message provided"
         }), 400
-    
+
     message = data['message']
-    
+
     try:
         # Get chat processor and process message
         chat_processor = get_chat_processor()
@@ -217,12 +217,12 @@ def process_chat():
             user_id=current_user.id,
             session=session
         )
-        
+
         return jsonify({
             "success": True,
             "response": response
         })
-        
+
     except Exception as e:
         logger.error(f"Error processing chat message: {str(e)}")
         return jsonify({
@@ -236,7 +236,7 @@ def get_user_profile():
     """Get the current user's profile information"""
     if not current_user.is_authenticated:
         return jsonify({"error": "Authentication required"}), 401
-    
+
     try:
         profile = {
             "id": current_user.id,
@@ -257,7 +257,7 @@ def user_settings():
     """Get or update user settings"""
     if not current_user.is_authenticated:
         return jsonify({"error": "Authentication required"}), 401
-    
+
     # Handle GET request
     if request.method == 'GET':
         try:
@@ -270,19 +270,19 @@ def user_settings():
         except Exception as e:
             logger.error(f"Error getting user settings: {str(e)}")
             return jsonify({"success": False, "error": str(e)}), 500
-    
+
     # Handle PUT request
     elif request.method == 'PUT':
         data = request.json
         if not data:
             return jsonify({"success": False, "error": "No data provided"}), 400
-        
+
         try:
             # Update settings
             for key, value in data.items():
                 current_user.set_setting(key, value)
-            
+
             return jsonify({"success": True, "message": "Settings updated successfully"})
         except Exception as e:
             logger.error(f"Error updating user settings: {str(e)}")
-            return jsonify({"success": False, "error": str(e)}), 500 
+            return jsonify({"success": False, "error": str(e)}), 500

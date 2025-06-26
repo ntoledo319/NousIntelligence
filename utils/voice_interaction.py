@@ -26,7 +26,7 @@ try:
 except ImportError:
     EMOTION_DETECTION_AVAILABLE = False
     logging.warning("Emotion detection not available for voice processing")
-    
+
     # Define dummy functions when emotion detection is not available
     def process_user_message(user_id, message, is_voice=False):
         """Fallback function when emotion detection is not available"""
@@ -35,7 +35,7 @@ except ImportError:
             "confidence": 0.5,
             "source": "fallback"
         }
-        
+
     def analyze_voice_audio(audio_data, user_id):
         """Fallback function when emotion detection is not available"""
         return {
@@ -52,7 +52,7 @@ try:
 except ImportError:
     CHARACTER_CUSTOMIZATION_AVAILABLE = False
     logging.warning("Character customization not available for voice processing")
-    
+
     # Define a dummy function if the import fails
     def get_character_settings():
         """Fallback function when character customization is not available"""
@@ -109,10 +109,10 @@ def transcribe_audio(audio_data: bytes, user_id: str) -> Dict[str, Any]:
         if EMOTION_DETECTION_AVAILABLE and transcribed_text:
             # Analyze text for emotions
             emotion_result = process_user_message(user_id, transcribed_text, is_voice=True)
-            
+
             # Also analyze audio for voice characteristics
             audio_emotion = analyze_voice_audio(audio_data, user_id)
-            
+
             # Combine results - text-based emotion with voice characteristics
             emotion_data = {
                 "detected_emotion": emotion_result["emotion"],
@@ -161,7 +161,7 @@ def text_to_speech(text: str, user_id: Optional[str] = None) -> Dict[str, Any]:
         voice_settings = {}
         if CHARACTER_CUSTOMIZATION_AVAILABLE and user_id:
             character_settings = get_character_settings()
-            
+
             # Map voice type to OpenAI voice options
             voice_mapping = {
                 "neutral": "nova",
@@ -170,22 +170,22 @@ def text_to_speech(text: str, user_id: Optional[str] = None) -> Dict[str, Any]:
                 "authoritative": "onyx",
                 "warm": "echo"
             }
-            
+
             # Get voice type from character settings
             voice_type = character_settings.get("ai_voice_type", "neutral")
             openai_voice = voice_mapping.get(voice_type, "nova")
-            
+
             voice_settings["voice"] = openai_voice
-            
+
             # Adjust speed based on emotion and character
             if EMOTION_DETECTION_AVAILABLE:
                 from utils.emotion_detection import get_recent_emotions
-                
+
                 # Get most recent emotion
                 recent_emotions = get_recent_emotions(user_id, limit=1)
                 if recent_emotions:
                     recent_emotion = recent_emotions[0]["emotion"]
-                    
+
                     # Adjust speed slightly based on emotion
                     speed_adjustments = {
                         "happiness": 1.1,  # Slightly faster
@@ -196,7 +196,7 @@ def text_to_speech(text: str, user_id: Optional[str] = None) -> Dict[str, Any]:
                         "confusion": 0.95, # Slightly slower
                         "neutral": 1.0     # Normal speed
                     }
-                    
+
                     speed = speed_adjustments.get(recent_emotion, 1.0)
                     voice_settings["speed"] = speed
         else:
@@ -243,38 +243,38 @@ def text_to_speech(text: str, user_id: Optional[str] = None) -> Dict[str, Any]:
 def process_voice_command(audio_data: bytes, user_id: str) -> Dict[str, Any]:
     """
     Process a voice command from start to finish
-    
+
     Args:
         audio_data: Raw audio data from client
         user_id: User ID for personalization
-        
+
     Returns:
         Dict with command processing results
     """
     # First transcribe the audio to text
     transcription = transcribe_audio(audio_data, user_id)
-    
+
     if not transcription["success"]:
         return {
             "success": False,
             "error": transcription.get("error", "Failed to transcribe audio"),
             "response": None
         }
-        
+
     command_text = transcription["text"]
-    
+
     # Process the command through the AI assistant
     from utils.ai_helper import handle_conversation
-    
+
     # Include emotion data as context
     emotion_context = transcription.get("metadata", {}).get("emotion_data", {})
-    
+
     # Process the command
     response_text = handle_conversation(user_id, command_text, {"emotion": emotion_context})
-    
+
     # Convert the response to speech if needed
     speech_response = text_to_speech(response_text, user_id)
-    
+
     return {
         "success": True,
         "command": command_text,

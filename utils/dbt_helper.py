@@ -6,7 +6,7 @@ import time
 from flask import session
 from datetime import datetime
 from models import (
-    db, DBTSkillLog, DBTDiaryCard, DBTSkillCategory, 
+    db, DBTSkillLog, DBTDiaryCard, DBTSkillCategory,
     DBTSkillRecommendation, DBTSkillChallenge, DBTCrisisResource, DBTEmotionTrack
 )
 import openai
@@ -37,13 +37,13 @@ if OPENROUTER_KEY:
 MODELS = {
     # High-capability models for complex reasoning tasks (therapeutic recommendations, crisis support)
     "high_capability": "gpt-4o",  # Best quality for complex tasks
-    
+
     # Medium-capability models for standard tasks (diary analysis, basic recommendations)
     "medium_capability": "gpt-4o-mini",  # Good balance of quality and cost
-    
+
     # Lower-cost models for simpler tasks (skill categorization, basic responses)
     "basic_capability": "meta-llama/llama-3-8b-instruct",  # Cost-effective for simple tasks
-    
+
     # Default model if none specified
     "default": "gpt-4o-mini"
 }
@@ -191,19 +191,19 @@ User situation: "{text}"
 def call_router(prompt_key, capability_level="medium_capability", **kwargs):
     """
     Call OpenRouter with the specified prompt and arguments
-    
+
     Args:
         prompt_key: Key to select the prompt template from PROMPTS
         capability_level: Level of model capability required for task
                         ("high_capability", "medium_capability", "basic_capability")
         **kwargs: Arguments to format the prompt template
-        
+
     Returns:
         dict: Response from the language model or error message
     """
     if not OPENROUTER_KEY or not client:
         return {"error": "OpenRouter API key not configured"}
-        
+
     # Format the prompt with the provided arguments
     try:
         if prompt_key == "direct":
@@ -216,13 +216,13 @@ def call_router(prompt_key, capability_level="medium_capability", **kwargs):
     except Exception as e:
         logger.error(f"Error formatting prompt: {str(e)}")
         return {"error": f"Error formatting prompt: {str(e)}"}
-    
+
     # Select model based on capability level
     model = MODELS.get(capability_level, MODELS["default"])
-    
+
     # Log which model we're using (helps to understand costs)
     logger.info(f"Using model: {model} for capability level: {capability_level}")
-    
+
     try:
         # Check if we need to wait due to rate limiting
         current_time = time.time()
@@ -247,28 +247,28 @@ def call_router(prompt_key, capability_level="medium_capability", **kwargs):
                 "X-Title": "NOUS DBT Assistant"  # Add context about your application
             }
         )
-        
+
         # Reset consecutive errors counter on success
         RATE_LIMIT_TRACKING.consecutive_errors = 0
-        
+
         # If the backoff time has grown, reduce it gradually (as integers)
         if RATE_LIMIT_TRACKING.backoff_time > 5:
             current_backoff = RATE_LIMIT_TRACKING.backoff_time
             RATE_LIMIT_TRACKING.backoff_time = max(5, int(current_backoff / 2))
-        
+
         return {
             "success": True,
             "response": response.choices[0].message.content.strip(),
             "model": model
         }
-        
+
     except Exception as e:
         error_message = f"Error calling OpenRouter: {str(e)}"
         logger.error(error_message)
-        
+
         # Track consecutive errors
         RATE_LIMIT_TRACKING.consecutive_errors += 1
-        
+
         # Check for rate limiting errors
         if "429" in str(e):
             RATE_LIMIT_TRACKING.last_429 = time.time()
@@ -276,30 +276,30 @@ def call_router(prompt_key, capability_level="medium_capability", **kwargs):
             current_backoff = RATE_LIMIT_TRACKING.backoff_time
             RATE_LIMIT_TRACKING.backoff_time = min(current_backoff * 2, 60)
             error_message += " (Rate limited)"
-        
+
         # Attempt fallback to a different model if available
         if capability_level != "basic_capability":
             logger.info(f"Attempting fallback to basic capability model")
             return call_router(prompt_key, "basic_capability", **kwargs)
-            
+
         return {"error": error_message}
 
 
 def call_router_direct(prompt, capability_level="medium_capability"):
     """
     Simple version of call_router for internal use
-    
+
     Args:
         prompt: The prompt to send to the model
         capability_level: Level of model capability required for task
-        
+
     Returns:
         str: Model response text or None if failed
     """
     # Use our main router but with a direct prompt
     custom_data = {"direct_prompt": prompt}
     result = call_router("direct", capability_level, **custom_data)
-    
+
     if result and "response" in result:
         return result["response"]
     return None
@@ -310,7 +310,7 @@ def call_router_direct(prompt, capability_level="medium_capability"):
 def log_dbt_skill(session_obj, skill_name, category, situation=None, effectiveness=None, notes=None):
     """
     Log a DBT skill usage
-    
+
     Args:
         session_obj: Flask session object
         skill_name: Name of the skill used
@@ -318,7 +318,7 @@ def log_dbt_skill(session_obj, skill_name, category, situation=None, effectivene
         situation: Description of when/how the skill was used
         effectiveness: Rating from 1-5 of how effective the skill was
         notes: Additional notes
-        
+
     Returns:
         dict: Status of the operation
     """
@@ -326,7 +326,7 @@ def log_dbt_skill(session_obj, skill_name, category, situation=None, effectivene
         user_id = session_obj.get("user_id")
         if not user_id:
             return {"status": "error", "message": "User not logged in"}
-        
+
         # Create a new skill log entry
         skill_log = DBTSkillLog()
         skill_log.user_id = user_id
@@ -336,12 +336,12 @@ def log_dbt_skill(session_obj, skill_name, category, situation=None, effectivene
         skill_log.effectiveness = effectiveness
         skill_log.notes = notes
         skill_log.created_at = datetime.utcnow()
-        
+
         db.session.add(skill_log)
         db.session.commit()
-        
+
         return {"status": "success", "message": f"Skill '{skill_name}' logged successfully", "id": skill_log.id}
-    
+
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error logging DBT skill: {str(e)}")
@@ -351,11 +351,11 @@ def log_dbt_skill(session_obj, skill_name, category, situation=None, effectivene
 def get_skill_logs(session_obj, limit=10):
     """
     Get recent DBT skill logs for the user
-    
+
     Args:
         session_obj: Flask session object
         limit: Maximum number of logs to retrieve
-        
+
     Returns:
         list: List of skill logs
     """
@@ -363,13 +363,13 @@ def get_skill_logs(session_obj, limit=10):
         user_id = session_obj.get("user_id")
         if not user_id:
             return []
-        
+
         logs = DBTSkillLog.query.filter_by(user_id=user_id)\
             .order_by(DBTSkillLog.created_at.desc())\
             .limit(limit).all()
-            
+
         return [log.to_dict() for log in logs]
-    
+
     except Exception as e:
         logging.error(f"Error retrieving DBT skill logs: {str(e)}")
         return []
@@ -378,7 +378,7 @@ def get_skill_logs(session_obj, limit=10):
 def create_diary_card(session_obj, mood_rating, triggers=None, urges=None, skills_used=None, reflection=None):
     """
     Create a new DBT diary card
-    
+
     Args:
         session_obj: Flask session object
         mood_rating: Rating from 0-5
@@ -386,7 +386,7 @@ def create_diary_card(session_obj, mood_rating, triggers=None, urges=None, skill
         urges: Urges felt
         skills_used: Skills used
         reflection: Reflection notes
-        
+
     Returns:
         dict: Status of the operation
     """
@@ -394,7 +394,7 @@ def create_diary_card(session_obj, mood_rating, triggers=None, urges=None, skill
         user_id = session_obj.get("user_id")
         if not user_id:
             return {"status": "error", "message": "User not logged in"}
-        
+
         # Create a new diary card
         diary_card = DBTDiaryCard()
         diary_card.user_id = user_id
@@ -405,12 +405,12 @@ def create_diary_card(session_obj, mood_rating, triggers=None, urges=None, skill
         diary_card.skills_used = skills_used
         diary_card.reflection = reflection
         diary_card.created_at = datetime.utcnow()
-        
+
         db.session.add(diary_card)
         db.session.commit()
-        
+
         return {"status": "success", "message": "Diary card created successfully", "id": diary_card.id}
-    
+
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error creating DBT diary card: {str(e)}")
@@ -420,11 +420,11 @@ def create_diary_card(session_obj, mood_rating, triggers=None, urges=None, skill
 def get_diary_cards(session_obj, limit=10):
     """
     Get recent DBT diary cards for the user
-    
+
     Args:
         session_obj: Flask session object
         limit: Maximum number of cards to retrieve
-        
+
     Returns:
         list: List of diary cards
     """
@@ -432,13 +432,13 @@ def get_diary_cards(session_obj, limit=10):
         user_id = session_obj.get("user_id")
         if not user_id:
             return []
-        
+
         cards = DBTDiaryCard.query.filter_by(user_id=user_id)\
             .order_by(DBTDiaryCard.date.desc())\
             .limit(limit).all()
-            
+
         return [card.to_dict() for card in cards]
-    
+
     except Exception as e:
         logging.error(f"Error retrieving DBT diary cards: {str(e)}")
         return []
@@ -450,10 +450,10 @@ def analyze_skill_effectiveness(session_obj):
     """
     Analyze the effectiveness of skills the user has logged
     and update recommendations accordingly
-    
+
     Args:
         session_obj: Flask session object
-        
+
     Returns:
         dict: Summary of analysis
     """
@@ -461,14 +461,14 @@ def analyze_skill_effectiveness(session_obj):
         user_id = session_obj.get("user_id")
         if not user_id:
             return {"status": "error", "message": "User not logged in"}
-        
+
         # Get all skill logs for user
         skill_logs = DBTSkillLog.query.filter_by(user_id=user_id)\
             .order_by(DBTSkillLog.created_at.desc()).all()
-            
+
         if not skill_logs:
             return {"status": "info", "message": "Not enough skill data for analysis"}
-            
+
         # Group by skill name and category, calculate average effectiveness
         skill_stats = {}
         for log in skill_logs:
@@ -482,27 +482,27 @@ def analyze_skill_effectiveness(session_obj):
                     "effectiveness_ratings": [],
                     "situations": []
                 }
-            
+
             if log.effectiveness:
                 skill_stats[key]["total_effectiveness"] += log.effectiveness
                 skill_stats[key]["count"] += 1
                 skill_stats[key]["effectiveness_ratings"].append(log.effectiveness)
-            
+
             if log.situation:
                 skill_stats[key]["situations"].append(log.situation)
-        
+
         # Calculate averages and update/create recommendations
         updated_count = 0
         for key, stats in skill_stats.items():
             if stats["count"] == 0:
                 continue
-                
+
             avg_effectiveness = stats["total_effectiveness"] / stats["count"]
             confidence_score = min(0.4 + (stats["count"] * 0.1), 0.95)  # More uses = higher confidence
-            
+
             # Extract common situation types using AI
             situation_types = extract_situation_types(stats["situations"]) if stats["situations"] else ["general"]
-            
+
             # Update recommendations for each situation type
             for situation_type in situation_types:
                 # Check if recommendation already exists
@@ -511,7 +511,7 @@ def analyze_skill_effectiveness(session_obj):
                     skill_name=stats["skill_name"],
                     situation_type=situation_type
                 ).first()
-                
+
                 if recommendation:
                     # Update existing recommendation
                     recommendation.avg_effectiveness = avg_effectiveness
@@ -530,19 +530,19 @@ def analyze_skill_effectiveness(session_obj):
                     recommendation.confidence_score = confidence_score
                     recommendation.created_at = datetime.utcnow()
                     recommendation.updated_at = datetime.utcnow()
-                    
+
                     db.session.add(recommendation)
-                
+
                 updated_count += 1
-        
+
         db.session.commit()
-        
+
         return {
-            "status": "success", 
+            "status": "success",
             "message": f"Updated {updated_count} skill recommendations",
             "skill_count": len(skill_stats)
         }
-        
+
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error analyzing skill effectiveness: {str(e)}")
@@ -552,49 +552,49 @@ def analyze_skill_effectiveness(session_obj):
 def extract_situation_types(situations, max_types=3):
     """
     Use AI to extract common situation types from user's situations
-    
+
     Args:
         situations: List of situation descriptions
         max_types: Maximum number of situation types to extract
-        
+
     Returns:
         list: Common situation types
     """
     if not situations:
         return ["general"]
-        
+
     try:
         # Prepare text for AI analysis
         combined_text = "\n".join(situations[:10])  # Limit to 10 situations to avoid token limits
-        
+
         prompt = f"""
         Based on the following descriptions of situations in which DBT skills were used,
         identify the most common {max_types} situation types or triggers.
         Provide your answer as a comma-separated list of short phrases (2-3 words each).
-        
+
         Example categories: interpersonal conflict, emotion regulation, distress tolerance,
         anxiety triggers, rejection sensitivity, self-criticism, etc.
-        
+
         Situations:
         {combined_text}
-        
+
         Respond with ONLY the comma-separated list, no additional text.
         """
-        
+
         response = call_router_direct(prompt)
-        
+
         if not response or "error" in response:
             return ["general"]
-            
+
         # Parse the response
         situation_types = [
             s.strip().lower() for s in response.split(",")
             if len(s.strip()) > 0
         ]
-        
+
         # Limit to max_types
         return situation_types[:max_types]
-        
+
     except Exception as e:
         logging.error(f"Error extracting situation types: {str(e)}")
         return ["general"]
@@ -607,7 +607,7 @@ PROMPTS["test"] = "Respond with 'OK' if you can receive this message. Use a sing
 def test_openrouter_connection():
     """Test the OpenRouter connection with different capability levels"""
     results = {}
-    
+
     for level in ["basic_capability", "medium_capability", "high_capability"]:
         try:
             result = call_router("test", level)
@@ -629,19 +629,19 @@ def test_openrouter_connection():
                 "model": MODELS.get(level, MODELS["default"]),
                 "error": str(e)
             }
-    
+
     return results
 
 
 def get_skill_recommendations(session_obj, situation_description=None, limit=5):
     """
     Get personalized skill recommendations based on past effectiveness
-    
+
     Args:
         session_obj: Flask session object
         situation_description: Description of the current situation
         limit: Maximum number of recommendations to return
-        
+
     Returns:
         list: Recommended skills
     """
@@ -649,11 +649,11 @@ def get_skill_recommendations(session_obj, situation_description=None, limit=5):
         user_id = session_obj.get("user_id")
         if not user_id:
             return []
-        
+
         # If we have a situation description, try to match it to known situation types
         if situation_description:
             situation_type = identify_situation_type(situation_description)
-            
+
             # First try to get recommendations specific to this situation type
             recommendations = DBTSkillRecommendation.query.filter_by(
                 user_id=user_id,
@@ -662,7 +662,7 @@ def get_skill_recommendations(session_obj, situation_description=None, limit=5):
                 DBTSkillRecommendation.avg_effectiveness.desc(),
                 DBTSkillRecommendation.confidence_score.desc()
             ).limit(limit).all()
-            
+
             # If not enough recommendations, supplement with generic ones
             if len(recommendations) < limit:
                 additional_count = limit - len(recommendations)
@@ -673,7 +673,7 @@ def get_skill_recommendations(session_obj, situation_description=None, limit=5):
                 ).order_by(
                     DBTSkillRecommendation.avg_effectiveness.desc()
                 ).limit(additional_count).all()
-                
+
                 recommendations.extend(additional_recs)
         else:
             # If no situation provided, return top recommendations overall
@@ -683,13 +683,13 @@ def get_skill_recommendations(session_obj, situation_description=None, limit=5):
                 DBTSkillRecommendation.avg_effectiveness.desc(),
                 DBTSkillRecommendation.confidence_score.desc()
             ).limit(limit).all()
-        
+
         # If user has no recommendation history, return some predefined defaults
         if not recommendations:
             return get_default_recommendations()
-            
+
         return [rec.to_dict() for rec in recommendations]
-        
+
     except Exception as e:
         logging.error(f"Error getting skill recommendations: {str(e)}")
         return get_default_recommendations()
@@ -698,10 +698,10 @@ def get_skill_recommendations(session_obj, situation_description=None, limit=5):
 def identify_situation_type(situation_description):
     """
     Use AI to identify the situation type from a description
-    
+
     Args:
         situation_description: Description of the situation
-        
+
     Returns:
         str: Identified situation type
     """
@@ -709,30 +709,30 @@ def identify_situation_type(situation_description):
         prompt = f"""
         Based on this description of a situation:
         "{situation_description}"
-        
+
         Identify the most fitting DBT situation type or trigger category.
         Provide your answer as a single short phrase (2-3 words).
-        
+
         Example categories: interpersonal conflict, emotion regulation, distress tolerance,
         anxiety triggers, rejection sensitivity, self-criticism, etc.
-        
+
         Respond with ONLY the category phrase, no additional text.
         """
-        
+
         response = call_router_direct(prompt)
-        
+
         if not response:
             return "general"
-            
+
         # Clean up the response
         situation_type = response.strip().lower()
-        
+
         # Limit length
         if len(situation_type) > 100:
             situation_type = situation_type[:100]
-            
+
         return situation_type
-        
+
     except Exception as e:
         logging.error(f"Error identifying situation type: {str(e)}")
         return "general"
@@ -784,11 +784,11 @@ def get_default_recommendations():
 def get_available_challenges(session_obj, category=None):
     """
     Get available skill challenges for the user
-    
+
     Args:
         session_obj: Flask session object
         category: Optional category filter
-        
+
     Returns:
         list: Available challenges
     """
@@ -796,33 +796,33 @@ def get_available_challenges(session_obj, category=None):
         user_id = session_obj.get("user_id")
         if not user_id:
             return []
-        
+
         query = DBTSkillChallenge.query.filter_by(user_id=user_id)
-        
+
         if category:
             query = query.filter_by(skill_category=category)
-            
+
         challenges = query.order_by(
             DBTSkillChallenge.is_completed,
             DBTSkillChallenge.difficulty
         ).all()
-        
+
         if not challenges:
             # If no challenges yet, create some defaults
             create_default_challenges(session_obj)
-            
+
             # Query again
             query = DBTSkillChallenge.query.filter_by(user_id=user_id)
             if category:
                 query = query.filter_by(skill_category=category)
-                
+
             challenges = query.order_by(
                 DBTSkillChallenge.is_completed,
                 DBTSkillChallenge.difficulty
             ).all()
-        
+
         return [challenge.to_dict() for challenge in challenges]
-        
+
     except Exception as e:
         logging.error(f"Error getting skill challenges: {str(e)}")
         return []
@@ -831,14 +831,14 @@ def get_available_challenges(session_obj, category=None):
 def create_challenge(session_obj, name, description, category, difficulty=1):
     """
     Create a new skill challenge
-    
+
     Args:
         session_obj: Flask session object
         name: Challenge name
         description: Challenge description
         category: Skill category from DBTSkillCategory
         difficulty: Difficulty level (1-5)
-        
+
     Returns:
         dict: Status of the operation
     """
@@ -846,16 +846,16 @@ def create_challenge(session_obj, name, description, category, difficulty=1):
         user_id = session_obj.get("user_id")
         if not user_id:
             return {"status": "error", "message": "User not logged in"}
-            
+
         # Check if challenge with same name already exists
         existing = DBTSkillChallenge.query.filter_by(
             user_id=user_id,
             challenge_name=name
         ).first()
-        
+
         if existing:
             return {"status": "error", "message": f"Challenge '{name}' already exists"}
-            
+
         # Create new challenge
         challenge = DBTSkillChallenge()
         challenge.user_id = user_id
@@ -867,16 +867,16 @@ def create_challenge(session_obj, name, description, category, difficulty=1):
         challenge.progress = 0
         challenge.start_date = datetime.utcnow()
         challenge.created_at = datetime.utcnow()
-        
+
         db.session.add(challenge)
         db.session.commit()
-        
+
         return {
-            "status": "success", 
+            "status": "success",
             "message": f"Challenge '{name}' created successfully",
             "id": challenge.id
         }
-        
+
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error creating skill challenge: {str(e)}")
@@ -886,12 +886,12 @@ def create_challenge(session_obj, name, description, category, difficulty=1):
 def update_challenge_progress(session_obj, challenge_id, progress):
     """
     Update a challenge's progress
-    
+
     Args:
         session_obj: Flask session object
         challenge_id: ID of the challenge
         progress: Progress percentage (0-100)
-        
+
     Returns:
         dict: Status of the operation
     """
@@ -899,33 +899,33 @@ def update_challenge_progress(session_obj, challenge_id, progress):
         user_id = session_obj.get("user_id")
         if not user_id:
             return {"status": "error", "message": "User not logged in"}
-            
+
         # Find the challenge
         challenge = DBTSkillChallenge.query.filter_by(
             id=challenge_id,
             user_id=user_id
         ).first()
-        
+
         if not challenge:
             return {"status": "error", "message": "Challenge not found"}
-            
+
         # Update progress
         progress = min(max(progress, 0), 100)  # Ensure 0-100 range
         challenge.progress = progress
-        
+
         # Mark as completed if 100%
         if progress == 100:
             challenge.is_completed = True
             challenge.completed_date = datetime.utcnow()
-            
+
         db.session.commit()
-        
+
         return {
-            "status": "success", 
+            "status": "success",
             "message": f"Challenge progress updated to {progress}%",
             "completed": challenge.is_completed
         }
-        
+
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error updating challenge progress: {str(e)}")
@@ -935,11 +935,11 @@ def update_challenge_progress(session_obj, challenge_id, progress):
 def mark_challenge_completed(session_obj, challenge_id):
     """
     Mark a challenge as completed
-    
+
     Args:
         session_obj: Flask session object
         challenge_id: ID of the challenge
-        
+
     Returns:
         dict: Status of the operation
     """
@@ -947,28 +947,28 @@ def mark_challenge_completed(session_obj, challenge_id):
         user_id = session_obj.get("user_id")
         if not user_id:
             return {"status": "error", "message": "User not logged in"}
-            
+
         # Find the challenge
         challenge = DBTSkillChallenge.query.filter_by(
             id=challenge_id,
             user_id=user_id
         ).first()
-        
+
         if not challenge:
             return {"status": "error", "message": "Challenge not found"}
-            
+
         # Mark as completed
         challenge.is_completed = True
         challenge.progress = 100
         challenge.completed_date = datetime.utcnow()
-            
+
         db.session.commit()
-        
+
         return {
-            "status": "success", 
+            "status": "success",
             "message": f"Challenge '{challenge.challenge_name}' marked as completed"
         }
-        
+
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error completing challenge: {str(e)}")
@@ -978,11 +978,11 @@ def mark_challenge_completed(session_obj, challenge_id):
 def reset_challenge(session_obj, challenge_id):
     """
     Reset a challenge to start again
-    
+
     Args:
         session_obj: Flask session object
         challenge_id: ID of the challenge
-        
+
     Returns:
         dict: Status of the operation
     """
@@ -990,29 +990,29 @@ def reset_challenge(session_obj, challenge_id):
         user_id = session_obj.get("user_id")
         if not user_id:
             return {"status": "error", "message": "User not logged in"}
-            
+
         # Find the challenge
         challenge = DBTSkillChallenge.query.filter_by(
             id=challenge_id,
             user_id=user_id
         ).first()
-        
+
         if not challenge:
             return {"status": "error", "message": "Challenge not found"}
-            
+
         # Reset challenge
         challenge.is_completed = False
         challenge.progress = 0
         challenge.start_date = datetime.utcnow()
         challenge.completed_date = None
-            
+
         db.session.commit()
-        
+
         return {
-            "status": "success", 
+            "status": "success",
             "message": f"Challenge '{challenge.challenge_name}' has been reset"
         }
-        
+
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error resetting challenge: {str(e)}")
@@ -1022,10 +1022,10 @@ def reset_challenge(session_obj, challenge_id):
 def create_default_challenges(session_obj):
     """
     Create a set of default skill challenges for a new user
-    
+
     Args:
         session_obj: Flask session object
-        
+
     Returns:
         int: Number of challenges created
     """
@@ -1033,12 +1033,12 @@ def create_default_challenges(session_obj):
         user_id = session_obj.get("user_id")
         if not user_id:
             return 0
-            
+
         # Check if user already has challenges
         existing = DBTSkillChallenge.query.filter_by(user_id=user_id).count()
         if existing > 0:
             return 0  # Don't create defaults if user already has challenges
-            
+
         # Default challenges
         default_challenges = [
             # Mindfulness challenges
@@ -1060,7 +1060,7 @@ def create_default_challenges(session_obj):
                 "category": "Mindfulness",
                 "difficulty": 2
             },
-            
+
             # Distress Tolerance challenges
             {
                 "name": "TIPP Skill Practice",
@@ -1080,7 +1080,7 @@ def create_default_challenges(session_obj):
                 "category": "Distress Tolerance",
                 "difficulty": 2
             },
-            
+
             # Emotion Regulation challenges
             {
                 "name": "Opposite Action",
@@ -1100,7 +1100,7 @@ def create_default_challenges(session_obj):
                 "category": "Emotion Regulation",
                 "difficulty": 4
             },
-            
+
             # Interpersonal Effectiveness challenges
             {
                 "name": "DEAR MAN Practice",
@@ -1121,7 +1121,7 @@ def create_default_challenges(session_obj):
                 "difficulty": 3
             }
         ]
-        
+
         # Create each challenge
         created_count = 0
         for challenge in default_challenges:
@@ -1135,13 +1135,13 @@ def create_default_challenges(session_obj):
             new_challenge.progress = 0
             new_challenge.start_date = datetime.utcnow()
             new_challenge.created_at = datetime.utcnow()
-            
+
             db.session.add(new_challenge)
             created_count += 1
-            
+
         db.session.commit()
         return created_count
-        
+
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error creating default challenges: {str(e)}")
@@ -1151,11 +1151,11 @@ def create_default_challenges(session_obj):
 def generate_personalized_challenge(session_obj, category=None):
     """
     Generate a personalized skill challenge based on user's skill history
-    
+
     Args:
         session_obj: Flask session object
         category: Optional specific category to focus on
-        
+
     Returns:
         dict: Generated challenge details
     """
@@ -1163,8 +1163,8 @@ def generate_personalized_challenge(session_obj, category=None):
         user_id = session_obj.get("user_id")
         if not user_id:
             return {"status": "error", "message": "User not logged in"}
-        
-        # If category is not specified, determine best category 
+
+        # If category is not specified, determine best category
         # based on user's least practiced skills
         if not category:
             # Count skill logs by category
@@ -1175,22 +1175,22 @@ def generate_personalized_challenge(session_obj, category=None):
                     category=cat
                 ).count()
                 category_counts[cat] = count
-            
+
             # Find the least used category (or random if all equal)
             if category_counts:
                 min_count = min(category_counts.values())
-                min_categories = [cat for cat, count in category_counts.items() 
+                min_categories = [cat for cat, count in category_counts.items()
                                 if count == min_count]
                 if min_categories:
                     import random
                     category = random.choice(min_categories)
-        
+
         # Generate a custom challenge with AI
         challenge = generate_challenge_with_ai(category)
-        
+
         if not challenge:
             return {"status": "error", "message": "Could not generate a challenge"}
-            
+
         # Save the generated challenge
         result = create_challenge(
             session_obj,
@@ -1199,17 +1199,17 @@ def generate_personalized_challenge(session_obj, category=None):
             challenge["category"],
             challenge["difficulty"]
         )
-        
+
         if result["status"] != "success":
             return result
-            
+
         return {
             "status": "success",
             "message": "New personalized challenge created",
             "challenge": challenge,
             "id": result["id"]
         }
-        
+
     except Exception as e:
         logging.error(f"Error generating personalized challenge: {str(e)}")
         return {"status": "error", "message": f"Error generating challenge: {str(e)}"}
@@ -1218,19 +1218,19 @@ def generate_personalized_challenge(session_obj, category=None):
 def generate_challenge_with_ai(category=None):
     """
     Use AI to generate a skill challenge
-    
+
     Args:
         category: Optional skill category to focus on
-        
+
     Returns:
         dict: Challenge details
     """
     try:
         category_text = f"in the '{category}' category" if category else "in any DBT skill category"
-        
+
         prompt = f"""
         Create a new DBT skill practice challenge {category_text}.
-        
+
         Respond with a JSON object in this format:
         {{
             "name": "Short challenge name (3-5 words)",
@@ -1238,36 +1238,36 @@ def generate_challenge_with_ai(category=None):
             "category": "The DBT skill category (Mindfulness, Distress Tolerance, Emotion Regulation, or Interpersonal Effectiveness)",
             "difficulty": A number from 1-5 (1=easiest, 5=hardest)
         }}
-        
+
         Make the challenge specific, actionable, and something that can be completed in 1-3 days.
         """
-        
+
         response = call_router_direct(prompt)
-        
+
         if not response:
             return None
-        
+
         try:
             challenge = json.loads(response)
-            
+
             # Validate required fields
             required = ["name", "description", "category", "difficulty"]
             for field in required:
                 if field not in challenge:
                     return None
-                    
+
             # Ensure difficulty is in range
             if not isinstance(challenge["difficulty"], int):
                 challenge["difficulty"] = int(float(challenge["difficulty"]))
-                
+
             challenge["difficulty"] = min(max(challenge["difficulty"], 1), 5)
-            
+
             return challenge
-            
+
         except json.JSONDecodeError:
             logging.error(f"Invalid JSON response: {response}")
             return None
-            
+
     except Exception as e:
         logging.error(f"Error generating challenge with AI: {str(e)}")
         return None

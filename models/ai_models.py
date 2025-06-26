@@ -11,7 +11,7 @@ from app_factory import db
 class UserAIUsage(db.Model):
     """Track user AI service usage for cost optimization"""
     __tablename__ = 'user_ai_usage'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
@@ -21,10 +21,10 @@ class UserAIUsage(db.Model):
     output_tokens = db.Column(db.Integer, default=0)
     estimated_cost = db.Column(db.Float, default=0.0)
     success = db.Column(db.Boolean, default=True)
-    
+
     # Relationships
     user = db.relationship('User', backref=db.backref('ai_usage', lazy=True))
-    
+
     def to_dict(self):
         """Convert to dictionary"""
         return {
@@ -42,7 +42,7 @@ class UserAIUsage(db.Model):
 class AIServiceConfig(db.Model):
     """Configuration for AI services with usage limits and preferences"""
     __tablename__ = 'ai_service_config'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     service_name = db.Column(db.String(50), unique=True, nullable=False)
     enabled = db.Column(db.Boolean, default=True)
@@ -52,7 +52,7 @@ class AIServiceConfig(db.Model):
     cost_per_1k_output_tokens = db.Column(db.Float, default=0.0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     def to_dict(self):
         """Convert to dictionary"""
         return {
@@ -70,7 +70,7 @@ class AIServiceConfig(db.Model):
 class AIModelConfig(db.Model):
     """Configuration for specific AI models with cost and capability settings"""
     __tablename__ = 'ai_model_config'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     service_id = db.Column(db.Integer, db.ForeignKey('ai_service_config.id'), nullable=False)
     model_name = db.Column(db.String(100), nullable=False)
@@ -81,10 +81,10 @@ class AIModelConfig(db.Model):
     max_context_length = db.Column(db.Integer, default=4096)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     # Relationships
     service = db.relationship('AIServiceConfig', backref=db.backref('models', lazy=True))
-    
+
     def to_dict(self):
         """Convert to dictionary"""
         return {
@@ -103,7 +103,7 @@ class AIModelConfig(db.Model):
 class UserAIPreferences(db.Model):
     """User preferences for AI services and models"""
     __tablename__ = 'user_ai_preferences'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False, unique=True)
     preferred_service = db.Column(db.String(50))
@@ -112,10 +112,10 @@ class UserAIPreferences(db.Model):
     enable_cost_optimization = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     # Relationships
     user = db.relationship('User', backref=db.backref('ai_preferences', uselist=False, lazy=True))
-    
+
     def to_dict(self):
         """Convert to dictionary"""
         return {

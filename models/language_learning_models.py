@@ -14,7 +14,7 @@ from app_factory import db
 class LanguageProfile(db.Model):
     """User's language learning profile and preferences"""
     __tablename__ = 'language_profiles'
-    
+
     id = db.Column(Integer, primary_key=True)
     user_id = db.Column(String(36), db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     native_language = db.Column(String(10), nullable=False, default='en-US')  # User's native language
@@ -25,12 +25,12 @@ class LanguageProfile(db.Model):
     focus_areas = db.Column(String(255), default='vocabulary,pronunciation,conversation')  # Comma-separated focus areas
     created_at = db.Column(DateTime, default=datetime.utcnow)
     updated_at = db.Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     # Relationships
     user = db.relationship('User', backref=db.backref('language_profiles', lazy=True, cascade='all, delete-orphan'))
     vocabulary_items = db.relationship('VocabularyItem', back_populates='language_profile', cascade='all, delete-orphan')
     learning_sessions = db.relationship('LearningSession', back_populates='language_profile', cascade='all, delete-orphan')
-    
+
     def __repr__(self):
         return f'<LanguageProfile {self.id}: {self.native_language} → {self.learning_language}>'
 
@@ -38,7 +38,7 @@ class LanguageProfile(db.Model):
 class VocabularyItem(db.Model):
     """Words or phrases for vocabulary learning"""
     __tablename__ = 'vocabulary_items'
-    
+
     id = db.Column(Integer, primary_key=True)
     profile_id = db.Column(Integer, db.ForeignKey('language_profiles.id', ondelete='CASCADE'), nullable=False)
     word = db.Column(String(100), nullable=False)  # Word in target language
@@ -55,10 +55,10 @@ class VocabularyItem(db.Model):
     custom_tags = db.Column(String(255))  # User-defined tags
     created_at = db.Column(DateTime, default=datetime.utcnow)
     updated_at = db.Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     # Relationships
     language_profile = db.relationship('LanguageProfile', back_populates='vocabulary_items')
-    
+
     def __repr__(self):
         return f'<VocabularyItem {self.id}: {self.word}>'
 
@@ -66,7 +66,7 @@ class VocabularyItem(db.Model):
 class LearningSession(db.Model):
     """Record of a language learning session"""
     __tablename__ = 'learning_sessions'
-    
+
     id = db.Column(Integer, primary_key=True)
     profile_id = db.Column(Integer, db.ForeignKey('language_profiles.id', ondelete='CASCADE'), nullable=False)
     session_type = db.Column(String(50), nullable=False)  # vocabulary, conversation, grammar, etc.
@@ -77,10 +77,10 @@ class LearningSession(db.Model):
     success_rate = db.Column(Float)  # Percentage of correct answers
     started_at = db.Column(DateTime, default=datetime.utcnow)
     completed_at = db.Column(DateTime)
-    
+
     # Relationships
     language_profile = db.relationship('LanguageProfile', back_populates='learning_sessions')
-    
+
     def __repr__(self):
         return f'<LearningSession {self.id}: {self.session_type} ({self.duration_minutes} min)>'
 
@@ -88,7 +88,7 @@ class LearningSession(db.Model):
 class ConversationTemplate(db.Model):
     """Templates for guided language practice conversations"""
     __tablename__ = 'conversation_templates'
-    
+
     id = db.Column(Integer, primary_key=True)
     language = db.Column(String(10), nullable=False)  # Target language code
     difficulty = db.Column(String(20), nullable=False)  # beginner, intermediate, advanced
@@ -98,10 +98,10 @@ class ConversationTemplate(db.Model):
     context = db.Column(Text, nullable=False)  # Setting/scenario description
     created_at = db.Column(DateTime, default=datetime.utcnow)
     updated_at = db.Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     # Relationships
     prompts = db.relationship('ConversationPrompt', back_populates='template', cascade='all, delete-orphan')
-    
+
     def __repr__(self):
         return f'<ConversationTemplate {self.id}: {self.title} ({self.language})>'
 
@@ -109,7 +109,7 @@ class ConversationTemplate(db.Model):
 class ConversationPrompt(db.Model):
     """Individual prompts within a conversation template"""
     __tablename__ = 'conversation_prompts'
-    
+
     id = db.Column(Integer, primary_key=True)
     template_id = db.Column(Integer, db.ForeignKey('conversation_templates.id', ondelete='CASCADE'), nullable=False)
     sequence = db.Column(Integer, nullable=False)  # Order in conversation
@@ -117,9 +117,9 @@ class ConversationPrompt(db.Model):
     content = db.Column(Text, nullable=False)  # The prompt text
     expected_responses = db.Column(Text)  # Possible correct responses (for user prompts)
     hint = db.Column(Text)  # Optional hint for the user
-    
+
     # Relationships
     template = db.relationship('ConversationTemplate', back_populates='prompts')
-    
+
     def __repr__(self):
         return f'<ConversationPrompt {self.id}: {self.role} #{self.sequence}>'

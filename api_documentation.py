@@ -27,16 +27,16 @@ API_DESCRIPTION = "API for the NOUS personal assistant application"
 def generate_openapi_spec(app: Flask) -> Dict[str, Any]:
     """
     Generate OpenAPI specification by analyzing Flask routes
-    
+
     Args:
         app: Flask application instance
-        
+
     Returns:
         Dict containing the OpenAPI specification
     """
     # Import our URL utilities
     from utils.url_utils import normalize_path
-    
+
     # Base OpenAPI structure
     openapi_spec = {
         "openapi": OPENAPI_VERSION,
@@ -72,26 +72,26 @@ def generate_openapi_spec(app: Flask) -> Dict[str, Any]:
             }
         }
     }
-    
+
     # Process all routes in the application
     for rule in app.url_map.iter_rules():
         # Skip static files and non-API routes
         if "static" in rule.endpoint or not (rule.endpoint.startswith(("api", "async_api")) or "api" in rule.rule):
             continue
-            
+
         # Get route function
         try:
             view_func = app.view_functions[rule.endpoint]
         except KeyError:
             continue
-            
+
         # Check for standardized API documentation
         api_doc = getattr(view_func, 'api_doc', {})
-            
+
         # Extract path parameters from the route
         path = str(rule)
         path_params = []
-        
+
         # Convert Flask route parameters to OpenAPI parameters
         # e.g., /user/<int:user_id> -> /user/{user_id}
         for match in re.finditer(r'<(?:[^:]+:)?([^>]+)>', path):
@@ -103,22 +103,22 @@ def generate_openapi_spec(app: Flask) -> Dict[str, Any]:
                 "required": True,
                 "schema": {"type": "string"}
             })
-        
+
         # Extract documentation from docstring
         docstring = inspect.getdoc(view_func)
         route_info = parse_docstring(docstring) if docstring else {}
-        
+
         # Initialize path if not already present
         if path not in openapi_spec["paths"]:
             openapi_spec["paths"][path] = {}
-        
+
         # Add methods for this path
         for method in rule.methods:
             if method in ["HEAD", "OPTIONS"]:
                 continue
-                
+
             method_lower = method.lower()
-            
+
             # Create method entry
             method_entry = {
                 "summary": route_info.get("summary", view_func.__name__),
@@ -165,11 +165,11 @@ def generate_openapi_spec(app: Flask) -> Dict[str, Any]:
                     }
                 }
             }
-            
+
             # Add security if required
             if route_info.get("requires_auth", True):
                 method_entry["security"] = [{"sessionAuth": []}]
-            
+
             # Add request body for POST, PUT, PATCH methods
             if method in ["POST", "PUT", "PATCH"] and route_info.get("request_schema"):
                 method_entry["requestBody"] = {
@@ -180,7 +180,7 @@ def generate_openapi_spec(app: Flask) -> Dict[str, Any]:
                         }
                     }
                 }
-            
+
             # Add query parameters
             if "query_params" in route_info:
                 for param in route_info["query_params"]:
@@ -191,22 +191,22 @@ def generate_openapi_spec(app: Flask) -> Dict[str, Any]:
                         "required": param.get("required", False),
                         "schema": param.get("schema", {"type": "string"})
                     })
-            
+
             # Add to the path
             openapi_spec["paths"][path][method_lower] = method_entry
-    
+
     # Add standard schemas to components
     openapi_spec["components"]["schemas"] = generate_standard_schemas()
-    
+
     return openapi_spec
 
 def parse_docstring(docstring: str) -> Dict[str, Any]:
     """
     Parse a docstring to extract API documentation
-    
+
     Args:
         docstring: The function docstring
-        
+
     Returns:
         Dict containing extracted documentation
     """
@@ -216,12 +216,12 @@ def parse_docstring(docstring: str) -> Dict[str, Any]:
         "requires_auth": True,
         "query_params": []
     }
-    
+
     # Extract summary (first line)
     lines = docstring.strip().split("\n")
     if lines:
         info["summary"] = lines[0].strip()
-    
+
     # Extract description (all lines after summary until a directive)
     description_lines = []
     for line in lines[1:]:
@@ -230,10 +230,10 @@ def parse_docstring(docstring: str) -> Dict[str, Any]:
             description_lines.append(line)
         elif line.startswith(("Request", "Response")):
             break
-    
+
     if description_lines:
         info["description"] = "\n".join(description_lines).strip()
-    
+
     # Extract request schema
     request_schema_lines = []
     in_request = False
@@ -244,10 +244,10 @@ def parse_docstring(docstring: str) -> Dict[str, Any]:
         elif "Response:" in line:
             in_request = False
             continue
-            
+
         if in_request and line.strip():
             request_schema_lines.append(line)
-    
+
     # Try to parse request schema
     if request_schema_lines:
         # Remove code block markers
@@ -259,16 +259,16 @@ def parse_docstring(docstring: str) -> Dict[str, Any]:
             except json.JSONDecodeError:
                 # If we can't parse it, just use a generic object schema
                 info["request_schema"] = {"type": "object"}
-    
+
     return info
 
 def schema_to_openapi(example: Dict[str, Any]) -> Dict[str, Any]:
     """
     Convert an example JSON object to an OpenAPI schema
-    
+
     Args:
         example: Example JSON object
-        
+
     Returns:
         OpenAPI schema
     """
@@ -276,7 +276,7 @@ def schema_to_openapi(example: Dict[str, Any]) -> Dict[str, Any]:
         "type": "object",
         "properties": {}
     }
-    
+
     for key, value in example.items():
         if isinstance(value, dict):
             schema["properties"][key] = schema_to_openapi(value)
@@ -293,20 +293,20 @@ def schema_to_openapi(example: Dict[str, Any]) -> Dict[str, Any]:
                 }
         else:
             schema["properties"][key] = {"type": get_type_name(value)}
-            
+
             # Add example value
             if value is not None:
                 schema["properties"][key]["example"] = value
-    
+
     return schema
 
 def get_type_name(value: Any) -> str:
     """
     Get OpenAPI type name for a Python value
-    
+
     Args:
         value: Python value
-        
+
     Returns:
         OpenAPI type name
     """
@@ -330,7 +330,7 @@ def get_type_name(value: Any) -> str:
 def generate_standard_schemas() -> Dict[str, Any]:
     """
     Generate standard schema components
-    
+
     Returns:
         Dict of schema components
     """
@@ -385,15 +385,15 @@ def generate_standard_schemas() -> Dict[str, Any]:
 def register_openapi_blueprint(app: Flask) -> Blueprint:
     """
     Register a blueprint for OpenAPI documentation
-    
+
     Args:
         app: Flask application instance
-        
+
     Returns:
         Registered blueprint
     """
     api_docs = Blueprint('api_docs', __name__)
-    
+
     @api_docs.route('/api/docs/openapi.json')
     def get_openapi_spec():
         """Get the OpenAPI specification as JSON"""
@@ -403,7 +403,7 @@ def register_openapi_blueprint(app: Flask) -> Blueprint:
         except Exception as e:
             logger.exception("Error generating OpenAPI spec")
             return jsonify({"error": "Failed to generate OpenAPI spec", "message": str(e)}), 500
-    
+
     @api_docs.route('/api/docs')
     def api_docs_ui():
         """Render Swagger UI for API documentation"""
@@ -447,8 +447,8 @@ def register_openapi_blueprint(app: Flask) -> Blueprint:
         </body>
         </html>
         """
-    
+
     app.register_blueprint(api_docs)
     logger.info("Registered API documentation endpoints")
-    
-    return api_docs 
+
+    return api_docs

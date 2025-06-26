@@ -26,7 +26,7 @@ def cache(ttl=300):
                     return cached_item['data']
                 else:
                     del cache_store[cache_key]
-            
+
             result = func(*args, **kwargs)
             cache_store[cache_key] = {'data': result, 'timestamp': time.time()}
             return result
@@ -82,7 +82,7 @@ def create_app():
     app = Flask(__name__)
     app.secret_key = os.environ.get("SESSION_SECRET", "nous-secure-key-2025")
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
-    
+
     @app.after_request
     def add_headers(response):
         response.headers['Access-Control-Allow-Origin'] = '*'
@@ -91,7 +91,7 @@ def create_app():
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['X-XSS-Protection'] = '1; mode=block'
         return response
-    
+
     # Landing page template
     INDEX_TEMPLATE = """
     <!DOCTYPE html>
@@ -102,26 +102,26 @@ def create_app():
         <title>NOUS Personal Assistant</title>
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { 
+            body {
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 min-height: 100vh; display: flex; align-items: center; justify-content: center;
                 color: white; padding: 20px;
             }
-            .container { 
-                text-align: center; background: rgba(255,255,255,0.1); 
+            .container {
+                text-align: center; background: rgba(255,255,255,0.1);
                 border-radius: 20px; padding: 40px; backdrop-filter: blur(10px);
                 border: 1px solid rgba(255,255,255,0.2); max-width: 600px;
             }
             .logo { font-size: 64px; margin-bottom: 20px; font-weight: bold; }
             .tagline { font-size: 24px; margin-bottom: 30px; opacity: 0.9; }
             .actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-            .action { 
+            .action {
                 background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
                 border-radius: 12px; padding: 25px; text-decoration: none; color: white;
                 transition: all 0.3s ease; cursor: pointer;
             }
-            .action:hover { 
+            .action:hover {
                 transform: translateY(-5px); background: rgba(255,255,255,0.25);
                 box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             }
@@ -142,7 +142,7 @@ def create_app():
         <div class="container">
             <div class="logo">NOUS</div>
             <div class="tagline">Your AI-Powered Personal Assistant</div>
-            
+
             <div class="actions">
                 <a href="/pulse" class="action">
                     <div class="action-icon">🩺</div>
@@ -165,16 +165,16 @@ def create_app():
                     <div class="action-desc">HIPAA/SOC2/GDPR compliance</div>
                 </a>
             </div>
-            
+
             <div class="status">
-                <strong>Status:</strong> All systems operational | 
-                <strong>Version:</strong> 2.0.0-surgical | 
+                <strong>Status:</strong> All systems operational |
+                <strong>Version:</strong> 2.0.0-surgical |
                 <strong>Access:</strong> Public
             </div>
         </div>
-        
+
         <button class="crisis-fab" onclick="window.location.href='/crisis/mobile'">🚨</button>
-        
+
         <script>
             function startChat() {
                 const message = prompt("Ask me anything:");
@@ -193,7 +193,7 @@ def create_app():
     </body>
     </html>
     """
-    
+
     # Pulse dashboard template
     PULSE_TEMPLATE = """
     <!DOCTYPE html>
@@ -231,7 +231,7 @@ def create_app():
             <a href="/health">System Health</a>
             <a href="/settings/audit">Security Audit</a>
         </div>
-        
+
         <div class="header">
             <h1>🩺 NOUS Pulse Dashboard</h1>
             <p>Your personal health & wellness command center</p>
@@ -291,7 +291,7 @@ def create_app():
     </body>
     </html>
     """
-    
+
     # Crisis support template
     CRISIS_TEMPLATE = """
     <!DOCTYPE html>
@@ -320,7 +320,7 @@ def create_app():
             <a href="/">← Home</a>
             <a href="/pulse">Pulse Dashboard</a>
         </div>
-        
+
         <div class="header">
             <h1>🚨 Crisis Support</h1>
             <p>You are not alone. Help is available.</p>
@@ -358,28 +358,28 @@ def create_app():
     </body>
     </html>
     """
-    
+
     # Routes
     @app.route('/')
     def index():
         return render_template_string(INDEX_TEMPLATE)
-    
+
     @app.route('/pulse')
     def pulse():
         data = get_pulse_data()
         return render_template_string(PULSE_TEMPLATE, data=data)
-    
+
     @app.route('/crisis/mobile')
     def crisis_mobile():
         return render_template_string(CRISIS_TEMPLATE)
-    
+
     @app.route('/health')
     def health():
         try:
             import psutil
             cpu = psutil.cpu_percent(interval=1)
             memory = psutil.virtual_memory()
-            
+
             return jsonify({
                 "status": "healthy",
                 "timestamp": datetime.now().isoformat(),
@@ -398,13 +398,13 @@ def create_app():
             })
         except Exception as e:
             return jsonify({"status": "degraded", "error": str(e)}), 503
-    
+
     @app.route('/api/chat', methods=['POST'])
     def api_chat():
         try:
             data = request.get_json() or {}
             message = data.get('message', '')
-            
+
             return jsonify({
                 'response': f"I understand you said: {message}. This is the consolidated NOUS assistant with pulse dashboard, crisis support, and unified voice-chat processing.",
                 'timestamp': datetime.now().isoformat(),
@@ -413,7 +413,7 @@ def create_app():
             })
         except Exception as e:
             return jsonify({'error': 'Chat processing failed'}), 500
-    
+
     @app.route('/settings/audit')
     def settings_audit():
         return jsonify({
@@ -432,23 +432,23 @@ def create_app():
                 "gdpr_ready": True
             }
         })
-    
+
     @app.errorhandler(404)
     def not_found(error):
         return jsonify({"error": "Page not found", "available_routes": ["/", "/pulse", "/crisis/mobile", "/health", "/api/chat", "/settings/audit"]}), 404
-    
+
     return app
 
 def main():
     """Main entry point for surgical application"""
     app = create_app()
     port = int(os.environ.get("PORT", 5000))
-    
+
     logger.info("🚀 NOUS Surgical Application Starting")
     logger.info(f"🩺 Pulse Dashboard: http://localhost:{port}/pulse")
     logger.info(f"🚨 Crisis Support: http://localhost:{port}/crisis/mobile")
     logger.info(f"📊 System Health: http://localhost:{port}/health")
-    
+
     app.run(host="0.0.0.0", port=port, debug=False, threaded=True)
 
 if __name__ == "__main__":

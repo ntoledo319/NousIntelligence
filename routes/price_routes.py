@@ -28,7 +28,7 @@ def add_item():
     """Add new item to track"""
     if request.method == 'GET':
         return render_template('price_tracking/add_item.html')
-    
+
     # POST handling (placeholder)
     flash('Item added successfully', 'success')
     return redirect(url_for('price_tracking.tracked_items'))

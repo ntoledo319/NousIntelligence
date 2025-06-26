@@ -43,13 +43,13 @@ logger = logging.getLogger(__name__)
 def login():
     """
     Generate JWT tokens for a user
-    
+
     Request JSON:
     {
         "email": "user@example.com",
         "password": "secure_password"
     }
-    
+
     Response:
     {
         "access_token": "eyJhbGciOiJ...",
@@ -60,10 +60,10 @@ def login():
     """
     # Get login credentials
     data = request.get_json()
-    
+
     email = sanitize_input(data.get('email', ''))
     password = data.get('password', '')
-    
+
     # Check if account is locked
     is_locked, minutes_left = is_account_locked(email)
     if is_locked:
@@ -71,33 +71,33 @@ def login():
             "error": "Account locked",
             "message": f"Account is temporarily locked. Try again in {minutes_left} minutes."
         }), 403
-    
+
     # Attempt to authenticate
     user = User.query.filter_by(email=email).first()
-    
+
     if not user or not user.check_password(password):
         # Record failed login attempt
         record_failed_login(email)
-        
+
         return jsonify({
             "error": "Authentication failed",
             "message": "Invalid email or password"
         }), 401
-    
+
     # Reset failed login attempts
     reset_failed_login(email)
-    
+
     # Generate tokens
     access_token, access_expires = generate_jwt_token(user.id, 'access')
     refresh_token, refresh_expires = generate_jwt_token(user.id, 'refresh')
-    
+
     # Update last login timestamp
     user.last_login = db.func.now()
     db.session.commit()
-    
+
     # Log successful login
     logger.info(f"User {user.id} ({user.email}) logged in via JWT")
-    
+
     return jsonify({
         "access_token": access_token,
         "refresh_token": refresh_token,
@@ -117,10 +117,10 @@ def login():
 def refresh():
     """
     Refresh an access token using a refresh token
-    
+
     Request Header:
     Authorization: Bearer <refresh_token>
-    
+
     Response:
     {
         "access_token": "eyJhbGciOiJ...",
@@ -130,13 +130,13 @@ def refresh():
     """
     # Get user ID from g (set by refresh_token_required decorator)
     user_id = g.user_id
-    
+
     # Generate new access token
     access_token, access_expires = generate_jwt_token(user_id, 'access')
-    
+
     # Log token refresh
     logger.info(f"Refreshed access token for user {user_id}")
-    
+
     return jsonify({
         "access_token": access_token,
         "expires_at": access_expires,
@@ -148,10 +148,10 @@ def refresh():
 def logout():
     """
     Invalidate the current JWT token
-    
+
     Request Header:
     Authorization: Bearer <access_token>
-    
+
     Response:
     {
         "message": "Logged out successfully"
@@ -161,17 +161,17 @@ def logout():
     auth_header = request.headers.get('Authorization')
     if auth_header and auth_header.startswith('Bearer '):
         token = auth_header.split('Bearer ')[1]
-        
+
         # Blacklist the token
         blacklist_token(token)
-        
+
         # Log logout
         logger.info(f"User {g.user_id} logged out")
-        
+
         return jsonify({
             "message": "Logged out successfully"
         })
-    
+
     return jsonify({
         "message": "No token to invalidate"
     })
@@ -181,10 +181,10 @@ def logout():
 def check_auth():
     """
     Check if a JWT token is valid
-    
+
     Request Header:
     Authorization: Bearer <access_token>
-    
+
     Response:
     {
         "authenticated": true,
@@ -215,4 +215,4 @@ def handle_unauthorized(error):
         "message": str(error.description)
     })
     response.status_code = 401
-    return response 
+    return response

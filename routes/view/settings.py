@@ -25,7 +25,7 @@ def settings_page():
     """Display user settings page"""
     # Get settings for the current user or session
     settings = settings_service.get_settings_for_user_or_session(current_user)
-    
+
     return render_template('settings.html', settings=settings)
 
 
@@ -41,7 +41,7 @@ def save_settings():
         'theme': request.form.get('theme', 'light'),
         'color_theme': request.form.get('color_theme', 'default')
     }
-    
+
     # Update settings for the current user or session
     try:
         settings_service.update_settings_for_user_or_session(current_user, settings_data)
@@ -50,7 +50,7 @@ def save_settings():
         flash(f'Error: {str(e)}', 'danger')
     except Exception as e:
         flash(f'An unexpected error occurred: {str(e)}', 'danger')
-    
+
     return redirect(url_for('settings.settings_page'))
 
 
@@ -64,5 +64,5 @@ def reset_settings():
         flash('Settings reset to defaults', 'success')
     except Exception as e:
         flash(f'An unexpected error occurred: {str(e)}', 'danger')
-    
-    return redirect(url_for('settings.settings_page')) 
+
+    return redirect(url_for('settings.settings_page'))

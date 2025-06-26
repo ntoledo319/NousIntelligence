@@ -26,45 +26,45 @@ def index():
     # This change is for Replit deploy button to work without login
     if request.host.endswith('.repl.co') or 'REPLIT_DEPLOYMENT' in request.environ:
         return render_template('index_public.html', public_preview=True)
-        
+
     # If user is already logged in, just show the index page
     if current_user.is_authenticated:
         return render_template('index.html')
-        
+
     # Handle login form submission if this is a POST request
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
         remember = True if request.form.get('remember') else False
-        
+
         # Validate input
         if not email or not password:
             flash('Please fill in all fields.', 'warning')
             return render_template('index.html')
-        
+
         # Find user by email
         user = User.query.filter_by(email=email).first()
-        
+
         # Check if user exists and password is correct
         if not user or not user.check_password(password):
             flash('Please check your login details and try again.', 'danger')
             return render_template('index.html')
-        
+
         # Update last login time
         user.last_login = datetime.utcnow()
         db.session.commit()
-        
+
         # Log in user
         login_user(user, remember=remember)
         logger.info(f"User {email} logged in successfully from index page")
-        
+
         # Redirect to dashboard
         return redirect(url_for('dashboard.dashboard'))
-    
+
     # GET request - show index page with login form
     return render_template('index.html')
 
 @index_bp.route('/help')
 def help_page():
     """Render the help page"""
-    return render_template('help.html') 
+    return render_template('help.html')

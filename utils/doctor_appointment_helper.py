@@ -39,7 +39,7 @@ def add_doctor(name, specialty=None, phone=None, address=None, notes=None, sessi
             notes=notes,
             user_id=user_id
         )
-        
+
         db.session.add(doctor)
         db.session.commit()
         return doctor
@@ -55,7 +55,7 @@ def update_doctor(doctor_id, name=None, specialty=None, phone=None, address=None
         doctor = Doctor.query.filter_by(id=doctor_id, user_id=user_id).first()
         if not doctor:
             return None
-            
+
         if name:
             doctor.name = name
         if specialty is not None:
@@ -66,7 +66,7 @@ def update_doctor(doctor_id, name=None, specialty=None, phone=None, address=None
             doctor.address = address
         if notes is not None:
             doctor.notes = notes
-            
+
         db.session.commit()
         return doctor
     except Exception as e:
@@ -81,7 +81,7 @@ def delete_doctor(doctor_id, session):
         doctor = Doctor.query.filter_by(id=doctor_id, user_id=user_id).first()
         if not doctor:
             return False
-            
+
         db.session.delete(doctor)
         db.session.commit()
         return True
@@ -112,12 +112,12 @@ def add_appointment(doctor_id, date, reason=None, status='scheduled', notes=None
     """Add a new appointment"""
     try:
         user_id = get_user_id_from_session(session)
-        
+
         # Verify doctor exists
         doctor = Doctor.query.filter_by(id=doctor_id, user_id=user_id).first()
         if not doctor:
             return None
-            
+
         appointment = Appointment(
             doctor_id=doctor_id,
             date=date,
@@ -126,10 +126,10 @@ def add_appointment(doctor_id, date, reason=None, status='scheduled', notes=None
             notes=notes,
             user_id=user_id
         )
-        
+
         db.session.add(appointment)
         db.session.commit()
-        
+
         # Update appointment reminder if it exists
         reminder = AppointmentReminder.query.filter_by(doctor_id=doctor_id, user_id=user_id).first()
         if reminder:
@@ -137,7 +137,7 @@ def add_appointment(doctor_id, date, reason=None, status='scheduled', notes=None
             # Calculate next reminder date based on frequency
             reminder.next_reminder = date + datetime.timedelta(days=30*reminder.frequency_months)
             db.session.commit()
-        
+
         return appointment
     except Exception as e:
         db.session.rollback()
@@ -151,7 +151,7 @@ def update_appointment_status(appointment_id, new_status, session):
         appointment = Appointment.query.filter_by(id=appointment_id, user_id=user_id).first()
         if not appointment:
             return None
-            
+
         appointment.status = new_status
         db.session.commit()
         return appointment
@@ -164,19 +164,19 @@ def set_appointment_reminder(doctor_id, frequency_months=6, session=None):
     """Set or update a reminder for regular appointments with a doctor"""
     try:
         user_id = get_user_id_from_session(session)
-        
+
         # Get the most recent appointment with this doctor
         latest_appointment = Appointment.query.filter_by(
             doctor_id=doctor_id,
             user_id=user_id
         ).order_by(Appointment.date.desc()).first()
-        
+
         last_date = latest_appointment.date if latest_appointment else datetime.datetime.now()
         next_reminder = last_date + datetime.timedelta(days=30*frequency_months)
-        
+
         # Check if reminder already exists
         reminder = AppointmentReminder.query.filter_by(doctor_id=doctor_id, user_id=user_id).first()
-        
+
         if reminder:
             reminder.frequency_months = frequency_months
             reminder.last_appointment = last_date
@@ -190,7 +190,7 @@ def set_appointment_reminder(doctor_id, frequency_months=6, session=None):
                 user_id=user_id
             )
             db.session.add(reminder)
-            
+
         db.session.commit()
         return reminder
     except Exception as e:
@@ -202,7 +202,7 @@ def get_due_appointment_reminders(session):
     """Get reminders that are due for scheduling new appointments"""
     user_id = get_user_id_from_session(session)
     now = datetime.datetime.now()
-    
+
     return AppointmentReminder.query.filter(
         AppointmentReminder.user_id == user_id,
         AppointmentReminder.next_reminder <= now

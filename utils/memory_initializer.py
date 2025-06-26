@@ -19,24 +19,24 @@ logger = logging.getLogger(__name__)
 def initialize_memory_system(app):
     """
     Initialize the memory system for the application
-    
+
     Args:
         app: Flask application instance
     """
     logger.info("Initializing memory system")
-    
+
     try:
         # Initialize the database connection for enhanced_memory
         init_db(db)
-        
+
         # Log successful initialization
         logger.info("Memory system initialized successfully")
-        
+
         @app.before_first_request
         def initialize_memory_for_users():
             """Ensure first-time users have memory initialized when they first access the app"""
             # This runs on the first request after application startup
             logger.info("Ready to initialize memory for new users")
-    
+
     except Exception as e:
         logger.error(f"Error initializing memory system: {str(e)}")

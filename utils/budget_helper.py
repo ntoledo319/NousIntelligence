@@ -32,15 +32,15 @@ def create_budget(name, amount, category=None, is_recurring=True, start_date=Non
     """Create a new budget"""
     try:
         user_id = get_user_id_from_session(session)
-        
+
         # Validate category
         if category and not any(category == cat.value for cat in ExpenseCategory):
             category = ExpenseCategory.OTHER.value
-            
+
         # Set default dates if not provided
         if not start_date:
             start_date = datetime.datetime.now()
-            
+
         budget = Budget(
             name=name,
             amount=amount,
@@ -50,7 +50,7 @@ def create_budget(name, amount, category=None, is_recurring=True, start_date=Non
             end_date=end_date,
             user_id=user_id
         )
-        
+
         db.session.add(budget)
         db.session.commit()
         return budget
@@ -59,17 +59,17 @@ def create_budget(name, amount, category=None, is_recurring=True, start_date=Non
         logging.error(f"Error creating budget: {str(e)}")
         return None
 
-def update_budget(budget_id, name=None, amount=None, category=None, is_recurring=None, 
+def update_budget(budget_id, name=None, amount=None, category=None, is_recurring=None,
                   start_date=None, end_date=None, session=None):
     """Update a budget"""
     try:
         user_id = get_user_id_from_session(session)
-        
+
         # Verify the budget exists and belongs to the user
         budget = Budget.query.filter_by(id=budget_id, user_id=user_id).first()
         if not budget:
             return None
-            
+
         # Update fields if provided
         if name:
             budget.name = name
@@ -85,7 +85,7 @@ def update_budget(budget_id, name=None, amount=None, category=None, is_recurring
             budget.start_date = start_date
         if end_date:
             budget.end_date = end_date
-            
+
         db.session.commit()
         return budget
     except Exception as e:
@@ -97,12 +97,12 @@ def delete_budget(budget_id, session):
     """Delete a budget"""
     try:
         user_id = get_user_id_from_session(session)
-        
+
         # Verify the budget exists and belongs to the user
         budget = Budget.query.filter_by(id=budget_id, user_id=user_id).first()
         if not budget:
             return False
-            
+
         db.session.delete(budget)
         db.session.commit()
         return True
@@ -114,32 +114,32 @@ def delete_budget(budget_id, session):
 def get_budget_summary(session):
     """Get a summary of all budgets for the current month"""
     user_id = get_user_id_from_session(session)
-    
+
     # Get the current month's date range
     today = datetime.datetime.now()
     start_of_month = datetime.datetime(today.year, today.month, 1)
     _, last_day = calendar.monthrange(today.year, today.month)
     end_of_month = datetime.datetime(today.year, today.month, last_day, 23, 59, 59)
-    
+
     # Get all active budgets
     budgets = Budget.query.filter(
         Budget.user_id == user_id,
         (Budget.end_date.is_(None)) | (Budget.end_date >= start_of_month)
     ).all()
-    
+
     # Calculate totals
     total_budget = sum(budget.amount for budget in budgets)
-    
+
     # Get expenses for the current month
     expenses = Expense.query.filter(
         Expense.user_id == user_id,
         Expense.date >= start_of_month,
         Expense.date <= end_of_month
     ).all()
-    
+
     total_spent = sum(expense.amount for expense in expenses)
     remaining = total_budget - total_spent
-    
+
     # Summarize by category
     categories = {}
     for cat in ExpenseCategory:
@@ -149,7 +149,7 @@ def get_budget_summary(session):
             'remaining': 0
         }
         categories[cat.value]['remaining'] = categories[cat.value]['budget'] - categories[cat.value]['spent']
-    
+
     return {
         'month': today.strftime('%B %Y'),
         'total_budget': total_budget,
@@ -163,10 +163,10 @@ def get_budget_summary(session):
 def get_expenses(session, start_date=None, end_date=None, category=None):
     """Get expenses for the current user with optional filtering"""
     user_id = get_user_id_from_session(session)
-    
+
     # Base query
     query = Expense.query.filter_by(user_id=user_id)
-    
+
     # Apply filters if provided
     if start_date:
         query = query.filter(Expense.date >= start_date)
@@ -174,10 +174,10 @@ def get_expenses(session, start_date=None, end_date=None, category=None):
         query = query.filter(Expense.date <= end_date)
     if category:
         query = query.filter_by(category=category)
-        
+
     # Sort by date, newest first
     query = query.order_by(Expense.date.desc())
-    
+
     return query.all()
 
 def get_expense_by_id(expense_id, session):
@@ -185,21 +185,21 @@ def get_expense_by_id(expense_id, session):
     user_id = get_user_id_from_session(session)
     return Expense.query.filter_by(id=expense_id, user_id=user_id).first()
 
-def add_expense(description, amount, date=None, category=None, payment_method=None, 
-                budget_name=None, is_recurring=False, recurring_frequency=None, 
+def add_expense(description, amount, date=None, category=None, payment_method=None,
+                budget_name=None, is_recurring=False, recurring_frequency=None,
                 next_due_date=None, notes=None, session=None):
     """Add a new expense"""
     try:
         user_id = get_user_id_from_session(session)
-        
+
         # Validate category
         if category and not any(category == cat.value for cat in ExpenseCategory):
             category = ExpenseCategory.OTHER.value
-            
+
         # Set default date if not provided
         if not date:
             date = datetime.datetime.now()
-            
+
         # Find budget if budget_name is provided
         budget_id = None
         if budget_name:
@@ -212,7 +212,7 @@ def add_expense(description, amount, date=None, category=None, payment_method=No
                     budget = get_budget_by_category(category, session)
                     if budget:
                         budget_id = budget.id
-                        
+
         expense = Expense(
             description=description,
             amount=amount,
@@ -226,32 +226,32 @@ def add_expense(description, amount, date=None, category=None, payment_method=No
             notes=notes,
             user_id=user_id
         )
-        
+
         db.session.add(expense)
         db.session.commit()
-        
+
         # If this is a recurring expense, create a RecurringPayment record
         if is_recurring and recurring_frequency:
             create_recurring_payment_from_expense(expense, session)
-            
+
         return expense
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error adding expense: {str(e)}")
         return None
 
-def update_expense(expense_id, description=None, amount=None, date=None, category=None, 
-                   payment_method=None, budget_name=None, is_recurring=None, 
+def update_expense(expense_id, description=None, amount=None, date=None, category=None,
+                   payment_method=None, budget_name=None, is_recurring=None,
                    recurring_frequency=None, next_due_date=None, notes=None, session=None):
     """Update an expense"""
     try:
         user_id = get_user_id_from_session(session)
-        
+
         # Verify the expense exists and belongs to the user
         expense = Expense.query.filter_by(id=expense_id, user_id=user_id).first()
         if not expense:
             return None
-            
+
         # Update fields if provided
         if description:
             expense.description = description
@@ -273,19 +273,19 @@ def update_expense(expense_id, description=None, amount=None, date=None, categor
             expense.next_due_date = next_due_date
         if notes:
             expense.notes = notes
-            
+
         # Update budget if budget_name is provided
         if budget_name:
             budget = get_budget_by_name(budget_name, session)
             if budget:
                 expense.budget_id = budget.id
-            
+
         db.session.commit()
-        
+
         # If this is now a recurring expense, create or update RecurringPayment
         if expense.is_recurring and expense.recurring_frequency:
             create_or_update_recurring_payment_from_expense(expense, session)
-            
+
         return expense
     except Exception as e:
         db.session.rollback()
@@ -296,12 +296,12 @@ def delete_expense(expense_id, session):
     """Delete an expense"""
     try:
         user_id = get_user_id_from_session(session)
-        
+
         # Verify the expense exists and belongs to the user
         expense = Expense.query.filter_by(id=expense_id, user_id=user_id).first()
         if not expense:
             return False
-            
+
         db.session.delete(expense)
         db.session.commit()
         return True
@@ -329,39 +329,39 @@ def get_recurring_payment_by_name(name, session):
         RecurringPayment.user_id == user_id
     ).first()
 
-def create_recurring_payment(name, amount, frequency, due_day=None, category=None, 
+def create_recurring_payment(name, amount, frequency, due_day=None, category=None,
                              payment_method=None, website=None, notes=None, session=None):
     """Create a new recurring payment"""
     try:
         user_id = get_user_id_from_session(session)
-        
+
         # Validate category
         if category and not any(category == cat.value for cat in ExpenseCategory):
             category = ExpenseCategory.OTHER.value
-            
+
         # Calculate next due date
         today = datetime.datetime.now()
         next_due_date = None
-        
+
         if due_day:
             # Set due day for monthly payments
             if due_day > 28:
                 # Handle cases where the day might not exist in some months
                 due_day = 28
-                
+
             # Find the next occurrence of this day
             year = today.year
             month = today.month
-            
+
             if today.day > due_day:
                 # We're past the due day this month, move to next month
                 month += 1
                 if month > 12:
                     month = 1
                     year += 1
-                    
+
             next_due_date = datetime.datetime(year, month, due_day)
-        
+
         payment = RecurringPayment(
             name=name,
             amount=amount,
@@ -375,7 +375,7 @@ def create_recurring_payment(name, amount, frequency, due_day=None, category=Non
             notes=notes,
             user_id=user_id
         )
-        
+
         db.session.add(payment)
         db.session.commit()
         return payment
@@ -391,7 +391,7 @@ def create_recurring_payment_from_expense(expense, session):
         due_day = None
         if expense.recurring_frequency == 'monthly' and expense.date:
             due_day = expense.date.day
-            
+
         return create_recurring_payment(
             name=expense.description,
             amount=expense.amount,
@@ -409,13 +409,13 @@ def create_recurring_payment_from_expense(expense, session):
 def create_or_update_recurring_payment_from_expense(expense, session):
     """Create or update a recurring payment based on an expense"""
     user_id = get_user_id_from_session(session)
-    
+
     # Look for an existing recurring payment with the same name
     payment = RecurringPayment.query.filter(
         RecurringPayment.name.ilike(expense.description),
         RecurringPayment.user_id == user_id
     ).first()
-    
+
     if payment:
         # Update existing payment
         payment.amount = expense.amount
@@ -423,11 +423,11 @@ def create_or_update_recurring_payment_from_expense(expense, session):
         payment.category = expense.category
         payment.payment_method = expense.payment_method
         payment.notes = expense.notes
-        
+
         # Update due day if monthly
         if expense.recurring_frequency == 'monthly' and expense.date:
             payment.due_day = expense.date.day
-            
+
         db.session.commit()
         return payment
     else:
@@ -439,7 +439,7 @@ def get_upcoming_payments(session, days=30):
     user_id = get_user_id_from_session(session)
     today = datetime.datetime.now()
     end_date = today + datetime.timedelta(days=days)
-    
+
     return RecurringPayment.query.filter(
         RecurringPayment.user_id == user_id,
         RecurringPayment.next_due_date <= end_date
@@ -449,12 +449,12 @@ def mark_payment_paid(payment_id, session):
     """Mark a recurring payment as paid and update next due date"""
     try:
         user_id = get_user_id_from_session(session)
-        
+
         # Verify the payment exists and belongs to the user
         payment = RecurringPayment.query.filter_by(id=payment_id, user_id=user_id).first()
         if not payment:
             return None
-            
+
         # Record this payment as an expense
         expense = Expense(
             description=payment.name,
@@ -465,38 +465,38 @@ def mark_payment_paid(payment_id, session):
             notes=f"Recurring payment: {payment.name}",
             user_id=user_id
         )
-        
+
         db.session.add(expense)
-        
+
         # Update next due date based on frequency
         if payment.frequency == 'monthly' and payment.due_day:
             # Calculate next month's due date
             current_date = datetime.datetime.now()
             month = current_date.month + 1
             year = current_date.year
-            
+
             if month > 12:
                 month = 1
                 year += 1
-                
+
             # Make sure we don't exceed the days in the month
             _, last_day = calendar.monthrange(year, month)
             due_day = min(payment.due_day, last_day)
-            
+
             payment.next_due_date = datetime.datetime(year, month, due_day)
-            
+
         elif payment.frequency == 'yearly' and payment.next_due_date:
             # Add one year to the current due date
             payment.next_due_date = payment.next_due_date.replace(year=payment.next_due_date.year + 1)
-            
+
         elif payment.frequency == 'weekly' and payment.next_due_date:
             # Add one week
             payment.next_due_date = payment.next_due_date + datetime.timedelta(days=7)
-            
+
         elif payment.frequency == 'daily':
             # Add one day
             payment.next_due_date = datetime.datetime.now() + datetime.timedelta(days=1)
-            
+
         db.session.commit()
         return payment
     except Exception as e:

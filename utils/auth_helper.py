@@ -11,10 +11,10 @@ def get_user_connection(user_id, service):
 def save_google_credentials(user_id, creds):
     """Save Google credentials to the database"""
     connection = get_user_connection(user_id, 'google')
-    
+
     # Convert scopes to a JSON string
     scopes_json = json.dumps(list(creds.scopes)) if creds.scopes else None
-    
+
     if connection:
         # Update existing connection
         connection.token = creds.token
@@ -40,7 +40,7 @@ def save_google_credentials(user_id, creds):
             expires_at=creds.expiry if hasattr(creds, 'expiry') else None
         )
         db.session.add(connection)
-    
+
     db.session.commit()
     return connection
 
@@ -49,10 +49,10 @@ def get_google_credentials(user_id):
     connection = get_user_connection(user_id, 'google')
     if not connection:
         return None
-    
+
     # Parse scopes from JSON
     scopes = json.loads(connection.scopes) if connection.scopes else []
-    
+
     # Create credentials object
     return Credentials(
         token=connection.token,
@@ -66,12 +66,12 @@ def get_google_credentials(user_id):
 def save_spotify_token(user_id, token_info):
     """Save Spotify token to the database"""
     connection = get_user_connection(user_id, 'spotify')
-    
+
     # Calculate expires_at
     expires_at = None
     if 'expires_in' in token_info:
         expires_at = datetime.datetime.now() + datetime.timedelta(seconds=token_info['expires_in'])
-    
+
     if connection:
         # Update existing connection
         connection.token = token_info.get('access_token', '')
@@ -89,7 +89,7 @@ def save_spotify_token(user_id, token_info):
             expires_at=expires_at
         )
         db.session.add(connection)
-    
+
     db.session.commit()
     return connection
 
@@ -98,17 +98,17 @@ def get_spotify_token(user_id):
     connection = get_user_connection(user_id, 'spotify')
     if not connection:
         return None
-    
+
     # Convert to token_info format for compatibility with existing code
     token_info = {
         'access_token': connection.token,
         'refresh_token': connection.refresh_token,
         'scope': connection.scopes
     }
-    
+
     # Add expires_in if we have an expiry
     if connection.expires_at:
         seconds_left = (connection.expires_at - datetime.datetime.now()).total_seconds()
         token_info['expires_in'] = int(max(0, seconds_left))
-    
+
     return token_info

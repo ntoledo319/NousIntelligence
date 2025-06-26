@@ -63,55 +63,55 @@ def get_exercise_by_duration(max_duration):
 def generate_personalized_exercise(user_id, mood=None, situation=None, duration=5):
     """
     Generate a personalized mindfulness exercise using cost-optimized AI
-    
+
     Args:
         user_id: The user's ID
         mood: Optional current mood
         situation: Optional current situation
         duration: Desired duration in minutes
-        
+
     Returns:
         A mindfulness exercise object
     """
     try:
         ai_client = get_cost_optimized_ai()
-        
+
         # Create a prompt for the AI to generate a personalized exercise
         prompt = f"Create a {duration}-minute mindfulness meditation script"
         if mood:
             prompt += f" for someone feeling {mood}"
         if situation:
             prompt += f" who is dealing with {situation}"
-            
+
         prompt += ". The script should be calm, supportive, and include [pause] indicators where appropriate."
-        
+
         messages = [
             {"role": "system", "content": "You are a skilled mindfulness meditation guide."},
             {"role": "user", "content": prompt}
         ]
-        
+
         # Use standard complexity for meditation content
         result = ai_client.chat_completion(messages, max_tokens=500, complexity=TaskComplexity.STANDARD)
-        
+
         if result.get("success"):
             script = result.get("response", "Take a deep breath in. Hold for a moment. Now exhale slowly. Continue breathing deeply for a few minutes, focusing on each breath.")
         else:
             script = "Take a deep breath in. Hold for a moment. Now exhale slowly. Continue breathing deeply for a few minutes, focusing on each breath."
-        
+
         # Create a name for this exercise
         name_prompt = "Give this mindfulness meditation a short, descriptive title (5 words or less)."
         name_messages = [
             {"role": "system", "content": "You generate short, descriptive titles."},
             {"role": "user", "content": f"Meditation script: {script}\n\n{name_prompt}"}
         ]
-        
+
         name_result = ai_client.chat_completion(name_messages, max_tokens=20, complexity=TaskComplexity.BASIC)
-        
+
         if name_result.get("success"):
             name = name_result.get("response", "Calming Breath Meditation").strip().replace('"', '')
         else:
             name = "Calming Breath Meditation"
-        
+
         return {
             "name": name,
             "duration": duration,
@@ -120,7 +120,7 @@ def generate_personalized_exercise(user_id, mood=None, situation=None, duration=
             "personalized": True,
             "cost": result.get("cost", 0.0) + name_result.get("cost", 0.0)
         }
-        
+
     except Exception as e:
         logging.error(f"Error generating personalized exercise: {str(e)}")
         # Fallback to pre-defined exercise
@@ -129,7 +129,7 @@ def generate_personalized_exercise(user_id, mood=None, situation=None, duration=
 def log_exercise_completion(user_id, exercise_name, rating=None):
     """
     Log the completion of a mindfulness exercise
-    
+
     Args:
         user_id: The user's ID
         exercise_name: The name of the completed exercise
@@ -144,19 +144,19 @@ def log_exercise_completion(user_id, exercise_name, rating=None):
 def prepare_exercise_for_tts(exercise):
     """
     Prepare a mindfulness exercise for text-to-speech playback
-    
+
     Args:
         exercise: The exercise object
-        
+
     Returns:
         A formatted script with appropriate pauses and pacing for TTS
     """
     script = exercise["script"]
-    
+
     # Replace [pause] indicators with actual pauses for TTS
     # Speech Synthesis Markup Language (SSML) pause: <break time="2s"/>
     script = script.replace("[pause]", '<break time="2s"/>')
-    
+
     # Wrap in SSML format for better TTS quality
     ssml_script = f"""
     <speak>
@@ -165,7 +165,7 @@ def prepare_exercise_for_tts(exercise):
     </prosody>
     </speak>
     """
-    
+
     return {
         "name": exercise["name"],
         "duration": exercise["duration"],

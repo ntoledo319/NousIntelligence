@@ -33,21 +33,21 @@ def get_spotify_report():
     """Generate a full Spotify listening report with multiple visualizations"""
     if not current_user.is_authenticated:
         return jsonify({"error": "Authentication required"}), 401
-    
+
     # Get Spotify client
-    spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, 
+    spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET,
                                  SPOTIFY_REDIRECT, current_user.id)
-    
+
     if not spotify:
         return jsonify({"error": "Spotify connection required"}), 400
-    
+
     try:
         # Generate the report with all visualizations
         report = generate_spotify_listening_report(spotify)
-        
+
         if not report:
             return jsonify({"error": "Could not generate report"}), 400
-            
+
         return jsonify({"success": True, "report": report})
     except Exception as e:
         logging.error(f"Error generating Spotify report: {str(e)}")
@@ -59,24 +59,24 @@ def get_top_artists_chart():
     """Generate chart of top artists"""
     if not current_user.is_authenticated:
         return jsonify({"error": "Authentication required"}), 401
-    
+
     # Get parameters
     time_range = request.args.get("time_range", "medium_term")
     limit = int(request.args.get("limit", 10))
-    
+
     # Get Spotify client
-    spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, 
+    spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET,
                                  SPOTIFY_REDIRECT, current_user.id)
-    
+
     if not spotify:
         return jsonify({"error": "Spotify connection required"}), 400
-    
+
     try:
         img = generate_top_artists_chart(spotify, time_range, limit)
-        
+
         if not img:
             return jsonify({"error": "Could not generate chart"}), 400
-            
+
         return jsonify({"success": True, "image": img})
     except Exception as e:
         logging.error(f"Error generating top artists chart: {str(e)}")
@@ -88,24 +88,24 @@ def get_top_tracks_chart():
     """Generate chart of top tracks"""
     if not current_user.is_authenticated:
         return jsonify({"error": "Authentication required"}), 401
-    
+
     # Get parameters
     time_range = request.args.get("time_range", "medium_term")
     limit = int(request.args.get("limit", 10))
-    
+
     # Get Spotify client
-    spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, 
+    spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET,
                                  SPOTIFY_REDIRECT, current_user.id)
-    
+
     if not spotify:
         return jsonify({"error": "Spotify connection required"}), 400
-    
+
     try:
         img = generate_top_tracks_chart(spotify, time_range, limit)
-        
+
         if not img:
             return jsonify({"error": "Could not generate chart"}), 400
-            
+
         return jsonify({"success": True, "image": img})
     except Exception as e:
         logging.error(f"Error generating top tracks chart: {str(e)}")
@@ -117,23 +117,23 @@ def get_genre_chart():
     """Generate chart of top genres"""
     if not current_user.is_authenticated:
         return jsonify({"error": "Authentication required"}), 401
-    
+
     # Get parameters
     limit = int(request.args.get("limit", 10))
-    
+
     # Get Spotify client
-    spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, 
+    spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET,
                                  SPOTIFY_REDIRECT, current_user.id)
-    
+
     if not spotify:
         return jsonify({"error": "Spotify connection required"}), 400
-    
+
     try:
         img = generate_genre_chart(spotify, limit)
-        
+
         if not img:
             return jsonify({"error": "Could not generate chart"}), 400
-            
+
         return jsonify({"success": True, "image": img})
     except Exception as e:
         logging.error(f"Error generating genre chart: {str(e)}")
@@ -145,23 +145,23 @@ def get_listening_history_chart():
     """Generate chart of listening history"""
     if not current_user.is_authenticated:
         return jsonify({"error": "Authentication required"}), 401
-    
+
     # Get parameters
     limit = int(request.args.get("limit", 50))
-    
+
     # Get Spotify client
-    spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, 
+    spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET,
                                  SPOTIFY_REDIRECT, current_user.id)
-    
+
     if not spotify:
         return jsonify({"error": "Spotify connection required"}), 400
-    
+
     try:
         img = generate_listening_history_chart(spotify, limit)
-        
+
         if not img:
             return jsonify({"error": "Could not generate chart"}), 400
-            
+
         return jsonify({"success": True, "image": img})
     except Exception as e:
         logging.error(f"Error generating listening history chart: {str(e)}")
@@ -173,25 +173,25 @@ def get_track_features_chart():
     """Generate radar chart of audio features for a track"""
     if not current_user.is_authenticated:
         return jsonify({"error": "Authentication required"}), 401
-    
+
     # Get parameters
     track_id = request.args.get("track_id")
-    
+
     # Get Spotify client
-    spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, 
+    spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET,
                                  SPOTIFY_REDIRECT, current_user.id)
-    
+
     if not spotify:
         return jsonify({"error": "Spotify connection required"}), 400
-    
+
     try:
         img, track_info = generate_audio_features_radar_chart(spotify, track_id)
-        
+
         if not img:
             return jsonify({"error": "Could not generate chart"}), 400
-            
+
         return jsonify({
-            "success": True, 
+            "success": True,
             "image": img,
             "track_info": track_info
         })
@@ -205,28 +205,28 @@ def get_playlist_analysis():
     """Generate analysis of a playlist's mood and characteristics"""
     if not current_user.is_authenticated:
         return jsonify({"error": "Authentication required"}), 401
-    
+
     # Get parameters
     playlist_id = request.args.get("playlist_id")
-    
+
     if not playlist_id:
         return jsonify({"error": "Playlist ID required"}), 400
-    
+
     # Get Spotify client
-    spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, 
+    spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET,
                                  SPOTIFY_REDIRECT, current_user.id)
-    
+
     if not spotify:
         return jsonify({"error": "Spotify connection required"}), 400
-    
+
     try:
         analysis = generate_playlist_mood_analysis(spotify, playlist_id)
-        
+
         if not analysis:
             return jsonify({"error": "Could not generate analysis"}), 400
-            
+
         return jsonify({
-            "success": True, 
+            "success": True,
             "analysis": analysis
         })
     except Exception as e:
@@ -239,33 +239,33 @@ def compare_tracks():
     """Generate comparison of audio features between multiple tracks"""
     if not current_user.is_authenticated:
         return jsonify({"error": "Authentication required"}), 401
-    
+
     # Get parameters from JSON body
     data = request.json
     if not data or 'track_ids' not in data:
         return jsonify({"error": "Track IDs required"}), 400
-    
+
     track_ids = data.get('track_ids', [])
     track_names = data.get('track_names')
-    
+
     if not track_ids:
         return jsonify({"error": "At least one track ID required"}), 400
-    
+
     # Get Spotify client
-    spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, 
+    spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET,
                                  SPOTIFY_REDIRECT, current_user.id)
-    
+
     if not spotify:
         return jsonify({"error": "Spotify connection required"}), 400
-    
+
     try:
         img = generate_audio_feature_comparison(spotify, track_ids, track_names)
-        
+
         if not img:
             return jsonify({"error": "Could not generate comparison"}), 400
-            
+
         return jsonify({
-            "success": True, 
+            "success": True,
             "image": img
         })
     except Exception as e:

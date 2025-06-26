@@ -15,7 +15,7 @@ from models.system_models import WeatherData, SystemSetting
 
 # Export models at the package level for easy importing
 __all__ = [
-    'User', 'UserPreference', 'UserSetting', 
-    'Task', 'HealthMetric', 
+    'User', 'UserPreference', 'UserSetting',
+    'Task', 'HealthMetric',
     'WeatherData', 'SystemSetting'
 ]

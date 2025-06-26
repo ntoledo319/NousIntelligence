@@ -32,13 +32,13 @@ def index():
     if not beta_mode:
         flash('Beta testing is currently disabled.', 'info')
         return redirect(url_for('index.index'))
-    
+
     # Check if user is already a beta tester
     is_beta_tester = False
     if current_user.is_authenticated:
         beta_tester = BetaTester.query.filter_by(user_id=current_user.id, active=True).first()
         is_beta_tester = beta_tester is not None
-    
+
     return render_template(
         'beta/index.html',
         is_beta_tester=is_beta_tester
@@ -53,26 +53,26 @@ def apply():
     if not beta_mode:
         flash('Beta testing is currently disabled.', 'info')
         return redirect(url_for('index.index'))
-    
+
     # Check if user is already a beta tester
     existing_tester = BetaTester.query.filter_by(user_id=current_user.id).first()
     if existing_tester and existing_tester.active:
         flash('You are already a beta tester.', 'info')
         return redirect(url_for('beta.dashboard'))
-    
+
     # Check if we're at max beta testers
     max_testers = int(current_app.config.get('MAX_BETA_TESTERS', 30))
     current_tester_count = BetaTester.query.filter_by(active=True).count()
-    
+
     if current_tester_count >= max_testers and not existing_tester:
         flash('Maximum number of beta testers has been reached. Please try again later.', 'warning')
         return redirect(url_for('beta.index'))
-    
+
     if request.method == 'POST':
         # Get access code from form
         access_code = request.form.get('access_code', '').strip()
         correct_code = current_app.config.get('BETA_ACCESS_CODE', 'BETANOUS2025')
-        
+
         if not access_code:
             flash('Access code is required.', 'danger')
         elif access_code != correct_code:
@@ -97,20 +97,20 @@ def apply():
                     db.session.add(beta_tester)
                     db.session.commit()
                     log_security_event("BETA_ENROLLED", "User enrolled as beta tester", severity="INFO")
-                
+
                 flash('You have been successfully enrolled as a beta tester!', 'success')
                 return redirect(url_for('beta.dashboard'))
-            
+
             except IntegrityError:
                 db.session.rollback()
                 flash('An error occurred during enrollment.', 'danger')
                 logger.error(f"Beta enrollment failed for user {current_user.id}")
-            
+
             except Exception as e:
                 db.session.rollback()
                 flash('An unexpected error occurred.', 'danger')
                 logger.error(f"Beta enrollment error: {str(e)}")
-    
+
     return render_template('beta/apply.html')
 
 @beta_bp.route('/dashboard')
@@ -122,7 +122,7 @@ def dashboard():
     if not beta_tester:
         flash('You need to be a beta tester to access this page.', 'warning')
         return redirect(url_for('beta.index'))
-    
+
     # Get list of available beta features (could be dynamic from database)
     beta_features = [
         {
@@ -147,7 +147,7 @@ def dashboard():
             'icon': 'fas fa-brain'
         }
     ]
-    
+
     return render_template(
         'beta/dashboard.html',
         beta_tester=beta_tester,
@@ -160,7 +160,7 @@ def dashboard():
 def leave_beta():
     """Leave the beta testing program"""
     beta_tester = BetaTester.query.filter_by(user_id=current_user.id).first()
-    
+
     if beta_tester:
         beta_tester.active = False
         db.session.commit()
@@ -168,7 +168,7 @@ def leave_beta():
         flash('You have successfully left the beta testing program.', 'success')
     else:
         flash('You are not currently enrolled in the beta testing program.', 'info')
-    
+
     return redirect(url_for('beta.index'))
 
 @beta_bp.route('/admin')
@@ -188,11 +188,11 @@ def admin_dashboard():
         .order_by(BetaTester.active.desc(), BetaTester.created_at.desc())
         .all()
     )
-    
+
     # Max testers config
     max_testers = int(current_app.config.get('MAX_BETA_TESTERS', 30))
     current_active = BetaTester.query.filter_by(active=True).count()
-    
+
     return render_template(
         'beta/admin.html',
         beta_testers=beta_testers,
@@ -206,23 +206,23 @@ def admin_dashboard():
 def toggle_tester(user_id):
     """Toggle a beta tester's active status"""
     beta_tester = BetaTester.query.filter_by(user_id=user_id).first()
-    
+
     if not beta_tester:
         flash('Beta tester not found.', 'danger')
     else:
         # Toggle status
         beta_tester.active = not beta_tester.active
         db.session.commit()
-        
+
         status = "activated" if beta_tester.active else "deactivated"
         user_email = User.query.filter_by(id=user_id).first().email
-        
+
         log_security_event(
-            "BETA_STATUS_CHANGE", 
+            "BETA_STATUS_CHANGE",
             f"Admin {status} beta tester: {user_email}",
             severity="INFO"
         )
-        
+
         flash(f'Beta tester {status} successfully.', 'success')
-    
+
     return redirect(url_for('beta.admin_dashboard'))

@@ -54,39 +54,39 @@ rate_limit_tracker = RateLimitTracker()
 
 class AIServiceManager:
     """Manager for routing AI requests to appropriate services"""
-    
+
     def __init__(self):
         # Initialize available services
         self.available_services = self._detect_available_services()
-        
+
         # Load cost configuration
         self.cost_config = self._load_cost_config()
-        
+
         # Cache for service selection decisions
         self.selection_cache = {}
-        
+
         logger.info(f"AI Service Manager initialized with services: {', '.join(self.available_services.keys())}")
-    
+
     def _detect_available_services(self) -> Dict[str, bool]:
         """Detect which AI services are available based on environment variables"""
         services = {}
-        
+
         # OpenAI disabled for cost optimization
         services["openai"] = False
-        
+
         # Check for OpenRouter
         openrouter_key = os.environ.get("OPENROUTER_API_KEY") or os.environ.get("OPENROUTER_KEY")
         services["openrouter"] = bool(openrouter_key)
-        
+
         # Check for Hugging Face
         hf_key = os.environ.get("HUGGINGFACE_API_KEY")
         services["huggingface"] = bool(hf_key)
-        
+
         # Check for local models
         services["local"] = os.path.exists(os.path.expanduser("~/whisper.cpp/models/tiny.en.bin"))
-        
+
         return services
-    
+
     def _load_cost_config(self) -> Dict[str, Any]:
         """Load cost configuration for different models"""
         # Default cost configuration (cost per 1K tokens)
@@ -108,13 +108,13 @@ class AIServiceManager:
                 "default": {"input": 0.0, "output": 0.0}  # No API costs for local models
             }
         }
-        
+
         # Try to load custom config if exists
         try:
             from utils.settings import get_setting
             custom_config_str = get_setting("ai_cost_config", "{}")
             custom_config = json.loads(custom_config_str)
-            
+
             # Merge custom config with defaults
             for service, models in custom_config.items():
                 if service in default_config:
@@ -122,66 +122,66 @@ class AIServiceManager:
                         default_config[service][model] = costs
                 else:
                     default_config[service] = models
-                    
+
         except Exception as e:
             logger.warning(f"Failed to load custom AI cost config: {e}")
-        
+
         return default_config
-    
+
     @lru_cache(maxsize=32)
-    def select_service_for_task(self, 
+    def select_service_for_task(self,
                                task_type: str,
                                complexity: TaskComplexity = TaskComplexity.STANDARD,
                                preferred_tier: Optional[ServiceTier] = None,
                                force_service: Optional[str] = None) -> Tuple[str, str]:
         """
         Select the most appropriate service and model for a given task
-        
+
         Args:
             task_type: Type of task (e.g., 'chat', 'summarization', 'voice', etc.)
             complexity: Complexity level required for the task
             preferred_tier: Preferred service tier (if any)
             force_service: Force using a specific service (if available)
-            
+
         Returns:
             Tuple of (service_name, model_name)
         """
         # If service is forced and available, use it
         if force_service and force_service in self.available_services and self.available_services[force_service]:
             return self._get_best_model_for_service(force_service, complexity)
-        
+
         # Consider rate limiting and recent errors
         for service in ["openai", "openrouter", "huggingface", "local"]:
             if service in rate_limit_tracker.error_count and rate_limit_tracker.error_count[service] > 5:
                 # Too many errors with this service, avoid it temporarily
                 continue
-        
+
         # Logic based on task type and complexity - OpenAI removed for cost optimization
         if complexity == TaskComplexity.COMPLEX:
             # Try premium services first for complex tasks
             if "openrouter" in self.available_services and self.available_services["openrouter"]:
                 return self._get_best_model_for_service("openrouter", complexity)
-        
+
         elif complexity == TaskComplexity.STANDARD:
             # Try standard tier services for regular tasks
             if "openrouter" in self.available_services and self.available_services["openrouter"]:
                 return self._get_best_model_for_service("openrouter", complexity)
-        
+
         elif complexity == TaskComplexity.BASIC:
             # Try economy tier services for basic tasks
             if "huggingface" in self.available_services and self.available_services["huggingface"]:
                 return self._get_best_model_for_service("huggingface", complexity)
             elif "local" in self.available_services and self.available_services["local"]:
                 return "local", "default"
-        
+
         # Fallback to whatever is available, in order of preference (OpenAI removed)
         for service in ["openrouter", "huggingface", "local"]:
             if service in self.available_services and self.available_services[service]:
                 return self._get_best_model_for_service(service, complexity)
-        
+
         logger.error("No AI services available - all optimization failed")
         return "none", "none"
-    
+
     def _get_best_model_for_service(self, service: str, complexity: TaskComplexity) -> Tuple[str, str]:
         """Get the best model for a given service based on complexity and cost"""
         if service == "openrouter":
@@ -189,32 +189,32 @@ class AIServiceManager:
                 return "openrouter", "anthropic/claude-3-sonnet"
             else:
                 return "openrouter", "google/gemini-pro"
-                
+
         elif service == "huggingface":
             return "huggingface", "default"
-            
+
         elif service == "local":
             return "local", "default"
-            
+
         # Fallback
         return service, "default"
-    
+
     def track_request(self, service: str, success: bool, error_type: Optional[str] = None):
         """Track request success/failure for better service selection"""
         # Update request count
         if service not in rate_limit_tracker.request_count:
             rate_limit_tracker.request_count[service] = 0
         rate_limit_tracker.request_count[service] += 1
-        
+
         # Track last request time
         rate_limit_tracker.last_request_time[service] = time.time()
-        
+
         # Track errors if request failed
         if not success:
             if service not in rate_limit_tracker.error_count:
                 rate_limit_tracker.error_count[service] = 0
             rate_limit_tracker.error_count[service] += 1
-            
+
             # Apply exponential backoff for rate limit errors
             if error_type == "rate_limit":
                 if rate_limit_tracker.consecutive_errors == 0:
@@ -225,7 +225,7 @@ class AIServiceManager:
         else:
             # Reset consecutive errors on success
             rate_limit_tracker.consecutive_errors = 0
-            
+
             # Gradually reduce error count for the service
             if service in rate_limit_tracker.error_count and rate_limit_tracker.error_count[service] > 0:
                 rate_limit_tracker.error_count[service] = max(0, rate_limit_tracker.error_count[service] - 0.2)
@@ -250,18 +250,18 @@ class AIServiceManager:
             logger.warning(f"Error estimating cost: {e}")
             return 0.0
 
-    def track_usage(self, 
-                   user_id: str, 
-                   service: str, 
-                   model: str, 
-                   input_tokens: int, 
+    def track_usage(self,
+                   user_id: str,
+                   service: str,
+                   model: str,
+                   input_tokens: int,
                    output_tokens: int,
                    success: bool):
         """Track AI service usage for a user"""
         try:
             from models import db, UserAIUsage
             cost = self.estimate_cost(service, model, input_tokens, output_tokens)
-            
+
             # Record usage in database
             usage = UserAIUsage(
                 user_id=user_id,

@@ -29,29 +29,29 @@ def execute_spotify_command():
     """Execute a Spotify command from the chat interface"""
     if not current_user.is_authenticated:
         return jsonify({"success": False, "error": "Authentication required"}), 401
-    
+
     # Get Spotify client
     spotify_client, _ = get_spotify_client(
-        session=session, 
-        client_id=SPOTIFY_CLIENT_ID, 
-        client_secret=SPOTIFY_CLIENT_SECRET, 
-        redirect_uri=SPOTIFY_REDIRECT, 
+        session=session,
+        client_id=SPOTIFY_CLIENT_ID,
+        client_secret=SPOTIFY_CLIENT_SECRET,
+        redirect_uri=SPOTIFY_REDIRECT,
         user_id=current_user.id
     )
-    
+
     if not spotify_client:
         return jsonify({"success": False, "error": "Spotify connection required"}), 400
-    
+
     # Get command data from request
     data = request.json
     if not data:
         return jsonify({"success": False, "error": "No command data provided"}), 400
-    
+
     command_type = data.get('type')
-    
+
     try:
         result = {"success": True}
-        
+
         # Handle different types of commands
         if command_type == 'spotify_playback':
             # Handle playback control
@@ -109,22 +109,22 @@ def execute_spotify_command():
             else:
                 message = f"Unknown playback command: {playback_command}"
                 result["success"] = False
-                
+
             result["message"] = message
-                
+
         elif command_type == 'spotify_play':
             # Handle content playback
             content_type = data.get('content_type')
             query = data.get('query')
-            
+
             if not query:
                 return jsonify({"success": False, "error": "No query provided"}), 400
-            
+
             # Check if devices are available
             devices = spotify_client.devices()
             if not devices or not devices.get('devices'):
                 return jsonify({"success": False, "error": "No active Spotify devices found. Please open Spotify on a device first."}), 400
-                
+
             if content_type == 'track':
                 # Search for and play a track
                 tracks = spotify_client.search_tracks(query, limit=1)
@@ -174,27 +174,27 @@ def execute_spotify_command():
             else:
                 message = f"Unknown content type: {content_type}"
                 result["success"] = False
-                
+
             result["message"] = message
-            
+
         elif command_type == 'spotify_create_playlist':
             # Handle playlist creation
             name = data.get('name')
             description = data.get('description', f"Playlist created via NOUS Assistant")
-            
+
             if not name:
                 return jsonify({"success": False, "error": "No playlist name provided"}), 400
-                
+
             # Get user info and create playlist
             user_info = spotify_client.current_user()
             user_id = user_info['id']
-            
+
             playlist = spotify_client.user_playlist_create(
                 user_id=user_id,
                 name=name,
                 description=description
             )
-            
+
             if playlist and playlist.get('id'):
                 result["message"] = f"Created playlist '{name}'"
                 result["playlist"] = {
@@ -205,23 +205,23 @@ def execute_spotify_command():
             else:
                 result["success"] = False
                 result["message"] = f"Failed to create playlist"
-            
+
         elif command_type == 'spotify_mood':
             # Handle mood-based recommendations
             mood = data.get('mood')
             create_playlist = data.get('create_playlist', False)
-            
+
             if not mood:
                 return jsonify({"success": False, "error": "No mood provided"}), 400
-                
+
             if create_playlist:
                 # Create a mood-based playlist using SpotifyAI
                 spotify_ai = get_spotify_ai()
                 spotify_ai.authenticate(session, current_user.id)
-                
+
                 # Get mood recommendations
                 tracks = spotify_ai.recommend_music_by_mood(mood, diversity_level=0.7)
-                
+
                 if not tracks:
                     result["success"] = False
                     result["message"] = f"Could not find recommendations for mood: {mood}"
@@ -229,30 +229,30 @@ def execute_spotify_command():
                     # Create a new playlist
                     user_info = spotify_client.current_user()
                     user_id = user_info['id']
-                    
+
                     # Create playlist
                     playlist = spotify_client.user_playlist_create(
                         user_id=user_id,
                         name=f"Mood: {mood}",
                         description=f"Playlist for {mood} mood created by NOUS Assistant"
                     )
-                    
+
                     # Add tracks to playlist
                     if playlist and tracks:
                         track_uris = [track['uri'] for track in tracks]
                         spotify_client.playlist_add_items(playlist['id'], track_uris)
-                        
+
                         # Use an appropriate emoji for the mood
                         mood_emoji = "🎵"
                         if "happy" in mood.lower():
-                            mood_emoji = "😊" 
+                            mood_emoji = "😊"
                         elif any(word in mood.lower() for word in ["sad", "melancholy"]):
                             mood_emoji = "😢"
                         elif any(word in mood.lower() for word in ["energetic", "workout"]):
                             mood_emoji = "💪"
                         elif any(word in mood.lower() for word in ["calm", "chill", "relax"]):
                             mood_emoji = "😌"
-                        
+
                         result["message"] = f"{mood_emoji} Created '{playlist['name']}' playlist with {len(track_uris)} tracks"
                         result["playlist"] = {
                             "id": playlist['id'],
@@ -267,7 +267,7 @@ def execute_spotify_command():
                 spotify_ai = get_spotify_ai()
                 spotify_ai.authenticate(session, current_user.id)
                 recommendations = spotify_ai.recommend_music_by_mood(mood)
-                
+
                 if recommendations:
                     tracks = []
                     for track in recommendations[:5]:  # Limit to 5 for the response
@@ -276,25 +276,25 @@ def execute_spotify_command():
                             "artist": track['artists'][0]['name'],
                             "album": track['album']['name']
                         })
-                    
+
                     result["message"] = f"Here are some {mood} tracks for you"
                     result["recommendations"] = tracks
                 else:
                     result["success"] = False
                     result["message"] = f"Could not find recommendations for mood: {mood}"
-            
+
         elif command_type == 'spotify_activity':
             # Handle activity-based playlists
             activity = data.get('activity')
-            
+
             if not activity:
                 return jsonify({"success": False, "error": "No activity provided"}), 400
-                
+
             # Use the AI integration to find an activity playlist
             spotify_ai = get_spotify_ai()
             spotify_ai.authenticate(session, current_user.id)
             playlist = spotify_ai.get_playlist_for_activity(activity, personalize=True)
-            
+
             if playlist:
                 result["message"] = f"Found a playlist for {activity}"
                 result["playlist"] = {
@@ -303,7 +303,7 @@ def execute_spotify_command():
                     "url": playlist['external_urls']['spotify'],
                     "owner": playlist['owner']['display_name']
                 }
-                
+
                 # Start playing the playlist if requested
                 if data.get('play', False):
                     spotify_client.start_playback(context_uri=playlist['uri'])
@@ -311,31 +311,31 @@ def execute_spotify_command():
             else:
                 result["success"] = False
                 result["message"] = f"Could not find a playlist for: {activity}"
-            
+
         elif command_type == 'spotify_analyze':
             # Handle music analysis requests
             analysis_type = data.get('analysis_type')
-            
+
             if analysis_type == 'track':
                 track_name = data.get('track_name')
                 if not track_name:
                     return jsonify({"success": False, "error": "No track name provided"}), 400
-                
+
                 # Use SpotifyAI for track analysis
                 spotify_ai = get_spotify_ai()
                 spotify_ai.authenticate(session, current_user.id)
-                
+
                 # Search for the track
                 tracks = spotify_client.search_tracks(track_name, limit=1)
                 if not tracks:
                     return jsonify({"success": False, "error": f"No track found for '{track_name}'"}), 404
-                
+
                 track = tracks[0]
                 track_id = track['id']
-                
+
                 # Get audio features
                 features = spotify_client.audio_features(track_id)
-                
+
                 # Format the result
                 analysis = {
                     "track": {
@@ -345,37 +345,37 @@ def execute_spotify_command():
                     },
                     "audio_features": features
                 }
-                
+
                 if features:
                     # Classify mood
                     mood = spotify_ai.classify_track_mood(track_id)
                     if mood and not isinstance(mood, dict):
                         analysis["mood"] = mood
-                
+
                 result["message"] = "Track analysis complete"
                 result["analysis"] = analysis
-                
+
             elif analysis_type == 'taste':
                 time_range = data.get('time_range', 'medium_term')
-                
+
                 # Get the user's top tracks and artists
                 top_tracks = spotify_client.current_user_top_tracks(
-                    limit=10, 
+                    limit=10,
                     time_range=time_range
                 )
-                
+
                 top_artists = spotify_client.current_user_top_artists(
-                    limit=10, 
+                    limit=10,
                     time_range=time_range
                 )
-                
+
                 # Format the results
                 analysis = {
                     "top_tracks": [
                         {
                             "name": track['name'],
                             "artist": track['artists'][0]['name']
-                        } 
+                        }
                         for track in top_tracks.get('items', [])
                     ],
                     "top_artists": [
@@ -391,51 +391,51 @@ def execute_spotify_command():
                         "long_term": "several years"
                     }.get(time_range, time_range)
                 }
-                
+
                 # Use SpotifyAI for more advanced analysis
                 spotify_ai = get_spotify_ai()
                 spotify_ai.authenticate(session, current_user.id)
                 listening_history = spotify_ai.analyze_user_listening_history(time_range)
-                
+
                 if listening_history and not isinstance(listening_history, dict) and not listening_history.get('error'):
                     analysis.update(listening_history)
-                
+
                 result["message"] = "Music taste analysis complete"
                 result["analysis"] = analysis
             else:
                 result["success"] = False
                 result["message"] = f"Unknown analysis type: {analysis_type}"
-        
+
         elif command_type == 'spotify_recommendations':
             # Handle recommendations
             seed_type = data.get('seed_type')
             seed_value = data.get('seed_value')
             limit = data.get('limit', 10)
-            
+
             if not seed_type or not seed_value:
                 return jsonify({"success": False, "error": "Missing seed parameters"}), 400
-            
+
             # Prepare parameters for recommendations
             params = {'limit': min(limit, 20)}  # Cap at 20 for response size
-            
+
             if seed_type == 'artist':
                 # Search for artist
                 artists = spotify_client.search_artists(seed_value, limit=1)
                 if not artists:
                     return jsonify({"success": False, "error": f"Artist '{seed_value}' not found"}), 404
-                
+
                 artist_id = artists[0]['id']
                 params["seed_artists"] = [artist_id]
-                
+
             elif seed_type == 'track':
                 # Search for track
                 tracks = spotify_client.search_tracks(seed_value, limit=1)
                 if not tracks:
                     return jsonify({"success": False, "error": f"Track '{seed_value}' not found"}), 404
-                
+
                 track_id = tracks[0]['id']
                 params["seed_tracks"] = [track_id]
-                
+
             elif seed_type == 'genre':
                 # Check if genre is available
                 available_genres = spotify_client.get_available_genre_seeds()
@@ -445,18 +445,18 @@ def execute_spotify_command():
                         seed_value = similar_genres[0]  # Use first similar match
                     else:
                         return jsonify({"success": False, "error": f"Genre '{seed_value}' not available"}), 404
-                
+
                 params["seed_genres"] = [seed_value]
-            
+
             else:
                 return jsonify({"success": False, "error": f"Invalid seed type: {seed_type}"}), 400
-            
+
             # Get recommendations
             recommendations = spotify_client.get_recommendations(**params)
-            
+
             if not recommendations or not recommendations.get('tracks'):
                 return jsonify({"success": False, "error": "Failed to get recommendations"}), 500
-            
+
             # Format response
             tracks = []
             for track in recommendations['tracks']:
@@ -466,42 +466,42 @@ def execute_spotify_command():
                     "album": track['album']['name'],
                     "uri": track['uri']
                 })
-            
+
             result["message"] = f"Here are recommendations based on {seed_type}: {seed_value}"
             result["recommendations"] = tracks
-            
+
             # Create playlist if requested
             if data.get('create_playlist', False):
                 user_info = spotify_client.current_user()
                 user_id = user_info['id']
-                
+
                 playlist_name = data.get('playlist_name', f"Recommendations based on {seed_value}")
-                
+
                 # Create the playlist
                 playlist = spotify_client.user_playlist_create(
                     user_id=user_id,
                     name=playlist_name,
                     description=f"Recommendations based on {seed_type}: {seed_value}"
                 )
-                
+
                 # Add tracks to playlist
                 if playlist:
                     track_uris = [track['uri'] for track in recommendations['tracks']]
                     spotify_client.playlist_add_items(playlist['id'], track_uris)
-                    
+
                     result["playlist"] = {
                         "id": playlist['id'],
                         "name": playlist['name'],
                         "url": playlist['external_urls']['spotify'],
                         "track_count": len(track_uris)
                     }
-        
+
         else:
             result["success"] = False
             result["message"] = f"Unknown command type: {command_type}"
-            
+
         return jsonify(result)
-        
+
     except Exception as e:
         logging.error(f"Error executing Spotify command: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 500
@@ -512,7 +512,7 @@ def create_smart_playlist():
     """Create a smart playlist based on a seed"""
     if not current_user.is_authenticated:
         return jsonify({"success": False, "error": "Authentication required"}), 401
-    
+
     # Get Spotify client
     spotify_client, _ = get_spotify_client(
         session=session,
@@ -521,32 +521,32 @@ def create_smart_playlist():
         redirect_uri=SPOTIFY_REDIRECT,
         user_id=current_user.id
     )
-    
+
     if not spotify_client:
         return jsonify({"success": False, "error": "Spotify connection required"}), 400
-    
+
     # Get request data
     data = request.json
     if not data:
         return jsonify({"success": False, "error": "No data provided"}), 400
-    
+
     seed_type = data.get('seed_type')
     seed_value = data.get('seed_value')
     name = data.get('name')
     track_count = min(data.get('track_count', 25), 100)  # Cap at 100
-    
+
     if not seed_type or not seed_value or not name:
         return jsonify({"success": False, "error": "Missing required parameters"}), 400
-    
+
     try:
         # Create a smart playlist using SpotifyAI
         spotify_ai = get_spotify_ai()
         spotify_ai.authenticate(session, current_user.id)
-        
+
         result = spotify_ai.generate_smart_playlist(name, seed_type, seed_value, track_count)
-        
+
         return jsonify(result)
-        
+
     except Exception as e:
         logging.error(f"Error creating smart playlist: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 500
@@ -557,7 +557,7 @@ def get_track_mood():
     """Get the mood classification for a track"""
     if not current_user.is_authenticated:
         return jsonify({"success": False, "error": "Authentication required"}), 401
-    
+
     # Get Spotify client
     spotify_client, _ = get_spotify_client(
         session=session,
@@ -566,31 +566,31 @@ def get_track_mood():
         redirect_uri=SPOTIFY_REDIRECT,
         user_id=current_user.id
     )
-    
+
     if not spotify_client:
         return jsonify({"success": False, "error": "Spotify connection required"}), 400
-    
+
     # Get track ID
     track_id = request.args.get('track_id')
     if not track_id:
         return jsonify({"success": False, "error": "No track ID provided"}), 400
-    
+
     try:
         # Get track info
         track = spotify_client.track(track_id)
         if not track:
             return jsonify({"success": False, "error": "Track not found"}), 404
-        
+
         # Get audio features
         features = spotify_client.audio_features(track_id)
         if not features:
             return jsonify({"success": False, "error": "Audio features not available"}), 500
-        
+
         # Use SpotifyAI for mood classification
         spotify_ai = get_spotify_ai()
         spotify_ai.authenticate(session, current_user.id)
         mood = spotify_ai.classify_track_mood(track_id)
-        
+
         result = {
             "success": True,
             "track": {
@@ -601,9 +601,9 @@ def get_track_mood():
             "audio_features": features,
             "mood": mood
         }
-        
+
         return jsonify(result)
-        
+
     except Exception as e:
         logging.error(f"Error getting track mood: {str(e)}")
-        return jsonify({"success": False, "error": str(e)}), 500 
+        return jsonify({"success": False, "error": str(e)}), 500

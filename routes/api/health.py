@@ -23,7 +23,7 @@ health_bp = create_api_blueprint('health', __name__, '/api', version='v1')
 # Register standardized error handlers
 register_api_error_handlers(health_bp)
 
-@api_route(health_bp, '/health', methods=['GET'], 
+@api_route(health_bp, '/health', methods=['GET'],
     api_doc={
         'summary': 'Basic health check endpoint',
         'description': 'Simple health check for monitoring and load balancers',
@@ -62,13 +62,13 @@ def system_health():
     """
     # Log detailed health check access
     logger.info(f"System health check from {request.remote_addr}")
-    
+
     try:
         # Get system information with error handling
         memory_info = psutil.virtual_memory()
         cpu_percent = psutil.cpu_percent(interval=0.1)  # Quick sampling
         disk_info = psutil.disk_usage('/')
-        
+
         # Return comprehensive system health information
         return {
             "status": "healthy",

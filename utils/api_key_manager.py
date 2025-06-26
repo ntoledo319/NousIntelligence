@@ -62,28 +62,28 @@ class APIKeyRateLimitError(APIKeyError):
 def generate_api_key() -> Tuple[str, str, str]:
     """
     Generate a new API key in the format prefix.secret
-    
+
     Returns:
         Tuple of (full_key, prefix, secret)
     """
     # Generate a random prefix (visible part for identification)
     prefix = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(API_KEY_PREFIX_LENGTH))
-    
+
     # Generate a secure random secret (hidden part)
     secret = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(API_KEY_SECRET_LENGTH))
-    
+
     # Combine to create the full key
     full_key = f"{prefix}{API_KEY_SEPARATOR}{secret}"
-    
+
     return full_key, prefix, secret
 
 def hash_api_key(key: str) -> str:
     """
     Hash an API key for secure storage
-    
+
     Args:
         key: The API key to hash
-        
+
     Returns:
         Secure hash of the key
     """
@@ -94,13 +94,13 @@ def hash_api_key(key: str) -> str:
 def validate_api_key(key: str) -> Optional[APIKey]:
     """
     Validate an API key and return the associated key object if valid
-    
+
     Args:
         key: The API key to validate
-        
+
     Returns:
         APIKey object if valid, None otherwise
-        
+
     Raises:
         APIKeyInvalidError: If key format is invalid
         APIKeyExpiredError: If key has expired
@@ -112,32 +112,32 @@ def validate_api_key(key: str) -> Optional[APIKey]:
             raise APIKeyInvalidError("Invalid API key format")
     except ValueError:
         raise APIKeyInvalidError("Invalid API key format")
-    
+
     # Find the key in the database
     api_key = APIKey.query.filter_by(key_prefix=prefix, status='active').first()
-    
+
     if not api_key:
         # Also check rotated keys in grace period
         grace_period = datetime.utcnow() - timedelta(days=ROTATION_GRACE_PERIOD_DAYS)
         api_key = APIKey.query.filter_by(
-            key_prefix=prefix, 
+            key_prefix=prefix,
             status='rotated'
         ).filter(
             APIKey.last_rotated_at >= grace_period
         ).first()
-        
+
         if not api_key:
             raise APIKeyInvalidError("API key not found or no longer active")
-    
+
     # Verify the key hash
     full_key = f"{prefix}{API_KEY_SEPARATOR}{secret}"
     if api_key.key_hash != hash_api_key(full_key):
         raise APIKeyInvalidError("Invalid API key")
-    
+
     # Check expiration
     if api_key.expires_at and api_key.expires_at < datetime.utcnow():
         raise APIKeyExpiredError("API key has expired")
-    
+
     # Record usage
     try:
         api_key.record_usage()
@@ -145,17 +145,17 @@ def validate_api_key(key: str) -> Optional[APIKey]:
     except SQLAlchemyError as e:
         logger.warning(f"Failed to update API key usage stats: {str(e)}")
         db.session.rollback()
-    
+
     return api_key
 
 def check_api_key_scope(api_key: APIKey, required_scope: str) -> bool:
     """
     Check if an API key has the required scope
-    
+
     Args:
         api_key: The API key to check
         required_scope: The required scope
-        
+
     Returns:
         True if the key has the required scope, False otherwise
     """
@@ -170,14 +170,14 @@ def create_api_key(
 ) -> Tuple[APIKey, str]:
     """
     Create a new API key for a user
-    
+
     Args:
         user_id: User ID to create the key for
         name: User-defined name for the key
         scopes: List of scopes to grant (defaults to ["read"])
         expires_in_days: Days until expiration (defaults to 90 days)
         request_info: Optional request information for auditing
-        
+
     Returns:
         Tuple of (APIKey object, full_key)
     """
@@ -189,20 +189,20 @@ def create_api_key(
         for scope in scopes:
             if scope != '*' and scope not in AVAILABLE_SCOPES:
                 raise ValueError(f"Invalid scope: {scope}")
-    
+
     # Generate expiry date
     if expires_in_days is None:
         expires_in_days = DEFAULT_EXPIRY_DAYS
-    
+
     if expires_in_days > 0:
         expires_at = datetime.utcnow() + timedelta(days=expires_in_days)
     else:
         expires_at = None  # No expiration
-    
+
     # Generate new API key
     full_key, prefix, secret = generate_api_key()
     key_hash = hash_api_key(full_key)
-    
+
     # Create API key record
     api_key = APIKey(
         user_id=user_id,
@@ -213,37 +213,37 @@ def create_api_key(
         expires_at=expires_at,
         status='active'
     )
-    
+
     try:
         db.session.add(api_key)
         db.session.flush()  # Get ID without committing
-        
+
         # Record creation event
         event = APIKeyEvent(
             api_key_id=api_key.id,
             event_type='created',
             performed_by_id=user_id
         )
-        
+
         # Add request info if available
         if request_info:
             event.ip_address = request_info.get('ip_address')
             event.user_agent = request_info.get('user_agent')
             if request_info.get('metadata'):
                 event.metadata = json.dumps(request_info['metadata'])
-        
+
         db.session.add(event)
         db.session.commit()
-        
+
         logger.info(f"Created new API key {prefix}... for user {user_id}")
-        
+
         return api_key, full_key
-    
+
     except SQLAlchemyError as e:
         db.session.rollback()
         logger.error(f"Error creating API key: {str(e)}")
         raise
-    
+
 def revoke_api_key(
     api_key_id: int,
     performed_by_id: int,
@@ -251,49 +251,49 @@ def revoke_api_key(
 ) -> bool:
     """
     Revoke an API key
-    
+
     Args:
         api_key_id: ID of the key to revoke
         performed_by_id: ID of the user performing the revocation
         request_info: Optional request information for auditing
-        
+
     Returns:
         True if successful
     """
     api_key = APIKey.query.get(api_key_id)
     if not api_key:
         raise APIKeyError("API key not found")
-    
+
     # Check if user is authorized to revoke this key
     user = User.query.get(performed_by_id)
     if not user.is_administrator() and api_key.user_id != performed_by_id:
         raise APIKeyError("Not authorized to revoke this API key")
-    
+
     try:
         # Update key status
         api_key.status = 'revoked'
-        
+
         # Record revocation event
         event = APIKeyEvent(
             api_key_id=api_key.id,
             event_type='revoked',
             performed_by_id=performed_by_id
         )
-        
+
         # Add request info if available
         if request_info:
             event.ip_address = request_info.get('ip_address')
             event.user_agent = request_info.get('user_agent')
             if request_info.get('metadata'):
                 event.metadata = json.dumps(request_info['metadata'])
-        
+
         db.session.add(event)
         db.session.commit()
-        
+
         logger.info(f"Revoked API key {api_key.key_prefix}... (ID: {api_key.id})")
-        
+
         return True
-    
+
     except SQLAlchemyError as e:
         db.session.rollback()
         logger.error(f"Error revoking API key: {str(e)}")
@@ -307,36 +307,36 @@ def rotate_api_key(
     """
     Rotate an API key by creating a new key and marking the old one as rotated
     The old key remains valid for a grace period to allow for system updates
-    
+
     Args:
         api_key_id: ID of the key to rotate
         performed_by_id: ID of the user performing the rotation
         request_info: Optional request information for auditing
-        
+
     Returns:
         Tuple of (new APIKey object, new full_key)
     """
     old_key = APIKey.query.get(api_key_id)
     if not old_key:
         raise APIKeyRotationError("API key not found")
-    
+
     # Check if key is active
     if old_key.status != 'active':
         raise APIKeyRotationError("Cannot rotate an already rotated or revoked key")
-    
+
     # Check if user is authorized to rotate this key
     user = User.query.get(performed_by_id)
     if not user.is_administrator() and old_key.user_id != performed_by_id:
         raise APIKeyRotationError("Not authorized to rotate this API key")
-    
+
     try:
         # Generate new API key
         full_key, prefix, secret = generate_api_key()
         key_hash = hash_api_key(full_key)
-        
+
         # Parse old scopes
         scopes = json.loads(old_key.scopes) if isinstance(old_key.scopes, str) else old_key.scopes
-        
+
         # Create new key with same parameters
         new_key = APIKey(
             user_id=old_key.user_id,
@@ -349,44 +349,44 @@ def rotate_api_key(
             rotated_from_id=old_key.id,
             rotation_count=old_key.rotation_count + 1
         )
-        
+
         db.session.add(new_key)
         db.session.flush()  # Get ID without committing
-        
+
         # Update old key
         old_key.status = 'rotated'
         old_key.rotated_to_id = new_key.id
         old_key.last_rotated_at = datetime.utcnow()
-        
+
         # Record rotation events
         rotation_event = APIKeyEvent(
             api_key_id=old_key.id,
             event_type='rotated',
             performed_by_id=performed_by_id
         )
-        
+
         creation_event = APIKeyEvent(
             api_key_id=new_key.id,
             event_type='created',
             performed_by_id=performed_by_id,
             metadata=json.dumps({"rotated_from": old_key.id})
         )
-        
+
         # Add request info if available
         if request_info:
             rotation_event.ip_address = request_info.get('ip_address')
             rotation_event.user_agent = request_info.get('user_agent')
             creation_event.ip_address = request_info.get('ip_address')
             creation_event.user_agent = request_info.get('user_agent')
-        
+
         db.session.add(rotation_event)
         db.session.add(creation_event)
         db.session.commit()
-        
+
         logger.info(f"Rotated API key {old_key.key_prefix}... to {new_key.key_prefix}...")
-        
+
         return new_key, full_key
-    
+
     except SQLAlchemyError as e:
         db.session.rollback()
         logger.error(f"Error rotating API key: {str(e)}")
@@ -395,21 +395,21 @@ def rotate_api_key(
 def check_rate_limits(api_key: APIKey, hourly_limit: int = 1000, daily_limit: int = 10000) -> bool:
     """
     Check if an API key has exceeded its rate limits
-    
+
     Args:
         api_key: The API key to check
         hourly_limit: Maximum requests per hour
         daily_limit: Maximum requests per day
-        
+
     Returns:
         True if within limits, False if exceeded
-        
+
     Raises:
         APIKeyRateLimitError: If rate limit is exceeded
     """
     # Reset counters if needed
     now = datetime.utcnow()
-    
+
     # Check hourly rate limit
     hourly_diff = now - api_key.hourly_reset_at
     if hourly_diff.total_seconds() > 3600:
@@ -419,7 +419,7 @@ def check_rate_limits(api_key: APIKey, hourly_limit: int = 1000, daily_limit: in
         next_reset = api_key.hourly_reset_at + timedelta(hours=1)
         reset_in = int((next_reset - now).total_seconds())
         raise APIKeyRateLimitError(f"Hourly rate limit exceeded. Resets in {reset_in} seconds")
-    
+
     # Check daily rate limit
     daily_diff = now - api_key.daily_reset_at
     if daily_diff.total_seconds() > 86400:
@@ -429,18 +429,18 @@ def check_rate_limits(api_key: APIKey, hourly_limit: int = 1000, daily_limit: in
         next_reset = api_key.daily_reset_at + timedelta(days=1)
         reset_in = int((next_reset - now).total_seconds())
         raise APIKeyRateLimitError(f"Daily rate limit exceeded. Resets in {reset_in} seconds")
-    
+
     return True
 
 def init_api_key_cleanup(app):
     """
     Initialize scheduled cleanup of expired API keys and rotation grace periods
-    
+
     Args:
         app: Flask application instance
     """
     import threading
-    
+
     def cleanup_worker():
         """Worker function to periodically clean up API keys"""
         with app.app_context():
@@ -452,27 +452,27 @@ def init_api_key_cleanup(app):
                         APIKey.status == 'active',
                         APIKey.expires_at < now
                     ).all()
-                    
+
                     for key in expired_keys:
                         key.status = 'expired'
-                        
+
                         # Create expired event
                         event = APIKeyEvent(
                             api_key_id=key.id,
                             event_type='expired'
                         )
                         db.session.add(event)
-                    
+
                     # Mark rotated keys as expired after grace period
                     grace_cutoff = now - timedelta(days=ROTATION_GRACE_PERIOD_DAYS)
                     rotated_keys = APIKey.query.filter(
                         APIKey.status == 'rotated',
                         APIKey.last_rotated_at < grace_cutoff
                     ).all()
-                    
+
                     for key in rotated_keys:
                         key.status = 'expired'
-                        
+
                         # Create expired event
                         event = APIKeyEvent(
                             api_key_id=key.id,
@@ -480,76 +480,76 @@ def init_api_key_cleanup(app):
                             metadata=json.dumps({"reason": "rotation_grace_period_ended"})
                         )
                         db.session.add(event)
-                    
+
                     if expired_keys or rotated_keys:
                         db.session.commit()
                         logger.info(f"Cleaned up {len(expired_keys)} expired and {len(rotated_keys)} rotated API keys")
-                    
+
                 except Exception as e:
                     logger.error(f"Error in API key cleanup: {str(e)}")
                     db.session.rollback()
-                
+
                 # Sleep for 1 hour
                 time.sleep(3600)
-    
+
     # Start cleanup thread
     cleanup_thread = threading.Thread(target=cleanup_worker, daemon=True)
     cleanup_thread.start()
-    
+
     logger.info("API key cleanup scheduler initialized")
 
 def api_key_required(f=None, scopes=None):
     """
     Decorator to protect routes with API key authentication
-    
+
     Args:
         f: The function to decorate
         scopes: Required scopes (single string or list of strings)
-        
+
     Returns:
         Decorated function that requires a valid API key
     """
     if f is None:
         return lambda f: api_key_required(f, scopes=scopes)
-    
+
     required_scopes = []
     if scopes:
         if isinstance(scopes, str):
             required_scopes = [scopes]
         else:
             required_scopes = scopes
-    
+
     @wraps(f)
     def decorated(*args, **kwargs):
         # Get API key from request
         api_key_value = None
-        
+
         # Check Authorization header
         auth_header = request.headers.get('Authorization')
         if auth_header and auth_header.startswith('Bearer '):
             api_key_value = auth_header.split('Bearer ')[1]
-        
+
         # Check X-API-Key header
         if not api_key_value:
             api_key_value = request.headers.get('X-API-Key')
-        
+
         # Check query parameter
         if not api_key_value:
             api_key_value = request.args.get('api_key')
-        
+
         if not api_key_value:
             return jsonify({
                 'error': 'Authentication required',
                 'message': 'API key is required'
             }), 401
-        
+
         try:
             # Validate API key
             api_key = validate_api_key(api_key_value)
-            
+
             # Check rate limits
             check_rate_limits(api_key)
-            
+
             # Check scopes if required
             if required_scopes:
                 has_required_scope = False
@@ -557,49 +557,49 @@ def api_key_required(f=None, scopes=None):
                     if check_api_key_scope(api_key, scope):
                         has_required_scope = True
                         break
-                
+
                 if not has_required_scope:
                     return jsonify({
                         'error': 'Insufficient permissions',
                         'message': f'API key is missing required scope. Needs one of: {", ".join(required_scopes)}'
                     }), 403
-            
+
             # Store API key and user ID in flask.g for use in the route
             g.api_key = api_key
             g.user_id = api_key.user_id
-            
+
             return f(*args, **kwargs)
-        
+
         except APIKeyInvalidError as e:
             return jsonify({
                 'error': 'Invalid API key',
                 'message': str(e)
             }), 401
-        
+
         except APIKeyExpiredError as e:
             return jsonify({
                 'error': 'Expired API key',
                 'message': str(e)
             }), 401
-        
+
         except APIKeyScopeError as e:
             return jsonify({
                 'error': 'Insufficient permissions',
                 'message': str(e)
             }), 403
-        
+
         except APIKeyRateLimitError as e:
             return jsonify({
                 'error': 'Rate limit exceeded',
                 'message': str(e)
             }), 429
-    
+
     return decorated
 
 def get_request_info() -> Dict[str, Any]:
     """
     Get information about the current request for auditing purposes
-    
+
     Returns:
         Dictionary with request information
     """
@@ -612,4 +612,4 @@ def get_request_info() -> Dict[str, Any]:
             'path': request.path,
             'referrer': request.referrer
         }
-    } 
+    }

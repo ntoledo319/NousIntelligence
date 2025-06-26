@@ -73,23 +73,23 @@ COMMAND_PATTERNS = {
 def handle_meet_command(user_id: int, command: str) -> Dict[str, Any]:
     """
     Process a chat command related to Google Meet functionality
-    
+
     Args:
         user_id: ID of the current user
         command: The chat command text from the user
-        
+
     Returns:
         Response object with result and optional meeting details
     """
     # Identify the command type
     command_type = identify_command_type(command)
-    
+
     if not command_type:
         return {
             'success': False,
             'message': "I'm not sure what kind of meeting you want to create. Please try again with more details."
         }
-    
+
     # Get the user's Google Meet service connection
     connection = get_user_connection(user_id, 'google')
     if not connection:
@@ -97,14 +97,14 @@ def handle_meet_command(user_id: int, command: str) -> Dict[str, Any]:
             'success': False,
             'message': "You need to connect your Google account first. Go to Settings > Integrations to connect."
         }
-    
+
     calendar_service = get_meet_service(connection)
     if not calendar_service:
         return {
             'success': False,
             'message': "There was an issue connecting to Google Calendar. Please try again later."
         }
-    
+
     # Handle the specific command type
     if command_type == 'list_meetings':
         return handle_list_meetings(calendar_service, command)
@@ -119,10 +119,10 @@ def handle_meet_command(user_id: int, command: str) -> Dict[str, Any]:
 def identify_command_type(command: str) -> Optional[str]:
     """
     Identify the type of Google Meet command from the user's message
-    
+
     Args:
         command: User's chat command text
-        
+
     Returns:
         Command type identifier or None if not recognized
     """
@@ -135,12 +135,12 @@ def identify_command_type(command: str) -> Optional[str]:
 def handle_create_meeting(calendar_service, command_type: str, command: str) -> Dict[str, Any]:
     """
     Handle commands to create different types of meetings
-    
+
     Args:
         calendar_service: Google Calendar service object
         command_type: Type of meeting command
         command: Full user command text
-        
+
     Returns:
         Response with meeting details
     """
@@ -149,18 +149,18 @@ def handle_create_meeting(calendar_service, command_type: str, command: str) -> 
     start_time = extract_datetime(command)
     duration = extract_duration(command)
     attendees = extract_emails(command)
-    
+
     # If no start time specified, default to tomorrow at current time
     if not start_time:
         start_time = datetime.datetime.now() + datetime.timedelta(days=1)
         start_time = start_time.replace(microsecond=0)
-    
+
     # Create different meeting types
     if command_type == 'create_meeting':
         # For standard meetings
         if not title:
             title = "New Meeting"
-        
+
         end_time = start_time + datetime.timedelta(minutes=duration or 60)
         result = create_meeting(
             calendar_service,
@@ -170,7 +170,7 @@ def handle_create_meeting(calendar_service, command_type: str, command: str) -> 
             end_time,
             attendees
         )
-    
+
     elif command_type == 'therapy_session':
         # Extract therapy type
         session_type = extract_session_type(command)
@@ -181,13 +181,13 @@ def handle_create_meeting(calendar_service, command_type: str, command: str) -> 
             start_time,
             duration or 60
         )
-    
+
     elif command_type == 'recovery_group':
         # Extract group type
         group_type = extract_group_type(command)
         is_recurring = 'weekly' in command.lower() or 'recurring' in command.lower()
         weekly_day = extract_weekly_day(command) if is_recurring else None
-        
+
         result = create_recovery_group_meeting(
             calendar_service,
             group_type or 'aa',
@@ -197,7 +197,7 @@ def handle_create_meeting(calendar_service, command_type: str, command: str) -> 
             is_recurring,
             weekly_day
         )
-    
+
     elif command_type == 'sponsor_meeting':
         # For sponsor meetings
         sponsor_email = attendees[0] if attendees else extract_sponsor_email(command)
@@ -206,14 +206,14 @@ def handle_create_meeting(calendar_service, command_type: str, command: str) -> 
                 'success': False,
                 'message': "Please specify your sponsor's email address."
             }
-            
+
         result = create_sponsor_meeting(
             calendar_service,
             sponsor_email,
             start_time,
             duration or 45
         )
-    
+
     elif command_type == 'mindfulness_session':
         # Extract mindfulness type
         session_type = extract_mindfulness_type(command)
@@ -224,17 +224,17 @@ def handle_create_meeting(calendar_service, command_type: str, command: str) -> 
             start_time,
             duration or 30
         )
-    
+
     # Handle result
     if 'error' in result:
         return {
             'success': False,
             'message': f"Sorry, I couldn't create the meeting: {result['error']}"
         }
-    
+
     # Format a natural language response
     meeting_time = format_datetime(result['start_time'])
-    
+
     return {
         'success': True,
         'message': f"I've created your {command_type.replace('_', ' ')} for {meeting_time}. You can join using the Meet link below.",
@@ -249,11 +249,11 @@ def handle_create_meeting(calendar_service, command_type: str, command: str) -> 
 def handle_list_meetings(calendar_service, command: str) -> Dict[str, Any]:
     """
     Handle commands to list upcoming meetings
-    
+
     Args:
         calendar_service: Google Calendar service object
         command: Full user command text
-        
+
     Returns:
         Response with list of meetings
     """
@@ -262,27 +262,27 @@ def handle_list_meetings(calendar_service, command: str) -> Dict[str, Any]:
     match = re.search(r'(?i)show (\d+)', command)
     if match:
         max_results = int(match.group(1))
-    
+
     result = list_upcoming_meetings(calendar_service, max_results)
-    
+
     if isinstance(result, dict) and 'error' in result:
         return {
             'success': False,
             'message': f"Sorry, I couldn't retrieve your meetings: {result['error']}"
         }
-    
+
     if not result:
         return {
             'success': True,
             'message': "You don't have any upcoming meetings."
         }
-    
+
     # Format meetings for display
     meetings_text = []
     for i, meeting in enumerate(result):
         meeting_time = format_datetime(meeting['start_time'])
         meetings_text.append(f"{i+1}. {meeting['title']} - {meeting_time}")
-    
+
     return {
         'success': True,
         'message': "Here are your upcoming meetings:\n" + "\n".join(meetings_text),
@@ -292,34 +292,34 @@ def handle_list_meetings(calendar_service, command: str) -> Dict[str, Any]:
 def handle_generate_agenda(calendar_service, command: str) -> Dict[str, Any]:
     """
     Handle commands to generate a meeting agenda
-    
+
     Args:
         calendar_service: Google Calendar service object
         command: Full user command text
-        
+
     Returns:
         Response with generated agenda
     """
     # Extract meeting_id if specified
     meeting_id = extract_meeting_id(command)
-    
+
     # Extract meeting type and topic
     meeting_type = extract_meeting_type(command)
     topic = extract_topic(command)
-    
+
     result = generate_meeting_agenda(
         calendar_service,
         meeting_id,
         meeting_type or 'general',
         topic
     )
-    
+
     if 'error' in result:
         return {
             'success': False,
             'message': f"Sorry, I couldn't generate an agenda: {result['error']}"
         }
-    
+
     return {
         'success': True,
         'message': f"I've generated an agenda for your {meeting_type or 'general'} meeting.",
@@ -330,10 +330,10 @@ def handle_generate_agenda(calendar_service, command: str) -> Dict[str, Any]:
 def handle_analyze_notes(command: str) -> Dict[str, Any]:
     """
     Handle commands to analyze meeting notes
-    
+
     Args:
         command: Full user command text
-        
+
     Returns:
         Response with analysis results
     """
@@ -345,18 +345,18 @@ def handle_analyze_notes(command: str) -> Dict[str, Any]:
             'success': False,
             'message': "Please provide the meeting notes you want to analyze."
         }
-    
+
     # Extract meeting type
     meeting_type = extract_meeting_type(command)
-    
+
     result = analyze_meeting_notes(notes_text, meeting_type or 'general')
-    
+
     if 'error' in result:
         return {
             'success': False,
             'message': f"Sorry, I couldn't analyze the notes: {result['error']}"
         }
-    
+
     return {
         'success': True,
         'message': "I've analyzed your meeting notes. Here's what I found:",
@@ -370,23 +370,23 @@ def extract_title_description(command: str) -> Tuple[Optional[str], Optional[str
     """Extract meeting title and description from command"""
     title = None
     description = None
-    
+
     # Try to find "called X" or "titled X" patterns for title
     title_match = re.search(r'(?i)(?:called|titled|about|for|on)\s+["\']([^"\']+)["\']', command)
     if title_match:
         title = title_match.group(1)
-    
+
     # If that fails, look for "about X" or similar patterns
     if not title:
         title_match = re.search(r'(?i)(?:called|titled|about|for|on)\s+([^,.]+)', command)
         if title_match:
             title = title_match.group(1).strip()
-    
+
     # Check for description with "with description" pattern
     desc_match = re.search(r'(?i)with description ["\']([^"\']+)["\']', command)
     if desc_match:
         description = desc_match.group(1)
-    
+
     return title, description
 
 def extract_session_type(command: str) -> Optional[str]:
@@ -400,12 +400,12 @@ def extract_session_type(command: str) -> Optional[str]:
         'family': ['family', 'family therapy'],
         'assessment': ['assessment', 'evaluation', 'initial']
     }
-    
+
     for session_type, patterns in session_types.items():
         for pattern in patterns:
             if pattern in command.lower():
                 return session_type
-    
+
     return None
 
 def extract_group_type(command: str) -> Optional[str]:
@@ -420,12 +420,12 @@ def extract_group_type(command: str) -> Optional[str]:
         'oa': ['oa', 'overeaters', 'overeaters anonymous'],
         'ga': ['ga', 'gamblers', 'gamblers anonymous']
     }
-    
+
     for group_type, patterns in group_types.items():
         for pattern in patterns:
             if pattern in command.lower():
                 return group_type
-    
+
     return None
 
 def extract_mindfulness_type(command: str) -> Optional[str]:
@@ -439,12 +439,12 @@ def extract_mindfulness_type(command: str) -> Optional[str]:
         'compassion': ['compassion', 'self-compassion', 'self compassion'],
         'awareness': ['awareness', 'mindful awareness']
     }
-    
+
     for mindfulness_type, patterns in mindfulness_types.items():
         for pattern in patterns:
             if pattern in command.lower():
                 return mindfulness_type
-    
+
     return None
 
 def extract_weekly_day(command: str) -> Optional[int]:
@@ -458,11 +458,11 @@ def extract_weekly_day(command: str) -> Optional[int]:
         'saturday': 5, 'sat': 5,
         'sunday': 6, 'sun': 6
     }
-    
+
     for day_name, day_value in days.items():
         if day_name in command.lower():
             return day_value
-    
+
     return None
 
 def extract_sponsor_email(command: str) -> Optional[str]:
@@ -492,12 +492,12 @@ def extract_meeting_type(command: str) -> Optional[str]:
         'sponsor': ['sponsor', 'sponsee'],
         'mindfulness': ['mindfulness', 'meditation', 'yoga']
     }
-    
+
     for meeting_type, patterns in meeting_types.items():
         for pattern in patterns:
             if pattern in command.lower():
                 return meeting_type
-    
+
     return None
 
 def extract_topic(command: str) -> Optional[str]:
@@ -505,11 +505,11 @@ def extract_topic(command: str) -> Optional[str]:
     topic_match = re.search(r'(?i)topic\s+["\']([^"\']+)["\']', command)
     if topic_match:
         return topic_match.group(1)
-    
+
     topic_match = re.search(r'(?i)topic\s+([^,.]+)', command)
     if topic_match:
         return topic_match.group(1).strip()
-    
+
     return None
 
 def extract_notes_text(command: str) -> Optional[str]:
@@ -527,4 +527,4 @@ def format_datetime(dt_str: str) -> str:
         dt = datetime.datetime.fromisoformat(dt_str.replace('Z', '+00:00'))
         return dt.strftime('%A, %B %d at %I:%M %p')
     except (ValueError, TypeError):
-        return dt_str 
+        return dt_str

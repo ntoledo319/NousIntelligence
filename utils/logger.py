@@ -13,12 +13,12 @@ def log_workout(entry):
     try:
         ensure_directory("data")
         log_file = "data/workouts.json"
-        
+
         # Create an empty file if it doesn't exist
         if not os.path.exists(log_file):
             with open(log_file, "w") as f:
                 json.dump([], f)
-        
+
         # Read existing entries
         with open(log_file, "r") as f:
             try:
@@ -27,18 +27,18 @@ def log_workout(entry):
                     entries = []
             except json.JSONDecodeError:
                 entries = []
-        
+
         # Add new entry
         entry_data = {
             "timestamp": datetime.datetime.now().isoformat(),
             "entry": entry
         }
         entries.append(entry_data)
-        
+
         # Write back to file
         with open(log_file, "w") as f:
             json.dump(entries, f, indent=2)
-            
+
         return True
     except Exception as e:
         logging.error(f"Error logging workout: {str(e)}")
@@ -49,12 +49,12 @@ def log_mood(entry):
     try:
         ensure_directory("data")
         log_file = "data/moods.json"
-        
+
         # Create an empty file if it doesn't exist
         if not os.path.exists(log_file):
             with open(log_file, "w") as f:
                 json.dump([], f)
-        
+
         # Read existing entries
         with open(log_file, "r") as f:
             try:
@@ -63,18 +63,18 @@ def log_mood(entry):
                     entries = []
             except json.JSONDecodeError:
                 entries = []
-        
+
         # Add new entry
         entry_data = {
             "timestamp": datetime.datetime.now().isoformat(),
             "entry": entry
         }
         entries.append(entry_data)
-        
+
         # Write back to file
         with open(log_file, "w") as f:
             json.dump(entries, f, indent=2)
-            
+
         return True
     except Exception as e:
         logging.error(f"Error logging mood: {str(e)}")
@@ -86,10 +86,10 @@ def get_workout_entries(limit=10):
         log_file = "data/workouts.json"
         if not os.path.exists(log_file):
             return []
-            
+
         with open(log_file, "r") as f:
             entries = json.load(f)
-            
+
         # Sort by timestamp (newest first) and limit
         entries.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
         return entries[:limit]
@@ -103,10 +103,10 @@ def get_mood_entries(limit=10):
         log_file = "data/moods.json"
         if not os.path.exists(log_file):
             return []
-            
+
         with open(log_file, "r") as f:
             entries = json.load(f)
-            
+
         # Sort by timestamp (newest first) and limit
         entries.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
         return entries[:limit]

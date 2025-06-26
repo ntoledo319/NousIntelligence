@@ -21,7 +21,7 @@ def set_difficulty(difficulty_level):
 def get_current_difficulty():
     """
     Get the current conversation difficulty level
-    
+
     Returns the difficulty level from:
     1. Global variable if set via set_difficulty()
     2. Current user's settings if authenticated
@@ -47,7 +47,7 @@ def get_difficulty_context():
     This can be added to AI prompts to guide response complexity
     """
     difficulty = get_current_difficulty()
-    
+
     if difficulty == "beginner":
         return """
         Please explain everything in very simple terms. Avoid technical jargon.
@@ -77,38 +77,38 @@ def get_difficulty_context():
         No need to explain standard terminology in the field.
         Assume expert-level knowledge of the subject.
         """
-    
+
     # Default if none of the above match
     return ""
 
 def adapt_response(response, explain_technical_terms=True):
     """
     Adapt an AI-generated response to match the user's preferred difficulty level
-    
+
     Args:
         response: The original AI response text
         explain_technical_terms: Whether to add explanations for technical terms (for beginner mode)
-        
+
     Returns:
         str: The adapted response with appropriate complexity level
     """
     difficulty = get_current_difficulty()
-    
+
     # For intermediate and above, return as is
     if difficulty in ["intermediate", "advanced", "expert"]:
         return response
-    
+
     # For beginner level, perform transformations
     if difficulty == "beginner":
         # Simplify sentence structure
         simplified = _simplify_sentences(response)
-        
+
         # Add explanations for technical terms if requested
         if explain_technical_terms:
             simplified = _add_term_explanations(simplified)
-            
+
         return simplified
-    
+
     # Default case - return original response
     return response
 
@@ -116,11 +116,11 @@ def _simplify_sentences(text):
     """Split complex sentences into simpler ones"""
     # Replace semicolons with periods
     text = re.sub(r';\s*', '. ', text)
-    
+
     # Break up sentences with multiple commas
     sentences = re.split(r'(?<=[.!?])\s+', text)
     simplified_sentences = []
-    
+
     for sentence in sentences:
         # If a sentence has multiple clauses with commas, consider breaking it up
         if sentence.count(',') > 2:
@@ -129,7 +129,7 @@ def _simplify_sentences(text):
                 # Reconstruct as separate sentences when appropriate
                 new_sentences = []
                 current_sentence = parts[0]
-                
+
                 for part in parts[1:]:
                     # If part seems like it could be a standalone sentence, make it one
                     if len(part.split()) > 3 and part[0].isalpha() and part[0].isupper():
@@ -137,21 +137,21 @@ def _simplify_sentences(text):
                         current_sentence = part
                     else:
                         current_sentence += ', ' + part
-                
+
                 new_sentences.append(current_sentence)
                 simplified_sentences.extend(new_sentences)
             else:
                 simplified_sentences.append(sentence)
         else:
             simplified_sentences.append(sentence)
-    
+
     return ' '.join(simplified_sentences)
 
 def _add_term_explanations(text):
     """Add explanations for technical terms"""
-    # This is a simplified version - in a real implementation, 
+    # This is a simplified version - in a real implementation,
     # you might want to use an AI call to identify and explain technical terms
-    
+
     # List of common technical terms and their simple explanations
     technical_terms = {
         'API': 'an interface that lets different software systems communicate',
@@ -170,17 +170,17 @@ def _add_term_explanations(text):
         'UX': 'user experience, how a person feels when using a product',
         'VPN': 'a service that hides your internet activity',
     }
-    
+
     # Simple replacement of technical terms with explanations
     for term, explanation in technical_terms.items():
         # Case-insensitive search, preserve original capitalization
         pattern = re.compile(re.escape(term), re.IGNORECASE)
-        
+
         # Only add explanation for first occurrence
         match = pattern.search(text)
         if match:
             orig_term = match.group(0)  # The term as it appears in the text
             replacement = f"{orig_term} ({explanation})"
             text = pattern.sub(replacement, text, count=1)
-    
+
     return text

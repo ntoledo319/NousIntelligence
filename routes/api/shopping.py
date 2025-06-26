@@ -51,13 +51,13 @@ def get_shopping_list(list_id):
     try:
         user_id = current_user.id
         shopping_list = ShoppingList.query.filter_by(id=list_id, user_id=user_id).first()
-        
+
         if not shopping_list:
             return jsonify({
                 'success': False,
                 'error': 'Shopping list not found'
             }), 404
-            
+
         return jsonify({
             'success': True,
             'shopping_list': shopping_list.to_dict()
@@ -81,17 +81,17 @@ def create_shopping_list():
                 'success': False,
                 'error': 'No data provided'
             }), 400
-            
+
         # Validate required fields
         required_fields = ['name']
         missing_fields = [field for field in required_fields if field not in data]
-        
+
         if missing_fields:
             return jsonify({
                 'success': False,
                 'error': f'Missing required fields: {", ".join(missing_fields)}'
             }), 400
-            
+
         # Create new shopping list
         shopping_list = ShoppingList(
             name=data['name'],
@@ -101,7 +101,7 @@ def create_shopping_list():
             frequency_days=data.get('frequency_days', 0),
             user_id=current_user.id
         )
-        
+
         # Add next_order_date if provided
         if 'next_order_date' in data:
             try:
@@ -114,10 +114,10 @@ def create_shopping_list():
                     'success': False,
                     'error': 'Invalid next_order_date format. Use ISO format (YYYY-MM-DDTHH:MM:SS)'
                 }), 400
-                
+
         db.session.add(shopping_list)
         db.session.commit()
-        
+
         return jsonify({
             'success': True,
             'shopping_list': shopping_list.to_dict(),
@@ -138,15 +138,15 @@ def get_list_items(list_id):
     try:
         user_id = current_user.id
         shopping_list = ShoppingList.query.filter_by(id=list_id, user_id=user_id).first()
-        
+
         if not shopping_list:
             return jsonify({
                 'success': False,
                 'error': 'Shopping list not found'
             }), 404
-            
+
         items = ShoppingItem.query.filter_by(shopping_list_id=list_id).all()
-        
+
         return jsonify({
             'success': True,
             'items': [item.to_dict() for item in items],
@@ -167,30 +167,30 @@ def add_list_item(list_id):
     try:
         user_id = current_user.id
         shopping_list = ShoppingList.query.filter_by(id=list_id, user_id=user_id).first()
-        
+
         if not shopping_list:
             return jsonify({
                 'success': False,
                 'error': 'Shopping list not found'
             }), 404
-            
+
         data = request.get_json()
         if not data:
             return jsonify({
                 'success': False,
                 'error': 'No data provided'
             }), 400
-            
+
         # Validate required fields
         required_fields = ['name']
         missing_fields = [field for field in required_fields if field not in data]
-        
+
         if missing_fields:
             return jsonify({
                 'success': False,
                 'error': f'Missing required fields: {", ".join(missing_fields)}'
             }), 400
-            
+
         # Create new shopping item
         item = ShoppingItem(
             shopping_list_id=list_id,
@@ -202,10 +202,10 @@ def add_list_item(list_id):
             is_checked=data.get('is_checked', False),
             priority=data.get('priority', 0)
         )
-        
+
         db.session.add(item)
         db.session.commit()
-        
+
         return jsonify({
             'success': True,
             'item': item.to_dict(),
@@ -229,17 +229,17 @@ def toggle_item_checked(item_id):
             ShoppingItem.id == item_id,
             ShoppingList.user_id == current_user.id
         ).first()
-        
+
         if not item:
             return jsonify({
                 'success': False,
                 'error': 'Item not found'
             }), 404
-            
+
         # Toggle the checked status
         item.is_checked = not item.is_checked
         db.session.commit()
-        
+
         return jsonify({
             'success': True,
             'item': item.to_dict(),
@@ -263,16 +263,16 @@ def remove_list_item(item_id):
             ShoppingItem.id == item_id,
             ShoppingList.user_id == current_user.id
         ).first()
-        
+
         if not item:
             return jsonify({
                 'success': False,
                 'error': 'Item not found'
             }), 404
-            
+
         db.session.delete(item)
         db.session.commit()
-        
+
         return jsonify({
             'success': True,
             'message': 'Item removed successfully'
@@ -311,13 +311,13 @@ def get_product(product_id):
     try:
         user_id = current_user.id
         product = Product.query.filter_by(id=product_id, user_id=user_id).first()
-        
+
         if not product:
             return jsonify({
                 'success': False,
                 'error': 'Product not found'
             }), 404
-            
+
         return jsonify({
             'success': True,
             'product': product.to_dict()
@@ -341,17 +341,17 @@ def add_product():
                 'success': False,
                 'error': 'No data provided'
             }), 400
-            
+
         # Validate required fields
         required_fields = ['name']
         missing_fields = [field for field in required_fields if field not in data]
-        
+
         if missing_fields:
             return jsonify({
                 'success': False,
                 'error': f'Missing required fields: {", ".join(missing_fields)}'
             }), 400
-            
+
         # Create new product
         product = Product(
             name=data['name'],
@@ -364,11 +364,10 @@ def add_product():
             frequency_days=data.get('frequency_days', 0),
             user_id=current_user.id
         )
-        
+
         # Set dates if provided
         if 'next_order_date' in data:
             try:
-                from datetime import datetime
                 product.next_order_date = datetime.fromisoformat(
                     data['next_order_date'].replace('Z', '+00:00')
                 )
@@ -377,10 +376,9 @@ def add_product():
                     'success': False,
                     'error': 'Invalid next_order_date format. Use ISO format (YYYY-MM-DDTHH:MM:SS)'
                 }), 400
-                
+
         if 'last_ordered' in data:
             try:
-                from datetime import datetime
                 product.last_ordered = datetime.fromisoformat(
                     data['last_ordered'].replace('Z', '+00:00')
                 )
@@ -389,10 +387,10 @@ def add_product():
                     'success': False,
                     'error': 'Invalid last_ordered format. Use ISO format (YYYY-MM-DDTHH:MM:SS)'
                 }), 400
-        
+
         db.session.add(product)
         db.session.commit()
-        
+
         return jsonify({
             'success': True,
             'product': product.to_dict(),
@@ -404,4 +402,4 @@ def add_product():
         return jsonify({
             'success': False,
             'error': str(e)
-        }), 500 
+        }), 500

@@ -13,7 +13,7 @@ from sqlalchemy import Text
 class AABigBook(db.Model):
     """AA Big Book content by chapter"""
     __tablename__ = 'aa_big_book'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     chapter_number = db.Column(db.Integer, nullable=False)
     chapter_title = db.Column(db.String(255), nullable=False)
@@ -23,10 +23,10 @@ class AABigBook(db.Model):
     edition = db.Column(db.String(50), default="4th")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     def __repr__(self):
         return f"<AABigBook {self.chapter_title}>"
-        
+
     def to_dict(self):
         """Convert to dictionary"""
         return {
@@ -44,7 +44,7 @@ class AABigBook(db.Model):
 class AABigBookAudio(db.Model):
     """Audio files for the AA Big Book"""
     __tablename__ = 'aa_big_book_audio'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     chapter_id = db.Column(db.Integer, db.ForeignKey('aa_big_book.id'), nullable=False)
     file_path = db.Column(db.String(255), nullable=False)
@@ -53,13 +53,13 @@ class AABigBookAudio(db.Model):
     audio_quality = db.Column(db.String(50), nullable=True)
     format = db.Column(db.String(10), default="mp3")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     # Relationships
     chapter = db.relationship('AABigBook', backref=db.backref('audio_files', lazy=True))
-    
+
     def __repr__(self):
         return f"<AABigBookAudio for {self.chapter.chapter_title if self.chapter else 'Unknown'}>"
-        
+
     def to_dict(self):
         """Convert to dictionary"""
         return {
@@ -76,7 +76,7 @@ class AABigBookAudio(db.Model):
 class AASpeakerRecording(db.Model):
     """AA speaker recordings"""
     __tablename__ = 'aa_speaker_recordings'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
     speaker_name = db.Column(db.String(255), nullable=False)
@@ -88,10 +88,10 @@ class AASpeakerRecording(db.Model):
     tags = db.Column(db.String(255), nullable=True)  # Comma-separated tags
     format = db.Column(db.String(10), default="mp3")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     def __repr__(self):
         return f"<AASpeakerRecording {self.title} by {self.speaker_name}>"
-        
+
     def to_dict(self):
         """Convert to dictionary"""
         return {
@@ -111,7 +111,7 @@ class AASpeakerRecording(db.Model):
 class AADailyReflection(db.Model):
     """AA daily reflections content"""
     __tablename__ = 'aa_daily_reflections'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     month = db.Column(db.Integer, nullable=False)
     day = db.Column(db.Integer, nullable=False)
@@ -119,10 +119,10 @@ class AADailyReflection(db.Model):
     content = db.Column(Text, nullable=False)
     reference = db.Column(db.String(255), nullable=True)  # Reference to Big Book or other source
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     def __repr__(self):
         return f"<AADailyReflection {self.month}/{self.day}: {self.title}>"
-        
+
     def to_dict(self):
         """Convert to dictionary"""
         return {
@@ -138,20 +138,20 @@ class AADailyReflection(db.Model):
 class AAFavorite(db.Model):
     """User favorites for AA content"""
     __tablename__ = 'aa_favorites'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     content_type = db.Column(db.String(50), nullable=False)  # 'big_book', 'speaker', 'daily'
     content_id = db.Column(db.Integer, nullable=False)
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     # Relationships
     user = db.relationship('User', backref=db.backref('aa_favorites', lazy=True))
-    
+
     def __repr__(self):
         return f"<AAFavorite by {self.user_id}: {self.content_type} #{self.content_id}>"
-        
+
     def to_dict(self):
         """Convert to dictionary"""
         return {
