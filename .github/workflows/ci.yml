@@ -1,0 +1,331 @@
+name: NOUS CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Code Quality & Linting
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black bandit mypy
+        pip install -r requirements.txt
+    
+    - name: Run flake8
+      run: |
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: Run black check
+      run: |
+        black --check .
+    
+    - name: Run bandit security check
+      run: |
+        bandit -r . -f json -o bandit-report.json || true
+        bandit -r . -ll
+    
+    - name: Run mypy type check
+      run: |
+        mypy . --ignore-missing-imports || true
+
+  test:
+    runs-on: ubuntu-latest
+    name: Functional Testing
+    needs: lint
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov
+    
+    - name: Run basic tests
+      run: |
+        python basic_tests.py
+    
+    - name: Run pytest suite
+      run: |
+        pytest tests/ -v --cov=. --cov-report=xml || true
+    
+    - name: Test app creation
+      run: |
+        python -c "
+        try:
+            from minimal_public_app import create_app
+            app = create_app()
+            print('✅ App creation successful')
+        except Exception as e:
+            print(f'❌ App creation failed: {e}')
+            exit(1)
+        "
+
+  duplicate-scan:
+    runs-on: ubuntu-latest
+    name: Duplicate Detection & Code Analysis
+    needs: test
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.11'
+    
+    - name: Run codebase analysis
+      run: |
+        python simple_analyzer.py
+    
+    - name: Check for duplicates
+      run: |
+        python -c "
+        import json
+        with open('/tmp/codegraph.json', 'r') as f:
+            codegraph = json.load(f)
+        
+        duplicates = codegraph.get('duplicates', {})
+        if duplicates:
+            print(f'❌ Found {len(duplicates)} duplicate groups')
+            for hash_val, files in duplicates.items():
+                print(f'  {hash_val[:8]}... -> {files}')
+            exit(1)
+        else:
+            print('✅ No duplicates found')
+        "
+    
+    - name: Check dead file count
+      run: |
+        python -c "
+        import json
+        with open('/tmp/codegraph.json', 'r') as f:
+            codegraph = json.load(f)
+        
+        dead_files = codegraph.get('dead_files', [])
+        if len(dead_files) > 50:  # Threshold for acceptable dead files
+            print(f'⚠️  High number of dead files: {len(dead_files)}')
+            print('Consider running purge operation')
+            # Don't fail the build, just warn
+        else:
+            print(f'✅ Dead file count acceptable: {len(dead_files)}')
+        "
+
+  documentation-check:
+    runs-on: ubuntu-latest
+    name: Documentation Verification
+    needs: duplicate-scan
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Check required docs exist
+      run: |
+        required_docs=(
+          "README.md"
+          "docs/ARCHITECTURE.md"
+          "docs/API_REFERENCE.md"
+          "docs/CHANGELOG.md"
+        )
+        
+        missing_docs=()
+        for doc in "${required_docs[@]}"; do
+          if [ ! -f "$doc" ]; then
+            missing_docs+=("$doc")
+          fi
+        done
+        
+        if [ ${#missing_docs[@]} -eq 0 ]; then
+          echo "✅ All required documentation files present"
+        else
+          echo "❌ Missing documentation files:"
+          printf '%s\n' "${missing_docs[@]}"
+          exit 1
+        fi
+    
+    - name: Validate documentation freshness
+      run: |
+        python -c "
+        import os
+        from datetime import datetime, timedelta
+        
+        docs_to_check = [
+            'docs/ARCHITECTURE.md',
+            'docs/API_REFERENCE.md'
+        ]
+        
+        threshold = datetime.now() - timedelta(days=30)  # 30 days
+        
+        for doc in docs_to_check:
+            if os.path.exists(doc):
+                mtime = datetime.fromtimestamp(os.path.getmtime(doc))
+                if mtime < threshold:
+                    print(f'⚠️  {doc} is older than 30 days')
+                else:
+                    print(f'✅ {doc} is up to date')
+            else:
+                print(f'❌ {doc} missing')
+        "
+
+  security-scan:
+    runs-on: ubuntu-latest
+    name: Security Analysis
+    needs: test
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.11'
+    
+    - name: Install security tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install safety bandit semgrep
+    
+    - name: Run safety check
+      run: |
+        safety check --json --output safety-report.json || true
+        safety check
+    
+    - name: Run bandit security scan
+      run: |
+        bandit -r . -f json -o bandit-security.json || true
+        bandit -r . -ll
+    
+    - name: Check for hardcoded secrets
+      run: |
+        python -c "
+        import os
+        import re
+        
+        secret_patterns = [
+            r'(?i)(password|pwd|pass)\s*=\s*[\"\']\w+[\"\']+',
+            r'(?i)(secret|key|token)\s*=\s*[\"\']\w+[\"\']+',
+            r'(?i)(api[_-]?key)\s*=\s*[\"\']\w+[\"\']+',
+        ]
+        
+        violations = []
+        
+        for root, dirs, files in os.walk('.'):
+            # Skip hidden and backup directories
+            dirs[:] = [d for d in dirs if not d.startswith('.') and d != 'backup']
+            
+            for file in files:
+                if file.endswith('.py'):
+                    filepath = os.path.join(root, file)
+                    try:
+                        with open(filepath, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                        
+                        for pattern in secret_patterns:
+                            matches = re.findall(pattern, content)
+                            if matches:
+                                violations.append(f'{filepath}: {matches}')
+                    except Exception:
+                        pass
+        
+        if violations:
+            print('❌ Potential hardcoded secrets found:')
+            for violation in violations:
+                print(f'  {violation}')
+            exit(1)
+        else:
+            print('✅ No hardcoded secrets detected')
+        "
+
+  build-test:
+    runs-on: ubuntu-latest
+    name: Build & Integration Test
+    needs: [lint, test, duplicate-scan, documentation-check, security-scan]
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Test application startup
+      run: |
+        timeout 30s python main.py &
+        SERVER_PID=$!
+        sleep 10
+        
+        # Test health endpoint
+        curl -f http://localhost:5000/health || exit 1
+        
+        # Test chat API
+        curl -f -X POST http://localhost:5000/api/chat \
+             -H "Content-Type: application/json" \
+             -d '{"message": "test"}' || exit 1
+        
+        kill $SERVER_PID
+        echo "✅ Application startup and basic endpoints working"
+    
+    - name: Generate build report
+      run: |
+        python -c "
+        import json
+        from datetime import datetime
+        
+        # Load analysis results
+        try:
+            with open('/tmp/codegraph.json', 'r') as f:
+                codegraph = json.load(f)
+        except:
+            codegraph = {}
+        
+        report = {
+            'timestamp': datetime.now().isoformat(),
+            'summary': codegraph.get('summary', {}),
+            'build_status': 'success',
+            'checks_passed': [
+                'lint', 'test', 'duplicate-scan', 
+                'documentation-check', 'security-scan'
+            ]
+        }
+        
+        with open('build-report.json', 'w') as f:
+            json.dump(report, f, indent=2)
+        
+        print('✅ Build report generated')
+        "
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-reports
+        path: |
+          build-report.json
+          bandit-report.json
+          safety-report.json

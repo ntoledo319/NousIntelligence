@@ -744,94 +744,611 @@ User Message → Command Detection → AI Processing → Context Integration →
 
 ## 🔎 Complete Feature Index (Auto-Generated)
 
-*Generated: June 26, 2025 - Repository scan of 318 routes, 213 templates, 67 modules (UPDATED: +3 missing features discovered)*
+*Generated: 2025-06-26 21:23:30*
 
-| Feature Name | Description | Routes/Entry Points | Primary Files | Dependencies |
-|-------------|-------------|-------------------|--------------|-------------|
-| **2FA Authentication** | Two-factor authentication system | `/2fa/setup`, `/2fa/verify` | `routes/two_factor_routes.py`, `templates/2fa/` | `utils/two_factor_auth.py` |
-| **AA Content Management** | Alcoholics Anonymous content & resources | `/aa/*` | `routes/aa_routes.py`, `routes/aa_content.py` | `utils/aa_helper.py` |
-| **AA Step 10 Nightly Inventory** | Daily 10th Step inventory with apology tracking | `/aa/nightly-inventory`, `/aa/inventory-history` | `templates/aa/nightly_inventory.html` | `utils/aa_helper.py` (AANightlyInventory class) |
-| **Admin Dashboard** | System administration interface | `/admin/*` | `routes/admin_routes.py`, `templates/admin/` | `utils/security_helper.py` |
-| **AI Chat Interface** | Intelligent conversational AI system | `/chat/`, `/api/chat/message` | `routes/chat_routes.py`, `templates/chat/` | `utils/cost_optimized_ai.py` |
-| **Amazon Integration** | Shopping & price tracking via Amazon | `/amazon/*` | `routes/amazon_routes.py` | `utils/amazon_helper.py` |
-| **API Documentation** | Auto-generated OpenAPI/Swagger docs | `/api/docs`, `/api/openapi.json` | `api_documentation.py` | Flask inspection |
-| **API Health Checks** | Service health monitoring endpoints | `/api/health/*` | `routes/health_api.py` | `utils/service_health_checker.py` |
-| **Appointment Management** | Doctor appointments & scheduling | `/appointments/*` | Integrated in health routes | `utils/doctor_appointment_helper.py` |
-| **Authentication System** | User login/logout & session management | `/auth/*` | `routes/auth/`, `models/user.py` | Flask-Login, OAuth |
-| **Beta Testing Portal** | Beta feature access & feedback | `/beta/*` | `routes/beta_routes.py`, `templates/beta/` | Custom authorization |
-| **Budget Management** | Financial tracking & budget planning | Integrated in dashboard | `utils/budget_helper.py` | External finance APIs |
-| **Chat Commands** | Voice/text command processing | `/chat/commands` | `routes/chat_meet_commands.py` | `utils/command_parser.py` |
-| **Crisis Management** | DBT therapy & crisis intervention | `/crisis/*` | `routes/crisis_routes.py`, `templates/crisis/` | `utils/dbt_crisis_helper.py` |
-| **Dashboard Interface** | Main user dashboard & analytics | `/dashboard`, `/pulse/*` | `routes/dashboard.py`, `routes/pulse.py` | Multiple integrations |
-| **DBT Therapy Tools** | Dialectical Behavior Therapy support | `/dbt/*` | `routes/dbt_routes.py` | `utils/dbt_helper.py` |
-| **Document Analysis** | File upload & AI analysis | `/forms/analysis` | `routes/forms_routes.py` | `utils/image_helper.py` |
-| **Error Handling** | Comprehensive error pages & logging | `/error/*` | `templates/errors/` | `utils/error_handler.py` |
-| **Forms Management** | Dynamic form creation & processing | `/forms/*` | `routes/forms_routes.py`, `templates/forms/` | `utils/forms_helper.py` |
-| **Google API Integration** | Calendar, Gmail, Drive, Maps access | Multiple endpoints | `utils/google_helper.py` | Google OAuth2 |
-| **Google Tasks Management** | Task creation and management via Google Tasks API | Integrated in Google services | `utils/google_helper.py` (`add_task` function) | Google Tasks API |
-| **Health Monitoring** | System & user health tracking | `/health`, `/healthz` | `routes/health_check.py` | `utils/service_health_checker.py` |
-| **Image Processing** | Upload, analysis & organization | `/image/*` | `routes/image_routes.py` | `utils/image_helper.py` |
-| **Language Learning** | Multi-language learning & practice | `/language/*` | `routes/language_learning_routes.py` | `utils/multilingual_voice.py` |
-| **Medication Tracking** | Prescription & dosage management | Integrated in health | `utils/medication_helper.py` | Database models |
-| **Meet Integration** | Meeting scheduling & management | `/meet/*` | `routes/meet_routes.py`, `templates/meet/` | `utils/meet_helper.py` |
-| **Memory System** | Persistent conversation memory | `/api/memory/*` | `routes/memory_routes.py` | `utils/enhanced_memory.py` |
-| **Mindfulness Tools** | Voice-guided meditation & exercises | `/voice/mindfulness/*` | `routes/voice_mindfulness_routes.py` | `utils/voice_mindfulness.py` |
-| **Mobile Interface** | Mobile-optimized crisis & chat UI | `/crisis/mobile` | `minimal_public_app.py` | Responsive templates |
-| **Price Tracking** | Product price monitoring & alerts | `/price-tracking/*` | `routes/price_routes.py` | `utils/price_tracking.py` |
-| **Settings Management** | User preferences & configuration | `/settings`, `/api/settings` | `routes/settings.py` | `utils/settings_cache.py` |
-| **Setup Wizard** | First-time user onboarding | `/setup/*` | `routes/setup_routes.py`, `templates/setup/` | `utils/setup_wizard.py` |
-| **Smart Shopping** | AI-powered shopping assistance | `/smart-shopping/*` | `routes/smart_shopping_routes.py` | `utils/smart_shopping.py` |
-| **Spotify Integration** | Music streaming & mood tracking | `/spotify/*` | `routes/spotify_routes.py` | `utils/spotify_helper.py` |
-| **Spotify Mood Analysis** | AI-powered mood classification from music listening | Integrated in Spotify services | `utils/spotify_ai_integration.py` (`classify_track_mood` function) | Spotify Web API + Audio Features |
-| **Task Management** | Todo lists & productivity tracking | `/api/tasks` | `routes/api.py` | Database models |
-| **User Management** | Profile & account administration | `/user/*` | `routes/user_routes.py` | `models/user.py` |
-| **Voice Interface** | Speech-to-text & text-to-speech | `/voice/*` | `routes/voice_routes.py` | `voice_interface/` |
-| **Weather Integration** | Weather data & health correlations | Integrated services | `utils/weather_helper.py` | External weather APIs |
+### 🛣️ API Routes & Endpoints
 
-### Technical Implementation Summary
+#### api_documentation.py
+- `/api/docs` → `api_docs_ui()`
+- `/api/docs/openapi.json` → `get_openapi_spec()`
 
-**Route Architecture:**
-- 47 route handler files with 318 total route definitions
-- RESTful API design with consistent `/api/` prefixing
-- Blueprint-based modular architecture for scalability
+#### cleanup/app.py
+- `/` → `index()`
+- `/api/accommodations/<int:accommodation_id>` → `api_update_accommodation()`
+- `/api/accommodations/<int:accommodation_id>` → `api_delete_accommodation()`
+- `/api/appointments` → `api_get_appointments()`
+- `/api/appointments` → `api_add_appointment()`
+- `/api/appointments/<int:appointment_id>/status` → `api_update_appointment_status()`
+- `/api/budgets` → `api_get_budgets()`
+- `/api/budgets` → `api_create_budget()`
+- `/api/budgets/<int:budget_id>` → `api_get_budget()`
+- `/api/budgets/<int:budget_id>` → `api_update_budget()`
+- `/api/budgets/<int:budget_id>` → `api_delete_budget()`
+- `/api/budgets/summary` → `api_get_budget_summary()`
+- `/api/doctors` → `api_get_doctors()`
+- `/api/doctors` → `api_add_doctor()`
+- `/api/doctors/<int:doctor_id>` → `api_get_doctor()`
+- `/api/doctors/<int:doctor_id>` → `api_update_doctor()`
+- `/api/doctors/<int:doctor_id>` → `api_delete_doctor()`
+- `/api/doctors/<int:doctor_id>/appointments` → `api_get_doctor_appointments()`
+- `/api/doctors/<int:doctor_id>/medications` → `api_get_doctor_medications()`
+- `/api/documents/<int:document_id>` → `api_update_travel_document()`
+- `/api/documents/<int:document_id>` → `api_delete_travel_document()`
+- `/api/expenses` → `api_get_expenses()`
+- `/api/expenses` → `api_add_expense()`
+- `/api/expenses/<int:expense_id>` → `api_get_expense()`
+- `/api/expenses/<int:expense_id>` → `api_update_expense()`
+- `/api/expenses/<int:expense_id>` → `api_delete_expense()`
+- `/api/itinerary/<int:item_id>` → `api_update_itinerary_item()`
+- `/api/itinerary/<int:item_id>` → `api_delete_itinerary_item()`
+- `/api/medications` → `api_get_medications()`
+- `/api/medications` → `api_add_medication()`
+- `/api/medications/<int:medication_id>` → `api_get_medication()`
+- `/api/medications/<int:medication_id>/quantity` → `api_update_medication_quantity()`
+- `/api/medications/<int:medication_id>/refill` → `api_refill_medication()`
+- `/api/medications/refill-needed` → `api_get_medications_to_refill()`
+- `/api/packing/<int:item_id>` → `api_delete_packing_item()`
+- `/api/packing/<int:item_id>/toggle` → `api_toggle_packed_status()`
+- `/api/products` → `api_get_products()`
+- `/api/products` → `api_add_product()`
+- `/api/products/<int:product_id>` → `api_get_product()`
+- `/api/products/<int:product_id>/ordered` → `api_mark_product_ordered()`
+- `/api/products/<int:product_id>/price` → `api_update_product_price()`
+- `/api/products/<int:product_id>/recurring` → `api_set_product_recurring()`
+- `/api/products/due` → `api_get_due_products()`
+- `/api/recurring-payments` → `api_get_recurring_payments()`
+- `/api/recurring-payments/<int:payment_id>/paid` → `api_mark_payment_paid()`
+- `/api/recurring-payments/upcoming` → `api_get_upcoming_payments()`
+- `/api/reminders/due` → `api_get_due_reminders()`
+- `/api/shopping-lists` → `api_get_shopping_lists()`
+- `/api/shopping-lists` → `api_create_shopping_list()`
+- `/api/shopping-lists/<int:list_id>` → `api_get_shopping_list()`
+- `/api/shopping-lists/<int:list_id>/items` → `api_get_list_items()`
+- `/api/shopping-lists/<int:list_id>/items` → `api_add_list_item()`
+- `/api/shopping-lists/<int:list_id>/ordered` → `api_mark_list_ordered()`
+- `/api/shopping-lists/<int:list_id>/recurring` → `api_set_list_recurring()`
+- `/api/shopping-lists/due` → `api_get_due_lists()`
+- `/api/shopping-lists/items/<int:item_id>` → `api_remove_list_item()`
+- `/api/shopping-lists/items/<int:item_id>/check` → `api_toggle_item_checked()`
+- `/api/trips` → `api_get_trips()`
+- `/api/trips` → `api_create_trip()`
+- `/api/trips/<int:trip_id>` → `api_get_trip()`
+- `/api/trips/<int:trip_id>` → `api_update_trip()`
+- `/api/trips/<int:trip_id>` → `api_delete_trip()`
+- `/api/trips/<int:trip_id>/accommodations` → `api_get_accommodations()`
+- `/api/trips/<int:trip_id>/accommodations` → `api_add_accommodation()`
+- `/api/trips/<int:trip_id>/cost` → `api_get_trip_cost()`
+- `/api/trips/<int:trip_id>/documents` → `api_get_travel_documents()`
+- `/api/trips/<int:trip_id>/documents` → `api_add_travel_document()`
+- `/api/trips/<int:trip_id>/itinerary` → `api_get_itinerary()`
+- `/api/trips/<int:trip_id>/itinerary` → `api_add_itinerary_item()`
+- `/api/trips/<int:trip_id>/packing` → `api_get_packing_list()`
+- `/api/trips/<int:trip_id>/packing` → `api_add_packing_item()`
+- `/api/trips/<int:trip_id>/packing/generate` → `api_generate_packing_list()`
+- `/api/trips/<int:trip_id>/packing/progress` → `api_get_packing_progress()`
+- `/api/trips/active` → `api_get_active_trip()`
+- `/api/trips/upcoming` → `api_get_upcoming_trips()`
+- `/api/weather/current` → `api_get_current_weather()`
+- `/api/weather/forecast` → `api_get_weather_forecast()`
+- `/api/weather/locations` → `api_get_weather_locations()`
+- `/api/weather/locations` → `api_add_weather_location()`
+- `/api/weather/locations/<int:location_id>` → `api_delete_weather_location()`
+- `/api/weather/locations/<int:location_id>/primary` → `api_set_primary_weather_location()`
+- `/api/weather/pain-forecast` → `api_pain_flare_forecast()`
+- `/authorize/google` → `authorize_google()`
+- `/authorize/spotify` → `authorize_spotify()`
+- `/callback/google` → `callback_google()`
+- `/callback/spotify` → `callback_spotify()`
+- `/clear` → `clear_log()`
+- `/dashboard` → `dashboard()`
+- `/health` → `health_check()`
+- `/help` → `help_page()`
+- `/logout` → `logout()`
+- `/settings` → `settings_page()`
+- `/settings` → `save_settings()`
 
-**Template System:**
-- 213 HTML templates with hierarchical inheritance
-- Mobile-responsive design with adaptive layouts
-- Component-based architecture for reusability
+#### minimal_public_app.py
+- `/` → `index()`
+- `/about` → `about()`
+- `/api/chat` → `api_chat()`
+- `/dashboard` → `dashboard()`
+- `/health` → `health()`
+- `/healthz` → `health()`
 
-**Database Integration:**
-- SQLAlchemy ORM with PostgreSQL production support
-- 20+ models covering all feature domains
-- Automated migrations and relationship management
+#### nous_surgical_app.py
+- `/` → `index()`
+- `/admin/routes` → `admin_routes()`
+- `/api/chat` → `api_chat()`
+- `/api/voice` → `api_voice()`
+- `/dashboard` → `dashboard()`
+- `/health` → `health()`
+- `/healthz` → `health()`
+- `/settings/audit` → `settings_audit()`
+- `/setup` → `setup_wizard()`
 
-**External API Integrations:**
-- Google APIs (OAuth, Calendar, Gmail, Drive, Maps)
-- Spotify Web API for music integration
-- Weather services for health correlations
-- OpenRouter for cost-optimized AI processing
-- HuggingFace for speech & language processing
+#### routes/aa_content.py
+- `/` → `index()`
+- `/big-book` → `big_book()`
+- `/big-book/<int:chapter_id>` → `big_book_chapter()`
+- `/big-book/audio/<int:audio_id>` → `big_book_audio()`
+- `/favorites` → `favorites()`
+- `/favorites/add` → `add_favorite()`
+- `/favorites/remove/<int:favorite_id>` → `remove_favorite()`
+- `/search` → `search()`
+- `/speakers` → `speakers()`
+- `/speakers/<int:recording_id>` → `speaker_detail()`
+- `/speakers/audio/<int:recording_id>` → `speaker_audio()`
 
-**Security & Performance:**
-- Rate limiting on all API endpoints
-- CSRF protection and secure headers
-- JWT authentication with refresh tokens
-- Caching system for performance optimization
+#### routes/aa_routes.py
+- `/` → `index()`
 
-*Feature index updated: June 26, 2025* life management
+#### routes/admin_routes.py
+- `/` → `index()`
+- `/users` → `users()`
 
-### Unique Market Position
-NOUS Personal Assistant stands as the first and only AI-powered personal assistant specifically designed for comprehensive healthcare coordination and recovery support. The platform's specialized therapeutic protocols, cost-optimized AI architecture, and extensive feature set create significant competitive advantages in serving individuals with complex health and recovery needs.
+#### routes/amazon_routes.py
+- `/add-to-list` → `add_to_shopping_list()`
+- `/mark-ordered/<int:product_id>` → `mark_ordered()`
+- `/product/<path:asin_or_url>` → `product_details()`
+- `/search` → `search()`
+- `/track` → `track_product()`
+- `/tracked` → `tracked_products()`
+- `/untrack/<int:product_id>` → `untrack_product()`
 
----
+#### routes/api.py
+- `/chat` → `process_chat()`
+- `/settings` → `get_settings()`
+- `/settings` → `update_settings()`
+- `/status` → `api_status()`
+- `/tasks` → `get_tasks()`
+- `/tasks` → `create_task()`
+- `/tasks/<int:task_id>` → `get_task()`
+- `/tasks/<int:task_id>` → `update_task()`
+- `/tasks/<int:task_id>` → `delete_task()`
+- `/user` → `get_user_info()`
+- `/user/profile` → `get_user_profile()`
+- `/user/settings` → `user_settings()`
 
-**Document Prepared:** June 26, 2025  
-**Total Pages:** 13  
-**Function Count:** 257 documented functions  
-**Module Count:** 67 specialized modules  
-**Route Count:** 150+ API endpoints
+#### routes/api/shopping.py
+- `/items/<int:item_id>` → `remove_list_item()`
+- `/items/<int:item_id>/check` → `toggle_item_checked()`
+- `/lists` → `get_shopping_lists()`
+- `/lists` → `create_shopping_list()`
+- `/lists/<int:list_id>` → `get_shopping_list()`
+- `/lists/<int:list_id>/items` → `get_list_items()`
+- `/lists/<int:list_id>/items` → `add_list_item()`
+- `/products` → `get_products()`
+- `/products` → `add_product()`
+- `/products/<int:product_id>` → `get_product()`
 
----
+#### routes/api/v1/settings.py
+- `` → `get_settings()`
+- `` → `update_settings()`
+- `/reset` → `reset_settings()`
+
+#### routes/api/v1/weather.py
+- `/current` → `api_get_current_weather()`
+- `/forecast` → `api_get_weather_forecast()`
+- `/locations` → `api_get_weather_locations()`
+- `/locations` → `api_add_weather_location()`
+- `/locations/<int:location_id>` → `api_delete_weather_location()`
+- `/locations/<int:location_id>/primary` → `api_set_primary_weather_location()`
+- `/pain-forecast` → `api_pain_flare_forecast()`
+
+#### routes/api_key_routes.py
+- `/` → `list_keys()`
+- `/` → `create_key()`
+- `/<int:key_id>` → `get_key()`
+- `/<int:key_id>` → `revoke_key()`
+- `/<int:key_id>/events` → `key_events()`
+- `/<int:key_id>/rotate` → `rotate_key()`
+- `/scopes` → `list_scopes()`
+- `/verify` → `verify_key()`
+
+#### routes/api_routes.py
+- `/ai/analyze` → `ai_analyze()`
+- `/ai/ask` → `ai_ask()`
+- `/ai/stats` → `ai_stats()`
+
+#### routes/async_api.py
+- `/tasks/<task_id>` → `get_task_result()`
+- `/tasks/api_simulation` → `start_api_simulation()`
+- `/tasks/fibonacci` → `start_fibonacci_task()`
+- `/tasks/process_data` → `start_data_processing()`
+
+#### routes/auth/standardized_routes.py
+- `/login` → `login()`
+- `/logout` → `logout()`
+- `/password/reset` → `password_reset_request()`
+- `/password/reset/<token>` → `password_reset()`
+- `/register` → `register()`
+
+#### routes/auth_api.py
+- `/check` → `check_auth()`
+- `/login` → `login()`
+- `/logout` → `logout()`
+- `/refresh` → `refresh()`
+
+#### routes/beta_routes.py
+- `/` → `index()`
+- `/admin` → `admin_dashboard()`
+- `/admin/toggle/<user_id>` → `toggle_tester()`
+- `/apply` → `apply()`
+- `/dashboard` → `dashboard()`
+- `/leave` → `leave_beta()`
+
+#### routes/chat_routes.py
+- `/` → `chat_interface()`
+- `/command_help` → `get_command_help()`
+- `/history` → `get_chat_history()`
+- `/history` → `clear_chat_history()`
+- `/message` → `chat_message()`
+
+#### routes/crisis_routes.py
+- `/` → `index()`
+- `/add-resource` → `add_resource()`
+- `/de-escalation` → `de_escalation()`
+- `/delete-resource/<int:resource_id>` → `delete_resource()`
+- `/grounding` → `grounding()`
+- `/mobile` → `mobile_interface()`
+- `/mobile` → `mobile_crisis()`
+- `/resources` → `resources()`
+- `/update-resource/<int:resource_id>` → `update_resource()`
+
+#### routes/dashboard.py
+- `/dashboard` → `dashboard()`
+
+#### routes/dbt_routes.py
+- `/` → `dashboard()`
+- `/api/advise` → `api_advise()`
+- `/api/chain-analysis` → `api_chain_analysis()`
+- `/api/dialectic` → `api_dialectic()`
+- `/api/distress` → `api_distress()`
+- `/api/edit-message` → `api_edit_message()`
+- `/api/generate-diary-card` → `api_generate_diary_card()`
+- `/api/interpersonal` → `api_interpersonal()`
+- `/api/radical-acceptance` → `api_radical_acceptance()`
+- `/api/skill-of-day` → `api_skill_of_day()`
+- `/api/skills-on-demand` → `api_skills_on_demand()`
+- `/api/trigger-map` → `api_trigger_map()`
+- `/api/validate` → `api_validate()`
+- `/api/wise-mind` → `api_wise_mind()`
+- `/challenges` → `challenges()`
+- `/challenges/complete/<challenge_id>` → `complete_challenge()`
+- `/challenges/create` → `create_new_challenge()`
+- `/challenges/generate` → `generate_challenge()`
+- `/challenges/reset/<challenge_id>` → `reset_challenge_progress()`
+- `/challenges/update/<challenge_id>` → `update_challenge()`
+- `/diary` → `diary()`
+- `/skills` → `skills()`
+- `/skills/log` → `log_skill()`
+- `/skills/recommend` → `recommend_skills()`
+
+#### routes/forms_routes.py
+- `/` → `dashboard()`
+- `/analyze/<form_id>` → `analyze()`
+- `/anonymous-sharing` → `anonymous_sharing()`
+- `/api/analyze/<form_id>` → `api_analyze()`
+- `/api/anonymous-sharing` → `api_anonymous_sharing()`
+- `/api/create` → `api_create_form()`
+- `/api/daily-check-in` → `api_daily_check_in()`
+- `/api/recovery-assessment` → `api_recovery_assessment()`
+- `/create` → `create()`
+- `/daily-check-in` → `daily_check_in()`
+- `/recovery-assessment` → `recovery_assessment()`
+- `/view/<form_id>` → `view()`
+
+#### routes/health_api.py
+- `/` → `comprehensive_health_check()`
+- `/ai-services` → `ai_services_health()`
+- `/database` → `database_health()`
+- `/google-oauth` → `google_oauth_health()`
+
+#### routes/health_check.py
+- `/health` → `basic_health_check()`
+- `/health/detailed` → `detailed_health_check()`
+- `/health/metrics` → `application_metrics()`
+- `/health/system` → `system_health()`
+
+#### routes/image_routes.py
+- `/image/analyze` → `analyze_image()`
+- `/image/organize` → `organize_images()`
+
+#### routes/index.py
+- `/` → `index()`
+- `/help` → `help_page()`
+- `/index` → `index()`
+
+#### routes/language_learning_routes.py
+- `/` → `index()`
+- `/api/complete-session` → `complete_session()`
+- `/api/pronounce` → `pronounce()`
+- `/api/translate` → `translate()`
+- `/api/update-vocabulary` → `update_vocabulary()`
+- `/practice/<int:profile_id>` → `practice_dashboard()`
+- `/practice/conversation/<int:profile_id>/<int:template_id>` → `practice_conversation()`
+- `/practice/vocabulary/<int:profile_id>` → `practice_vocabulary()`
+- `/profile/<int:profile_id>` → `profile()`
+- `/profile/new` → `new_profile()`
+- `/vocabulary/<int:profile_id>` → `vocabulary()`
+- `/vocabulary/add/<int:profile_id>` → `add_vocabulary()`
+
+#### routes/main.py
+- `/` → `index()`
+- `/<path:path>` → `catch_all()`
+- `/dashboard` → `dashboard()`
+- `/health` → `health()`
+- `/help` → `help()`
+- `/static/<path:path>` → `serve_static()`
+
+#### routes/meet_routes.py
+- `/` → `dashboard()`
+- `/analyze-notes` → `analyze_notes()`
+- `/api/create` → `api_create_meeting()`
+- `/api/recovery-group` → `api_recovery_group()`
+- `/api/therapy-session` → `api_therapy_session()`
+- `/create` → `create()`
+- `/create-notes/<meeting_id>` → `create_notes()`
+- `/delete/<meeting_id>` → `delete()`
+- `/edit/<meeting_id>` → `edit()`
+- `/email-participants/<meeting_id>` → `email_participants()`
+- `/generate-agenda` → `generate_agenda()`
+- `/mindfulness-session` → `mindfulness_session()`
+- `/recovery-group` → `recovery_group()`
+- `/sponsor-meeting` → `sponsor_meeting()`
+- `/therapy-session` → `therapy_session()`
+- `/view/<meeting_id>` → `view()`
+
+#### routes/memory_dashboard_routes.py
+- `/` → `memory_dashboard()`
+
+#### routes/memory_routes.py
+- `/entities` → `get_entities()`
+- `/entities` → `add_entity()`
+- `/initialize` → `initialize_memory()`
+- `/recent` → `get_recent_memories()`
+- `/summary` → `get_memory_summary()`
+- `/topics` → `get_topics()`
+- `/topics` → `update_topic()`
+
+#### routes/price_routes.py
+- `/` → `index()`
+- `/add` → `add_item()`
+- `/tracked-items` → `tracked_items()`
+
+#### routes/pulse.py
+- `/` → `pulse_dashboard()`
+- `/api/data` → `pulse_api()`
+- `/finance` → `finance_details()`
+- `/health` → `health_details()`
+
+#### routes/settings.py
+- `/settings` → `settings_page()`
+- `/settings/appearance` → `update_appearance()`
+- `/settings/assistant` → `update_assistant()`
+- `/settings/delete-account` → `delete_account()`
+- `/settings/password` → `update_password()`
+- `/settings/profile` → `update_profile()`
+
+#### routes/setup_routes.py
+- `/` → `wizard()`
+- `/complete` → `complete()`
+- `/features` → `features()`
+- `/features/save` → `features_save()`
+- `/finalize` → `finalize()`
+- `/personalize` → `personalize()`
+- `/personalize/save` → `personalize_save()`
+- `/preferences` → `preferences()`
+- `/preferences/save` → `preferences_save()`
+- `/reset` → `reset()`
+- `/welcome` → `welcome()`
+- `/welcome/complete` → `welcome_complete()`
+
+#### routes/smart_shopping_routes.py
+- `/` → `index()`
+- `/deals` → `deals()`
+- `/recommendations` → `recommendations()`
+
+#### routes/spotify_commands.py
+- `/api/spotify/command/execute` → `execute_spotify_command()`
+- `/api/spotify/smart-playlist` → `create_smart_playlist()`
+- `/api/spotify/track-mood` → `get_track_mood()`
+
+#### routes/spotify_routes.py
+- `/` → `index()`
+- `/callback` → `callback()`
+- `/connect` → `connect()`
+
+#### routes/spotify_visualization.py
+- `/api/spotify/visualization/artists` → `get_top_artists_chart()`
+- `/api/spotify/visualization/compare-tracks` → `compare_tracks()`
+- `/api/spotify/visualization/genres` → `get_genre_chart()`
+- `/api/spotify/visualization/history` → `get_listening_history_chart()`
+- `/api/spotify/visualization/playlist-analysis` → `get_playlist_analysis()`
+- `/api/spotify/visualization/report` → `get_spotify_report()`
+- `/api/spotify/visualization/track-features` → `get_track_features_chart()`
+- `/api/spotify/visualization/tracks` → `get_top_tracks_chart()`
+- `/viz/spotify/report` → `spotify_report_page()`
+
+#### routes/two_factor_routes.py
+- `/api/confirm` → `api_confirm_2fa()`
+- `/api/setup` → `api_setup_2fa()`
+- `/api/verify` → `api_verify_2fa()`
+- `/disable` → `disable_2fa()`
+- `/regenerate-backup-codes` → `regenerate_backup_codes()`
+- `/setup` → `setup_2fa()`
+- `/verify` → `verify_2fa()`
+
+#### routes/user_routes.py
+- `/activity` → `activity()`
+- `/preferences` → `preferences()`
+- `/profile` → `profile()`
+
+#### routes/view/auth.py
+- `/direct-google-login` → `direct_google_login()`
+- `/email-login` → `email_login()`
+- `/login` → `login()`
+- `/logout` → `logout()`
+
+#### routes/view/dashboard.py
+- `` → `dashboard()`
+- `/` → `dashboard()`
+
+#### routes/view/index.py
+- `/` → `index()`
+- `/clear` → `clear_log()`
+- `/help` → `help_page()`
+
+#### routes/view/settings.py
+- `` → `settings_page()`
+- `` → `save_settings()`
+- `/reset` → `reset_settings()`
+
+#### routes/view/user.py
+- `/api/notifications` → `get_notifications()`
+- `/guide` → `user_guide()`
+- `/profile` → `profile()`
+- `/profile` → `update_profile()`
+
+#### routes/voice_emotion_routes.py
+- `/voice/analyze_emotion` → `analyze_voice_emotion()`
+- `/voice/emotion` → `voice_emotion_analysis()`
+
+#### routes/voice_mindfulness_routes.py
+- `/` → `index()`
+- `/exercise/<exercise_name>` → `exercise_detail()`
+- `/log-completion` → `log_completion()`
+- `/personalized` → `personalized_exercise()`
+- `/random` → `random_exercise()`
+
+#### routes/voice_routes.py
+- `/` → `index()`
+- `/continuous-listening` → `continuous_listening()`
+- `/process-voice-command` → `process_voice_command()`
+- `/synthesize` → `synthesize_speech()`
+- `/test-piper` → `test_piper()`
+- `/test-whisper` → `test_whisper()`
+- `/upload-audio` → `upload_audio()`
+
+#### surgical_nous_app.py
+- `/` → `index()`
+- `/api/chat` → `api_chat()`
+- `/crisis/mobile` → `crisis_mobile()`
+- `/health` → `health()`
+- `/pulse` → `pulse()`
+- `/settings/audit` → `settings_audit()`
+
+#### tests/test_api_key_manager.py
+- `/admin` → `admin_route()`
+- `/test` → `test_route()`
+
+#### tests/test_jwt_auth.py
+- `/protected` → `protected()`
+- `/refresh` → `refresh()`
+
+#### tests/test_schema_validation.py
+- `/nonexistent` → `nonexistent_route()`
+- `/test` → `test_route()`
+
+#### tests/test_security_headers.py
+- `/static/test.css` → `static_route()`
+- `/test` → `test_route()`
+
+#### utils/db_optimizations.py
+- `/debug/db-stats` → `view_db_stats()`
+- `/debug/db-stats/clear` → `clear_db_stats_route()`
+
+### 🗄️ Database Models
+
+- **AAAchievement** (`models/health_models.py`)
+- **AABigBook** (`models/aa_content_models.py`)
+- **AABigBookAudio** (`models/aa_content_models.py`)
+- **AADailyReflection** (`models/aa_content_models.py`)
+- **AAFavorite** (`models/aa_content_models.py`)
+- **AASpeakerRecording** (`models/aa_content_models.py`)
+- **AIModelConfig** (`models/ai_models.py`)
+- **AIServiceConfig** (`models/ai_models.py`)
+- **AccountLockout** (`models/security_models.py`)
+- **AuthToken** (`models/security_models.py`)
+- **BetaTester** (`models/user_models.py`)
+- **ConversationPrompt** (`models/language_learning_models.py`)
+- **ConversationTemplate** (`models/language_learning_models.py`)
+- **DBTCrisisResource** (`models/health_models.py`)
+- **DBTDiaryCard** (`models/health_models.py`)
+- **DBTEmotionTrack** (`models/health_models.py`)
+- **DBTSkillCategory** (`models/health_models.py`)
+- **DBTSkillChallenge** (`models/health_models.py`)
+- **DBTSkillLog** (`models/health_models.py`)
+- **DBTSkillRecommendation** (`models/health_models.py`)
+- **Deal** (`models/deal_models.py`)
+- **LanguageProfile** (`models/language_learning_models.py`)
+- **LearningSession** (`models/language_learning_models.py`)
+- **LoginAttempt** (`models/security_models.py`)
+- **Product** (`models/deal_models.py`)
+- **SecurityAuditLog** (`models/security_models.py`)
+- **SystemSettings** (`models/system_models.py`)
+- **Task** (`models/task_models.py`)
+- **TrustedDevice** (`models/security_models.py`)
+- **TwoFactorAuth** (`models/security_models.py`)
+- **TwoFactorBackupCode** (`models/security_models.py`)
+- **User** (`models.py`)
+- **User** (`models/user_models.py`)
+- **User** (`models/user.py`)
+- **UserAIPreferences** (`models/ai_models.py`)
+- **UserAIUsage** (`models/ai_models.py`)
+- **UserEntityMemory** (`models/memory_models.py`)
+- **UserMemoryEntry** (`models/memory_models.py`)
+- **UserSettings** (`models.py`)
+- **UserSettings** (`models/user_models.py`)
+- **UserTopicInterest** (`models/memory_models.py`)
+- **VocabularyItem** (`models/language_learning_models.py`)
+
+### 💬 Chat Handlers
+
+- `_local_chat_fallback()` (`utils/cost_optimized_ai.py`)
+- `_openrouter_chat()` (`utils/cost_optimized_ai.py`)
+- `api_chat()` (`nous_surgical_app.py`)
+- `api_chat()` (`surgical_nous_app.py`)
+- `api_chat()` (`minimal_public_app.py`)
+- `chat_completion()` (`utils/cost_optimized_ai.py`)
+- `chat_interface()` (`routes/chat_routes.py`)
+- `chat_message()` (`routes/chat_routes.py`)
+- `clear_chat_history()` (`routes/chat_routes.py`)
+- `get_chat_history()` (`routes/chat_routes.py`)
+- `get_chat_memory_integration()` (`utils/chat_memory_integration.py`)
+- `get_chat_processor()` (`utils/chat_processor.py`)
+- `handle_analyze_notes()` (`routes/chat_meet_commands.py`)
+- `handle_bad_request()` (`utils/api_route_helper.py`)
+- `handle_bad_request()` (`routes/async_api.py`)
+- `handle_bad_request()` (`routes/auth_api.py`)
+- `handle_create_meeting()` (`routes/chat_meet_commands.py`)
+- `handle_exception()` (`utils/error_handler.py`)
+- `handle_exception()` (`routes/api/shopping.py`)
+- `handle_forbidden()` (`utils/api_route_helper.py`)
+- `handle_generate_agenda()` (`routes/chat_meet_commands.py`)
+- `handle_list_meetings()` (`routes/chat_meet_commands.py`)
+- `handle_meet_command()` (`routes/chat_meet_commands.py`)
+- `handle_method_not_allowed()` (`utils/api_route_helper.py`)
+- `handle_not_found()` (`utils/api_route_helper.py`)
+- `handle_not_found()` (`routes/async_api.py`)
+- `handle_oauth_callback()` (`utils/spotify_helper.py`)
+- `handle_server_error()` (`utils/api_route_helper.py`)
+- `handle_too_many_requests()` (`utils/api_route_helper.py`)
+- `handle_unauthorized()` (`utils/api_route_helper.py`)
+- `handle_unauthorized()` (`routes/auth_api.py`)
+- `process_chat()` (`routes/api.py`)
+- `process_chat_command()` (`routes/chat_router.py`)
+- `test_api_chat_functionality()` (`tests/loginLoop.spec.py`)
+- `test_api_chat_works_without_auth()` (`tests/test_auth_loop_fix.py`)
+- `test_chat_interface_public()` (`tests/test_auth_loop_fix.py`)
+
+### 📊 System Statistics
+
+- **Total Files**: 324
+- **Python Files**: 200
+- **Routes**: 398
+- **Models**: 42
+- **Chat Handlers**: 36
 
 ## Post-Op Summary (2025-01-27)
 
