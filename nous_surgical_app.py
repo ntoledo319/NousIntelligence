@@ -171,7 +171,7 @@ def create_app():
             for rule in app.url_map.iter_rules():
                 routes.append({
                     "endpoint": rule.endpoint,
-                    "methods": list(rule.methods),
+                    "methods": list(rule.methods) if rule.methods else [],
                     "rule": str(rule),
                     "description": getattr(app.view_functions.get(rule.endpoint), '__doc__', 'No description')
                 })

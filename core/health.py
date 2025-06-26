@@ -7,9 +7,11 @@ import logging
 from datetime import datetime, timedelta
 from flask import session
 from typing import List, Dict, Any, Optional
+from core.cache import cache
 
 logger = logging.getLogger(__name__)
 
+@cache(ttl=300)  # Cache for 5 minutes
 def get_due_appointment_reminders() -> List[Dict[str, Any]]:
     """Get top 3 upcoming appointment reminders for pulse dashboard"""
     try:
