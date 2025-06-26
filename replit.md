@@ -123,6 +123,7 @@ Route Handler → SQLAlchemy Model → Database Query → Result Processing → 
 
 ## Changelog
 - June 26, 2025. Initial setup
+- June 26, 2025. Fixed landing page and Google OAuth authentication system
 
 ## User Preferences
 
