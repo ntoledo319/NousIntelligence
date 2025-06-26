@@ -11,12 +11,8 @@ import json
 import random
 from datetime import datetime
 
-# Import OpenAI for generating personalized exercises
-from openai import OpenAI
-
-# Constants
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-openai = OpenAI(api_key=OPENAI_API_KEY)
+# Import cost-optimized AI for generating personalized exercises
+from utils.cost_optimized_ai import get_cost_optimized_ai, TaskComplexity
 
 # Pre-defined mindfulness exercise templates
 MINDFULNESS_EXERCISES = [
@@ -66,7 +62,7 @@ def get_exercise_by_duration(max_duration):
 
 def generate_personalized_exercise(user_id, mood=None, situation=None, duration=5):
     """
-    Generate a personalized mindfulness exercise using AI
+    Generate a personalized mindfulness exercise using cost-optimized AI
     
     Args:
         user_id: The user's ID
@@ -78,10 +74,8 @@ def generate_personalized_exercise(user_id, mood=None, situation=None, duration=
         A mindfulness exercise object
     """
     try:
-        if not OPENAI_API_KEY:
-            logging.warning("No OpenAI API key found, returning pre-defined exercise")
-            return get_exercise_by_duration(duration)
-            
+        ai_client = get_cost_optimized_ai()
+        
         # Create a prompt for the AI to generate a personalized exercise
         prompt = f"Create a {duration}-minute mindfulness meditation script"
         if mood:
@@ -91,42 +85,31 @@ def generate_personalized_exercise(user_id, mood=None, situation=None, duration=
             
         prompt += ". The script should be calm, supportive, and include [pause] indicators where appropriate."
         
-        response = openai.chat.completions.create(
-            model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
-            messages=[
-                {"role": "system", "content": "You are a skilled mindfulness meditation guide."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=500,
-        )
+        messages = [
+            {"role": "system", "content": "You are a skilled mindfulness meditation guide."},
+            {"role": "user", "content": prompt}
+        ]
         
-        try:
-            script = response.choices[0].message.content
-            if script is None:
-                script = "Take a deep breath in. Hold for a moment. Now exhale slowly. Continue breathing deeply for a few minutes, focusing on each breath."
-            else:
-                script = script.strip()
-        except (AttributeError, IndexError):
+        # Use standard complexity for meditation content
+        result = ai_client.chat_completion(messages, max_tokens=500, complexity=TaskComplexity.STANDARD)
+        
+        if result.get("success"):
+            script = result.get("response", "Take a deep breath in. Hold for a moment. Now exhale slowly. Continue breathing deeply for a few minutes, focusing on each breath.")
+        else:
             script = "Take a deep breath in. Hold for a moment. Now exhale slowly. Continue breathing deeply for a few minutes, focusing on each breath."
         
         # Create a name for this exercise
         name_prompt = "Give this mindfulness meditation a short, descriptive title (5 words or less)."
-        name_response = openai.chat.completions.create(
-            model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
-            messages=[
-                {"role": "system", "content": "You generate short, descriptive titles."},
-                {"role": "user", "content": f"Meditation script: {script}\n\n{name_prompt}"}
-            ],
-            max_tokens=20,
-        )
+        name_messages = [
+            {"role": "system", "content": "You generate short, descriptive titles."},
+            {"role": "user", "content": f"Meditation script: {script}\n\n{name_prompt}"}
+        ]
         
-        try:
-            name = name_response.choices[0].message.content
-            if name is None:
-                name = "Calming Breath Meditation"
-            else:
-                name = name.strip().replace('"', '')
-        except (AttributeError, IndexError):
+        name_result = ai_client.chat_completion(name_messages, max_tokens=20, complexity=TaskComplexity.BASIC)
+        
+        if name_result.get("success"):
+            name = name_result.get("response", "Calming Breath Meditation").strip().replace('"', '')
+        else:
             name = "Calming Breath Meditation"
         
         return {
@@ -134,7 +117,8 @@ def generate_personalized_exercise(user_id, mood=None, situation=None, duration=
             "duration": duration,
             "description": f"Personalized mindfulness exercise based on your current situation.",
             "script": script,
-            "personalized": True
+            "personalized": True,
+            "cost": result.get("cost", 0.0) + name_result.get("cost", 0.0)
         }
         
     except Exception as e:

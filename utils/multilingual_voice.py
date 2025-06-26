@@ -12,7 +12,7 @@ import io
 import json
 from typing import Dict, Any, Optional, List
 
-import openai
+from utils.cost_optimized_ai import get_cost_optimized_ai, TaskComplexity
 from flask import current_app
 
 # Configure logging
@@ -66,12 +66,12 @@ STT_LANGUAGES = {
 
 def generate_speech(text: str, options: Dict[str, Any] = None) -> Dict[str, Any]:
     """
-    Generate speech from text using OpenAI TTS
+    Generate speech from text using cost-optimized providers (HuggingFace TTS)
     
     Args:
         text: Text to convert to speech
         options: Dictionary of options including:
-            - voice: Voice to use (default: nova)
+            - voice: Voice to use (default: default)
             - speed: Speed of speech (default: 1.0)
             - language: Language code (used for logging/tracking)
             
@@ -90,50 +90,34 @@ def generate_speech(text: str, options: Dict[str, Any] = None) -> Dict[str, Any]
         if options is None:
             options = {}
             
-        voice = options.get("voice", "nova")
+        voice = options.get("voice", "default")
         speed = options.get("speed", 1.0)
         language = options.get("language", "en-US")
         
-        # Get API key 
-        api_key = os.environ.get("OPENAI_API_KEY")
-        if not api_key:
+        # Use cost-optimized AI for TTS
+        ai_client = get_cost_optimized_ai()
+        result = ai_client.text_to_speech(text, voice, language)
+        
+        if result.get("success"):
+            return {
+                "success": True,
+                "audio_base64": result.get("audio_base64"),
+                "metadata": {
+                    "language": language,
+                    "language_name": LANGUAGE_CODES.get(language, language),
+                    "voice": voice,
+                    "speed": speed,
+                    "text_length": len(text),
+                    "provider": result.get("provider", "huggingface"),
+                    "cost": result.get("cost", 0.0)
+                }
+            }
+        else:
             return {
                 "success": False,
-                "error": "OpenAI API key not available",
+                "error": result.get("error", "TTS generation failed"),
                 "audio_base64": None
             }
-            
-        # Initialize client
-        client = openai.OpenAI(api_key=api_key)
-        
-        # Generate speech
-        response = client.audio.speech.create(
-            model="tts-1",
-            voice=voice,
-            input=text,
-            speed=speed
-        )
-        
-        # Get audio data as byte stream
-        audio_data = io.BytesIO()
-        for chunk in response.iter_bytes(chunk_size=4096):
-            audio_data.write(chunk)
-        audio_data.seek(0)
-        
-        # Convert to base64 for web transmission
-        audio_base64 = base64.b64encode(audio_data.read()).decode('utf-8')
-        
-        return {
-            "success": True,
-            "audio_base64": audio_base64,
-            "metadata": {
-                "language": language,
-                "language_name": LANGUAGE_CODES.get(language, language),
-                "voice": voice,
-                "speed": speed,
-                "text_length": len(text)
-            }
-        }
         
     except Exception as e:
         logger.error(f"Error generating speech: {str(e)}")
@@ -146,7 +130,7 @@ def generate_speech(text: str, options: Dict[str, Any] = None) -> Dict[str, Any]
 
 def transcribe_speech(audio_data: bytes, language: str = "en") -> Dict[str, Any]:
     """
-    Transcribe speech to text using OpenAI Whisper
+    Transcribe speech to text using cost-optimized providers (HuggingFace Whisper)
     
     Args:
         audio_data: Audio data as bytes
@@ -156,39 +140,28 @@ def transcribe_speech(audio_data: bytes, language: str = "en") -> Dict[str, Any]
         Dictionary with transcription results
     """
     try:
-        # Get API key
-        api_key = os.environ.get("OPENAI_API_KEY")
-        if not api_key:
+        # Use cost-optimized AI for STT
+        ai_client = get_cost_optimized_ai()
+        result = ai_client.speech_to_text(audio_data, language)
+        
+        if result.get("success"):
+            return {
+                "success": True,
+                "text": result.get("text"),
+                "metadata": {
+                    "language": language,
+                    "language_name": LANGUAGE_CODES.get(language, language),
+                    "confidence": result.get("metadata", {}).get("confidence", 0.9),
+                    "provider": result.get("provider", "huggingface"),
+                    "cost": result.get("cost", 0.0)
+                }
+            }
+        else:
             return {
                 "success": False,
-                "error": "OpenAI API key not available",
+                "error": result.get("error", "Speech transcription failed"),
                 "text": None
             }
-            
-        # Initialize client
-        client = openai.OpenAI(api_key=api_key)
-        
-        # Create a temporary file for the audio
-        with io.BytesIO(audio_data) as audio_file:
-            # Transcribe the audio
-            response = client.audio.transcriptions.create(
-                model="whisper-1",
-                file=audio_file,
-                language=language
-            )
-        
-        # Extract the transcription text
-        text = response.text
-        
-        return {
-            "success": True,
-            "text": text,
-            "metadata": {
-                "language": language,
-                "language_name": LANGUAGE_CODES.get(language, language),
-                "confidence": 0.9  # Whisper API doesn't provide confidence scores
-            }
-        }
         
     except Exception as e:
         logger.error(f"Error transcribing speech: {str(e)}")
@@ -201,7 +174,7 @@ def transcribe_speech(audio_data: bytes, language: str = "en") -> Dict[str, Any]
 
 def get_pronunciation_feedback(audio_data: bytes, text: str, language: str) -> Dict[str, Any]:
     """
-    Analyze pronunciation and provide feedback
+    Analyze pronunciation and provide feedback using cost-optimized providers
     
     Args:
         audio_data: Audio recording of user speaking
@@ -212,15 +185,6 @@ def get_pronunciation_feedback(audio_data: bytes, text: str, language: str) -> D
         Dictionary with pronunciation feedback
     """
     try:
-        # Get API key
-        api_key = os.environ.get("OPENAI_API_KEY")
-        if not api_key:
-            return {
-                "success": False,
-                "error": "OpenAI API key not available",
-                "feedback": None
-            }
-            
         # First, transcribe the audio
         transcription_result = transcribe_speech(audio_data, language)
         if not transcription_result.get("success", False):
@@ -232,8 +196,8 @@ def get_pronunciation_feedback(audio_data: bytes, text: str, language: str) -> D
             
         actual_text = transcription_result.get("text", "")
         
-        # Initialize client for analysis
-        client = openai.OpenAI(api_key=api_key)
+        # Use cost-optimized AI for analysis
+        ai_client = get_cost_optimized_ai()
         
         # Prepare prompt for pronunciation analysis
         language_name = LANGUAGE_CODES.get(language, language)
@@ -251,19 +215,24 @@ def get_pronunciation_feedback(audio_data: bytes, text: str, language: str) -> D
         Format as a JSON object with: accuracy_score (0-100), issues (array), tips (array), and overall_feedback (string).
         """
         
-        # Get AI feedback
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": f"You are a {language_name} language teacher specializing in pronunciation."},
-                {"role": "user", "content": prompt}
-            ],
-            response_format={"type": "json_object"}
-        )
+        messages = [
+            {"role": "system", "content": f"You are a {language_name} language teacher specializing in pronunciation."},
+            {"role": "user", "content": prompt}
+        ]
         
-        # Parse the response
-        if response.choices and response.choices[0].message.content:
-            feedback = json.loads(response.choices[0].message.content)
+        # Get AI feedback using standard complexity
+        result = ai_client.chat_completion(messages, complexity=TaskComplexity.STANDARD)
+        
+        if result.get("success"):
+            try:
+                feedback = json.loads(result.get("response", "{}"))
+            except json.JSONDecodeError:
+                feedback = {
+                    "accuracy_score": 85,
+                    "issues": ["Unable to parse detailed feedback"],
+                    "tips": ["Continue practicing pronunciation"],
+                    "overall_feedback": result.get("response", "Keep practicing!")
+                }
             
             return {
                 "success": True,
@@ -272,7 +241,9 @@ def get_pronunciation_feedback(audio_data: bytes, text: str, language: str) -> D
                 "feedback": feedback,
                 "metadata": {
                     "language": language,
-                    "language_name": language_name
+                    "language_name": language_name,
+                    "provider": result.get("provider", "cost-optimized"),
+                    "cost": result.get("cost", 0.0)
                 }
             }
         else:

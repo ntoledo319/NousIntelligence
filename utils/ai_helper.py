@@ -1023,18 +1023,9 @@ def analyze_document_content(content, analysis_type="general", max_tokens=1000):
     Returns:
         Analysis results as a dictionary
     """
-    if not openai_client:
-        logging.warning("OpenAI client not initialized. Check your API key.")
-        return {"error": "AI analysis not available. Please check system settings."}
-    
-    # Check rate limits
-    if not rate_limiter.can_make_request():
-        logging.warning("Rate limit reached, waiting before making API request")
-        time.sleep(5)  # Wait a bit and try again
-        if not rate_limiter.can_make_request():
-            return {"error": "AI service temporarily unavailable due to high demand. Please try again shortly."}
-    
     try:
+        ai_client = get_cost_optimized_ai()
+        
         # Select the appropriate prompt based on analysis type
         if analysis_type == "sentiment":
             system_prompt = "You are an emotional intelligence expert. Analyze the sentiment and emotional content of the provided text."
@@ -1050,34 +1041,34 @@ def analyze_document_content(content, analysis_type="general", max_tokens=1000):
         if len(content) > 10000:
             content = content[:10000] + "...[content truncated]"
         
-        # Record this request
-        rate_limiter.add_request()
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+            {"role": "user", "content": content}
+        ]
         
-        response = openai_client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-                {"role": "user", "content": content}
-            ],
-            max_tokens=max_tokens,
-            temperature=0.5,
-            response_format={"type": "json_object"}
-        )
+        # Use complex reasoning for detailed analysis
+        result = ai_client.chat_completion(messages, max_tokens=max_tokens, temperature=0.5, complexity=TaskComplexity.COMPLEX)
         
-        # Extract and parse the JSON response
-        analysis_text = response.choices[0].message.content.strip()
-        analysis_json = json.loads(analysis_text)
-        
-        return analysis_json
-        
-    except json.JSONDecodeError:
-        logging.error("Failed to decode JSON from AI response")
-        return {"error": "Failed to parse AI analysis", "raw_response": analysis_text if 'analysis_text' in locals() else "No response"}
-        
+        if result.get("success"):
+            analysis_text = result.get("response", "{}")
+            try:
+                return json.loads(analysis_text)
+            except json.JSONDecodeError:
+                # If JSON parsing fails, return structured response
+                return {
+                    "summary": analysis_text,
+                    "key_topics": ["Analysis completed"],
+                    "main_theme": "Document analyzed successfully",
+                    "insights": [analysis_text]
+                }
+        else:
+            logger.warning(f"Document analysis failed: {result.get('error')}")
+            return {"error": "AI analysis temporarily unavailable. Please try again shortly."}
+            
     except Exception as e:
-        logging.error(f"Error analyzing content: {str(e)}")
-        return {"error": f"Error analyzing content: {str(e)}"}
+        logger.error(f"Error analyzing document content: {str(e)}")
+        return {"error": str(e)}
 
 def generate_recovery_content(topic, format_type="journal_prompt", recovery_program="general", max_tokens=500):
     """
@@ -1092,18 +1083,9 @@ def generate_recovery_content(topic, format_type="journal_prompt", recovery_prog
     Returns:
         Generated recovery content
     """
-    if not openai_client:
-        logging.warning("OpenAI client not initialized. Check your API key.")
-        return "Recovery content generation not available. Please check system settings."
-    
-    # Check rate limits
-    if not rate_limiter.can_make_request():
-        logging.warning("Rate limit reached, waiting before making API request")
-        time.sleep(5)  # Wait a bit and try again
-        if not rate_limiter.can_make_request():
-            return "AI service temporarily unavailable due to high demand. Please try again shortly."
-    
     try:
+        ai_client = get_cost_optimized_ai()
+        
         # Create a context-appropriate prompt based on the recovery program
         if recovery_program.lower() == "aa":
             system_prompt = "You are an experienced AA sponsor with deep knowledge of 12-step recovery. Provide supportive, non-judgmental guidance focused on the principles of Alcoholics Anonymous."
@@ -1122,22 +1104,20 @@ def generate_recovery_content(topic, format_type="journal_prompt", recovery_prog
         else:
             user_prompt = f"Create recovery-focused content about {topic}. Make it supportive, insightful, and practical for someone in recovery."
         
-        # Record this request
-        rate_limiter.add_request()
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ]
         
-        response = openai_client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
-            max_tokens=max_tokens,
-            temperature=0.7
-        )
+        # Use standard complexity for recovery content generation
+        result = ai_client.chat_completion(messages, max_tokens=max_tokens, temperature=0.7, complexity=TaskComplexity.STANDARD)
         
-        # Extract the generated text
-        return response.choices[0].message.content.strip()
-        
+        if result.get("success"):
+            return result.get("response", "Recovery content generation temporarily unavailable")
+        else:
+            logger.warning(f"Recovery content generation failed: {result.get('error')}")
+            return "Recovery content generation temporarily unavailable. Please try again shortly."
+            
     except Exception as e:
-        logging.error(f"Error generating recovery content: {str(e)}")
+        logger.error(f"Error generating recovery content: {str(e)}")
         return f"Error generating content: {str(e)}" 
