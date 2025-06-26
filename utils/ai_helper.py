@@ -14,55 +14,25 @@ import os
 from typing import Dict, List, Any, Optional, Tuple
 import json
 import time
-import openai
+from utils.cost_optimized_ai import get_cost_optimized_ai, TaskComplexity
 from utils.settings import get_setting
 
 logger = logging.getLogger(__name__)
 
-# Initialize OpenAI client as None first
-openai_client = None
-
-def initialize_openai():
-    """Initialize the OpenAI client with appropriate API key"""
-    global openai_client
-    
-    # Only initialize once when needed
-    if openai_client is not None:
-        return openai_client
-        
+def initialize_ai():
+    """Initialize the cost-optimized AI client"""
     try:
-        # Get API key from environment first (most reliable)
-        openai_key = os.environ.get("OPENAI_API_KEY", "")
-        
-        # If no key in environment, try getting from app settings (requires app context)
-        if not openai_key:
-            try:
-                from flask import current_app
-                with current_app.app_context():
-                    openai_key = get_setting("openai_api_key", "")
-            except Exception as e:
-                logger.warning(f"Could not access application context for settings: {e}")
-        
-        # If we have a key, initialize client
-        if openai_key:
-            # Set the API key
-            openai.api_key = openai_key
-            
-            # Create client
-            openai_client = openai.OpenAI(api_key=openai_key)
-            logger.info("OpenAI client initialized successfully")
-            return openai_client
-        else:
-            logger.warning("No OpenAI API key found, AI features will be limited")
-            return None
+        ai_client = get_cost_optimized_ai()
+        logger.info("Cost-optimized AI client initialized successfully")
+        return ai_client
     except Exception as e:
-        logger.error(f"Failed to initialize OpenAI client: {e}")
+        logger.error(f"Failed to initialize AI client: {e}")
         return None
 
 
 def get_ai_response(prompt: str, conversation_history: Optional[List[Dict[str, str]]] = None) -> str:
     """
-    Get AI-generated response for the user's prompt
+    Get AI-generated response for the user's prompt using cost-optimized providers
     
     Args:
         prompt: The user's text prompt
@@ -71,36 +41,34 @@ def get_ai_response(prompt: str, conversation_history: Optional[List[Dict[str, s
     Returns:
         AI-generated response text
     """
-    # For now, we'll use a simple rule-based approach 
-    # to ensure the app runs without OpenAI API dependencies
-    
-    # If no conversation history provided, create a new one
-    if conversation_history is None:
-        conversation_history = []
-    
-    # Basic responses for common queries
-    responses = {
-        "hello": "Hello! I'm NOUS, your personal assistant. How can I help you today?",
-        "hi": "Hi there! How can I assist you?",
-        "how are you": "I'm functioning well, thank you for asking! How can I help you?",
-        "what can you do": "I can help with tasks like setting reminders, checking weather, playing music, and more. I can also assist with voice commands once the interface is fully set up.",
-        "help": "I'm NOUS, your personal assistant. I can help with tasks, answer questions, and provide assistance through both text and voice interfaces.",
-    }
-    
-    # Check for voice-related queries
-    voice_keywords = ["voice", "speak", "talk", "listen", "whisper", "speech", "audio"]
-    for keyword in voice_keywords:
-        if keyword in prompt.lower():
-            return "I'm equipped with a voice interface that uses Whisper for speech recognition and can respond using text-to-speech. You can speak commands, ask questions, or have me read text aloud."
-    
-    # Look for exact matches in our basic responses
-    prompt_lower = prompt.lower()
-    for key, response in responses.items():
-        if key in prompt_lower:
-            return response
-    
-    # Default response if no patterns match
-    return "I'm here to assist you. You can ask me questions or give me tasks to help with. I'm also equipped with voice recognition capabilities for hands-free interaction."
+    try:
+        ai_client = get_cost_optimized_ai()
+        
+        # Build messages for the conversation
+        messages = []
+        if conversation_history:
+            messages.extend(conversation_history)
+        messages.append({"role": "user", "content": prompt})
+        
+        # Determine complexity based on prompt characteristics
+        complexity = TaskComplexity.BASIC
+        if len(prompt) > 200:
+            complexity = TaskComplexity.STANDARD
+        if any(word in prompt.lower() for word in ["creative", "write", "analyze", "complex", "detailed"]):
+            complexity = TaskComplexity.COMPLEX
+            
+        # Get AI response
+        result = ai_client.chat_completion(messages, complexity=complexity)
+        
+        if result.get("success"):
+            return result.get("response", "I'm here to help! How can I assist you?")
+        else:
+            logger.warning(f"AI response failed: {result.get('error')}")
+            return "I'm here to assist you. You can ask me questions or give me tasks to help with."
+            
+    except Exception as e:
+        logger.error(f"Error getting AI response: {e}")
+        return "I'm here to help! How can I assist you today?"
 
 # Rate limiting tracker
 class RateLimitTracker:
@@ -1016,36 +984,31 @@ def generate_ai_text(prompt, model="gpt-3.5-turbo", max_tokens=1000, temperature
     Returns:
         Generated text
     """
-    if not openai_client:
-        logging.warning("OpenAI client not initialized. Check your API key.")
-        return "AI text generation not available. Please check system settings."
-    
-    # Check rate limits
-    if not rate_limiter.can_make_request():
-        logging.warning("Rate limit reached, waiting before making API request")
-        time.sleep(5)  # Wait a bit and try again
-        if not rate_limiter.can_make_request():
-            return "AI service temporarily unavailable due to high demand. Please try again shortly."
-    
     try:
-        # Record this request
-        rate_limiter.add_request()
+        ai_client = get_cost_optimized_ai()
         
-        response = openai_client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant for a recovery-focused application."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=max_tokens,
-            temperature=temperature
-        )
+        # Determine complexity based on prompt and parameters
+        complexity = TaskComplexity.STANDARD
+        if max_tokens > 1500 or temperature > 0.8:
+            complexity = TaskComplexity.COMPLEX
+        elif max_tokens < 300 and temperature < 0.3:
+            complexity = TaskComplexity.BASIC
+            
+        messages = [
+            {"role": "system", "content": "You are a helpful assistant for a recovery-focused application."},
+            {"role": "user", "content": prompt}
+        ]
         
-        # Extract the generated text
-        return response.choices[0].message.content.strip()
+        result = ai_client.chat_completion(messages, max_tokens=max_tokens, temperature=temperature, complexity=complexity)
         
+        if result.get("success"):
+            return result.get("response", "Unable to generate response")
+        else:
+            logger.warning(f"AI text generation failed: {result.get('error')}")
+            return "AI service temporarily unavailable. Please try again shortly."
+            
     except Exception as e:
-        logging.error(f"Error generating AI text: {str(e)}")
+        logger.error(f"Error generating AI text: {str(e)}")
         return f"Error generating text: {str(e)}"
 
 def analyze_document_content(content, analysis_type="general", max_tokens=1000):
