@@ -6,6 +6,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 from flask import session
+from core.cache import cache
 
 logger = logging.getLogger(__name__)
 
