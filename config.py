@@ -39,8 +39,10 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     """Configuration for production environment"""
-    SESSION_COOKIE_SECURE = True
+    # Fixed for Replit deployment - secure cookies only work with HTTPS
+    SESSION_COOKIE_SECURE = False  # Allow HTTP for Replit Cloud Run
     SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'  # Prevent CSRF while allowing cross-site
 
 def get_config():
     """Return the configuration class based on environment"""
