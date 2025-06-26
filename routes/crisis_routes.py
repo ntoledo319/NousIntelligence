@@ -175,3 +175,8 @@ def delete_resource(resource_id):
         flash(f"Error deleting resource: {result.get('error', 'Unknown error')}", "error")
         
     return redirect(url_for('crisis.resources'))
+
+@crisis_bp.route('/mobile')
+def mobile_crisis():
+    """Mobile-optimized crisis support page - accessible without login"""
+    return render_template('crisis/mobile.html')

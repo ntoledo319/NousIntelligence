@@ -1,10 +1,10 @@
 """
 NOUS Personal Assistant - Main Entry Point
 
-This file serves as the main entry point for the unified application.
-Updated to use the auth-loop-free public application.
+Post-surgical streamlined application with pulse dashboard and crisis support.
+Single entry point with consolidated features.
 """
-from minimal_public_app import main
+from nous_surgical_app import main
 
 if __name__ == "__main__":
     main()
