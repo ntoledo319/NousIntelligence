@@ -1,0 +1,58 @@
+🪓  ONE-PROMPT LOGIN-LOOP EXORCIST  🪓
+Context:
+  • Deployed app at https://<YOUR-APP>.replit.app still shows “You must be logged in”.
+  • Agent **cannot** edit `.replit`; all fixes must happen in application code & config files.
+
+Tasks:
+
+1. INVENTORY
+   • Scan for (`trust proxy`, `ProxyFix`, `SECURE_PROXY_SSL_HEADER`, `SameSite`, `secure:`, `ensureAuth`, `.env`, `process.env`, `.env.example`, `NEXTAUTH_URL`, `redirect_uri`).
+   • List duplicate config files (`next.config.*`, `vite.config.*`, auth configs) and outdated landing pages.
+
+2. PROXY & COOKIE PATCH
+   • If Express/Koa/Fastify ⇒ insert `app.set('trust proxy', 1)` before sessions.
+   • Flask ⇒ wrap with `ProxyFix(x_for=1, x_proto=1)`.
+   • Django ⇒ add `SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO","https")`.
+   • Harden cookies: `{ httpOnly:true, sameSite:"lax", secure:process.env.NODE_ENV==="production" }`.
+   • For cross-site OAuth flows, force `SameSite:"None"` **and** `secure:true`.
+
+3. AUTH-PROVIDER SANITY
+   • Replace hard-coded `localhost`/port callbacks with `<YOUR-APP>.replit.app`.
+   • Pull these URLs from `process.env` or framework settings; if missing, generate keys and add to Secrets (do **not** commit sensitive values).
+
+4. CSRF & SESSION
+   • Ensure one session store (Redis/Prisma/DB/file); remove duplicate or test stores.
+   • Sync CSRF middleware with that store and add logging on 403.
+
+5. SPA & ROUTER
+   • Add server-side catch-all route (`*`) that sends `index.html`.
+   • If React/Vite, ensure `BrowserRouter` uses `basename="/"` and `fetch` calls include `{ credentials:"include" }`.
+
+6. REPO DIET
+   • Delete duplicate landing pages, obsolete `.html` copies, stale migrations, extra lockfiles, unused images.
+   • Keep only one `index.html` in the public directory.
+
+7. TEST SUITE
+   • Create `tests/loginLoop.spec.(js|py|rb)`:
+       - GET / ⇒ expect 200
+       - GET /dashboard unauth ⇒ expect 302 → /login
+       - POST /api/login (fixture creds) ⇒ expect 200 + Set-Cookie
+       - GET /dashboard with cookie ⇒ expect 200
+   • Add npm/pip script `test:smoke` that runs this suite.
+
+8. DEPLOY & VERIFY
+   • Commit “fix: proxy+cookie+auth loop”.
+   • Trigger Replit Deployment preview.
+   • Run smoke tests; if any fail, abort the commit and print errors.
+
+Output:
+   • Diff summary (files changed/removed/added)
+   • List of new env vars to add in Secrets
+   • Smoke-test results
+
+Constraints:
+   • **Do NOT touch `.replit`**.
+   • No new packages unless absolutely necessary.
+   • Comment every assumption; leave breadcrumbs for humans.
+
+🔥  END PROMPT — slice, dice, deploy, rejoice. 🔥
