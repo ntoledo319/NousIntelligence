@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOUS Personal Assistant</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .main-container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 600px;
+            width: 90%;
+        }
+        
+        .nous-logo {
+            font-size: 64px;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: bold;
+        }
+        
+        .tagline {
+            font-size: 24px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .action-card {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 25px;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .action-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .action-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .action-desc {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .status-bar {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 30px;
+            font-size: 14px;
+        }
+        
+        .crisis-fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: #e53e3e;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .crisis-fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(229, 62, 62, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .nous-logo { font-size: 48px; }
+            .tagline { font-size: 20px; }
+            .quick-actions { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="nous-logo">NOUS</div>
+        <div class="tagline">Your AI-Powered Personal Assistant</div>
+        
+        <div class="quick-actions">
+            <a href="/pulse" class="action-card">
+                <span class="action-icon">🩺</span>
+                <div class="action-title">Pulse Dashboard</div>
+                <div class="action-desc">Health, budget, and wellness alerts</div>
+            </a>
+            
+            <a href="/dashboard" class="action-card">
+                <span class="action-icon">📊</span>
+                <div class="action-title">Full Dashboard</div>
+                <div class="action-desc">Complete system overview</div>
+            </a>
+            
+            <div class="action-card" onclick="startChat()">
+                <span class="action-icon">💬</span>
+                <div class="action-title">AI Chat</div>
+                <div class="action-desc">Voice & text interactions</div>
+            </div>
+            
+            <a href="/health" class="action-card">
+                <span class="action-icon">🔍</span>
+                <div class="action-title">System Health</div>
+                <div class="action-desc">Monitor app performance</div>
+            </a>
+        </div>
+        
+        <div class="status-bar">
+            <strong>Status:</strong> All systems operational | 
+            <strong>Version:</strong> 2.0.0-surgical | 
+            <strong>Access:</strong> Public (No login required)
+        </div>
+    </div>
+    
+    <!-- Crisis Floating Action Button -->
+    <button class="crisis-fab" onclick="window.location.href='/crisis/mobile'" title="Crisis Support">
+        🚨
+    </button>
+    
+    <script>
+        function startChat() {
+            // Simple chat interface for demonstration
+            const message = prompt("Ask me anything:");
+            if (message) {
+                fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(`NOUS: ${data.response}`);
+                })
+                .catch(error => {
+                    alert('Chat temporarily unavailable');
+                });
+            }
+        }
+        
+        // Add subtle animation to action cards
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.action-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.style.animation = 'fadeInUp 0.6s ease forwards';
+            });
+        });
+        
+        // Add CSS animation keyframes
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
