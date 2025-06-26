@@ -1,0 +1,75 @@
+⚔️  PROJECT KATANA: ONE-TRUE-REPO ⚔️
+Mission:
+    • Guarantee a SINGLE launch command, deployment config, landing page, and workflow.
+    • If multiples exist, merge them into one impeccable “Ultra” version.
+    • Nuke every duplicate, dead file, and config ghost to leave a lean, clean codebase.
+
+GLOBAL RULES
+ 1. **No duplication lives.** Keep only ONE of each:
+      – `.replit` (launch)      – `deployment` block
+      – `index.html`            – `replit.workflows`
+ 2. **Edit in-place first;** create new files ONLY if merging is impossible.
+ 3. **Comment every assumption** so humans aren’t lost.
+ 4. **Abort commit if smoke tests fail.**
+
+STEPS
+
+1. INVENTORY
+   • Parse repo for files named `.replit`, `replit.nix`, `Procfile`, `Dockerfile`, `vercel.json`,
+     `.replit.deploy*`, `*.workflow.*`, plus every `index.*`.  
+   • List duplicates and pick the newest or most-referenced as the “keeper”.  
+   • Cross-check env vars against Replit **Secrets**; warn on missing keys.
+
+2. CONSOLIDATE LAUNCH
+   • Keep exactly ONE `.replit` with a single `run = "<command>"`.  
+   • Fold Procfile/Dockerfile commands into that line if needed.  
+   • For poly-service apps, convert to a **Workflow** that spins services in parallel.
+
+3. UNIFY DEPLOYMENT
+   • Embed one `[deployment]` block inside `.replit`:
+        type     = "static" | "autoscale" | "reserved_vm"
+        run      = "<build && start>"
+        publicDir= "public" (or detected build output)
+   • Remove other deployment JSON/TOML/YAML files.
+
+4. SINGLE LANDING PAGE
+   • Keep one canonical `index.html` at repo root or configured `publicDir`.  
+   • If multiple, merge head/meta/scripts/styles; save as `index.html`.  
+   • Add rewrite rule in `.replit`:
+        [[deployment.rewrites]]
+        from = "/*"
+        to   = "/index.html"
+
+5. ONE WORKFLOW TO RULE THEM ALL
+   • Create/keep `replit.workflows` with ID `build-and-run`.  
+   • Steps:
+        - install deps
+        - run tests
+        - build (if needed)
+        - start dev server
+   • Delete all other workflow files or duplicate IDs.
+
+6. DE-DUPLICATE & CLEAN
+   • Run duplicate-finder: `fdupes -r .` or `md5sum | sort | uniq -d` to list clones.  
+   • Auto-delete duplicates **after** confirming the “keeper”.  
+   • Purge `.DS_Store`, old lockfiles, unused images, stale migrations, etc.
+
+7. SMOKE TEST
+   • `npm|pip run test:smoke` hitting `/` (200), `/health` (200).  
+   • Ensure the deployment snapshot builds without warnings.
+
+8. GIT & DEPLOY
+   • Commit “chore(repo): one-true-launch + de-dupe”.  
+   • Tag `ultra-version-1`.  
+   • Trigger fresh Deployment; monitor logs for 60 s.
+
+FAIL-SAFE
+   • If tests fail, `git reset --hard HEAD~1` and exit with non-zero code.
+
+╭────────────────────────────────╮
+│  Execute the above. Report:    │
+│  – Files removed/merged        │
+│  – Final `.replit` contents    │
+│  – New env vars required       │
+│  – Smoke-test results          │
+╰────────────────────────────────╯
