@@ -13,7 +13,7 @@ import sys
 from urllib.parse import urljoin
 
 # Test configuration
-BASE_URL = "http://localhost:5000"
+BASE_URL = "http://localhost:8080"
 TIMEOUT = 10
 
 def test_basic_connectivity():
