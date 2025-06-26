@@ -1,10 +1,10 @@
 """
 NOUS Personal Assistant - Main Entry Point
 
-Post-surgical streamlined application with pulse dashboard and crisis support.
-Single entry point with consolidated features.
+Ultra-minimal public application with ZERO authentication loops.
+Optimized for Replit Cloud deployment.
 """
-from surgical_nous_app import main
+from minimal_public_app import main
 
 if __name__ == "__main__":
     main()
