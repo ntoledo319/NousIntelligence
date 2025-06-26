@@ -20,7 +20,7 @@ def get_youtube_service(user_connection):
             client_secret=user_connection.client_secret,
             scopes=user_connection.scopes.split(",") if user_connection.scopes else []
         )
-        
+
         # Build the YouTube service
         service = build('youtube', 'v3', credentials=creds)
         return service
@@ -38,14 +38,14 @@ def search_videos(service, query, max_results=10, category=None):
             'q': query,
             'type': 'video'
         }
-        
+
         # Add category filter if provided
         if category:
             request_params['videoCategoryId'] = category
-            
+
         # Execute the search
         search_response = service.search().list(**request_params).execute()
-        
+
         # Extract video information
         videos = []
         for item in search_response.get('items', []):
@@ -59,7 +59,7 @@ def search_videos(service, query, max_results=10, category=None):
                 'url': f"https://www.youtube.com/watch?v={item['id']['videoId']}"
             }
             videos.append(video_info)
-            
+
         return videos
     except Exception as e:
         logging.error(f"Error searching YouTube videos: {str(e)}")
@@ -73,13 +73,13 @@ def get_video_details(service, video_id):
             part='snippet,contentDetails,statistics',
             id=video_id
         ).execute()
-        
+
         # Check if video found
         if not video_response.get('items'):
             return None
-            
+
         video = video_response['items'][0]
-        
+
         # Format video details
         video_details = {
             'id': video['id'],
@@ -96,7 +96,7 @@ def get_video_details(service, video_id):
             'commentCount': video['statistics'].get('commentCount', '0'),
             'url': f"https://www.youtube.com/watch?v={video['id']}"
         }
-        
+
         return video_details
     except Exception as e:
         logging.error(f"Error getting video details: {str(e)}")
@@ -110,13 +110,13 @@ def get_channel_info(service, channel_id):
             part='snippet,contentDetails,statistics',
             id=channel_id
         ).execute()
-        
+
         # Check if channel found
         if not channel_response.get('items'):
             return None
-            
+
         channel = channel_response['items'][0]
-        
+
         # Format channel details
         channel_info = {
             'id': channel['id'],
@@ -131,7 +131,7 @@ def get_channel_info(service, channel_id):
             'uploadsPlaylistId': channel['contentDetails']['relatedPlaylists']['uploads'],
             'url': f"https://www.youtube.com/channel/{channel['id']}"
         }
-        
+
         return channel_info
     except Exception as e:
         logging.error(f"Error getting channel info: {str(e)}")
@@ -145,20 +145,20 @@ def get_channel_videos(service, channel_id, max_results=20):
             part='contentDetails',
             id=channel_id
         ).execute()
-        
+
         # Check if channel found
         if not channel_response.get('items'):
             return []
-            
+
         uploads_playlist_id = channel_response['items'][0]['contentDetails']['relatedPlaylists']['uploads']
-        
+
         # Get playlist items
         playlist_items_response = service.playlistItems().list(
             part='snippet',
             maxResults=max_results,
             playlistId=uploads_playlist_id
         ).execute()
-        
+
         # Extract video information
         videos = []
         for item in playlist_items_response.get('items', []):
@@ -171,7 +171,7 @@ def get_channel_videos(service, channel_id, max_results=20):
                 'url': f"https://www.youtube.com/watch?v={item['snippet']['resourceId']['videoId']}"
             }
             videos.append(video_info)
-            
+
         return videos
     except Exception as e:
         logging.error(f"Error getting channel videos: {str(e)}")
@@ -187,7 +187,7 @@ def get_recommended_videos(service, video_id, max_results=10):
             relatedToVideoId=video_id,
             type='video'
         ).execute()
-        
+
         # Extract video information
         videos = []
         for item in search_response.get('items', []):
@@ -201,7 +201,7 @@ def get_recommended_videos(service, video_id, max_results=10):
                 'url': f"https://www.youtube.com/watch?v={item['id']['videoId']}"
             }
             videos.append(video_info)
-            
+
         return videos
     except Exception as e:
         logging.error(f"Error getting recommended videos: {str(e)}")
@@ -216,7 +216,7 @@ def get_playlists(service, user_id='mine', max_results=25):
             maxResults=max_results,
             mine=(user_id == 'mine')
         ).execute()
-        
+
         # Extract playlist information
         playlists = []
         for item in playlists_response.get('items', []):
@@ -230,7 +230,7 @@ def get_playlists(service, user_id='mine', max_results=25):
                 'url': f"https://www.youtube.com/playlist?list={item['id']}"
             }
             playlists.append(playlist_info)
-            
+
         return playlists
     except Exception as e:
         logging.error(f"Error getting playlists: {str(e)}")
@@ -245,7 +245,7 @@ def get_playlist_items(service, playlist_id, max_results=50):
             maxResults=max_results,
             playlistId=playlist_id
         ).execute()
-        
+
         # Extract video information
         videos = []
         for item in playlist_items_response.get('items', []):
@@ -260,7 +260,7 @@ def get_playlist_items(service, playlist_id, max_results=50):
                 'url': f"https://www.youtube.com/watch?v={item['snippet']['resourceId']['videoId']}"
             }
             videos.append(video_info)
-            
+
         return videos
     except Exception as e:
         logging.error(f"Error getting playlist items: {str(e)}")
@@ -282,7 +282,7 @@ def create_playlist(service, title, description='', privacy_status='private'):
                 }
             }
         ).execute()
-        
+
         # Format playlist information
         playlist_info = {
             'id': playlist_response['id'],
@@ -291,7 +291,7 @@ def create_playlist(service, title, description='', privacy_status='private'):
             'privacy_status': playlist_response['status']['privacyStatus'],
             'url': f"https://www.youtube.com/playlist?list={playlist_response['id']}"
         }
-        
+
         return playlist_info
     except Exception as e:
         logging.error(f"Error creating playlist: {str(e)}")
@@ -313,7 +313,7 @@ def add_video_to_playlist(service, playlist_id, video_id):
                 }
             }
         ).execute()
-        
+
         return {
             'id': playlist_item_response['id'],
             'video_id': playlist_item_response['snippet']['resourceId']['videoId'],
@@ -337,17 +337,17 @@ def search_recovery_videos(service, max_results=10):
             'addiction recovery',
             'AA speaker'
         ]
-        
+
         # Try different keywords
         all_videos = []
         for keyword in keywords:
             videos = search_videos(service, keyword, max_results=3)
             all_videos.extend(videos)
-            
+
             # Stop if we have enough videos
             if len(all_videos) >= max_results:
                 break
-                
+
         # Return only the requested number of videos
         return all_videos[:max_results]
     except Exception as e:
@@ -359,20 +359,20 @@ def create_recovery_playlist(service, title="My Recovery Journey", description="
     try:
         # Create the playlist
         playlist = create_playlist(service, title, description)
-        
+
         if not playlist:
             return None
-            
+
         # Search for recovery videos
         recovery_videos = search_recovery_videos(service, max_results=10)
-        
+
         # Add videos to the playlist
         added_videos = []
         for video in recovery_videos:
             result = add_video_to_playlist(service, playlist['id'], video['id'])
             if result:
                 added_videos.append(video)
-                
+
         return {
             'playlist': playlist,
             'videos': added_videos
@@ -386,49 +386,49 @@ def search_guided_meditations(service, duration_min=None, duration_max=None, max
     try:
         # Search for meditation videos
         meditation_videos = search_videos(service, "guided meditation for recovery", max_results=20)
-        
+
         # If duration filters are provided, get more details and filter
         if duration_min is not None or duration_max is not None:
             filtered_videos = []
-            
+
             for video in meditation_videos:
                 details = get_video_details(service, video['id'])
-                
+
                 if details:
                     # Parse the duration string (ISO 8601 format)
                     duration_str = details['duration']
-                    
+
                     # Extract minutes from the duration string
                     import re
                     minutes = 0
                     minutes_match = re.search(r'(\d+)M', duration_str)
                     if minutes_match:
                         minutes = int(minutes_match.group(1))
-                        
+
                     # Extract hours from the duration string
                     hours = 0
                     hours_match = re.search(r'(\d+)H', duration_str)
                     if hours_match:
                         hours = int(hours_match.group(1))
-                        
+
                     # Calculate total minutes
                     total_minutes = hours * 60 + minutes
-                    
+
                     # Apply filters
                     if duration_min is not None and total_minutes < duration_min:
                         continue
-                        
+
                     if duration_max is not None and total_minutes > duration_max:
                         continue
-                        
+
                     # Add duration information to the video
                     video['duration_minutes'] = total_minutes
                     filtered_videos.append(video)
-                    
+
                     # Stop if we have enough videos
                     if len(filtered_videos) >= max_results:
                         break
-                        
+
             return filtered_videos[:max_results]
         else:
             # If no duration filters, just return the first max_results videos
@@ -442,16 +442,16 @@ def analyze_video_content(service, video_id, openai_client=None):
     try:
         # Get video details
         video_details = get_video_details(service, video_id)
-        
+
         if not video_details:
             return {
                 "success": False,
                 "error": "Video not found"
             }
-            
+
         # Get video comments
         comments = get_video_comments(service, video_id, max_results=10)
-        
+
         # If OpenAI client is not available, just return the data
         if not openai_client:
             return {
@@ -459,7 +459,7 @@ def analyze_video_content(service, video_id, openai_client=None):
                 "video": video_details,
                 "comments": comments
             }
-            
+
         # Prepare content for analysis
         video_data = {
             "title": video_details['title'],
@@ -467,9 +467,9 @@ def analyze_video_content(service, video_id, openai_client=None):
             "tags": video_details.get('tags', []),
             "comments": [comment['text'] for comment in comments]
         }
-        
+
         data_str = json.dumps(video_data, indent=2)
-        
+
         try:
             # Analyze using OpenAI
             response = openai_client.chat.completions.create(
@@ -490,9 +490,9 @@ def analyze_video_content(service, video_id, openai_client=None):
                 ],
                 response_format={"type": "json_object"}
             )
-            
+
             analysis = json.loads(response.choices[0].message.content)
-            
+
             return {
                 "success": True,
                 "video": video_details,
@@ -505,7 +505,7 @@ def analyze_video_content(service, video_id, openai_client=None):
                 "success": False,
                 "error": f"AI analysis failed: {str(e)}"
             }
-            
+
     except Exception as e:
         logging.error(f"Error analyzing video content: {str(e)}")
         return {
@@ -523,7 +523,7 @@ def get_video_comments(service, video_id, max_results=20):
             maxResults=max_results,
             order='relevance'
         ).execute()
-        
+
         # Extract comment information
         comments = []
         for item in comments_response.get('items', []):
@@ -538,7 +538,7 @@ def get_video_comments(service, video_id, max_results=20):
                 'publishedAt': comment['publishedAt']
             }
             comments.append(comment_info)
-            
+
         return comments
     except Exception as e:
         logging.error(f"Error getting video comments: {str(e)}")
@@ -551,23 +551,23 @@ def create_topical_playlist(service, topic, description=None, max_videos=10):
         title = f"{topic} - Curated Playlist"
         if not description:
             description = f"A collection of videos about {topic}"
-            
+
         # Create the playlist
         playlist = create_playlist(service, title, description)
-        
+
         if not playlist:
             return None
-            
+
         # Search for videos on the topic
         videos = search_videos(service, topic, max_results=max_videos)
-        
+
         # Add videos to the playlist
         added_videos = []
         for video in videos:
             result = add_video_to_playlist(service, playlist['id'], video['id'])
             if result:
                 added_videos.append(video)
-                
+
         return {
             'playlist': playlist,
             'videos': added_videos

@@ -40,12 +40,12 @@ def pulse_dashboard():
                 'alerts': get_weather_alerts()
             }
         }
-        
+
         # Calculate overall urgency score
         pulse_data['urgency_score'] = calculate_urgency_score(pulse_data)
-        
+
         return render_template('pulse/dashboard.html', **pulse_data)
-        
+
     except Exception as e:
         logger.error(f"Error loading pulse dashboard: {e}")
         return jsonify({'error': 'Failed to load pulse dashboard'}), 500
@@ -96,22 +96,22 @@ def calculate_urgency_score(pulse_data):
     """Calculate overall urgency score based on all alerts"""
     try:
         score = 0
-        
+
         # Health urgency
         health_urgent = sum(1 for item in pulse_data['health']['appointments'] if item.get('urgency') == 'high')
         score += health_urgent * 3
-        
-        # Finance urgency  
+
+        # Finance urgency
         budget_critical = sum(1 for item in pulse_data['finance']['budget_alerts'] if item.get('percentage', 0) >= 90)
         score += budget_critical * 2
-        
+
         # Shopping urgency
         shopping_urgent = sum(1 for item in pulse_data['shopping']['due_lists'] if item.get('priority') == 'high')
         score += shopping_urgent * 1
-        
+
         # Normalize to 0-10 scale
         return min(score, 10)
-        
+
     except Exception as e:
         logger.error(f"Error calculating urgency score: {e}")
         return 0

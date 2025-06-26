@@ -16,7 +16,7 @@ from app_factory import db
 class UserMemoryEntry(db.Model):
     """
     Model for storing user chat and voice interactions.
-    
+
     Attributes:
         id: Unique identifier for the memory entry
         user_id: Foreign key to the user this memory belongs to
@@ -29,7 +29,7 @@ class UserMemoryEntry(db.Model):
         metadata: Additional metadata about the message (JSON)
     """
     __tablename__ = 'user_memory_entries'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     role = db.Column(db.String(20), nullable=False)  # user, assistant, system
@@ -39,16 +39,15 @@ class UserMemoryEntry(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     interaction_id = db.Column(db.String(36))  # To group related messages
     metadata = db.Column(db.Text)  # JSON string for additional data
-    
+
     # Relationships
     user = db.relationship('User', backref=db.backref('memory_entries', lazy=True))
-    
+
     def __repr__(self):
         return f'<UserMemoryEntry {self.id} for user {self.user_id}>'
-    
+
     def to_dict(self):
         """Convert memory entry to dictionary"""
-        import json
         return {
             'id': self.id,
             'role': self.role,
@@ -64,7 +63,7 @@ class UserMemoryEntry(db.Model):
 class UserTopicInterest(db.Model):
     """
     Model for tracking user interests in various topics.
-    
+
     Attributes:
         id: Unique identifier for the topic interest
         user_id: Foreign key to the user
@@ -75,7 +74,7 @@ class UserTopicInterest(db.Model):
         metadata: Additional metadata about the interest (JSON)
     """
     __tablename__ = 'user_topic_interests'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     topic_name = db.Column(db.String(100), nullable=False)
@@ -83,21 +82,20 @@ class UserTopicInterest(db.Model):
     last_discussed = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     engagement_count = db.Column(db.Integer, default=1)
     metadata = db.Column(db.Text)  # JSON string for additional data
-    
+
     # Relationships
     user = db.relationship('User', backref=db.backref('topic_interests', lazy=True))
-    
+
     # Composite index for efficient querying
     __table_args__ = (
         db.Index('idx_user_topic', user_id, topic_name),
     )
-    
+
     def __repr__(self):
         return f'<UserTopicInterest {self.topic_name} for user {self.user_id}>'
-    
+
     def to_dict(self):
         """Convert topic interest to dictionary"""
-        import json
         return {
             'id': self.id,
             'topic_name': self.topic_name,
@@ -111,7 +109,7 @@ class UserTopicInterest(db.Model):
 class UserEntityMemory(db.Model):
     """
     Model for storing entities (people, places, things) the user has mentioned.
-    
+
     Attributes:
         id: Unique identifier for the entity memory
         user_id: Foreign key to the user
@@ -123,7 +121,7 @@ class UserEntityMemory(db.Model):
         importance: Importance score for the entity (1-10)
     """
     __tablename__ = 'user_entity_memories'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     entity_name = db.Column(db.String(100), nullable=False)
@@ -132,21 +130,20 @@ class UserEntityMemory(db.Model):
     last_mentioned = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     mention_count = db.Column(db.Integer, default=1)
     importance = db.Column(db.Integer, default=5)  # 1-10 scale
-    
+
     # Relationships
     user = db.relationship('User', backref=db.backref('entity_memories', lazy=True))
-    
+
     # Composite index for efficient querying
     __table_args__ = (
         db.Index('idx_user_entity', user_id, entity_name),
     )
-    
+
     def __repr__(self):
         return f'<UserEntityMemory {self.entity_name} for user {self.user_id}>'
-    
+
     def to_dict(self):
         """Convert entity memory to dictionary"""
-        import json
         return {
             'id': self.id,
             'entity_name': self.entity_name,

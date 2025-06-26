@@ -18,7 +18,7 @@ def comprehensive_health_check():
     """Run comprehensive health checks for all services"""
     try:
         results = health_checker.run_full_health_check()
-        
+
         # Determine HTTP status code based on results
         if results['overall_status'] == 'healthy':
             status_code = 200
@@ -26,7 +26,7 @@ def comprehensive_health_check():
             status_code = 206  # Partial Content
         else:
             status_code = 503  # Service Unavailable
-            
+
         return jsonify(results), status_code
     except Exception as e:
         logger.error(f"Health check failed: {e}")
@@ -40,7 +40,7 @@ def google_oauth_health():
     """Check Google OAuth service health"""
     try:
         result = health_checker.check_google_oauth()
-        
+
         status_code = 200 if result['status'] == 'healthy' else 503
         return jsonify(result), status_code
     except Exception as e:
@@ -60,11 +60,11 @@ def ai_services_health():
             'openrouter': health_checker.check_openrouter_api(),
             'huggingface': health_checker.check_huggingface_api()
         }
-        
+
         # Determine overall status
         healthy_count = sum(1 for r in results.values() if r['status'] == 'healthy')
         error_count = sum(1 for r in results.values() if r['status'] == 'error')
-        
+
         if error_count == 0:
             overall_status = 'healthy'
             status_code = 200
@@ -74,7 +74,7 @@ def ai_services_health():
         else:
             overall_status = 'unhealthy'
             status_code = 503
-            
+
         return jsonify({
             'overall_status': overall_status,
             'services': results
@@ -91,7 +91,7 @@ def database_health():
     """Check database connectivity"""
     try:
         result = health_checker.check_database_connection()
-        
+
         status_code = 200 if result['status'] == 'healthy' else 503
         return jsonify(result), status_code
     except Exception as e:

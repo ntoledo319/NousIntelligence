@@ -32,12 +32,12 @@ ONE_CALL_API_URL = "https://api.openweathermap.org/data/3.0/onecall"
 def get_extended_forecast(location: str, days: int = 7, include_hourly: bool = False) -> Dict[str, Any]:
     """
     Get detailed weather forecast with additional data
-    
+
     Args:
         location: Location name
         days: Number of days to forecast (max 7)
         include_hourly: Whether to include hourly forecast data
-        
+
     Returns:
         Dict with detailed forecast data
     """
@@ -45,12 +45,12 @@ def get_extended_forecast(location: str, days: int = 7, include_hourly: bool = F
         if not OPENWEATHER_API_KEY:
             logging.error("OpenWeatherMap API key not found")
             return {"error": "API configuration issue"}
-            
+
         # Get location coordinates
         lat, lon, location_name = get_location_coordinates(location)
         if not lat or not lon:
             return {"error": f"Could not find coordinates for {location}"}
-            
+
         # Call OneCall API for more detailed weather data
         params = {
             "lat": lat,
@@ -59,22 +59,22 @@ def get_extended_forecast(location: str, days: int = 7, include_hourly: bool = F
             "appid": OPENWEATHER_API_KEY,
             "units": "imperial"
         }
-        
+
         # Remove hourly data if not needed to reduce response size
         if not include_hourly:
             params["exclude"] += ",hourly"
-            
+
         response = requests.get(ONE_CALL_API_URL, params=params)
-        
+
         if response.status_code != 200:
             return {"error": f"API error: {response.status_code} - {response.text}"}
-            
+
         data = response.json()
-        
+
         # Process and format the data
         current = data.get("current", {})
         daily = data.get("daily", [])[:days]  # Limit to requested days
-        
+
         # Format current conditions
         current_weather = {
             "temp": current.get("temp"),
@@ -88,7 +88,7 @@ def get_extended_forecast(location: str, days: int = 7, include_hourly: bool = F
             "icon": current.get("weather", [{}])[0].get("icon"),
             "pressure": current.get("pressure"),
         }
-        
+
         # Format daily forecast
         daily_forecast = []
         for day in daily:
@@ -108,7 +108,7 @@ def get_extended_forecast(location: str, days: int = 7, include_hourly: bool = F
                 "sunrise": datetime.datetime.fromtimestamp(day.get("sunrise")).strftime("%H:%M"),
                 "sunset": datetime.datetime.fromtimestamp(day.get("sunset")).strftime("%H:%M"),
             })
-        
+
         # Format hourly forecast if requested
         hourly_forecast = []
         if include_hourly and "hourly" in data:
@@ -125,7 +125,7 @@ def get_extended_forecast(location: str, days: int = 7, include_hourly: bool = F
                     "icon": hour.get("weather", [{}])[0].get("icon"),
                     "precipitation_probability": round(hour.get("pop", 0) * 100),
                 })
-        
+
         # Get weather alerts if available
         alerts = []
         if "alerts" in data:
@@ -139,7 +139,7 @@ def get_extended_forecast(location: str, days: int = 7, include_hourly: bool = F
                     "end": alert_end,
                     "sender": alert.get("sender_name")
                 })
-        
+
         # Compile the result
         result = {
             "location": location_name,
@@ -147,12 +147,12 @@ def get_extended_forecast(location: str, days: int = 7, include_hourly: bool = F
             "daily": daily_forecast,
             "alerts": alerts
         }
-        
+
         if include_hourly:
             result["hourly"] = hourly_forecast
-            
+
         return result
-        
+
     except Exception as e:
         logging.error(f"Error getting extended forecast: {str(e)}")
         return {"error": f"Could not get extended forecast: {str(e)}"}
@@ -161,13 +161,13 @@ def get_personalized_activity_recommendations(location: str, date: datetime.date
                                            interests: List[str] = None, indoor_only: bool = False) -> Dict[str, Any]:
     """
     Get weather-based activity recommendations
-    
+
     Args:
         location: Location name
         date: Optional specific date (defaults to current date)
         interests: List of activity interests
         indoor_only: Whether to only include indoor activities
-        
+
     Returns:
         Dict with recommended activities
     """
@@ -175,18 +175,18 @@ def get_personalized_activity_recommendations(location: str, date: datetime.date
         if not OPENAI_API_KEY:
             logging.error("OpenAI API key not found")
             return {"error": "API configuration issue"}
-            
+
         # Get weather forecast for the location and date
         try:
             # If no date provided, use current date
             if not date:
                 date = datetime.date.today()
-                
+
             # Get detailed forecast
             forecast = get_extended_forecast(location)
             if "error" in forecast:
                 return {"error": f"Could not get weather forecast: {forecast['error']}"}
-                
+
             # Get the specific day's forecast
             target_date_str = date.strftime("%Y-%m-%d")
             day_forecast = None
@@ -194,23 +194,23 @@ def get_personalized_activity_recommendations(location: str, date: datetime.date
                 if day.get("date") == target_date_str:
                     day_forecast = day
                     break
-                    
+
             if not day_forecast:
                 day_forecast = forecast.get("daily", [])[0] if forecast.get("daily") else None
-                
+
             # Current conditions
             current_weather = forecast.get("current", {})
-            
+
             # Weather alerts
             alerts = forecast.get("alerts", [])
-            
+
         except Exception as e:
             logging.error(f"Error getting weather for activity recommendations: {str(e)}")
             return {"error": f"Could not get weather data: {str(e)}"}
-        
+
         # Format interests
         interests_str = ", ".join(interests) if interests else "general activities"
-        
+
         # Prepare weather description for the AI
         if day_forecast:
             weather_desc = f"""
@@ -224,22 +224,22 @@ def get_personalized_activity_recommendations(location: str, date: datetime.date
             """
         else:
             weather_desc = f"Weather forecast for {location} unavailable."
-            
+
         if alerts:
             weather_desc += "\nWeather alerts: " + ", ".join([alert.get("event") for alert in alerts])
-            
+
         # Only indoor flag
         indoor_flag = "Please suggest indoor activities only due to weather conditions." if indoor_only else ""
-        
+
         prompt = f"""
         I need activity recommendations for {location} on {target_date_str} based on the weather forecast and interests.
-        
+
         {weather_desc}
-        
+
         The person is interested in: {interests_str}
-        
+
         {indoor_flag}
-        
+
         Please provide activity recommendations suitable for the weather conditions and specified interests.
         Include:
         1. Name and brief description of each activity
@@ -247,7 +247,7 @@ def get_personalized_activity_recommendations(location: str, date: datetime.date
         3. Whether it's indoor or outdoor
         4. Suggested time of day
         5. Estimated duration
-        
+
         Format as a JSON object with categories of activities:
         {{
           "recommended_activities": [
@@ -265,10 +265,10 @@ def get_personalized_activity_recommendations(location: str, date: datetime.date
           "weather_summary": "Brief summary of the weather and its impact on activities",
           "special_recommendations": "Any special recommendations based on alerts or conditions"
         }}
-        
+
         Provide a diverse set of activities, with a mix of popular and lesser-known options.
         """
-        
+
         response = client.chat.completions.create(
             model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
             messages=[
@@ -277,16 +277,16 @@ def get_personalized_activity_recommendations(location: str, date: datetime.date
             ],
             response_format={"type": "json_object"}
         )
-        
+
         # Parse the response
         recommendations = json.loads(response.choices[0].message.content)
-        
+
         # Add original weather data
         if day_forecast:
             recommendations["weather_data"] = day_forecast
-            
+
         return recommendations
-        
+
     except Exception as e:
         logging.error(f"Error getting activity recommendations: {str(e)}")
         return {"error": f"Could not get activity recommendations: {str(e)}"}
@@ -294,10 +294,10 @@ def get_personalized_activity_recommendations(location: str, date: datetime.date
 def get_weather_alerts_for_location(location: str) -> Dict[str, Any]:
     """
     Get weather alerts for a location
-    
+
     Args:
         location: Location name
-        
+
     Returns:
         Dict with weather alerts
     """
@@ -306,10 +306,10 @@ def get_weather_alerts_for_location(location: str) -> Dict[str, Any]:
         forecast = get_extended_forecast(location)
         if "error" in forecast:
             return {"error": forecast["error"]}
-            
+
         # Extract and format alerts
         alerts = forecast.get("alerts", [])
-        
+
         # Format for response
         return {
             "location": forecast.get("location", location),
@@ -317,24 +317,24 @@ def get_weather_alerts_for_location(location: str) -> Dict[str, Any]:
             "alerts": alerts,
             "has_alerts": len(alerts) > 0
         }
-        
+
     except Exception as e:
         logging.error(f"Error getting weather alerts: {str(e)}")
         return {"error": f"Could not get weather alerts: {str(e)}"}
 
-def get_weather_health_insights(location: str, health_conditions: List[str] = None, 
-                             user_id: str = None, session=None, 
+def get_weather_health_insights(location: str, health_conditions: List[str] = None,
+                             user_id: str = None, session=None,
                              include_pain_flare_risk: bool = False) -> Dict[str, Any]:
     """
     Get weather-based health insights
-    
+
     Args:
         location: Location name
         health_conditions: List of health conditions to consider
         user_id: User ID for storing preferences
         session: Flask session object
         include_pain_flare_risk: Whether to include pain flare risk assessment
-        
+
     Returns:
         Dict with health insights
     """
@@ -342,32 +342,31 @@ def get_weather_health_insights(location: str, health_conditions: List[str] = No
         if not OPENAI_API_KEY:
             logging.error("OpenAI API key not found")
             return {"error": "API configuration issue"}
-            
+
         # Get detailed weather forecast
         forecast = get_extended_forecast(location, include_hourly=True)
         if "error" in forecast:
             return {"error": forecast["error"]}
-            
+
         # Extract current and forecast data
         current = forecast.get("current", {})
         daily = forecast.get("daily", [])
         hourly = forecast.get("hourly", [])
-        
+
         # Format health conditions
         conditions_str = ", ".join(health_conditions) if health_conditions else "general health"
-        
+
         # Check if pain flare risk is requested
         pain_flare_data = None
         if include_pain_flare_risk:
             try:
-                from utils.weather_helper import (
                     get_pressure_trend, calculate_pain_flare_risk, get_storm_severity
                 )
-                
+
                 pressure_trend = get_pressure_trend(location, 24)
                 storm_data = get_storm_severity(current)
                 pain_risk = calculate_pain_flare_risk(pressure_trend, storm_data)
-                
+
                 pain_flare_data = {
                     "risk_level": pain_risk['risk_level'],
                     "risk_score": pain_risk['risk_score'],
@@ -378,7 +377,7 @@ def get_weather_health_insights(location: str, health_conditions: List[str] = No
             except Exception as e:
                 logging.error(f"Error calculating pain flare risk: {str(e)}")
                 pain_flare_data = {"error": f"Could not calculate pain flare risk: {str(e)}"}
-        
+
         # Extract relevant weather data for health assessment
         weather_data = {
             "current_temp": current.get("temp"),
@@ -392,7 +391,7 @@ def get_weather_health_insights(location: str, health_conditions: List[str] = No
             "humidity_changes": [hour.get("humidity") for hour in hourly[:24]] if hourly else [],
             "alerts": [alert.get("event") for alert in forecast.get("alerts", [])]
         }
-        
+
         # Prepare weather description for the AI
         weather_desc = f"""
         Current weather in {forecast.get('location', location)}:
@@ -401,27 +400,27 @@ def get_weather_health_insights(location: str, health_conditions: List[str] = No
         - Barometric pressure: {current.get('pressure')} hPa
         - UV Index: {current.get('uv_index')}
         - Conditions: {current.get('description')}
-        
+
         Forecast:
         - Today's high: {daily[0].get('temp_max')}°F, low: {daily[0].get('temp_min')}°F
         - Precipitation probability: {daily[0].get('precipitation_probability')}%
-        
+
         Alerts: {', '.join([alert.get('event') for alert in forecast.get('alerts', [])]) if forecast.get('alerts') else 'None'}
         """
-        
+
         prompt = f"""
         I need health insights based on the weather conditions and specific health considerations.
-        
+
         {weather_desc}
-        
+
         Health conditions to consider: {conditions_str}
-        
+
         Please provide health insights related to:
         1. How these weather conditions might affect the specified health conditions
         2. Recommendations for managing health in these conditions
         3. Any warnings or precautions related to the weather
         4. Comfort level assessment
-        
+
         Format as a JSON object with these sections:
         {{
           "weather_impacts": [
@@ -441,11 +440,11 @@ def get_weather_health_insights(location: str, health_conditions: List[str] = No
             "summary": "Brief comfort summary"
           }}
         }}
-        
-        Be specific about how different weather factors (temperature, humidity, pressure, etc.) 
+
+        Be specific about how different weather factors (temperature, humidity, pressure, etc.)
         might affect the specified conditions, and provide practical recommendations.
         """
-        
+
         response = client.chat.completions.create(
             model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
             messages=[
@@ -454,19 +453,19 @@ def get_weather_health_insights(location: str, health_conditions: List[str] = No
             ],
             response_format={"type": "json_object"}
         )
-        
+
         # Parse the response
         insights = json.loads(response.choices[0].message.content)
-        
+
         # Add pain flare data if requested
         if pain_flare_data:
             insights["pain_flare_risk"] = pain_flare_data
-            
+
         # Add original weather data
         insights["weather_data"] = weather_data
-        
+
         return insights
-        
+
     except Exception as e:
         logging.error(f"Error getting weather health insights: {str(e)}")
         return {"error": f"Could not get health insights: {str(e)}"}
@@ -474,40 +473,40 @@ def get_weather_health_insights(location: str, health_conditions: List[str] = No
 def get_trip_weather_overview(trip_id: int, session=None) -> Dict[str, Any]:
     """
     Get comprehensive weather overview for a trip
-    
+
     Args:
         trip_id: Trip ID
         session: Flask session object
-        
+
     Returns:
         Dict with trip weather overview
     """
     try:
         from utils.travel_helper import get_trip_by_id
-        
+
         # Get trip details
         trip = get_trip_by_id(trip_id, session)
         if not trip:
             return {"error": "Trip not found"}
-            
+
         destination = trip.destination
         start_date = trip.start_date
         end_date = trip.end_date
-        
+
         if not start_date or not end_date:
             return {"error": "Trip dates not set"}
-            
+
         # Calculate trip duration in days
         duration = (end_date.date() - start_date.date()).days + 1
-        
+
         # Get extended weather forecast
         forecast = get_extended_forecast(destination, days=min(7, duration))
         if "error" in forecast:
             return {"error": forecast["error"]}
-            
+
         # Extract daily forecasts
         daily_forecasts = forecast.get("daily", [])
-        
+
         # Generate weather summary and recommendations
         if OPENAI_API_KEY:
             try:
@@ -518,22 +517,22 @@ def get_trip_weather_overview(trip_id: int, session=None) -> Dict[str, Any]:
                                    f"{day.get('temp_min')}°F to {day.get('temp_max')}°F, " \
                                    f"Precipitation: {day.get('precipitation_probability')}%, " \
                                    f"UV Index: {day.get('uv_index')}\n"
-                
+
                 prompt = f"""
-                I need a weather overview and recommendations for a trip to {destination} 
+                I need a weather overview and recommendations for a trip to {destination}
                 from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}.
-                
+
                 {forecast_text}
-                
+
                 Please provide:
                 1. A summary of the overall weather for the trip
                 2. Day-by-day activity recommendations based on the forecast
                 3. Packing suggestions based on the forecast
                 4. Weather-related concerns or alerts to be aware of
-                
+
                 Format as a JSON object with these sections.
                 """
-                
+
                 response = client.chat.completions.create(
                     model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
                     messages=[
@@ -542,10 +541,10 @@ def get_trip_weather_overview(trip_id: int, session=None) -> Dict[str, Any]:
                     ],
                     response_format={"type": "json_object"}
                 )
-                
+
                 # Parse the response
                 ai_insights = json.loads(response.choices[0].message.content)
-                
+
                 # Combine AI insights with raw forecast data
                 result = {
                     "trip": {
@@ -564,13 +563,13 @@ def get_trip_weather_overview(trip_id: int, session=None) -> Dict[str, Any]:
                     },
                     "insights": ai_insights
                 }
-                
+
                 return result
-                
+
             except Exception as e:
                 logging.error(f"Error generating weather insights: {str(e)}")
                 # Continue with basic forecast if AI insights fail
-        
+
         # Basic format without AI insights
         return {
             "trip": {
@@ -588,7 +587,7 @@ def get_trip_weather_overview(trip_id: int, session=None) -> Dict[str, Any]:
                 "alerts": forecast.get("alerts", []),
             }
         }
-        
+
     except Exception as e:
         logging.error(f"Error getting trip weather overview: {str(e)}")
         return {"error": f"Could not get trip weather overview: {str(e)}"}
@@ -596,12 +595,12 @@ def get_trip_weather_overview(trip_id: int, session=None) -> Dict[str, Any]:
 def set_user_weather_preferences(user_id: str, preferences: Dict[str, Any], session=None) -> Dict[str, Any]:
     """
     Set user weather preferences (only stored, not used for pain flare prediction unless specifically requested)
-    
+
     Args:
         user_id: User ID
         preferences: Dict with weather preferences
         session: Flask session object
-        
+
     Returns:
         Dict with result status
     """
@@ -609,20 +608,20 @@ def set_user_weather_preferences(user_id: str, preferences: Dict[str, Any], sess
         # Ensure required fields
         if not user_id or not preferences:
             return {"success": False, "error": "Missing required parameters"}
-            
+
         # Extract preferences
         primary_location = preferences.get("primary_location")
         units = preferences.get("units", "imperial")  # Default to imperial
-        
+
         # Set primary location if provided
         if primary_location:
             try:
                 # Check if this location already exists
                 existing = WeatherLocation.query.filter_by(
-                    user_id=user_id, 
+                    user_id=user_id,
                     name=primary_location
                 ).first()
-                
+
                 if existing:
                     # Update existing location as primary
                     WeatherLocation.query.filter_by(user_id=user_id).update({"is_primary": False})
@@ -634,7 +633,7 @@ def set_user_weather_preferences(user_id: str, preferences: Dict[str, Any], sess
                     if lat and lon:
                         # Unset other primary locations first
                         WeatherLocation.query.filter_by(user_id=user_id).update({"is_primary": False})
-                        
+
                         # Create new primary location
                         new_location = WeatherLocation(
                             user_id=user_id,
@@ -651,7 +650,7 @@ def set_user_weather_preferences(user_id: str, preferences: Dict[str, Any], sess
             except Exception as e:
                 logging.error(f"Error setting primary location: {str(e)}")
                 return {"success": False, "error": f"Error setting primary location: {str(e)}"}
-        
+
         # Store other preferences in session if provided
         if session:
             session["weather_preferences"] = {
@@ -660,9 +659,9 @@ def set_user_weather_preferences(user_id: str, preferences: Dict[str, Any], sess
                 "health_conditions": preferences.get("health_conditions", []),
                 "activity_interests": preferences.get("activity_interests", [])
             }
-            
+
         return {"success": True, "message": "Weather preferences updated successfully"}
-        
+
     except Exception as e:
         logging.error(f"Error setting weather preferences: {str(e)}")
         return {"success": False, "error": f"Could not set weather preferences: {str(e)}"}
@@ -670,12 +669,12 @@ def set_user_weather_preferences(user_id: str, preferences: Dict[str, Any], sess
 def enable_pain_flare_monitoring(user_id: str, enable: bool = True, session=None) -> Dict[str, bool]:
     """
     Specifically enable or disable pain flare monitoring
-    
+
     Args:
         user_id: User ID
         enable: Whether to enable pain flare monitoring
         session: Flask session object
-        
+
     Returns:
         Dict with result status
     """
@@ -685,7 +684,7 @@ def enable_pain_flare_monitoring(user_id: str, enable: bool = True, session=None
             prefs = session.get("weather_preferences", {})
             prefs["show_pain_flares"] = enable
             session["weather_preferences"] = prefs
-            
+
         return {"success": True, "pain_flares_enabled": enable}
     except Exception as e:
         logging.error(f"Error setting pain flare monitoring: {str(e)}")

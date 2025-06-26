@@ -19,10 +19,10 @@ from utils.ai_helper import generate_ai_text, analyze_document_content
 def get_gmail_service(user_connection):
     """
     Build and return a Gmail service object from user connection data
-    
+
     Args:
         user_connection: User connection object with OAuth credentials
-        
+
     Returns:
         Gmail service object or None
     """
@@ -36,7 +36,7 @@ def get_gmail_service(user_connection):
             client_secret=user_connection.client_secret,
             scopes=user_connection.scopes.split(",") if user_connection.scopes else []
         )
-        
+
         # Build the Gmail service
         service = build('gmail', 'v1', credentials=creds)
         return service
@@ -47,13 +47,13 @@ def get_gmail_service(user_connection):
 def search_gmail(gmail_service, query, max_results=20, include_content=False):
     """
     Search Gmail with a specific query
-    
+
     Args:
         gmail_service: Authorized Gmail service
         query: Search query in Gmail format (e.g., 'from:example@example.com')
         max_results: Maximum number of results to return
         include_content: Whether to include email content
-        
+
     Returns:
         List of matching emails
     """
@@ -64,18 +64,18 @@ def search_gmail(gmail_service, query, max_results=20, include_content=False):
             q=query,
             maxResults=max_results
         ).execute()
-        
+
         messages = results.get('messages', [])
-        
+
         if not messages:
             return []
-            
+
         email_list = []
-        
+
         # Get detailed info for each message
         for message in messages:
             message_id = message['id']
-            
+
             if include_content:
                 # Get the full message
                 msg = gmail_service.users().messages().get(
@@ -83,18 +83,18 @@ def search_gmail(gmail_service, query, max_results=20, include_content=False):
                     id=message_id,
                     format='full'
                 ).execute()
-                
+
                 # Extract headers
                 headers = {}
                 for header in msg['payload']['headers']:
                     headers[header['name'].lower()] = header['value']
-                
+
                 # Get the subject, from, to, and date
                 subject = headers.get('subject', '(No Subject)')
                 sender = headers.get('from', '')
                 recipient = headers.get('to', '')
                 date = headers.get('date', '')
-                
+
                 # Get the message body if available
                 body = ''
                 if 'parts' in msg['payload']:
@@ -104,7 +104,7 @@ def search_gmail(gmail_service, query, max_results=20, include_content=False):
                             break
                 elif 'body' in msg['payload'] and 'data' in msg['payload']['body']:
                     body = base64.urlsafe_b64decode(msg['payload']['body']['data']).decode('utf-8')
-                
+
                 email_list.append({
                     'id': message_id,
                     'thread_id': msg['threadId'],
@@ -123,18 +123,18 @@ def search_gmail(gmail_service, query, max_results=20, include_content=False):
                     format='metadata',
                     metadataHeaders=['Subject', 'From', 'To', 'Date']
                 ).execute()
-                
+
                 # Extract headers
                 headers = {}
                 for header in msg['payload']['headers']:
                     headers[header['name'].lower()] = header['value']
-                
+
                 # Get the subject, from, to, and date
                 subject = headers.get('subject', '(No Subject)')
                 sender = headers.get('from', '')
                 recipient = headers.get('to', '')
                 date = headers.get('date', '')
-                
+
                 email_list.append({
                     'id': message_id,
                     'thread_id': msg['threadId'],
@@ -144,9 +144,9 @@ def search_gmail(gmail_service, query, max_results=20, include_content=False):
                     'date': date,
                     'labels': msg['labelIds']
                 })
-        
+
         return email_list
-        
+
     except Exception as e:
         logging.error(f"Error searching Gmail: {str(e)}")
         return []
@@ -154,13 +154,13 @@ def search_gmail(gmail_service, query, max_results=20, include_content=False):
 def get_gmail_threads(gmail_service, query="", max_results=10, include_content=True):
     """
     Get Gmail threads matching a query
-    
+
     Args:
         gmail_service: Authorized Gmail service
         query: Search query in Gmail format
         max_results: Maximum number of threads to return
         include_content: Whether to include email content
-        
+
     Returns:
         List of email threads
     """
@@ -171,38 +171,38 @@ def get_gmail_threads(gmail_service, query="", max_results=10, include_content=T
             q=query,
             maxResults=max_results
         ).execute()
-        
+
         threads = results.get('threads', [])
-        
+
         if not threads:
             return []
-            
+
         thread_list = []
-        
+
         # Get detailed info for each thread
         for thread in threads:
             thread_id = thread['id']
-            
+
             # Get the full thread
             thread_data = gmail_service.users().threads().get(
                 userId='me',
                 id=thread_id
             ).execute()
-            
+
             messages = []
-            
+
             for message in thread_data['messages']:
                 # Extract headers
                 headers = {}
                 for header in message['payload']['headers']:
                     headers[header['name'].lower()] = header['value']
-                
+
                 # Get the subject, from, to, and date
                 subject = headers.get('subject', '(No Subject)')
                 sender = headers.get('from', '')
                 recipient = headers.get('to', '')
                 date = headers.get('date', '')
-                
+
                 # Get the message body if include_content is True
                 body = ''
                 if include_content:
@@ -214,7 +214,7 @@ def get_gmail_threads(gmail_service, query="", max_results=10, include_content=T
                                 break
                     elif 'body' in message['payload'] and 'data' in message['payload']['body']:
                         body = base64.urlsafe_b64decode(message['payload']['body']['data']).decode('utf-8')
-                
+
                 messages.append({
                     'id': message['id'],
                     'subject': subject,
@@ -224,15 +224,15 @@ def get_gmail_threads(gmail_service, query="", max_results=10, include_content=T
                     'body': body if include_content else '',
                     'labels': message.get('labelIds', [])
                 })
-            
+
             thread_list.append({
                 'id': thread_id,
                 'messages': messages,
                 'message_count': len(messages)
             })
-        
+
         return thread_list
-        
+
     except Exception as e:
         logging.error(f"Error getting Gmail threads: {str(e)}")
         return []
@@ -240,7 +240,7 @@ def get_gmail_threads(gmail_service, query="", max_results=10, include_content=T
 def send_email(gmail_service, to, subject, body, cc=None, bcc=None):
     """
     Send an email
-    
+
     Args:
         gmail_service: Authorized Gmail service
         to: Recipient email address or list of addresses
@@ -248,7 +248,7 @@ def send_email(gmail_service, to, subject, body, cc=None, bcc=None):
         body: Email body content
         cc: CC recipients (optional)
         bcc: BCC recipients (optional)
-        
+
     Returns:
         Status of the send operation
     """
@@ -257,35 +257,35 @@ def send_email(gmail_service, to, subject, body, cc=None, bcc=None):
         to_list = to if isinstance(to, list) else [to]
         cc_list = cc if cc and isinstance(cc, list) else [cc] if cc else []
         bcc_list = bcc if bcc and isinstance(bcc, list) else [bcc] if bcc else []
-        
+
         # Create the email message
         message = email.message.EmailMessage()
         message['To'] = ', '.join(to_list)
         message['Subject'] = subject
-        
+
         if cc_list:
             message['Cc'] = ', '.join(cc_list)
-            
+
         if bcc_list:
             message['Bcc'] = ', '.join(bcc_list)
-            
+
         message.set_content(body)
-        
+
         # Encode as base64 URL-safe string
         raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode('utf-8')
-        
+
         # Send the message
         sent_message = gmail_service.users().messages().send(
             userId='me',
             body={'raw': raw_message}
         ).execute()
-        
+
         return {
             'status': 'success',
             'message_id': sent_message['id'],
             'thread_id': sent_message.get('threadId', '')
         }
-        
+
     except Exception as e:
         logging.error(f"Error sending email: {str(e)}")
         return {
@@ -296,12 +296,12 @@ def send_email(gmail_service, to, subject, body, cc=None, bcc=None):
 def reply_to_email(gmail_service, message_id, body):
     """
     Reply to an existing email
-    
+
     Args:
         gmail_service: Authorized Gmail service
         message_id: ID of the message to reply to
         body: Reply content
-        
+
     Returns:
         Status of the reply operation
     """
@@ -313,31 +313,31 @@ def reply_to_email(gmail_service, message_id, body):
             format='metadata',
             metadataHeaders=['Subject', 'From', 'To', 'Message-ID', 'References', 'In-Reply-To']
         ).execute()
-        
+
         # Extract headers
         headers = {}
         for header in original_msg['payload']['headers']:
             headers[header['name'].lower()] = header['value']
-        
+
         # Get the thread ID
         thread_id = original_msg['threadId']
-        
+
         # Extract email addresses
         from_address = headers.get('from', '')
         to_address = headers.get('to', '')
         subject = headers.get('subject', '')
-        
+
         # Parse the 'From' header to get the email address
         from_match = re.search(r'<([^>]+)>', from_address)
         if from_match:
             reply_to = from_match.group(1)
         else:
             reply_to = from_address
-            
+
         # Add 'Re:' to subject if it's not already there
         if not subject.lower().startswith('re:'):
             subject = f"Re: {subject}"
-        
+
         # Create the reply message
         message = email.message.EmailMessage()
         message['To'] = reply_to
@@ -345,22 +345,22 @@ def reply_to_email(gmail_service, message_id, body):
         message['In-Reply-To'] = headers.get('message-id', '')
         message['References'] = headers.get('references', '') + ' ' + headers.get('message-id', '')
         message.set_content(body)
-        
+
         # Encode as base64 URL-safe string
         raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode('utf-8')
-        
+
         # Send the reply
         sent_message = gmail_service.users().messages().send(
             userId='me',
             body={'raw': raw_message, 'threadId': thread_id}
         ).execute()
-        
+
         return {
             'status': 'success',
             'message_id': sent_message['id'],
             'thread_id': sent_message.get('threadId', '')
         }
-        
+
     except Exception as e:
         logging.error(f"Error replying to email: {str(e)}")
         return {
@@ -373,27 +373,27 @@ def reply_to_email(gmail_service, message_id, body):
 def categorize_emails(gmail_service, emails):
     """
     Categorize a list of emails into recovery-relevant categories
-    
+
     Args:
         gmail_service: Authorized Gmail service
         emails: List of email objects with subject and body
-        
+
     Returns:
         Categorized email list
     """
     try:
         categorized_emails = []
-        
+
         for email_obj in emails:
             email_text = f"Subject: {email_obj.get('subject', '')}\n\nBody: {email_obj.get('body', '')}"
-            
+
             # Skip email if it's too short
             if len(email_text) < 10:
                 email_obj['category'] = 'uncategorized'
                 email_obj['recovery_relevance'] = 'unknown'
                 categorized_emails.append(email_obj)
                 continue
-                
+
             # Use AI to categorize
             prompt = f"""Categorize this email into one of the following categories:
 1. Support Network (emails from sponsors, recovery groups, etc.)
@@ -413,28 +413,28 @@ Format response as:
 Category: [category]
 Recovery Relevance: [0-10]
 """
-            
+
             response = generate_ai_text(prompt, max_tokens=100)
-            
+
             # Parse response
             category = "Other"
             relevance = "unknown"
-            
+
             category_match = re.search(r'Category:\s*(.+)', response)
             if category_match:
                 category = category_match.group(1).strip()
-                
+
             relevance_match = re.search(r'Recovery Relevance:\s*(\d+)', response)
             if relevance_match:
                 relevance = int(relevance_match.group(1))
-                
+
             email_obj['category'] = category
             email_obj['recovery_relevance'] = relevance
-            
+
             categorized_emails.append(email_obj)
-        
+
         return categorized_emails
-        
+
     except Exception as e:
         logging.error(f"Error categorizing emails: {str(e)}")
         for email_obj in emails:
@@ -445,12 +445,12 @@ Recovery Relevance: [0-10]
 def generate_email_reply(gmail_service, email_id, user_context=None):
     """
     Generate an AI-powered reply to an email
-    
+
     Args:
         gmail_service: Authorized Gmail service
         email_id: ID of the email to reply to
         user_context: Optional user context for personalization
-        
+
     Returns:
         Generated reply content
     """
@@ -461,16 +461,16 @@ def generate_email_reply(gmail_service, email_id, user_context=None):
             id=email_id,
             format='full'
         ).execute()
-        
+
         # Extract headers
         headers = {}
         for header in msg['payload']['headers']:
             headers[header['name'].lower()] = header['value']
-        
+
         # Get the subject and from
         subject = headers.get('subject', '(No Subject)')
         sender = headers.get('from', '')
-        
+
         # Get the message body
         body = ''
         if 'parts' in msg['payload']:
@@ -480,12 +480,12 @@ def generate_email_reply(gmail_service, email_id, user_context=None):
                     break
         elif 'body' in msg['payload'] and 'data' in msg['payload']['body']:
             body = base64.urlsafe_b64decode(msg['payload']['body']['data']).decode('utf-8')
-        
+
         # Create context for the AI
         context = ""
         if user_context:
             context = f"User context: {user_context}\n\n"
-            
+
         # Generate reply with AI
         prompt = f"""{context}Generate a thoughtful reply to this email. Keep the tone friendly but professional.
 
@@ -495,15 +495,15 @@ Email content:
 {body}
 
 Reply:"""
-        
+
         reply_content = generate_ai_text(prompt)
-        
+
         return {
             'status': 'success',
             'email_id': email_id,
             'reply_content': reply_content
         }
-        
+
     except Exception as e:
         logging.error(f"Error generating email reply: {str(e)}")
         return {
@@ -514,43 +514,43 @@ Reply:"""
 def filter_recovery_emails(gmail_service, days=7):
     """
     Filter emails relevant to recovery from the last N days
-    
+
     Args:
         gmail_service: Authorized Gmail service
         days: Number of days to look back
-        
+
     Returns:
         List of recovery-relevant emails
     """
     try:
         # Calculate date N days ago
         date_n_days_ago = (datetime.now() - timedelta(days=days)).strftime('%Y/%m/%d')
-        
+
         # Search for recent emails
         query = f"after:{date_n_days_ago}"
         emails = search_gmail(gmail_service, query, max_results=50, include_content=True)
-        
+
         # Skip processing if no emails found
         if not emails:
             return []
-            
+
         # Categorize emails
         categorized_emails = categorize_emails(gmail_service, emails)
-        
+
         # Filter for recovery relevance
         recovery_emails = []
         for email in categorized_emails:
             relevance = email.get('recovery_relevance', 0)
-            
+
             # Include emails with relevance score >= 5
             if isinstance(relevance, int) and relevance >= 5:
                 recovery_emails.append(email)
             # Also include emails in recovery-specific categories regardless of score
             elif email.get('category') in ['Support Network', 'Healthcare', 'Recovery Resources']:
                 recovery_emails.append(email)
-        
+
         return recovery_emails
-        
+
     except Exception as e:
         logging.error(f"Error filtering recovery emails: {str(e)}")
         return []
@@ -558,25 +558,25 @@ def filter_recovery_emails(gmail_service, days=7):
 def create_recovery_focused_digest(gmail_service, days=7):
     """
     Create a digest of recovery-focused emails for a given period
-    
+
     Args:
         gmail_service: Authorized Gmail service
         days: Number of days to include in digest
-        
+
     Returns:
         Email digest content
     """
     try:
         # Get recovery-relevant emails
         recovery_emails = filter_recovery_emails(gmail_service, days)
-        
+
         if not recovery_emails:
             return {
                 'status': 'info',
                 'message': f'No recovery-related emails found in the last {days} days',
                 'digest': 'No recovery-related emails to summarize.'
             }
-        
+
         # Group emails by category
         categories = {}
         for email in recovery_emails:
@@ -584,24 +584,24 @@ def create_recovery_focused_digest(gmail_service, days=7):
             if category not in categories:
                 categories[category] = []
             categories[category].append(email)
-        
+
         # Create digest content
         digest_content = f"# Recovery Email Digest - Last {days} Days\n\n"
-        
+
         # Add each category section
         for category, emails in categories.items():
             digest_content += f"## {category} ({len(emails)} emails)\n\n"
-            
+
             for email in emails:
                 sender = email.get('from', 'Unknown Sender')
                 subject = email.get('subject', '(No Subject)')
                 date = email.get('date', '')
                 relevance = email.get('recovery_relevance', '-')
-                
+
                 digest_content += f"- **{subject}** from {sender}\n"
                 digest_content += f"  - Date: {date}\n"
                 digest_content += f"  - Recovery Relevance: {relevance}/10\n"
-        
+
         # Add a summary section generated by AI
         email_summaries = []
         for email in recovery_emails:
@@ -609,27 +609,27 @@ def create_recovery_focused_digest(gmail_service, days=7):
             summary += f"From: {email.get('from', '')}\n"
             summary += f"Category: {email.get('category', '')}\n"
             email_summaries.append(summary)
-            
+
         all_summaries = "\n\n".join(email_summaries)
-        
+
         prompt = f"""Summarize the key points from these recovery-related emails:
 
 {all_summaries}
 
 Provide 3-5 bullet points highlighting the most important information for someone in recovery."""
-        
+
         summary = generate_ai_text(prompt)
-        
+
         digest_content += "\n## Summary\n\n"
         digest_content += summary
-        
+
         return {
             'status': 'success',
             'email_count': len(recovery_emails),
             'categories': list(categories.keys()),
             'digest': digest_content
         }
-        
+
     except Exception as e:
         logging.error(f"Error creating recovery email digest: {str(e)}")
         return {
@@ -640,16 +640,16 @@ Provide 3-5 bullet points highlighting the most important information for someon
 def create_support_network_templates(gmail_service):
     """
     Create email templates for communicating with recovery support network
-    
+
     Args:
         gmail_service: Authorized Gmail service (not used but included for consistency)
-        
+
     Returns:
         Dictionary of email templates
     """
     try:
         templates = {}
-        
+
         # Template for reaching out to sponsor
         templates['sponsor_check_in'] = """Subject: Weekly Recovery Check-in
 
@@ -733,12 +733,12 @@ Thank you for being part of my support network.
 
 Warmly,
 [Your Name]"""
-        
+
         return {
             'status': 'success',
             'templates': templates
         }
-        
+
     except Exception as e:
         logging.error(f"Error creating support network templates: {str(e)}")
         return {
@@ -749,11 +749,11 @@ Warmly,
 def check_email_for_triggers(gmail_service, email_id):
     """
     Check an email for potentially triggering content
-    
+
     Args:
         gmail_service: Authorized Gmail service
         email_id: ID of the email to check
-        
+
     Returns:
         Analysis of potential triggers
     """
@@ -764,15 +764,15 @@ def check_email_for_triggers(gmail_service, email_id):
             id=email_id,
             format='full'
         ).execute()
-        
+
         # Extract headers
         headers = {}
         for header in msg['payload']['headers']:
             headers[header['name'].lower()] = header['value']
-        
+
         # Get the subject and body
         subject = headers.get('subject', '(No Subject)')
-        
+
         # Get the message body
         body = ''
         if 'parts' in msg['payload']:
@@ -782,12 +782,12 @@ def check_email_for_triggers(gmail_service, email_id):
                     break
         elif 'body' in msg['payload'] and 'data' in msg['payload']['body']:
             body = base64.urlsafe_b64decode(msg['payload']['body']['data']).decode('utf-8')
-            
+
         # Combine subject and body for analysis
         email_text = f"Subject: {subject}\n\nBody: {body}"
-        
+
         # Use AI to analyze for triggers
-        prompt = """Analyze this email for content that might be triggering for someone in recovery from addiction. 
+        prompt = """Analyze this email for content that might be triggering for someone in recovery from addiction.
 Consider mentions of substance use, traumatic events, negative social dynamics, or stressful situations.
 Provide a trigger assessment that includes:
 1. Overall trigger level (0-10 scale)
@@ -796,9 +796,9 @@ Provide a trigger assessment that includes:
 
 Email content:
 """ + email_text
-        
+
         analysis = generate_ai_text(prompt)
-        
+
         # Parse the trigger level if possible
         trigger_level = 0
         match = re.search(r'trigger level.*?(\d+)', analysis, re.IGNORECASE)
@@ -807,14 +807,14 @@ Email content:
                 trigger_level = int(match.group(1))
             except:
                 trigger_level = 0
-        
+
         return {
             'status': 'success',
             'email_id': email_id,
             'trigger_analysis': analysis,
             'trigger_level': trigger_level
         }
-        
+
     except Exception as e:
         logging.error(f"Error checking email for triggers: {str(e)}")
         return {

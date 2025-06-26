@@ -28,7 +28,7 @@ def get_settings():
     try:
         # Get settings for the current user
         settings = settings_service.get_or_create_settings(current_user.id)
-        
+
         return jsonify({
             "success": True,
             "data": settings.to_dict()
@@ -50,31 +50,31 @@ def update_settings():
     data = request.get_json()
     if not data:
         raise validation_error("Missing JSON data")
-    
+
     # Validate fields
     valid_fields = [
         'conversation_difficulty', 'enable_voice_responses',
         'preferred_language', 'theme', 'color_theme',
-        'ai_name', 'ai_personality', 'ai_formality', 
+        'ai_name', 'ai_personality', 'ai_formality',
         'ai_verbosity', 'ai_enthusiasm', 'ai_emoji_usage',
         'ai_voice_type', 'ai_backstory'
     ]
-    
+
     # Check for valid fields
     for field in data:
         if field not in valid_fields:
             raise validation_error(f"Invalid field: {field}")
-    
+
     # Ensure conversation_difficulty is valid if provided
     if 'conversation_difficulty' in data:
         difficulty = data['conversation_difficulty']
         if difficulty not in [e.value for e in ConversationDifficulty]:
             raise validation_error(f"Invalid value for conversation_difficulty: {difficulty}")
-    
+
     try:
         # Update settings using service
         settings = settings_service.update_settings(current_user.id, data)
-        
+
         return jsonify({
             "success": True,
             "message": "Settings updated successfully",
@@ -99,10 +99,10 @@ def reset_settings():
     try:
         # Reset settings using service
         settings = settings_service.reset_to_defaults(current_user.id)
-        
+
         if not settings:
             raise APIError("Settings not found", 404, "SETTINGS_NOT_FOUND")
-            
+
         return jsonify({
             "success": True,
             "message": "Settings reset to defaults",
@@ -117,4 +117,4 @@ def reset_settings():
             "success": False,
             "error": "Failed to reset settings",
             "message": str(e)
-        }), 500 
+        }), 500

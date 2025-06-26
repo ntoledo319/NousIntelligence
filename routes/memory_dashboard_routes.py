@@ -24,16 +24,16 @@ memory_dashboard_bp = Blueprint('memory_dashboard', __name__, url_prefix='/memor
 def memory_dashboard():
     """
     Display the memory dashboard with user memory data
-    
+
     Returns:
         Rendered memory dashboard template
     """
     try:
         memory_service = get_memory_service()
-        
+
         # Ensure memory is initialized for the user
         memory_service.initialize_memory_for_user(current_user.id)
-        
+
         # Render the dashboard
         return render_template('memory_dashboard.html')
     except Exception as e:

@@ -42,32 +42,32 @@ logger = logging.getLogger(__name__)
 def setup_2fa():
     """
     Setup two-factor authentication for the current user
-    
+
     GET: Returns setup page with QR code
     POST: Confirms setup with verification code
     """
     user = current_user
-    
+
     # Check if 2FA is already enabled
     if user.two_factor_enabled:
         flash("Two-factor authentication is already enabled", "info")
         return redirect(url_for('user.profile'))
-    
+
     if request.method == 'GET':
         # Initialize 2FA setup
         setup_data = setup_2fa_session(user.id)
         secret = setup_data['secret']
         backup_codes = setup_data['backup_codes']
-        
+
         # Generate QR code URI
         totp_uri = get_totp_uri(secret, user.email)
         qr_code = generate_qr_code(totp_uri)
-        
+
         # Convert QR code to data URL
         import base64
         qr_code_b64 = base64.b64encode(qr_code).decode('utf-8')
         qr_code_data_url = f"data:image/png;base64,{qr_code_b64}"
-        
+
         # Render setup page
         return render_template(
             '2fa/setup.html',
@@ -75,28 +75,28 @@ def setup_2fa():
             secret=secret,
             backup_codes=backup_codes
         )
-    
+
     elif request.method == 'POST':
         # Confirm 2FA setup
         verification_code = sanitize_input(request.form.get('verification_code'))
-        
+
         if not verification_code:
             flash("Verification code is required", "error")
             return redirect(url_for('two_factor.setup_2fa'))
-        
+
         try:
             # Confirm setup
             confirm_2fa_setup(verification_code)
-            
+
             # Get setup data from session
             setup_data = session.pop('2fa_setup')
             secret = setup_data['secret']
             backup_codes_hashes = setup_data['backup_codes']
-            
+
             # Save to database
             user.two_factor_secret = secret
             user.two_factor_enabled = True
-            
+
             # Save backup codes
             for code_hash in backup_codes_hashes:
                 backup_code = TwoFactorBackupCode(
@@ -105,15 +105,15 @@ def setup_2fa():
                     used=False
                 )
                 db.session.add(backup_code)
-            
+
             db.session.commit()
-            
+
             # Mark session as 2FA verified
             session['2fa_verified'] = True
-            
+
             flash("Two-factor authentication has been enabled", "success")
             return redirect(url_for('user.profile'))
-            
+
         except TOTPVerificationError as e:
             flash(f"Verification failed: {str(e)}", "error")
             return redirect(url_for('two_factor.setup_2fa'))
@@ -122,56 +122,56 @@ def setup_2fa():
 def verify_2fa():
     """
     Verify a 2FA code
-    
+
     GET: Show 2FA verification form
     POST: Verify code and continue to original destination
     """
     # Check if user is logged in
     if not current_user.is_authenticated:
         return redirect(url_for('login'))
-    
+
     # Check if 2FA is already verified for this session
     if session.get('2fa_verified'):
         # Already verified, proceed to destination
         next_url = session.pop('after_2fa_url', url_for('user.profile'))
         return redirect(next_url)
-    
+
     user = current_user
-    
+
     # Check if 2FA is enabled for this user
     if not user.two_factor_enabled:
         # Not enabled, proceed
         session['2fa_verified'] = True
         next_url = session.pop('after_2fa_url', url_for('user.profile'))
         return redirect(next_url)
-    
+
     if request.method == 'GET':
         return render_template('2fa/verify.html')
-    
+
     elif request.method == 'POST':
         # Get code from form
         verification_type = request.form.get('verification_type', 'totp')
         code = sanitize_input(request.form.get('code'))
-        
+
         if not code:
             flash("Verification code is required", "error")
             return render_template('2fa/verify.html')
-        
+
         # Verify code
         verified = False
-        
+
         if verification_type == 'totp':
             # Verify TOTP code
             if verify_totp(user.two_factor_secret, code):
                 verified = True
-        
+
         elif verification_type == 'backup':
             # Try to find and verify a matching backup code
             backup_codes = TwoFactorBackupCode.query.filter_by(
                 user_id=user.id,
                 used=False
             ).all()
-            
+
             for backup_code in backup_codes:
                 if verify_backup_code(code, backup_code.code_hash):
                     # Mark code as used
@@ -179,11 +179,11 @@ def verify_2fa():
                     db.session.commit()
                     verified = True
                     break
-        
+
         if verified:
             # Mark session as 2FA verified
             session['2fa_verified'] = True
-            
+
             # Redirect to original destination or default
             next_url = session.pop('after_2fa_url', url_for('user.profile'))
             return redirect(next_url)
@@ -197,30 +197,30 @@ def verify_2fa():
 def disable_2fa():
     """Disable 2FA for the current user"""
     user = current_user
-    
+
     # Check if 2FA is enabled
     if not user.two_factor_enabled:
         flash("Two-factor authentication is not enabled", "info")
         return redirect(url_for('user.profile'))
-    
+
     # Verify password
     password = request.form.get('password')
     if not user.check_password(password):
         flash("Invalid password", "error")
         return redirect(url_for('user.profile'))
-    
+
     # Disable 2FA
     user.two_factor_enabled = False
     user.two_factor_secret = None
-    
+
     # Delete backup codes
     TwoFactorBackupCode.query.filter_by(user_id=user.id).delete()
-    
+
     db.session.commit()
-    
+
     # Remove 2FA verification from session
     session.pop('2fa_verified', None)
-    
+
     flash("Two-factor authentication has been disabled", "success")
     return redirect(url_for('user.profile'))
 
@@ -230,27 +230,27 @@ def disable_2fa():
 def regenerate_backup_codes():
     """Generate new backup codes and invalidate old ones"""
     user = current_user
-    
+
     # Check if 2FA is enabled
     if not user.two_factor_enabled:
         flash("Two-factor authentication is not enabled", "info")
         return redirect(url_for('user.profile'))
-    
+
     # Verify password
     password = request.form.get('password')
     if not user.check_password(password):
         flash("Invalid password", "error")
         return redirect(url_for('user.profile'))
-    
+
     # Delete existing backup codes
     TwoFactorBackupCode.query.filter_by(user_id=user.id).delete()
-    
+
     # Generate new backup codes
     backup_codes = []
     from utils.two_factor_auth import generate_backup_codes, hash_backup_code
-    
+
     new_codes = generate_backup_codes()
-    
+
     # Save new backup codes
     for code in new_codes:
         code_hash = hash_backup_code(code)
@@ -261,9 +261,9 @@ def regenerate_backup_codes():
         )
         db.session.add(backup_code)
         backup_codes.append(code)
-    
+
     db.session.commit()
-    
+
     # Show new codes to user
     return render_template(
         '2fa/backup_codes.html',
@@ -277,22 +277,22 @@ def regenerate_backup_codes():
 def api_setup_2fa():
     """API endpoint to setup 2FA (step 1)"""
     user = current_user
-    
+
     # Check if 2FA is already enabled
     if user.two_factor_enabled:
         return jsonify({
             "error": "2FA already enabled",
             "message": "Two-factor authentication is already enabled for this account"
         }), 400
-    
+
     # Initialize 2FA setup
     setup_data = setup_2fa_session(user.id)
     secret = setup_data['secret']
     backup_codes = setup_data['backup_codes']
-    
+
     # Generate QR code URI
     totp_uri = get_totp_uri(secret, user.email)
-    
+
     # Return setup data
     return jsonify({
         "secret": secret,
@@ -307,28 +307,28 @@ def api_confirm_2fa():
     """API endpoint to confirm 2FA setup (step 2)"""
     user = current_user
     data = request.get_json()
-    
+
     if not data or 'verification_code' not in data:
         return jsonify({
             "error": "Missing data",
             "message": "Verification code is required"
         }), 400
-    
+
     verification_code = sanitize_input(data['verification_code'])
-    
+
     try:
         # Confirm setup
         confirm_2fa_setup(verification_code)
-        
+
         # Get setup data from session
         setup_data = session.pop('2fa_setup')
         secret = setup_data['secret']
         backup_codes_hashes = setup_data['backup_codes']
-        
+
         # Save to database
         user.two_factor_secret = secret
         user.two_factor_enabled = True
-        
+
         # Save backup codes
         for code_hash in backup_codes_hashes:
             backup_code = TwoFactorBackupCode(
@@ -337,17 +337,17 @@ def api_confirm_2fa():
                 used=False
             )
             db.session.add(backup_code)
-        
+
         db.session.commit()
-        
+
         # Mark session as 2FA verified
         session['2fa_verified'] = True
-        
+
         return jsonify({
             "success": True,
             "message": "Two-factor authentication has been enabled"
         })
-        
+
     except TOTPVerificationError as e:
         return jsonify({
             "error": "Verification failed",
@@ -363,40 +363,40 @@ def api_verify_2fa():
             "error": "Authentication required",
             "message": "You must be logged in to verify 2FA"
         }), 401
-    
+
     user = current_user
     data = request.get_json()
-    
+
     if not data:
         return jsonify({
             "error": "Missing data",
             "message": "Verification code is required"
         }), 400
-    
+
     verification_type = data.get('verification_type', 'totp')
     code = sanitize_input(data.get('code'))
-    
+
     if not code:
         return jsonify({
             "error": "Missing code",
             "message": "Verification code is required"
         }), 400
-    
+
     # Verify code
     verified = False
-    
+
     if verification_type == 'totp':
         # Verify TOTP code
         if verify_totp(user.two_factor_secret, code):
             verified = True
-    
+
     elif verification_type == 'backup':
         # Try to find and verify a matching backup code
         backup_codes = TwoFactorBackupCode.query.filter_by(
             user_id=user.id,
             used=False
         ).all()
-        
+
         for backup_code in backup_codes:
             if verify_backup_code(code, backup_code.code_hash):
                 # Mark code as used
@@ -404,11 +404,11 @@ def api_verify_2fa():
                 db.session.commit()
                 verified = True
                 break
-    
+
     if verified:
         # Mark session as 2FA verified
         session['2fa_verified'] = True
-        
+
         return jsonify({
             "success": True,
             "message": "Two-factor authentication verified"
@@ -417,4 +417,4 @@ def api_verify_2fa():
         return jsonify({
             "error": "Invalid code",
             "message": "Invalid verification code"
-        }), 400 
+        }), 400

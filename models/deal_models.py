@@ -11,7 +11,7 @@ from app_factory import db
 class Product(db.Model):
     """
     Product model for tracking products in the system.
-    
+
     Attributes:
         id: Unique identifier for the product
         name: Name of the product
@@ -25,7 +25,7 @@ class Product(db.Model):
         updated_at: When the product was last updated
     """
     __tablename__ = 'products'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text)
@@ -36,11 +36,11 @@ class Product(db.Model):
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     # Relationships
     deals = db.relationship('Deal', backref='product', lazy=True)
     user = db.relationship('User', backref=db.backref('products', lazy=True))
-    
+
     def to_dict(self):
         """Convert to dictionary"""
         return {
@@ -59,7 +59,7 @@ class Product(db.Model):
 class Deal(db.Model):
     """
     Deal model for tracking special deals and promotions.
-    
+
     Attributes:
         id: Unique identifier for the deal
         product_id: Foreign key to the product (optional, can be a general deal)
@@ -78,7 +78,7 @@ class Deal(db.Model):
         created_at: When the deal was created
     """
     __tablename__ = 'deals'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id', ondelete='SET NULL'), nullable=True)
     name = db.Column(db.String(255), nullable=False)
@@ -94,10 +94,10 @@ class Deal(db.Model):
     rating = db.Column(db.Integer, default=0)  # 0-5
     is_verified = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     # Relationship
     user = db.relationship('User', backref=db.backref('deals', lazy=True))
-    
+
     def to_dict(self):
         """Convert to dictionary"""
         return {

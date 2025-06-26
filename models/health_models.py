@@ -12,7 +12,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 class DBTSkillRecommendation(db.Model):
     """Recommended DBT skills for specific situations"""
     __tablename__ = 'dbt_skill_recommendations'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=True)
     situation_type = db.Column(db.String(100))
@@ -21,10 +21,10 @@ class DBTSkillRecommendation(db.Model):
     effectiveness_score = db.Column(db.Float, default=0.0)
     usage_count = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     # Relationships
     user = db.relationship('User', backref=db.backref('dbt_skill_recommendations', lazy=True))
-    
+
     def to_dict(self):
         """Convert to dictionary"""
         return {
@@ -41,7 +41,7 @@ class DBTSkillRecommendation(db.Model):
 class DBTSkillLog(db.Model):
     """Log of DBT skills used"""
     __tablename__ = 'dbt_skill_logs'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     skill_name = db.Column(db.String(100))
@@ -50,10 +50,10 @@ class DBTSkillLog(db.Model):
     effectiveness = db.Column(db.Integer)
     notes = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     # Relationships
     user = db.relationship('User', backref=db.backref('dbt_skill_logs', lazy=True))
-    
+
     def to_dict(self):
         """Convert to dictionary"""
         return {
@@ -70,7 +70,7 @@ class DBTSkillLog(db.Model):
 class DBTCrisisResource(db.Model):
     """Crisis resources for DBT users"""
     __tablename__ = 'dbt_crisis_resources'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=True)
     name = db.Column(db.String(100))
@@ -79,10 +79,10 @@ class DBTCrisisResource(db.Model):
     notes = db.Column(db.Text)
     is_emergency = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     # Relationships
     user = db.relationship('User', backref=db.backref('dbt_crisis_resources', lazy=True))
-    
+
     def to_dict(self):
         """Convert to dictionary"""
         return {
@@ -99,11 +99,11 @@ class DBTCrisisResource(db.Model):
 class DBTSkillCategory(db.Model):
     """Categories for DBT skills"""
     __tablename__ = 'dbt_skill_categories'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True)
     description = db.Column(db.Text)
-    
+
     def to_dict(self):
         """Convert to dictionary"""
         return {
@@ -115,17 +115,17 @@ class DBTSkillCategory(db.Model):
 class AAAchievement(db.Model):
     """Achievement badges for AA recovery progress"""
     __tablename__ = 'aa_achievements'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     badge_id = db.Column(db.String(50))
     badge_name = db.Column(db.String(100))
     badge_description = db.Column(db.Text)
     awarded_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     # Relationships
     user = db.relationship('User', backref=db.backref('aa_achievements', lazy=True))
-    
+
     def to_dict(self):
         """Convert to dictionary"""
         return {
@@ -140,7 +140,7 @@ class AAAchievement(db.Model):
 class DBTDiaryCard(db.Model):
     """Diary card model for DBT tracking"""
     __tablename__ = 'dbt_diary_cards'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     date = db.Column(db.Date, default=datetime.utcnow)
@@ -150,10 +150,10 @@ class DBTDiaryCard(db.Model):
     skills_used = db.Column(db.Text)
     reflection = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     # Relationships
     user = db.relationship('User', backref=db.backref('dbt_diary_cards', lazy=True))
-    
+
     def to_dict(self):
         """Convert to dictionary"""
         return {
@@ -171,7 +171,7 @@ class DBTDiaryCard(db.Model):
 class DBTSkillChallenge(db.Model):
     """Skill challenge model for DBT practice"""
     __tablename__ = 'dbt_skill_challenges'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=True)
     name = db.Column(db.String(255), nullable=False)
@@ -182,10 +182,10 @@ class DBTSkillChallenge(db.Model):
     completed = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     completed_at = db.Column(db.DateTime)
-    
+
     # Relationships
     user = db.relationship('User', backref=db.backref('dbt_skill_challenges', lazy=True))
-    
+
     def to_dict(self):
         """Convert to dictionary"""
         return {
@@ -200,16 +200,16 @@ class DBTSkillChallenge(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'completed_at': self.completed_at.isoformat() if self.completed_at else None
         }
-        
+
     @hybrid_property
     def is_custom(self):
         """Check if challenge is user-created vs system"""
         return self.user_id is not None
-        
+
 class DBTEmotionTrack(db.Model):
     """Emotion tracking model for DBT"""
     __tablename__ = 'dbt_emotion_tracks'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     emotion = db.Column(db.String(50))
@@ -218,10 +218,10 @@ class DBTEmotionTrack(db.Model):
     thoughts = db.Column(db.Text)
     behaviors = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     # Relationships
     user = db.relationship('User', backref=db.backref('dbt_emotion_tracks', lazy=True))
-    
+
     def to_dict(self):
         """Convert to dictionary"""
         return {

@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 def list_keys():
     """
     List all API keys belonging to the current user
-    
+
     Response:
     {
         "keys": [
@@ -60,10 +60,10 @@ def list_keys():
     """
     # Get keys for current user
     api_keys = APIKey.query.filter_by(user_id=current_user.id).all()
-    
+
     # Format response
     keys = [key.to_dict() for key in api_keys]
-    
+
     return jsonify({
         "keys": keys
     })
@@ -74,7 +74,7 @@ def list_keys():
 def get_key(key_id):
     """
     Get details of a specific API key
-    
+
     Response:
     {
         "key": {
@@ -96,14 +96,14 @@ def get_key(key_id):
     """
     # Get key by ID
     api_key = APIKey.query.get_or_404(key_id)
-    
+
     # Check authorization (must be owner or admin)
     if api_key.user_id != current_user.id and not current_user.is_administrator():
         return jsonify({
             "error": "Forbidden",
             "message": "You do not have permission to view this API key"
         }), 403
-    
+
     # Format response with full metadata
     return jsonify({
         "key": api_key.to_dict(include_metadata=True)
@@ -116,14 +116,14 @@ def get_key(key_id):
 def create_key():
     """
     Create a new API key
-    
+
     Request:
     {
         "name": "My API Key",
         "scopes": ["read", "write"],
         "expires_in_days": 90
     }
-    
+
     Response:
     {
         "key": {
@@ -139,15 +139,15 @@ def create_key():
     }
     """
     data = request.get_json()
-    
+
     # Extract parameters
     name = data.get('name', 'API Key')
     scopes = data.get('scopes', None)
     expires_in_days = data.get('expires_in_days', DEFAULT_EXPIRY_DAYS)
-    
+
     # Get request info for auditing
     request_info = get_request_info()
-    
+
     try:
         # Create new API key
         api_key, full_key = create_api_key(
@@ -157,19 +157,19 @@ def create_key():
             expires_in_days=expires_in_days,
             request_info=request_info
         )
-        
+
         # Format response
         return jsonify({
             "key": api_key.to_dict(),
             "api_key": full_key  # Only returned once during creation
         }), 201
-    
+
     except ValueError as e:
         return jsonify({
             "error": "Invalid parameters",
             "message": str(e)
         }), 400
-    
+
     except Exception as e:
         logger.error(f"Error creating API key: {str(e)}")
         return jsonify({
@@ -184,7 +184,7 @@ def rotate_key(key_id):
     """
     Rotate an API key by creating a new key and marking the old one as rotated
     The old key remains valid for a grace period to allow for system updates
-    
+
     Response:
     {
         "key": {
@@ -203,17 +203,17 @@ def rotate_key(key_id):
     """
     # Get key by ID
     api_key = APIKey.query.get_or_404(key_id)
-    
+
     # Check authorization (must be owner or admin)
     if api_key.user_id != current_user.id and not current_user.is_administrator():
         return jsonify({
             "error": "Forbidden",
             "message": "You do not have permission to rotate this API key"
         }), 403
-    
+
     # Get request info for auditing
     request_info = get_request_info()
-    
+
     try:
         # Rotate the key
         new_key, full_key = rotate_api_key(
@@ -221,20 +221,20 @@ def rotate_key(key_id):
             performed_by_id=current_user.id,
             request_info=request_info
         )
-        
+
         # Format response
         return jsonify({
             "key": new_key.to_dict(),
             "api_key": full_key,  # Only returned once during rotation
             "old_key_id": api_key.id
         })
-    
+
     except APIKeyRotationError as e:
         return jsonify({
             "error": "Rotation failed",
             "message": str(e)
         }), 400
-    
+
     except Exception as e:
         logger.error(f"Error rotating API key: {str(e)}")
         return jsonify({
@@ -248,7 +248,7 @@ def rotate_key(key_id):
 def revoke_key(key_id):
     """
     Revoke an API key (mark as invalid)
-    
+
     Response:
     {
         "message": "API key revoked successfully",
@@ -257,17 +257,17 @@ def revoke_key(key_id):
     """
     # Get key by ID
     api_key = APIKey.query.get_or_404(key_id)
-    
+
     # Check authorization (must be owner or admin)
     if api_key.user_id != current_user.id and not current_user.is_administrator():
         return jsonify({
             "error": "Forbidden",
             "message": "You do not have permission to revoke this API key"
         }), 403
-    
+
     # Get request info for auditing
     request_info = get_request_info()
-    
+
     try:
         # Revoke the key
         revoke_api_key(
@@ -275,19 +275,19 @@ def revoke_key(key_id):
             performed_by_id=current_user.id,
             request_info=request_info
         )
-        
+
         # Format response
         return jsonify({
             "message": "API key revoked successfully",
             "key_id": key_id
         })
-    
+
     except APIKeyError as e:
         return jsonify({
             "error": "Revocation failed",
             "message": str(e)
         }), 400
-    
+
     except Exception as e:
         logger.error(f"Error revoking API key: {str(e)}")
         return jsonify({
@@ -301,7 +301,7 @@ def revoke_key(key_id):
 def key_events(key_id):
     """
     Get event history for an API key
-    
+
     Response:
     {
         "events": [
@@ -326,17 +326,17 @@ def key_events(key_id):
     """
     # Get key by ID
     api_key = APIKey.query.get_or_404(key_id)
-    
+
     # Check authorization (must be owner or admin)
     if api_key.user_id != current_user.id and not current_user.is_administrator():
         return jsonify({
             "error": "Forbidden",
             "message": "You do not have permission to view events for this API key"
         }), 403
-    
+
     # Get events for this key
     events = APIKeyEvent.query.filter_by(api_key_id=key_id).order_by(APIKeyEvent.timestamp.desc()).all()
-    
+
     # Format response
     return jsonify({
         "events": [event.to_dict() for event in events]
@@ -347,7 +347,7 @@ def key_events(key_id):
 def list_scopes():
     """
     List all available API key scopes
-    
+
     Response:
     {
         "scopes": [
@@ -375,12 +375,12 @@ def list_scopes():
         "read": "Read-only access to API resources",
         "write": "Create, update, and delete API resources",
         "admin": "Administrative operations",
-        "user": "User management operations", 
+        "user": "User management operations",
         "system": "System-level operations",
         "analytics": "Access to analytics data",
         "billing": "Access to billing information"
     }
-    
+
     return jsonify({
         "scopes": AVAILABLE_SCOPES,
         "descriptions": scope_descriptions
@@ -391,7 +391,7 @@ def list_scopes():
 def verify_key():
     """
     Verify an API key and return information about it
-    
+
     Response:
     {
         "valid": true,
@@ -405,7 +405,7 @@ def verify_key():
     """
     # API key is already validated by the api_key_required decorator
     api_key = g.api_key
-    
+
     return jsonify({
         "valid": True,
         "key": {
@@ -430,4 +430,4 @@ register_schema("create_api_key", object_schema(
         "expires_in_days": number_schema(minimum=1, maximum=365, integer_only=True)
     },
     required=["name"]
-)) 
+))

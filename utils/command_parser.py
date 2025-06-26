@@ -6,7 +6,7 @@ from utils.logger import log_workout, log_mood
 from utils.scraper import scrape_aa_reflection
 from utils.ai_helper import parse_natural_language
 from utils.doctor_appointment_helper import (
-    get_doctors, get_doctor_by_name, add_doctor, 
+    get_doctors, get_doctor_by_name, add_doctor,
     add_appointment, get_upcoming_appointments,
     get_due_appointment_reminders
 )
@@ -30,7 +30,7 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
     Parse and execute user commands, with natural language support
     """
     result = {"redirect": None}
-    
+
     # First, try to use AI to understand natural language commands
     try:
         # Check if this is a built-in command that doesn't need AI parsing
@@ -46,7 +46,7 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
         else:
             # Try AI parsing for natural language
             ai_parsed = parse_natural_language(cmd)
-            
+
             if ai_parsed and isinstance(ai_parsed, dict) and "error" not in ai_parsed:
                 confidence = ai_parsed.get("confidence")
                 if confidence and float(confidence) > 0.7:
@@ -57,25 +57,25 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
     except Exception as e:
         logging.error(f"Error in AI command parsing: {str(e)}")
         # Continue with standard parsing if AI fails
-    
+
     # Handle calendar events: "add X at Y"
     if cmd.startswith("add ") and " at " in cmd:
         # Extract event details
         title, time_str = cmd[4:].split(" at ", 1)
         title = title.strip().title()
-        
+
         # Simple datetime parsing (could be enhanced with dateparser library)
         try:
             # For now, we'll use a simple approach
             now = datetime.datetime.now()
-            
+
             # Handle "tomorrow", "next week", etc.
             if "tomorrow" in time_str:
                 start_date = now.date() + datetime.timedelta(days=1)
                 time_str = time_str.replace("tomorrow", "").strip()
             else:
                 start_date = now.date()
-                
+
             # Parse time
             if ":" in time_str:
                 try:
@@ -95,73 +95,73 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
                 else:
                     # Default to noon if no time found
                     hour, minute = 12, 0
-                
+
             # Handle am/pm
             if "pm" in time_str.lower() and hour < 12:
                 hour += 12
             elif "am" in time_str.lower() and hour == 12:
                 hour = 0
-                
+
             start_time = datetime.datetime.combine(
-                start_date, 
+                start_date,
                 datetime.time(hour, minute)
             )
             end_time = start_time + datetime.timedelta(hours=1)
-            
+
             # Create the event
             event = {
                 "summary": title,
                 "start": {"dateTime": start_time.isoformat()},
                 "end": {"dateTime": end_time.isoformat()}
             }
-            
+
             calendar.events().insert(calendarId="primary", body=event).execute()
             log.append(f"🗓️ Event '{title}' created.")
         except Exception as e:
             logging.error(f"Error creating event: {str(e)}")
             log.append(f"❌ Error creating event: {str(e)}")
-    
+
     # Handle workout logging
     elif cmd.startswith("log workout"):
         entry = cmd.replace("log workout", "").strip()
         if entry.startswith(":"):
             entry = entry[1:].strip()
-        
+
         if not entry:
             log.append("❌ Please provide workout details.")
         else:
             log_workout(entry)
             log.append("💪 Workout logged.")
-            
+
     # Handle mood logging
     elif cmd.startswith("log mood"):
         entry = cmd.replace("log mood", "").strip()
         if entry.startswith(":"):
             entry = entry[1:].strip()
-            
+
         if not entry:
             log.append("❌ Please provide mood details.")
         else:
             log_mood(entry)
             log.append("😊 Mood logged.")
-            
+
     # Calendar query
     elif cmd.startswith("what's my day") or cmd.startswith("whats my day"):
         try:
             now = datetime.date.today()
             time_min = f"{now.isoformat()}T00:00:00Z"
             time_max = f"{now.isoformat()}T23:59:59Z"
-            
+
             events_result = calendar.events().list(
-                calendarId="primary", 
+                calendarId="primary",
                 timeMin=time_min,
                 timeMax=time_max,
                 singleEvents=True,
                 orderBy="startTime"
             ).execute()
-            
+
             events = events_result.get("items", [])
-            
+
             if not events:
                 log.append("📆 No events scheduled for today.")
             else:
@@ -178,18 +178,18 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
         except Exception as e:
             logging.error(f"Error fetching calendar: {str(e)}")
             log.append(f"❌ Error fetching calendar: {str(e)}")
-            
+
     # AA Reflection
     elif "aa reflection" in cmd or "daily reflection" in cmd:
         reflection = scrape_aa_reflection()
         log.append(reflection)
-        
+
     # Google Tasks
     elif cmd.startswith("add task"):
         title = cmd.replace("add task", "").strip()
         if title.startswith(":"):
             title = title[1:].strip()
-            
+
         if not title:
             log.append("❌ Please provide a task title.")
         else:
@@ -200,13 +200,13 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
             except Exception as e:
                 logging.error(f"Error adding task: {str(e)}")
                 log.append(f"❌ Error adding task: {str(e)}")
-                
+
     # Google Keep
     elif cmd.startswith("add note"):
         note_text = cmd.replace("add note", "").strip()
         if note_text.startswith(":"):
             note_text = note_text[1:].strip()
-            
+
         if not note_text:
             log.append("❌ Please provide note content.")
         else:
@@ -217,7 +217,7 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
             except Exception as e:
                 logging.error(f"Error adding note: {str(e)}")
                 log.append(f"❌ Error adding note: {str(e)}")
-                
+
     # Spotify commands
     elif cmd.startswith("play ") and spotify:
         query = cmd[5:].strip()
@@ -241,16 +241,16 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
             except Exception as e:
                 logging.error(f"Error playing music: {str(e)}")
                 log.append(f"❌ Error playing music: {str(e)}")
-                
+
     # Auth commands
     elif cmd == "connect spotify":
         result["redirect"] = url_for("authorize_spotify")
         log.append("🔄 Redirecting to Spotify authorization...")
-        
+
     elif cmd == "connect google":
         result["redirect"] = url_for("authorize_google")
         log.append("🔄 Redirecting to Google authorization...")
-        
+
     # Help command
     elif cmd == "help":
         log.append("🔍 Available commands:")
@@ -300,33 +300,33 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
         log.append("  \"I went for a 5k run this morning\"")
         log.append("  \"Add Dr. Smith as my dentist\"")
         log.append("  \"When is my next doctor's appointment?\"")
-        
+
     # Weekly summary
     elif "weekly summary" in cmd.lower():
         try:
             from utils.ai_helper import generate_weekly_summary
             from utils.logger import get_workout_entries, get_mood_entries
-            
+
             # Get calendar events for the week
             now = datetime.datetime.now()
             start_of_week = (now - datetime.timedelta(days=now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
             end_of_week = start_of_week + datetime.timedelta(days=7)
-            
+
             events_result = calendar.events().list(
-                calendarId="primary", 
+                calendarId="primary",
                 timeMin=start_of_week.isoformat() + "Z",
                 timeMax=end_of_week.isoformat() + "Z",
                 singleEvents=True,
                 orderBy="startTime"
             ).execute()
-            
+
             # Get recent tasks
             tasks_result = tasks.tasks().list(tasklist="@default", maxResults=10).execute()
-            
+
             # Get workout and mood logs
             workout_entries = get_workout_entries(limit=7)
             mood_entries = get_mood_entries(limit=7)
-            
+
             # Generate summary
             summary = generate_weekly_summary(
                 events_result.get("items", []),
@@ -334,31 +334,31 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
                 workout_entries,
                 mood_entries
             )
-            
+
             log.append("📊 Your Weekly Summary")
             log.append(summary)
-            
+
         except Exception as e:
             logging.error(f"Error generating weekly summary: {str(e)}")
             log.append(f"❌ Error generating weekly summary: {str(e)}")
-    
+
     # Motivational quote
     elif "motivate" in cmd.lower() or "quote" in cmd.lower():
         try:
             from utils.ai_helper import get_motivation_quote
             theme = None
-            
+
             # Extract theme if provided
             if "about" in cmd.lower():
                 theme = cmd.lower().split("about", 1)[1].strip()
-            
+
             quote = get_motivation_quote(theme)
             log.append(f"✨ {quote}")
-            
+
         except Exception as e:
             logging.error(f"Error generating motivational quote: {str(e)}")
             log.append(f"❌ Error generating quote: {str(e)}")
-    
+
     # Add doctor command
     elif cmd.startswith("add doctor"):
         try:
@@ -367,13 +367,13 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
             if not doctor_name:
                 log.append("❌ Please provide a doctor name.")
                 return result
-                
+
             # Check if doctor already exists
             existing_doctor = get_doctor_by_name(doctor_name, session)
             if existing_doctor:
                 log.append(f"ℹ️ Doctor '{doctor_name}' is already in your list.")
                 return result
-                
+
             # Add the doctor
             doctor = add_doctor(name=doctor_name, session=session)
             if doctor:
@@ -384,7 +384,7 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
         except Exception as e:
             logging.error(f"Error adding doctor: {str(e)}")
             log.append(f"❌ Error adding doctor: {str(e)}")
-    
+
     # List doctors command
     elif cmd == "list doctors" or "show doctors" in cmd or "my doctors" in cmd:
         try:
@@ -400,14 +400,14 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
         except Exception as e:
             logging.error(f"Error listing doctors: {str(e)}")
             log.append(f"❌ Error listing doctors: {str(e)}")
-    
+
     # Set appointment command
     elif cmd.startswith("set appointment") or "schedule" in cmd and "appointment" in cmd:
         try:
             # First, check if we have a doctor name
             doctor_name = None
             appointment_date = None
-            
+
             # Try to extract doctor name
             if "with" in cmd:
                 parts = cmd.split("with", 1)
@@ -417,43 +417,43 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
                     date_str = date_part.strip()
                 elif len(parts) > 1:
                     doctor_name = parts[1].strip()
-            
+
             if not doctor_name:
                 log.append("❌ Please specify a doctor name using 'with [doctor name]'.")
                 return result
-                
+
             # Find the doctor
             doctor = get_doctor_by_name(doctor_name, session)
             if not doctor:
                 log.append(f"❌ Doctor '{doctor_name}' not found in your list.")
                 log.append("Use 'add doctor [name]' to add them first.")
                 return result
-                
+
             # Parse the date/time
             now = datetime.datetime.now()
             appointment_date = now + datetime.timedelta(days=7)  # Default to a week from now
-            
+
             if "tomorrow" in cmd:
                 appointment_date = now + datetime.timedelta(days=1)
             elif "today" in cmd:
                 appointment_date = now
             elif "next week" in cmd:
                 appointment_date = now + datetime.timedelta(days=7)
-            
+
             # Try to extract time if specified
             time_match = re.search(r'(\d{1,2})(?::(\d{2}))?\s*(am|pm)?', cmd, re.IGNORECASE)
             if time_match:
                 hour = int(time_match.group(1))
                 minute = int(time_match.group(2)) if time_match.group(2) else 0
                 am_pm = time_match.group(3).lower() if time_match.group(3) else None
-                
+
                 if am_pm == 'pm' and hour < 12:
                     hour += 12
                 elif am_pm == 'am' and hour == 12:
                     hour = 0
-                    
+
                 appointment_date = appointment_date.replace(hour=hour, minute=minute)
-            
+
             # Add the appointment
             appointment = add_appointment(
                 doctor_id=doctor.id,
@@ -461,12 +461,12 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
                 reason="Regular checkup",  # Default reason
                 session=session
             )
-            
+
             if appointment:
                 # Format date for display
                 formatted_date = appointment_date.strftime("%A, %B %d at %I:%M %p")
                 log.append(f"🗓️ Appointment scheduled with Dr. {doctor.name} on {formatted_date}")
-                
+
                 # If Google Calendar is connected, add it there too
                 if calendar:
                     end_time = appointment_date + datetime.timedelta(hours=1)
@@ -491,7 +491,7 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
         except Exception as e:
             logging.error(f"Error scheduling appointment: {str(e)}")
             log.append(f"❌ Error scheduling appointment: {str(e)}")
-    
+
     # Show appointments command
     elif cmd == "show appointments" or "my appointments" in cmd:
         try:
@@ -504,7 +504,7 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
                     # Get doctor name
                     doctor = Doctor.query.get(appointment.doctor_id)
                     doctor_name = doctor.name if doctor else "Unknown Doctor"
-                    
+
                     # Format date
                     formatted_date = appointment.date.strftime("%A, %B %d at %I:%M %p")
                     reason = f" for {appointment.reason}" if appointment.reason else ""
@@ -512,18 +512,18 @@ def parse_command(cmd, calendar, tasks, keep, spotify, log, session=None):
         except Exception as e:
             logging.error(f"Error showing appointments: {str(e)}")
             log.append(f"❌ Error showing appointments: {str(e)}")
-            
+
     # Clear command
     elif cmd == "clear":
         log.clear()
         log.append("🧹 Log cleared.")
-        
+
     # Logout command
     elif cmd == "logout":
         result["redirect"] = url_for("logout")
-        
+
     # Unknown command
     else:
         log.append("❓ Command not recognized. Type 'help' for available commands.")
-        
+
     return result

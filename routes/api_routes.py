@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 def ai_ask():
     """
     AI Question-Answer endpoint with context-aware responses
-    
+
     This endpoint uses the cost-optimized AI integration to provide
     context-aware answers to user questions.
     """
@@ -40,36 +40,36 @@ def ai_ask():
                 'success': False,
                 'error': 'No request data provided'
             }), 400
-            
+
         # Extract question and context
         question = data.get('question', '')
         context = data.get('context', {})
-        
+
         if not question:
             return jsonify({
                 'success': False,
                 'error': 'No question provided'
             }), 400
-            
+
         # Determine context type
         source = context.get('source', '')
-        
+
         # Build prompt based on context
         if source == 'aa_big_book':
             # Build AA Big Book context
             chapter = context.get('chapter', '')
             content = context.get('content', '')
-            
+
             prompt = f"""
             Question: {question}
-            
+
             Context: This question is about chapter "{chapter}" from the Alcoholics Anonymous Big Book, which contains the following excerpt:
-            
+
             {content}
-            
+
             Please answer the question based on the given context from the AA Big Book. Focus on explaining the principles and concepts in a straightforward way that helps someone in recovery. If the question cannot be answered from the context, say so politely and suggest where in the Big Book they might find relevant information.
             """
-            
+
             # Use the cost-optimized AI integration
             if AI_INTEGRATION_AVAILABLE:
                 user_id = current_user.id if current_user.is_authenticated else None
@@ -80,7 +80,7 @@ def ai_ask():
                     max_tokens=500,
                     temperature=0.7
                 )
-                
+
                 if result.get('success'):
                     return jsonify({
                         'success': True,
@@ -98,23 +98,23 @@ def ai_ask():
                     'success': False,
                     'error': 'AI services not available'
                 }), 503
-                
+
         elif source == 'aa_speaker':
             # Handle AA speaker recording context
             speaker = context.get('speaker', '')
             title = context.get('title', '')
             description = context.get('description', '')
-            
+
             prompt = f"""
             Question: {question}
-            
+
             Context: This question is about the AA speaker recording titled "{title}" by {speaker}, which is described as:
-            
+
             {description}
-            
+
             Please answer the question based on the given context about this AA speaker recording. Focus on explaining the key principles and experiences shared by the speaker. If the question cannot be answered from the context, say so politely.
             """
-            
+
             # Use the cost-optimized AI integration
             if AI_INTEGRATION_AVAILABLE:
                 user_id = current_user.id if current_user.is_authenticated else None
@@ -125,7 +125,7 @@ def ai_ask():
                     max_tokens=500,
                     temperature=0.7
                 )
-                
+
                 if result.get('success'):
                     return jsonify({
                         'success': True,
@@ -143,15 +143,15 @@ def ai_ask():
                     'success': False,
                     'error': 'AI services not available'
                 }), 503
-                
+
         else:
             # Generic question without specific AA content context
             prompt = f"""
             Question: {question}
-            
+
             Please provide a helpful, supportive response to this question about recovery, sobriety, or the AA program. Focus on principles rather than specific medical advice, and encourage the person to speak with their sponsor or healthcare provider for personal guidance.
             """
-            
+
             # Use the cost-optimized AI integration
             if AI_INTEGRATION_AVAILABLE:
                 user_id = current_user.id if current_user.is_authenticated else None
@@ -162,7 +162,7 @@ def ai_ask():
                     max_tokens=500,
                     temperature=0.7
                 )
-                
+
                 if result.get('success'):
                     return jsonify({
                         'success': True,
@@ -180,7 +180,7 @@ def ai_ask():
                     'success': False,
                     'error': 'AI services not available'
                 }), 503
-                
+
     except Exception as e:
         logger.error(f"Error in AI ask endpoint: {str(e)}")
         return jsonify({
@@ -193,7 +193,7 @@ def ai_ask():
 def ai_analyze():
     """
     AI document analysis endpoint
-    
+
     This endpoint uses the cost-optimized AI integration to analyze
     documents and extract key information.
     """
@@ -205,17 +205,17 @@ def ai_analyze():
                 'success': False,
                 'error': 'No request data provided'
             }), 400
-            
+
         # Extract document text and type
         document_text = data.get('text', '')
         document_type = data.get('type', 'general')
-        
+
         if not document_text:
             return jsonify({
                 'success': False,
                 'error': 'No document text provided'
             }), 400
-            
+
         # Use the cost-optimized AI integration
         if AI_INTEGRATION_AVAILABLE:
             result = analyze_document_content(
@@ -223,7 +223,7 @@ def ai_analyze():
                 document_type=document_type,
                 user_id=current_user.id
             )
-            
+
             if result.get('success', False):
                 return jsonify(result)
             else:
@@ -236,7 +236,7 @@ def ai_analyze():
                 'success': False,
                 'error': 'AI services not available'
             }), 503
-            
+
     except Exception as e:
         logger.error(f"Error in AI analyze endpoint: {str(e)}")
         return jsonify({
@@ -249,48 +249,48 @@ def ai_analyze():
 def ai_stats():
     """
     Get AI usage statistics for the current user
-    
+
     This endpoint provides information about AI service usage, costs,
     and optimizations applied for the current user.
     """
     try:
         from utils.ai_service_manager import get_ai_service_manager
-        
+
         manager = get_ai_service_manager()
         if not manager:
             return jsonify({
                 'success': False,
                 'error': 'AI service manager not available'
             }), 503
-            
+
         # Get usage data from database
         from models.ai_models import UserAIUsage
         from datetime import datetime, timedelta
         from sqlalchemy import func
-        
+
         # Calculate dates
         today = datetime.utcnow().date()
         yesterday = today - timedelta(days=1)
         month_ago = today - timedelta(days=30)
-        
+
         # Today's usage
         today_usage = UserAIUsage.query.filter(
             UserAIUsage.user_id == current_user.id,
             func.date(UserAIUsage.timestamp) == today
         ).all()
-        
+
         # Yesterday's usage
         yesterday_usage = UserAIUsage.query.filter(
             UserAIUsage.user_id == current_user.id,
             func.date(UserAIUsage.timestamp) == yesterday
         ).all()
-        
+
         # Last 30 days usage
         month_usage = UserAIUsage.query.filter(
             UserAIUsage.user_id == current_user.id,
             UserAIUsage.timestamp >= month_ago
         ).all()
-        
+
         # Calculate statistics
         stats = {
             'today': {
@@ -312,7 +312,7 @@ def ai_stats():
                 'success_rate': sum(1 for u in month_usage if u.success) / max(len(month_usage), 1) * 100
             }
         }
-        
+
         # Get service breakdown
         service_breakdown = {}
         for usage in month_usage:
@@ -323,20 +323,20 @@ def ai_stats():
                     'total_tokens': 0,
                     'estimated_cost': 0
                 }
-            
+
             service_breakdown[service]['requests'] += 1
             service_breakdown[service]['total_tokens'] += (usage.input_tokens + usage.output_tokens)
             service_breakdown[service]['estimated_cost'] += usage.estimated_cost
-        
+
         stats['service_breakdown'] = service_breakdown
-        
+
         # Get optimization impact estimate
         if len(month_usage) > 0:
             # Estimated savings from optimization (assuming premium models would cost 2x more)
             premium_cost_estimate = sum(u.estimated_cost * 2 for u in month_usage)
             actual_cost = sum(u.estimated_cost for u in month_usage)
             savings_estimate = premium_cost_estimate - actual_cost
-            
+
             stats['optimization_impact'] = {
                 'estimated_savings': savings_estimate,
                 'savings_percentage': (savings_estimate / premium_cost_estimate) * 100 if premium_cost_estimate > 0 else 0
@@ -346,12 +346,12 @@ def ai_stats():
                 'estimated_savings': 0,
                 'savings_percentage': 0
             }
-        
+
         return jsonify({
             'success': True,
             'stats': stats
         })
-            
+
     except ImportError:
         return jsonify({
             'success': False,

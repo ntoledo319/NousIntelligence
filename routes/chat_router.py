@@ -29,17 +29,17 @@ DOMAIN_PATTERNS = {
 def process_chat_command(user_id: int, message: str) -> Dict[str, Any]:
     """
     Process a chat message and route it to the appropriate command handler
-    
+
     Args:
         user_id: The ID of the current user
         message: The chat message text from the user
-        
+
     Returns:
         Response dictionary containing the command results
     """
     # First, determine which domain (feature area) this command belongs to
     domain, command_type = identify_command_domain(message)
-    
+
     if not domain:
         # No specific command identified, treat as general conversation
         return {
@@ -47,7 +47,7 @@ def process_chat_command(user_id: int, message: str) -> Dict[str, Any]:
             'message': "I didn't recognize that as a specific command. You can ask me to create meetings, generate agendas, or analyze notes.",
             'is_command': False
         }
-    
+
     # Route to the appropriate domain handler
     if domain == 'meet':
         return handle_meet_command(user_id, message)
@@ -55,7 +55,7 @@ def process_chat_command(user_id: int, message: str) -> Dict[str, Any]:
     # elif domain == 'spotify':
     #     return handle_spotify_command(user_id, message)
     # etc.
-    
+
     # Fallback if domain identified but no handler available
     return {
         'success': False,
@@ -66,10 +66,10 @@ def process_chat_command(user_id: int, message: str) -> Dict[str, Any]:
 def identify_command_domain(message: str) -> Tuple[Optional[str], Optional[str]]:
     """
     Identify which domain and command type a message belongs to
-    
+
     Args:
         message: The chat message text
-        
+
     Returns:
         Tuple of (domain, command_type) or (None, None) if not identified
     """
@@ -78,5 +78,5 @@ def identify_command_domain(message: str) -> Tuple[Optional[str], Optional[str]]
             for pattern in cmd_patterns:
                 if re.search(pattern, message, re.IGNORECASE):
                     return domain, cmd_type
-    
-    return None, None 
+
+    return None, None

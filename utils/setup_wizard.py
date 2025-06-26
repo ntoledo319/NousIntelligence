@@ -18,10 +18,10 @@ def get_assistant_profile(user_id=None):
     """
     Get the assistant profile for the user
     Creates a default profile if none exists
-    
+
     Args:
         user_id: User identifier
-        
+
     Returns:
         AssistantProfile object
     """
@@ -32,13 +32,13 @@ def get_assistant_profile(user_id=None):
             return default_profile
         else:
             return create_default_assistant_profile()
-    
+
     # Try to get user's custom profile
     user_profile = AssistantProfile.query.filter_by(user_id=user_id).first()
-    
+
     if user_profile:
         return user_profile
-    
+
     # If user has no profile, return default
     default_profile = AssistantProfile.query.filter_by(is_default=True).first()
     if default_profile:
@@ -49,7 +49,7 @@ def get_assistant_profile(user_id=None):
 def create_default_assistant_profile():
     """
     Create and return the default assistant profile
-    
+
     Returns:
         AssistantProfile object
     """
@@ -63,10 +63,10 @@ def create_default_assistant_profile():
         default_profile.theme = "dark"
         default_profile.personality = "friendly"
         default_profile.is_default = True
-        
+
         db.session.add(default_profile)
         db.session.commit()
-        
+
         logger.info("Created default assistant profile")
         return default_profile
     except Exception as e:
@@ -85,59 +85,59 @@ def create_default_assistant_profile():
 def customize_assistant(user_id, data):
     """
     Create or update a customized assistant profile for the user
-    
+
     Args:
         user_id: User identifier
         data: Dictionary with customization options
-        
+
     Returns:
         AssistantProfile object
     """
     if not user_id:
         logger.error("Cannot customize assistant: No user ID provided")
         return None
-    
+
     try:
         # Check if user already has a profile
         profile = AssistantProfile.query.filter_by(user_id=user_id).first()
-        
+
         if not profile:
             # Create new profile
             profile = AssistantProfile()
             profile.user_id = user_id
             profile.is_default = False
-        
+
         # Update profile with data
         if 'name' in data and data['name']:
             profile.name = data['name']
-            
+
         if 'display_name' in data and data['display_name']:
             profile.display_name = data['display_name']
-            
+
         if 'tagline' in data:
             profile.tagline = data['tagline']
-            
+
         if 'description' in data:
             profile.description = data['description']
-            
+
         if 'primary_color' in data and data['primary_color']:
             profile.primary_color = data['primary_color']
-            
+
         if 'theme' in data:
             profile.theme = data['theme']
-            
+
         if 'personality' in data:
             profile.personality = data['personality']
-        
+
         # Handle logo upload if present
         if 'logo_data' in data and data['logo_data']:
             # In a real app you'd save this to a file and store the path
             # For simplicity, we'll just store the base64 data in this example
             profile.logo_path = data['logo_data']
-        
+
         db.session.add(profile)
         db.session.commit()
-        
+
         logger.info(f"Customized assistant profile for user {user_id}")
         return profile
     except Exception as e:
@@ -148,34 +148,34 @@ def customize_assistant(user_id, data):
 def initialize_user_settings(user_id):
     """
     Initialize user settings with default values
-    
+
     Args:
         user_id: User identifier
-        
+
     Returns:
         UserSettings object
     """
     if not user_id:
         logger.error("Cannot initialize user settings: No user ID provided")
         return None
-    
+
     try:
         # Check if user already has settings
         settings = UserSettings.query.filter_by(user_id=user_id).first()
-        
+
         if settings:
             return settings
-            
+
         # Create new settings with default values
         settings = UserSettings()
         settings.user_id = user_id
-        
+
         db.session.add(settings)
         db.session.commit()
-        
+
         # Reload the settings to ensure all fields are populated
         settings = UserSettings.query.filter_by(user_id=user_id).first()
-        
+
         logger.info(f"Initialized settings for user {user_id}")
         return settings
     except Exception as e:
@@ -186,21 +186,21 @@ def initialize_user_settings(user_id):
 def delete_customization(user_id):
     """
     Delete user's custom profile and revert to default
-    
+
     Args:
         user_id: User identifier
-        
+
     Returns:
         True if successful, False otherwise
     """
     if not user_id:
         logger.error("Cannot delete customization: No user ID provided")
         return False
-    
+
     try:
         # Delete user's custom profile
         profile = AssistantProfile.query.filter_by(user_id=user_id).first()
-        
+
         if profile:
             db.session.delete(profile)
             db.session.commit()
@@ -217,7 +217,7 @@ def delete_customization(user_id):
 def get_personality_options():
     """
     Get available assistant personality options
-    
+
     Returns:
         List of personality options with descriptions
     """
@@ -257,10 +257,10 @@ def get_personality_options():
 def get_setup_progress(user_id):
     """
     Get the setup progress for a user
-    
+
     Args:
         user_id: User identifier
-        
+
     Returns:
         Dictionary with setup progress information
     """
@@ -274,21 +274,21 @@ def get_setup_progress(user_id):
             'completed_steps': [],
             'remaining_steps': ['welcome', 'personalize', 'preferences', 'features', 'complete']
         }
-    
+
     try:
         # Get user settings
         settings = UserSettings.query.filter_by(user_id=user_id).first()
-        
+
         if not settings:
             # Create user settings
             settings = UserSettings()
             settings.user_id = user_id
             db.session.add(settings)
             db.session.commit()
-        
+
         # Initialize progress data
         all_steps = ['welcome', 'personalize', 'preferences', 'features', 'complete']
-        
+
         if not settings.setup_progress:
             # No progress yet
             return {
@@ -300,12 +300,12 @@ def get_setup_progress(user_id):
                 'remaining_steps': all_steps,
                 'percent_complete': 0
             }
-        
+
         # Parse progress data
         progress_data = json.loads(settings.setup_progress)
         completed_steps = progress_data.get('completed_steps', [])
         setup_completed = progress_data.get('setup_completed', False)
-        
+
         # Determine current step and next step
         if setup_completed:
             current_step = 'complete'
@@ -317,18 +317,18 @@ def get_setup_progress(user_id):
             current_step = completed_steps[-1]
             next_index = all_steps.index(current_step) + 1
             next_step = all_steps[next_index] if next_index < len(all_steps) else 'complete'
-        
+
         # Calculate remaining steps
         remaining_steps = [step for step in all_steps if step not in completed_steps]
         if setup_completed:
             remaining_steps = []
-        
+
         # Calculate percent complete
         if setup_completed:
             percent_complete = 100
         else:
             percent_complete = (len(completed_steps) / len(all_steps)) * 100
-        
+
         return {
             'has_started_setup': len(completed_steps) > 0,
             'has_completed_setup': setup_completed,
@@ -354,29 +354,29 @@ def get_setup_progress(user_id):
 def update_setup_progress(user_id, step_completed, setup_completed=False):
     """
     Update the setup progress for a user
-    
+
     Args:
         user_id: User identifier
         step_completed: Step that was completed
         setup_completed: Whether the entire setup is complete
-        
+
     Returns:
         Dictionary with updated setup progress
     """
     if not user_id:
         logger.error("Cannot update setup progress: No user ID provided")
         return None
-    
+
     try:
         # Get user settings
         settings = UserSettings.query.filter_by(user_id=user_id).first()
-        
+
         if not settings:
             # Create user settings
             settings = UserSettings()
             settings.user_id = user_id
             db.session.add(settings)
-        
+
         # Initialize or parse progress data
         if not settings.setup_progress:
             progress_data = {
@@ -388,22 +388,22 @@ def update_setup_progress(user_id, step_completed, setup_completed=False):
         else:
             progress_data = json.loads(settings.setup_progress)
             progress_data['updated_at'] = datetime.utcnow().isoformat()
-        
+
         # Update completed steps
         if step_completed and step_completed not in progress_data['completed_steps']:
             progress_data['completed_steps'].append(step_completed)
-        
+
         # Update setup completed flag
         if setup_completed:
             progress_data['setup_completed'] = True
             progress_data['completed_at'] = datetime.utcnow().isoformat()
-        
+
         # Save progress data
         settings.setup_progress = json.dumps(progress_data)
         db.session.commit()
-        
+
         logger.info(f"Updated setup progress for user {user_id}")
-        
+
         # Get updated progress info
         return get_setup_progress(user_id)
     except Exception as e:

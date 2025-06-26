@@ -20,11 +20,11 @@ class RouteValidator:
     """
     Utility for validating and standardizing route patterns
     """
-    
+
     def __init__(self, app: Optional[Flask] = None):
         """
         Initialize the route validator
-        
+
         Args:
             app: Optional Flask application to initialize with
         """
@@ -33,30 +33,30 @@ class RouteValidator:
             'web': self._validate_web_route,
             'auth': self._validate_auth_route,
         }
-        
+
         if app is not None:
             self.init_app(app)
-    
+
     def init_app(self, app: Flask) -> None:
         """
         Initialize with a Flask application
-        
+
         Args:
             app: Flask application to initialize with
         """
         # Store app reference
         self.app = app
-        
+
         # Register validation middleware
         self._register_validation_middleware(app)
-        
+
         # Log initialization
         logger.info("Route validator initialized")
-    
+
     def _register_validation_middleware(self, app: Flask) -> None:
         """
         Register validation middleware with the Flask application
-        
+
         Args:
             app: Flask application to register middleware with
         """
@@ -67,7 +67,7 @@ class RouteValidator:
                 # Skip validation for static files
                 if request.path.startswith('/static/'):
                     return None
-                
+
                 # Basic path validation
                 if not validate_url_path(request.path):
                     logger.warning(f"Invalid URL path format: {request.path}")
@@ -75,10 +75,10 @@ class RouteValidator:
                     g.invalid_path = True
                 else:
                     g.invalid_path = False
-                
+
                 # Determine route type for more specific validation
                 route_type = self._determine_route_type(request.path)
-                
+
                 # Apply specific validation for route type
                 validator = self.validation_rules.get(route_type)
                 if validator:
@@ -86,20 +86,20 @@ class RouteValidator:
                     if not valid:
                         logger.warning(f"Route validation failed: {message} for {request.path}")
                         g.validation_message = message
-                
+
                 # Continue processing the request
                 return None
             except Exception as e:
                 logger.error(f"Error in route validation: {str(e)}")
                 return None
-    
+
     def _determine_route_type(self, path: str) -> str:
         """
         Determine the type of route based on the path
-        
+
         Args:
             path: URL path to check
-            
+
         Returns:
             str: Route type ('api', 'web', 'auth', etc.)
         """
@@ -109,14 +109,14 @@ class RouteValidator:
             return 'auth'
         else:
             return 'web'
-    
+
     def _validate_api_route(self, path: str) -> Tuple[bool, Optional[str]]:
         """
         Validate an API route
-        
+
         Args:
             path: URL path to validate
-            
+
         Returns:
             Tuple[bool, Optional[str]]: (is_valid, error_message)
         """
@@ -124,34 +124,34 @@ class RouteValidator:
         # Should follow: /api/v*/resource or /api/resource
         if not re.match(r'^/api(/v\d+)?(/[\w\-]+)+$', path):
             return False, "API route should follow /api/v*/resource pattern"
-        
+
         return True, None
-    
+
     def _validate_web_route(self, path: str) -> Tuple[bool, Optional[str]]:
         """
         Validate a web route
-        
+
         Args:
             path: URL path to validate
-            
+
         Returns:
             Tuple[bool, Optional[str]]: (is_valid, error_message)
         """
         # Basic validation for web routes
         if '..' in path:
             return False, "Path traversal attempt detected"
-        
+
         # More specific validation can be added here
-        
+
         return True, None
-    
+
     def _validate_auth_route(self, path: str) -> Tuple[bool, Optional[str]]:
         """
         Validate an authentication route
-        
+
         Args:
             path: URL path to validate
-            
+
         Returns:
             Tuple[bool, Optional[str]]: (is_valid, error_message)
         """
@@ -159,40 +159,40 @@ class RouteValidator:
         # Should follow: /auth/action
         if not re.match(r'^/auth/[\w\-]+$', path):
             return False, "Auth route should follow /auth/action pattern"
-        
+
         return True, None
-    
+
     def analyze_routes(self, app: Flask) -> List[Dict[str, Any]]:
         """
         Analyze all routes in the application for compliance with standards
-        
+
         Args:
             app: Flask application to analyze
-            
+
         Returns:
             List[Dict[str, Any]]: List of route analysis results
         """
         results = []
-        
+
         for rule in app.url_map.iter_rules():
             path = str(rule)
             endpoint = rule.endpoint
-            
+
             # Skip static resources
             if 'static' in endpoint:
                 continue
-            
+
             # Determine route type
             route_type = self._determine_route_type(path)
-            
+
             # Validate based on route type
             validator = self.validation_rules.get(route_type)
             valid = True
             message = None
-            
+
             if validator:
                 valid, message = validator(path)
-            
+
             # Add to results
             results.append({
                 'path': path,
@@ -201,7 +201,7 @@ class RouteValidator:
                 'valid': valid,
                 'message': message
             })
-        
+
         return results
 
 # Singleton instance for global use
@@ -210,7 +210,7 @@ route_validator = RouteValidator()
 def init_app(app: Flask) -> None:
     """
     Initialize the route validator with an application (convenience function)
-    
+
     Args:
         app: Flask application to initialize with
     """
@@ -219,10 +219,10 @@ def init_app(app: Flask) -> None:
 def analyze_routes(app: Flask) -> List[Dict[str, Any]]:
     """
     Analyze all routes in the application (convenience function)
-    
+
     Args:
         app: Flask application to analyze
-        
+
     Returns:
         List[Dict[str, Any]]: List of route analysis results
     """

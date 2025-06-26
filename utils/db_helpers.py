@@ -10,10 +10,10 @@ from models import User
 def get_user_by_id(user_id):
     """
     Get a user by their ID
-    
+
     Args:
         user_id: The user's ID
-        
+
     Returns:
         User object or None if not found
     """

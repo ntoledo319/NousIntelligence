@@ -21,17 +21,17 @@ def index():
     try:
         # Get the flask app instance
         from flask import g
-        
+
         # Log debugging information
         logger.info("Rendering index page")
         logger.info(f"PUBLIC_ACCESS: {current_app.config.get('PUBLIC_ACCESS', False)}")
         logger.info(f"PUBLIC_PREVIEW_MODE: {current_app.config.get('PUBLIC_PREVIEW_MODE', False)}")
         logger.info(f"Request host: {request.host}")
-        
+
         # Check if public preview is enabled
         is_public = getattr(g, 'public_preview', False)
         logger.info(f"Is public preview (g.public_preview): {is_public}")
-        
+
         # Use the public index for demonstration purposes
         return render_template('index_public.html', title='NOUS Personal Assistant')
     except Exception as e:
@@ -74,10 +74,10 @@ def health():
             "environment": os.environ.get("FLASK_ENV", "production"),
             "timestamp": datetime.datetime.now().isoformat()
         })
-    
+
     # For browser requests, return HTML page
-    return render_template('health.html', 
-                          version="1.0.0", 
+    return render_template('health.html',
+                          version="1.0.0",
                           environment=os.environ.get("FLASK_ENV", "production"),
                           timestamp=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 

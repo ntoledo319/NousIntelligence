@@ -40,10 +40,10 @@ def fibonacci(n: int) -> int:
 def simulate_api_call(duration: int) -> Dict[str, Any]:
     """Simulate a long-running API call"""
     start_time = time.time()
-    
+
     # Simulate work
     time.sleep(duration)
-    
+
     return {
         "success": True,
         "duration": duration,
@@ -54,23 +54,23 @@ def simulate_api_call(duration: int) -> Dict[str, Any]:
 def process_data(data: Dict[str, Any]) -> Dict[str, Any]:
     """Process a data object with simulated work"""
     result = {}
-    
+
     # Simulate complex processing
     time.sleep(1)
-    
+
     # Process each field
     if "text" in data:
         # Simulate text processing
         result["text_length"] = len(data["text"])
         result["word_count"] = len(data["text"].split())
         time.sleep(0.5)
-    
+
     if "numbers" in data and isinstance(data["numbers"], list):
         # Simulate number processing
         result["sum"] = sum(data["numbers"])
         result["average"] = sum(data["numbers"]) / len(data["numbers"]) if data["numbers"] else 0
         time.sleep(0.5)
-    
+
     return result
 
 @async_api.route('/tasks/fibonacci', methods=['POST'])
@@ -79,12 +79,12 @@ def process_data(data: Dict[str, Any]) -> Dict[str, Any]:
 def start_fibonacci_task():
     """
     Start a Fibonacci calculation task
-    
+
     Request JSON:
     {
         "n": 30  # The Fibonacci number to calculate
     }
-    
+
     Response:
     {
         "task_id": "task_12345",
@@ -93,10 +93,10 @@ def start_fibonacci_task():
     """
     data = request.get_json()
     n = data['n']
-    
+
     # Submit the task
     task_id = submit_task(fibonacci, n)
-    
+
     return jsonify({
         "task_id": task_id,
         "status": AsyncTaskStatus.PENDING
@@ -108,12 +108,12 @@ def start_fibonacci_task():
 def start_api_simulation():
     """
     Start a simulated API call task
-    
+
     Request JSON:
     {
         "duration": 5  # The duration in seconds
     }
-    
+
     Response:
     {
         "task_id": "task_12345",
@@ -122,10 +122,10 @@ def start_api_simulation():
     """
     data = request.get_json()
     duration = data['duration']
-    
+
     # Submit the task
     task_id = submit_task(simulate_api_call, duration)
-    
+
     return jsonify({
         "task_id": task_id,
         "status": AsyncTaskStatus.PENDING
@@ -137,7 +137,7 @@ def start_api_simulation():
 def start_data_processing():
     """
     Start a data processing task
-    
+
     Request JSON:
     {
         "data": {
@@ -145,7 +145,7 @@ def start_data_processing():
             "numbers": [1, 2, 3, 4, 5]
         }
     }
-    
+
     Response:
     {
         "task_id": "task_12345",
@@ -153,10 +153,10 @@ def start_data_processing():
     }
     """
     data = request.get_json()
-    
+
     # Submit the task
     task_id = submit_task(process_data, data['data'])
-    
+
     return jsonify({
         "task_id": task_id,
         "status": AsyncTaskStatus.PENDING
@@ -166,7 +166,7 @@ def start_data_processing():
 def get_task_result(task_id):
     """
     Get the result of a task
-    
+
     Response:
     {
         "task_id": "task_12345",
@@ -178,14 +178,14 @@ def get_task_result(task_id):
     # Check if we should wait for the task
     wait_for_completion = request.args.get('wait', 'false').lower() == 'true'
     timeout = int(request.args.get('timeout', '0')) if request.args.get('timeout') else None
-    
+
     if wait_for_completion and timeout:
         # Wait for the task with timeout
         status = wait_for_task(task_id, timeout)
     else:
         # Just get current status
         status = get_task_status(task_id)
-    
+
     return jsonify(status)
 
 # Register error handlers
@@ -207,4 +207,4 @@ def handle_not_found(error):
         "message": str(error.description)
     })
     response.status_code = 404
-    return response 
+    return response

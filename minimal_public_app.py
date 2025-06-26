@@ -16,10 +16,10 @@ def create_app():
     """Create minimal Flask application"""
     app = Flask(__name__)
     app.secret_key = os.environ.get("SESSION_SECRET", "nous-secure-key-2025")
-    
+
     # Add ProxyFix for Replit deployment
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
-    
+
     @app.after_request
     def add_public_headers(response):
         """Ensure complete public access"""
@@ -30,7 +30,7 @@ def create_app():
         response.headers['X-Replit-Auth'] = 'false'
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         return response
-    
+
     @app.route('/')
     def index():
         """Main page - completely public"""
@@ -44,68 +44,68 @@ def create_app():
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NOUS Personal Assistant - Public Access</title>
     <style>
-        body { 
-            font-family: system-ui, -apple-system, sans-serif; 
-            line-height: 1.6; 
-            margin: 0; 
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            margin: 0;
             padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             min-height: 100vh;
         }
-        .container { 
-            max-width: 800px; 
-            margin: 0 auto; 
-            background: rgba(255,255,255,0.1); 
-            padding: 40px; 
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
             border-radius: 20px;
             backdrop-filter: blur(10px);
         }
-        h1 { 
-            text-align: center; 
-            margin-bottom: 30px; 
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
             font-size: 2.5em;
         }
-        .status { 
-            background: rgba(46, 204, 113, 0.2); 
-            padding: 20px; 
-            border-radius: 10px; 
+        .status {
+            background: rgba(46, 204, 113, 0.2);
+            padding: 20px;
+            border-radius: 10px;
             margin: 20px 0;
             border: 1px solid rgba(46, 204, 113, 0.3);
         }
-        .features { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-            gap: 20px; 
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
             margin: 30px 0;
         }
-        .feature { 
-            background: rgba(255,255,255,0.1); 
-            padding: 20px; 
-            border-radius: 10px; 
+        .feature {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
             text-align: center;
         }
-        .api-test { 
-            background: rgba(52, 152, 219, 0.2); 
-            padding: 20px; 
-            border-radius: 10px; 
+        .api-test {
+            background: rgba(52, 152, 219, 0.2);
+            padding: 20px;
+            border-radius: 10px;
             margin: 20px 0;
         }
-        button { 
-            background: #3498db; 
-            color: white; 
-            border: none; 
-            padding: 12px 24px; 
-            border-radius: 6px; 
-            cursor: pointer; 
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
             font-size: 16px;
         }
-        button:hover { 
-            background: #2980b9; 
+        button:hover {
+            background: #2980b9;
         }
-        .footer { 
-            text-align: center; 
-            margin-top: 40px; 
+        .footer {
+            text-align: center;
+            margin-top: 40px;
             opacity: 0.8;
         }
     </style>
@@ -113,7 +113,7 @@ def create_app():
 <body>
     <div class="container">
         <h1>🧠 NOUS Personal Assistant</h1>
-        
+
         <div class="status">
             <h2>✅ Status: ONLINE - Public Access</h2>
             <p><strong>Authentication:</strong> DISABLED - No login required</p>
@@ -158,7 +158,7 @@ def create_app():
         async function testAPI() {
             const resultDiv = document.getElementById('apiResult');
             resultDiv.innerHTML = 'Testing...';
-            
+
             try {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
@@ -169,7 +169,7 @@ def create_app():
                         message: 'Hello from the web interface!'
                     })
                 });
-                
+
                 const data = await response.json();
                 resultDiv.innerHTML = `<div style="background: rgba(46, 204, 113, 0.2); padding: 10px; border-radius: 6px; margin-top: 10px;">
                     <strong>API Response:</strong><br>
@@ -186,7 +186,7 @@ def create_app():
 </html>
             """
             return render_template_string(html_template, timestamp=datetime.now().isoformat())
-        
+
         # For API requests, return JSON
         return jsonify({
             "status": "online",
@@ -197,7 +197,7 @@ def create_app():
             "authentication": "disabled",
             "note": "Authentication loop completely eliminated"
         })
-    
+
     @app.route('/health')
     @app.route('/healthz')
     def health():
@@ -210,7 +210,7 @@ def create_app():
             'authentication': 'disabled',
             'environment': os.environ.get('FLASK_ENV', 'production')
         })
-    
+
     @app.route('/dashboard')
     def dashboard():
         """Dashboard - completely public"""
@@ -224,69 +224,69 @@ def create_app():
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NOUS Dashboard - Public Access</title>
     <style>
-        body { 
-            font-family: system-ui, -apple-system, sans-serif; 
-            margin: 0; 
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
             background: #f8f9fa;
             color: #333;
         }
-        .header { 
+        .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white; 
-            padding: 20px 0; 
+            color: white;
+            padding: 20px 0;
             text-align: center;
         }
-        .container { 
-            max-width: 1200px; 
-            margin: 0 auto; 
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 20px;
         }
-        .dashboard-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-            gap: 20px; 
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
             margin: 20px 0;
         }
-        .card { 
-            background: white; 
-            border-radius: 10px; 
-            padding: 20px; 
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             border-left: 4px solid #3498db;
         }
-        .card h3 { 
-            margin-top: 0; 
+        .card h3 {
+            margin-top: 0;
             color: #2c3e50;
         }
-        .status-indicator { 
-            display: inline-block; 
-            width: 12px; 
-            height: 12px; 
-            border-radius: 50%; 
-            background: #27ae60; 
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #27ae60;
             margin-right: 8px;
         }
-        .nav { 
-            background: white; 
-            padding: 15px 0; 
+        .nav {
+            background: white;
+            padding: 15px 0;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .nav ul { 
-            list-style: none; 
-            margin: 0; 
-            padding: 0; 
-            display: flex; 
+        .nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
             justify-content: center;
         }
-        .nav li { 
+        .nav li {
             margin: 0 20px;
         }
-        .nav a { 
-            color: #3498db; 
-            text-decoration: none; 
+        .nav a {
+            color: #3498db;
+            text-decoration: none;
             font-weight: 500;
         }
-        .nav a:hover { 
+        .nav a:hover {
             color: #2980b9;
         }
     </style>
@@ -296,7 +296,7 @@ def create_app():
         <h1>🧠 NOUS Dashboard</h1>
         <p>Public Access - No Authentication Required</p>
     </div>
-    
+
     <div class="nav">
         <div class="container">
             <ul>
@@ -362,7 +362,7 @@ def create_app():
 </html>
             """
             return render_template_string(dashboard_html)
-        
+
         # For API requests, return JSON
         return jsonify({
             "page": "dashboard",
@@ -372,12 +372,12 @@ def create_app():
             "access_level": "public",
             "features": [
                 "AI Chat",
-                "Voice Interface", 
+                "Voice Interface",
                 "Document Analysis",
                 "Health Monitoring"
             ]
         })
-    
+
     @app.route('/about')
     def about():
         """About page - completely public"""
@@ -388,14 +388,14 @@ def create_app():
             "version": "1.0.0",
             "features": "All functionality available without authentication"
         })
-    
+
     @app.route('/api/chat', methods=['POST'])
     def api_chat():
         """Chat API - completely public"""
         try:
             data = request.get_json() or {}
             message = data.get('message', 'Hello')
-            
+
             return jsonify({
                 'response': f"I received your message: {message}",
                 'timestamp': datetime.now().isoformat(),
@@ -409,7 +409,7 @@ def create_app():
                 'details': str(e),
                 'status': 'error'
             }), 500
-    
+
     @app.errorhandler(404)
     def not_found(error):
         """Handle 404 errors"""
@@ -419,7 +419,7 @@ def create_app():
             'message': 'The requested resource was not found',
             'access_level': 'public'
         }), 404
-    
+
     @app.errorhandler(500)
     def server_error(error):
         """Handle 500 errors"""
@@ -429,7 +429,7 @@ def create_app():
             'message': 'An internal error occurred',
             'access_level': 'public'
         }), 500
-    
+
     logger.info("Minimal NOUS app created - FULLY PUBLIC ACCESS")
     return app
 
@@ -437,10 +437,10 @@ def main():
     """Main entry point"""
     app = create_app()
     port = int(os.environ.get('PORT', 5000))
-    
+
     logger.info(f"Starting minimal NOUS on port {port}")
     logger.info("PUBLIC ACCESS: No authentication loops possible")
-    
+
     try:
         app.run(host='0.0.0.0', port=port, debug=False)
     except Exception as e:

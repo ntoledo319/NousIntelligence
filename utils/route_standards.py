@@ -34,7 +34,7 @@ class RouteValidator:
     """
     Validates and standardizes route configurations
     """
-    
+
     @staticmethod
     def validate_url_pattern(url: str, pattern_type: str = 'web') -> bool:
         """
@@ -50,10 +50,10 @@ class RouteValidator:
         if pattern_type not in URL_PATTERNS:
             logger.warning(f"Unknown pattern type: {pattern_type}")
             return True
-        
+
         pattern = URL_PATTERNS[pattern_type]
         return bool(re.match(pattern, url))
-    
+
     @staticmethod
     def get_standardized_blueprint_name(name: str, category: str = 'web') -> str:
         """
@@ -69,9 +69,9 @@ class RouteValidator:
         if category not in BLUEPRINT_CONVENTIONS:
             logger.warning(f"Unknown blueprint category: {category}")
             return name
-            
+
         return BLUEPRINT_CONVENTIONS[category].format(name=name)
-    
+
     @staticmethod
     def standardize_url_prefix(prefix: str) -> str:
         """
@@ -86,22 +86,22 @@ class RouteValidator:
         # Ensure prefix starts with forward slash
         if not prefix.startswith('/'):
             prefix = f'/{prefix}'
-            
+
         # Remove trailing slash if present
         if prefix.endswith('/') and len(prefix) > 1:
             prefix = prefix[:-1]
-            
+
         return prefix
 
 class BlueprintRegistry:
     """
     Centralized registry for Flask blueprints
     """
-    
+
     def __init__(self):
         self.blueprints: Dict[str, Blueprint] = {}
         self.validator = RouteValidator()
-    
+
     def register(self, bp: Blueprint, app: Flask, url_prefix: Optional[str] = None) -> None:
         """
         Register a blueprint with validation and standardization
@@ -113,15 +113,15 @@ class BlueprintRegistry:
         """
         # Store blueprint in registry
         self.blueprints[bp.name] = bp
-        
+
         # Standardize URL prefix if provided
         if url_prefix:
             url_prefix = self.validator.standardize_url_prefix(url_prefix)
-        
+
         # Register blueprint with app
         app.register_blueprint(bp, url_prefix=url_prefix)
         logger.info(f"Registered blueprint: {bp.name} with prefix: {url_prefix or 'None'}")
-    
+
     def verify_all_routes(self, app: Flask) -> List[Dict[str, Any]]:
         """
         Verify all routes against standards
@@ -133,15 +133,15 @@ class BlueprintRegistry:
             List of issues found
         """
         issues = []
-        
+
         for rule in app.url_map.iter_rules():
             endpoint = rule.endpoint
             url = str(rule)
-            
+
             # Skip static files
             if 'static' in endpoint:
                 continue
-                
+
             # Determine pattern type
             pattern_type = 'web'
             if url.startswith('/api/'):
@@ -150,7 +150,7 @@ class BlueprintRegistry:
                 pattern_type = 'auth'
             elif url.startswith('/user/'):
                 pattern_type = 'user'
-            
+
             # Validate URL pattern
             if not self.validator.validate_url_pattern(url, pattern_type):
                 issues.append({
@@ -158,7 +158,7 @@ class BlueprintRegistry:
                     'url': url,
                     'issue': f"URL doesn't match {pattern_type} pattern standard"
                 })
-        
+
         return issues
 
 # Global blueprint registry

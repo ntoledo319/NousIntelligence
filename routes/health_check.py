@@ -30,10 +30,10 @@ START_TIME = time.time()
 def basic_health_check():
     """
     Basic health check endpoint
-    
+
     This endpoint returns a simple status check to verify that
     the application is running and reachable.
-    
+
     Returns:
         JSON with status information
     """
@@ -47,23 +47,23 @@ def basic_health_check():
 def detailed_health_check():
     """
     Detailed health check with component status
-    
+
     This endpoint checks the health of all major subsystems
     and returns detailed status information.
-    
+
     Returns:
         JSON with detailed health status
     """
     # Check database connection
     db_status = check_database_health()
-    
+
     # Check Redis connection if configured
     redis_status = check_redis_health()
-    
+
     # Get uptime
     uptime_seconds = time.time() - START_TIME
     uptime_str = str(datetime.timedelta(seconds=int(uptime_seconds)))
-    
+
     # Build response
     response = {
         "status": "ok" if all(s["status"] == "ok" for s in [db_status, redis_status]) else "degraded",
@@ -76,30 +76,30 @@ def detailed_health_check():
             "redis": redis_status
         }
     }
-    
+
     return jsonify(response)
 
 @health_check.route('/health/system')
 def system_health():
     """
     System resource usage information
-    
+
     This endpoint returns information about system resources
     like CPU, memory, and disk usage.
-    
+
     Returns:
         JSON with system resource information
     """
     # Get CPU usage
     cpu_percent = psutil.cpu_percent(interval=0.1)
     cpu_count = psutil.cpu_count()
-    
+
     # Get memory usage
     memory = psutil.virtual_memory()
-    
+
     # Get disk usage
     disk = psutil.disk_usage('/')
-    
+
     # Build response
     response = {
         "cpu": {
@@ -126,30 +126,30 @@ def system_health():
             "python": platform.python_version()
         }
     }
-    
+
     return jsonify(response)
 
 @health_check.route('/health/metrics')
 def application_metrics():
     """
     Application performance metrics
-    
+
     This endpoint returns metrics about the application's
     performance, including response times and request counts.
-    
+
     Returns:
         JSON with application metrics
     """
     from app import app
-    
+
     # Get request stats from the app's metrics if available
     request_count = getattr(app, 'request_count', 0)
     error_count = getattr(app, 'error_count', 0)
     response_times = getattr(app, 'response_times', [])
-    
+
     # Calculate average response time
     avg_response_time = sum(response_times) / len(response_times) if response_times else 0
-    
+
     # Build response
     response = {
         "requests": {
@@ -166,13 +166,13 @@ def application_metrics():
             "current": getattr(app, 'rate_limited_count', 0)
         }
     }
-    
+
     return jsonify(response)
 
 def check_database_health() -> Dict[str, Any]:
     """
     Check the health of the database connection
-    
+
     Returns:
         Dict with database health status
     """
@@ -180,7 +180,7 @@ def check_database_health() -> Dict[str, Any]:
         # Try a simple query to check the database connection
         from app import db
         result = db.session.execute("SELECT 1").scalar()
-        
+
         return {
             "status": "ok" if result == 1 else "error",
             "message": "Connected to database"
@@ -195,7 +195,7 @@ def check_database_health() -> Dict[str, Any]:
 def check_redis_health() -> Dict[str, Any]:
     """
     Check the health of the Redis connection if configured
-    
+
     Returns:
         Dict with Redis health status
     """
@@ -205,13 +205,13 @@ def check_redis_health() -> Dict[str, Any]:
             "status": "skipped",
             "message": "Redis not configured"
         }
-    
+
     try:
         # Try to connect to Redis and run a simple command
         import redis
         redis_client = redis.from_url(os.environ.get("REDIS_URL"))
         redis_client.ping()
-        
+
         return {
             "status": "ok",
             "message": "Connected to Redis"
@@ -221,4 +221,4 @@ def check_redis_health() -> Dict[str, Any]:
         return {
             "status": "error",
             "message": str(e)
-        } 
+        }

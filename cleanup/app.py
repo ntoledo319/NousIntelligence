@@ -23,7 +23,7 @@ from utils.weather_helper import (
 # Import Spotify visualization blueprint
 from routes.spotify_visualization import spotify_viz
 from utils.doctor_appointment_helper import (
-    get_doctors, get_doctor_by_id, get_doctor_by_name, 
+    get_doctors, get_doctor_by_id, get_doctor_by_name,
     add_doctor, update_doctor, delete_doctor,
     get_upcoming_appointments, get_appointments_by_doctor,
     add_appointment, update_appointment_status, set_appointment_reminder,
@@ -102,13 +102,13 @@ if database_url:
         'pool_use_lifo': True,  # Use last-in-first-out to reduce number of open connections
     }
     db.init_app(app)
-    
+
     # Create tables if they don't exist
     with app.app_context():
         try:
             db.create_all()
             logging.info("Database tables created (if they didn't exist already)")
-            
+
             # Start the maintenance scheduler
             from utils.maintenance_helper import start_maintenance_scheduler
             start_maintenance_scheduler()
@@ -117,7 +117,7 @@ if database_url:
             logging.error(f"Error initializing database: {str(e)}")
 else:
     print("No DATABASE_URL found in environment variables")
-    
+
 # Initialize LoginManager with Google Authentication
 login_manager = LoginManager(app)
 login_manager.login_view = "google_auth.login"  # Route function name in the blueprint
@@ -141,7 +141,6 @@ from routes import register_blueprints
 register_blueprints(app)
 
 # Add custom template filters
-import json
 import re
 import jinja2
 
@@ -168,7 +167,6 @@ def nl2br(value):
 
 @login_manager.user_loader
 def load_user(user_id):
-    from models import User
     return User.query.get(user_id)
 
 # OAuth config
@@ -187,9 +185,9 @@ OPENROUTER_KEY = os.environ.get("OPENROUTER_API_KEY")
 def settings_page():
     """Display user settings page"""
     from models import UserSettings, ConversationDifficulty
-    
+
     settings = None
-    
+
     # Get settings for logged-in users from database
     if current_user.is_authenticated:
         settings = current_user.settings
@@ -203,23 +201,22 @@ def settings_page():
             'theme': session.get('theme', 'light'),
             'color_theme': session.get('color_theme', 'default')
         }
-        
+
     return render_template('settings.html', settings=settings)
 
 @app.route("/settings", methods=['POST'])
 @rate_limit(max_requests=30, time_window=60)  # 30 requests per minute
 def save_settings():
     """Save user settings"""
-    from models import UserSettings, ConversationDifficulty
     from utils.adaptive_conversation import set_difficulty
-    
+
     # Get form data
     difficulty = request.form.get('conversation_difficulty', ConversationDifficulty.INTERMEDIATE.value)
     enable_voice = 'enable_voice_responses' in request.form
     language = request.form.get('preferred_language', 'en-US')
     theme = request.form.get('theme', 'light')
     color_theme = request.form.get('color_theme', 'default')
-    
+
     # For logged-in users, save to database
     if current_user.is_authenticated:
         # Create settings if they don't exist
@@ -239,7 +236,7 @@ def save_settings():
             current_user.settings.preferred_language = language
             current_user.settings.theme = theme
             current_user.settings.color_theme = color_theme
-            
+
         db.session.commit()
         flash('Settings saved successfully', 'success')
     else:
@@ -249,10 +246,10 @@ def save_settings():
         session['preferred_language'] = language
         session['theme'] = theme
         flash('Settings saved for this session', 'success')
-    
+
     # Use our utility function to set the difficulty
     set_difficulty(difficulty)
-    
+
     return redirect(url_for('index'))
 
 @app.route("/", methods=["GET", "POST"])
@@ -262,7 +259,7 @@ def index():
     if not current_user.is_authenticated:
         # Show a welcome page for non-authenticated users
         return render_template("simple_welcome.html")
-        
+
     if request.method == "GET":
         # Check if there's a command in the query parameters (from dashboard links)
         cmd_from_query = request.args.get("cmd")
@@ -270,35 +267,35 @@ def index():
             session.setdefault("log", []).append(f">>> {cmd_from_query}")
             # Process the command
             return process_command(cmd_from_query)
-            
+
         return render_template("index.html", log=session.get("log", []))
-    
+
     # Handle POST command
     cmd = request.form.get("cmd", "").lower().strip()
     if not cmd:
         flash("Please enter a command", "warning")
         return redirect(url_for("index"))
-        
+
     log = session.setdefault("log", [])
     log.append(f">>> {cmd}")
-    
+
     # Process the command
     return process_command(cmd)
-    
+
 def process_command(cmd):
     """Process a command and return the appropriate response"""
     log = session.get("log", [])
-    
+
     # Check for authentication
     if not current_user.is_authenticated:
         session["log"] = log  # Save log before redirect
         flash("Please log in to use the command interface", "info")
         return redirect(url_for("google_auth.login"))
-    
+
     # Get services (try both session and database)
     try:
         user_id = current_user.id
-        
+
         # Google services
         try:
             cal, tasks, keep = build_google_services(session, user_id)
@@ -308,21 +305,21 @@ def process_command(cmd):
                 flash("Please connect your Google account to use most commands", "info")
                 return redirect(url_for("authorize_google"))
             cal, tasks, keep = None, None, None
-            
+
         # Spotify
         try:
             sp, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT, user_id)
         except Exception:
             sp = None
-            
+
         result = parse_command(cmd, cal, tasks, keep, sp, log, session)
         if result.get("redirect"):
             return redirect(result.get("redirect"))
-            
+
     except Exception as e:
         logging.error(f"Error processing command: {str(e)}")
         log.append(f"❌ Error: {str(e)}")
-    
+
     session.modified = True
     return redirect(url_for("index"))
 
@@ -337,30 +334,30 @@ def dashboard():
         if not is_beta_tester(current_user.id):
             flash("The dashboard is currently available only to beta testers.", "warning")
             return redirect(url_for('beta.request_access'))
-    
+
     # Check for Google services connection
     if "google_creds" not in session:
         flash("Please connect your Google account to access all dashboard features", "warning")
-        
+
     # Prepare data for the dashboard
     data = {}
-    
+
     # Get budget data
     try:
         data['budget_summary'] = get_budget_summary(session)
-        
+
         # Format budget categories for the chart
         if data['budget_summary'] and 'categories' in data['budget_summary']:
             # Filter out categories with 0 budget
             budget_categories = {
-                cat: details['budget'] 
-                for cat, details in data['budget_summary']['categories'].items() 
+                cat: details['budget']
+                for cat, details in data['budget_summary']['categories'].items()
                 if details['budget'] > 0
             }
             data['budget_categories'] = budget_categories
     except Exception as e:
         logging.error(f"Error fetching budget data: {str(e)}")
-    
+
     # Get trip data
     try:
         active_trip = get_active_trip(session)
@@ -368,17 +365,17 @@ def dashboard():
             # Calculate days remaining
             today = datetime.datetime.now()
             days_left = (active_trip.end_date - today).days if active_trip.end_date else 0
-            
+
             # Check if it has itinerary
             itinerary = get_itinerary(active_trip.id, session)
-            
+
             trip_data = active_trip.to_dict()
             trip_data['days_left'] = days_left
             trip_data['has_itinerary'] = len(itinerary) > 0
             trip_data['itinerary_count'] = len(itinerary)
-            
+
             data['active_trip'] = trip_data
-        
+
         upcoming_trips = get_upcoming_trips(session)
         if upcoming_trips:
             # Format upcoming trips data
@@ -386,22 +383,22 @@ def dashboard():
             for trip in upcoming_trips:
                 today = datetime.datetime.now()
                 days_until = (trip.start_date - today).days if trip.start_date else 0
-                
+
                 trip_dict = trip.to_dict()
                 trip_dict['days_until'] = days_until
                 upcoming_data.append(trip_dict)
-                
+
             data['upcoming_trips'] = upcoming_data
     except Exception as e:
         logging.error(f"Error fetching trip data: {str(e)}")
-    
+
     # Get appointment data
     try:
         from utils.doctor_appointment_helper import get_upcoming_appointments
         appointments = get_upcoming_appointments(session)
         if appointments:
             data['appointments'] = appointments
-            
+
         # Check medications to refill
         from utils.medication_helper import get_medications_to_refill
         medications_to_refill = get_medications_to_refill(session)
@@ -409,55 +406,55 @@ def dashboard():
             data['medications_to_refill'] = medications_to_refill
     except Exception as e:
         logging.error(f"Error fetching health data: {str(e)}")
-        
+
     # Get shopping data
     try:
         from utils.shopping_helper import get_shopping_lists, get_due_shopping_lists
         from utils.product_helper import get_due_product_orders
-        
+
         shopping_lists = get_shopping_lists(session)
         if shopping_lists:
             data['shopping_lists'] = shopping_lists
-            
+
             # Calculate total items
             total_items = sum(len(lst.items) for lst in shopping_lists if lst.items)
             data['total_items'] = total_items
-            
+
             # Get due lists
             due_lists = get_due_shopping_lists(session)
             if due_lists:
                 data['due_lists'] = due_lists
-                
+
             # Get products to order
             products_to_order = get_due_product_orders(session)
             if products_to_order:
                 data['products_to_order'] = products_to_order
     except Exception as e:
         logging.error(f"Error fetching shopping data: {str(e)}")
-    
+
     # Get pain forecast data
     try:
         from models import WeatherLocation
         user_id = session.get("user_id")
-        
+
         # Try to get user's primary location
         primary_location = WeatherLocation.query.filter_by(user_id=user_id, is_primary=True).first()
-        
+
         if primary_location:
             # Get weather data for pain forecast
             weather_data = get_current_weather(primary_location.name)
-            
+
             if weather_data:
                 # Get pressure trend data
                 pressure_trend = get_pressure_trend(primary_location.name, 24)
-                
+
                 if pressure_trend:
                     # Get storm severity data
                     storm_data = get_storm_severity(weather_data)
-                    
+
                     # Calculate pain flare risk
                     pain_risk = calculate_pain_flare_risk(pressure_trend, storm_data)
-                    
+
                     # Prepare data for the dashboard
                     data['pain_forecast'] = {
                         'location': pressure_trend['location'],
@@ -472,7 +469,7 @@ def dashboard():
                     }
     except Exception as e:
         logging.error(f"Error generating pain forecast: {str(e)}")
-        
+
     # Create some recent activity (could be replaced with actual activity log)
     data['recent_activity'] = [
         {
@@ -496,9 +493,9 @@ def dashboard():
             'time_ago': '3 days ago'
         },
     ]
-            
+
     return render_template("dashboard.html", **data)
-    
+
     # Check for auth
     if "google_creds" not in session and not cmd.startswith("help"):
         session["log"] = log  # Save log before redirect
@@ -511,20 +508,20 @@ def dashboard():
             cal, tasks, keep = build_google_services(session)
         else:
             cal, tasks, keep = None, None, None
-            
+
         if "spotify_user" in session:
             sp, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT)
         else:
             sp = None
-            
+
         result = parse_command(cmd, cal, tasks, keep, sp, log, session)
         if result.get("redirect"):
             return redirect(result.get("redirect"))
-            
+
     except Exception as e:
         logging.error(f"Error processing command: {str(e)}")
         log.append(f"❌ Error: {str(e)}")
-    
+
     session.modified = True
     return redirect(url_for("index"))
 
@@ -535,7 +532,7 @@ def authorize_google():
     if not current_user.is_authenticated:
         flash("Please log in first to connect your Google account", "warning")
         return redirect(url_for("google_auth.login"))
-        
+
     flow = get_google_flow(GOOGLE_CLIENT_SECRETS, GOOGLE_REDIRECT)
     authorization_url, state = flow.authorization_url(
         access_type='offline',
@@ -551,17 +548,17 @@ def callback_google():
     if not current_user.is_authenticated:
         flash("Please log in first to connect your Google account", "warning")
         return redirect(url_for("google_auth.login"))
-        
+
     try:
         from utils.auth_helper import save_google_credentials
-        
+
         flow = get_google_flow(GOOGLE_CLIENT_SECRETS, GOOGLE_REDIRECT)
         flow.fetch_token(authorization_response=request.url)
         creds = flow.credentials
-        
+
         # Store the credentials in the database for this user
         save_google_credentials(current_user.id, creds)
-        
+
         # Also store in session for current browser session
         creds_dict = {
             'token': creds.token,
@@ -570,16 +567,16 @@ def callback_google():
             'client_secret': creds.client_secret,
             'scopes': creds.scopes
         }
-        
+
         # For token_uri we'll use the default from Google OAuth
         creds_dict['token_uri'] = "https://oauth2.googleapis.com/token"
-        
+
         session['google_creds'] = creds_dict
         flash("Google services connected successfully!", "success")
     except Exception as e:
         logging.error(f"Google auth error: {str(e)}")
         flash(f"Error connecting Google services: {str(e)}", "danger")
-    
+
     return redirect(url_for("index"))
 
 @app.route("/authorize/spotify")
@@ -589,12 +586,12 @@ def authorize_spotify():
     if not current_user.is_authenticated:
         flash("Please log in first to connect your Spotify account", "warning")
         return redirect(url_for("google_auth.login"))
-    
+
     _, auth = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT)
     if not auth:
         flash("Error: Missing Spotify credentials", "danger")
         return redirect(url_for("index"))
-        
+
     authorization_url = auth.get_authorize_url()
     return redirect(authorization_url)
 
@@ -605,22 +602,22 @@ def callback_spotify():
     if not current_user.is_authenticated:
         flash("Please log in first to connect your Spotify account", "warning")
         return redirect(url_for("google_auth.login"))
-        
+
     try:
         from utils.auth_helper import save_spotify_token
-        
+
         _, auth = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT)
         if not auth:
             flash("Error: Missing Spotify credentials", "danger")
             return redirect(url_for("index"))
-            
+
         code = request.args.get("code")
         token_info = auth.get_access_token(code)
-        
+
         if token_info and 'scope' in token_info:
             # Save token to database for this user
             save_spotify_token(current_user.id, token_info)
-            
+
             # Also store in session for current browser session
             session['spotify_user'] = token_info['scope']
             flash("Spotify connected successfully!", "success")
@@ -629,7 +626,7 @@ def callback_spotify():
     except Exception as e:
         logging.error(f"Spotify auth error: {str(e)}")
         flash(f"Error connecting Spotify: {str(e)}", "danger")
-    
+
     return redirect(url_for("index"))
 
 @app.route("/help")
@@ -667,11 +664,11 @@ def api_add_doctor():
     """Add a new doctor"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data or not data.get("name"):
         return jsonify({"error": "Doctor name is required"}), 400
-    
+
     doctor = add_doctor(
         name=data.get("name"),
         specialty=data.get("specialty"),
@@ -680,7 +677,7 @@ def api_add_doctor():
         notes=data.get("notes"),
         session=session
     )
-    
+
     if doctor:
         return jsonify(doctor.to_dict()), 201
     else:
@@ -691,11 +688,11 @@ def api_get_doctor(doctor_id):
     """Get a specific doctor"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     doctor = get_doctor_by_id(doctor_id, session)
     if not doctor:
         return jsonify({"error": "Doctor not found"}), 404
-    
+
     return jsonify(doctor.to_dict())
 
 @app.route("/api/doctors/<int:doctor_id>", methods=["PUT"])
@@ -703,11 +700,11 @@ def api_update_doctor(doctor_id):
     """Update a doctor"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data:
         return jsonify({"error": "No data provided"}), 400
-    
+
     doctor = update_doctor(
         doctor_id=doctor_id,
         name=data.get("name"),
@@ -717,7 +714,7 @@ def api_update_doctor(doctor_id):
         notes=data.get("notes"),
         session=session
     )
-    
+
     if doctor:
         return jsonify(doctor.to_dict())
     else:
@@ -728,7 +725,7 @@ def api_delete_doctor(doctor_id):
     """Delete a doctor"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     success = delete_doctor(doctor_id, session)
     if success:
         return jsonify({"status": "deleted"})
@@ -740,7 +737,7 @@ def api_get_appointments():
     """Get all upcoming appointments"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     appointments = get_upcoming_appointments(session)
     return jsonify([appointment.to_dict() for appointment in appointments])
 
@@ -749,7 +746,7 @@ def api_get_doctor_appointments(doctor_id):
     """Get all appointments for a specific doctor"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     appointments = get_appointments_by_doctor(doctor_id, session)
     return jsonify([appointment.to_dict() for appointment in appointments])
 
@@ -760,16 +757,16 @@ def api_add_appointment():
     """Add a new appointment"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data or not data.get("doctor_id") or not data.get("date"):
         return jsonify({"error": "Doctor ID and date are required"}), 400
-    
+
     try:
         date = datetime.datetime.fromisoformat(data.get("date"))
     except (ValueError, TypeError):
         return jsonify({"error": "Invalid date format. Use ISO format (YYYY-MM-DDTHH:MM:SS)"}), 400
-    
+
     appointment = add_appointment(
         doctor_id=data.get("doctor_id"),
         date=date,
@@ -778,7 +775,7 @@ def api_add_appointment():
         notes=data.get("notes"),
         session=session
     )
-    
+
     if appointment:
         return jsonify(appointment.to_dict()), 201
     else:
@@ -789,17 +786,17 @@ def api_update_appointment_status(appointment_id):
     """Update an appointment status"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data or not data.get("status"):
         return jsonify({"error": "Status is required"}), 400
-    
+
     appointment = update_appointment_status(
         appointment_id=appointment_id,
         new_status=data.get("status"),
         session=session
     )
-    
+
     if appointment:
         return jsonify(appointment.to_dict())
     else:
@@ -810,7 +807,7 @@ def api_get_due_reminders():
     """Get all due appointment reminders"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     reminders = get_due_appointment_reminders(session)
     result = []
     for reminder in reminders:
@@ -831,7 +828,7 @@ def api_get_shopping_lists():
     """Get all shopping lists for the current user"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     shopping_lists = get_shopping_lists(session)
     return jsonify([lst.to_dict() for lst in shopping_lists])
 
@@ -842,18 +839,18 @@ def api_create_shopping_list():
     """Create a new shopping list"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data or not data.get("name"):
         return jsonify({"error": "List name is required"}), 400
-    
+
     shopping_list = create_shopping_list(
         name=data.get("name"),
         description=data.get("description"),
         store=data.get("store"),
         session=session
     )
-    
+
     if shopping_list:
         return jsonify(shopping_list.to_dict()), 201
     else:
@@ -864,11 +861,11 @@ def api_get_shopping_list(list_id):
     """Get a specific shopping list"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     shopping_list = get_shopping_list_by_id(list_id, session)
     if not shopping_list:
         return jsonify({"error": "Shopping list not found"}), 404
-    
+
     return jsonify(shopping_list.to_dict())
 
 @app.route("/api/shopping-lists/<int:list_id>/items", methods=["GET"])
@@ -876,7 +873,7 @@ def api_get_list_items(list_id):
     """Get all items in a shopping list"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     items = get_items_in_list(list_id, session)
     return jsonify([item.to_dict() for item in items])
 
@@ -885,11 +882,11 @@ def api_add_list_item(list_id):
     """Add an item to a shopping list"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data or not data.get("name"):
         return jsonify({"error": "Item name is required"}), 400
-    
+
     item = add_item_to_list(
         list_id=list_id,
         item_name=data.get("name"),
@@ -899,7 +896,7 @@ def api_add_list_item(list_id):
         notes=data.get("notes"),
         session=session
     )
-    
+
     if item:
         return jsonify(item.to_dict()), 201
     else:
@@ -910,11 +907,11 @@ def api_toggle_item_checked(item_id):
     """Toggle an item as checked/unchecked"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if data is None or "is_checked" not in data:
         return jsonify({"error": "is_checked status is required"}), 400
-    
+
     item = toggle_item_checked(item_id, data.get("is_checked"), session)
     if item:
         return jsonify(item.to_dict())
@@ -926,7 +923,7 @@ def api_remove_list_item(item_id):
     """Remove an item from a shopping list"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     success = remove_item_from_list(item_id, session)
     if success:
         return jsonify({"status": "removed"})
@@ -938,16 +935,16 @@ def api_set_list_recurring(list_id):
     """Set a shopping list as recurring"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data or not data.get("frequency_days"):
         return jsonify({"error": "frequency_days is required"}), 400
-    
+
     try:
         frequency_days = int(data.get("frequency_days"))
     except (ValueError, TypeError):
         return jsonify({"error": "frequency_days must be a number"}), 400
-    
+
     shopping_list = set_list_as_recurring(list_id, frequency_days, session)
     if shopping_list:
         return jsonify(shopping_list.to_dict())
@@ -959,7 +956,7 @@ def api_mark_list_ordered(list_id):
     """Mark a shopping list as ordered"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     shopping_list = mark_list_as_ordered(list_id, session)
     if shopping_list:
         return jsonify(shopping_list.to_dict())
@@ -971,7 +968,7 @@ def api_get_due_lists():
     """Get shopping lists that are due for ordering"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     shopping_lists = get_due_shopping_lists(session)
     return jsonify([lst.to_dict() for lst in shopping_lists])
 
@@ -981,7 +978,7 @@ def api_get_medications():
     """Get all medications for the current user"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     medications = get_medications(session)
     return jsonify([med.to_dict() for med in medications])
 
@@ -992,11 +989,11 @@ def api_add_medication():
     """Add a new medication"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data or not data.get("name"):
         return jsonify({"error": "Medication name is required"}), 400
-    
+
     medication = add_medication(
         name=data.get("name"),
         dosage=data.get("dosage"),
@@ -1007,7 +1004,7 @@ def api_add_medication():
         refills=data.get("refills"),
         session=session
     )
-    
+
     if medication:
         return jsonify(medication.to_dict()), 201
     else:
@@ -1018,11 +1015,11 @@ def api_get_medication(medication_id):
     """Get a specific medication"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     medication = get_medication_by_id(medication_id, session)
     if not medication:
         return jsonify({"error": "Medication not found"}), 404
-    
+
     return jsonify(medication.to_dict())
 
 @app.route("/api/medications/<int:medication_id>/quantity", methods=["PUT"])
@@ -1030,16 +1027,16 @@ def api_update_medication_quantity(medication_id):
     """Update a medication's remaining quantity"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data or "quantity" not in data:
         return jsonify({"error": "Quantity is required"}), 400
-    
+
     try:
         quantity = int(data.get("quantity"))
     except (ValueError, TypeError):
         return jsonify({"error": "Quantity must be a number"}), 400
-    
+
     medication = update_medication_quantity(medication_id, quantity, session)
     if medication:
         return jsonify(medication.to_dict())
@@ -1051,17 +1048,17 @@ def api_refill_medication(medication_id):
     """Record a medication refill"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data or "quantity_added" not in data:
         return jsonify({"error": "quantity_added is required"}), 400
-    
+
     try:
         quantity_added = int(data.get("quantity_added"))
         refills_remaining = int(data.get("refills_remaining")) if "refills_remaining" in data else None
     except (ValueError, TypeError):
         return jsonify({"error": "Quantity values must be numbers"}), 400
-    
+
     medication = refill_medication(medication_id, quantity_added, refills_remaining, session)
     if medication:
         return jsonify(medication.to_dict())
@@ -1073,7 +1070,7 @@ def api_get_medications_to_refill():
     """Get medications that need to be refilled"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     medications = get_medications_to_refill(session)
     return jsonify([med.to_dict() for med in medications])
 
@@ -1082,7 +1079,7 @@ def api_get_doctor_medications(doctor_id):
     """Get medications prescribed by a specific doctor"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     medications = get_medications_by_doctor(doctor_id, session)
     return jsonify([med.to_dict() for med in medications])
 
@@ -1092,7 +1089,7 @@ def api_get_products():
     """Get all tracked products for the current user"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     products = get_products(session)
     return jsonify([product.to_dict() for product in products])
 
@@ -1103,11 +1100,11 @@ def api_add_product():
     """Add a new product to track"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data or not data.get("name"):
         return jsonify({"error": "Product name is required"}), 400
-    
+
     product = add_product(
         name=data.get("name"),
         url=data.get("url"),
@@ -1116,7 +1113,7 @@ def api_add_product():
         source=data.get("source"),
         session=session
     )
-    
+
     if product:
         return jsonify(product.to_dict()), 201
     else:
@@ -1127,11 +1124,11 @@ def api_get_product(product_id):
     """Get a specific product"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     product = get_product_by_id(product_id, session)
     if not product:
         return jsonify({"error": "Product not found"}), 404
-    
+
     return jsonify(product.to_dict())
 
 @app.route("/api/products/<int:product_id>/recurring", methods=["PUT"])
@@ -1139,16 +1136,16 @@ def api_set_product_recurring(product_id):
     """Set a product as recurring"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data or not data.get("frequency_days"):
         return jsonify({"error": "frequency_days is required"}), 400
-    
+
     try:
         frequency_days = int(data.get("frequency_days"))
     except (ValueError, TypeError):
         return jsonify({"error": "frequency_days must be a number"}), 400
-    
+
     product = set_product_as_recurring(product_id, frequency_days, session)
     if product:
         return jsonify(product.to_dict())
@@ -1160,7 +1157,7 @@ def api_mark_product_ordered(product_id):
     """Mark a product as ordered"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     product = mark_product_as_ordered(product_id, session)
     if product:
         return jsonify(product.to_dict())
@@ -1172,7 +1169,7 @@ def api_get_due_products():
     """Get products that are due for ordering"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     products = get_due_product_orders(session)
     return jsonify([product.to_dict() for product in products])
 
@@ -1181,16 +1178,16 @@ def api_update_product_price(product_id):
     """Update a product's price"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data or "price" not in data:
         return jsonify({"error": "Price is required"}), 400
-    
+
     try:
         price = float(data.get("price"))
     except (ValueError, TypeError):
         return jsonify({"error": "Price must be a number"}), 400
-    
+
     product = update_product_price(product_id, price, session)
     if product:
         return jsonify(product.to_dict())
@@ -1203,7 +1200,7 @@ def api_get_budgets():
     """Get all budgets for the current user"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     budgets = get_budgets(session)
     return jsonify([budget.to_dict() for budget in budgets])
 
@@ -1212,7 +1209,7 @@ def api_get_budget_summary():
     """Get a summary of all budgets for the current month"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     summary = get_budget_summary(session)
     return jsonify(summary)
 
@@ -1223,16 +1220,16 @@ def api_create_budget():
     """Create a new budget"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data or not data.get("name") or "amount" not in data:
         return jsonify({"error": "Name and amount are required"}), 400
-    
+
     try:
         amount = float(data.get("amount"))
     except (ValueError, TypeError):
         return jsonify({"error": "Amount must be a number"}), 400
-    
+
     budget = create_budget(
         name=data.get("name"),
         amount=amount,
@@ -1242,7 +1239,7 @@ def api_create_budget():
         end_date=data.get("end_date"),
         session=session
     )
-    
+
     if budget:
         return jsonify(budget.to_dict()), 201
     else:
@@ -1253,11 +1250,11 @@ def api_get_budget(budget_id):
     """Get a specific budget"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     budget = get_budget_by_id(budget_id, session)
     if not budget:
         return jsonify({"error": "Budget not found"}), 404
-    
+
     return jsonify(budget.to_dict())
 
 @app.route("/api/budgets/<int:budget_id>", methods=["PUT"])
@@ -1265,16 +1262,16 @@ def api_update_budget(budget_id):
     """Update a budget"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data:
         return jsonify({"error": "No data provided"}), 400
-    
+
     try:
         amount = float(data.get("amount")) if "amount" in data else None
     except (ValueError, TypeError):
         return jsonify({"error": "Amount must be a number"}), 400
-    
+
     budget = update_budget(
         budget_id=budget_id,
         name=data.get("name"),
@@ -1285,7 +1282,7 @@ def api_update_budget(budget_id):
         end_date=data.get("end_date"),
         session=session
     )
-    
+
     if budget:
         return jsonify(budget.to_dict())
     else:
@@ -1296,7 +1293,7 @@ def api_delete_budget(budget_id):
     """Delete a budget"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     success = delete_budget(budget_id, session)
     if success:
         return jsonify({"status": "deleted"})
@@ -1308,12 +1305,12 @@ def api_get_expenses():
     """Get all expenses for the current user"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     # Parse optional query parameters for filtering
     start_date = request.args.get("start_date")
     end_date = request.args.get("end_date")
     category = request.args.get("category")
-    
+
     expenses = get_expenses(session, start_date, end_date, category)
     return jsonify([expense.to_dict() for expense in expenses])
 
@@ -1324,16 +1321,16 @@ def api_add_expense():
     """Add a new expense"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data or not data.get("description") or "amount" not in data:
         return jsonify({"error": "Description and amount are required"}), 400
-    
+
     try:
         amount = float(data.get("amount"))
     except (ValueError, TypeError):
         return jsonify({"error": "Amount must be a number"}), 400
-    
+
     expense = add_expense(
         description=data.get("description"),
         amount=amount,
@@ -1347,7 +1344,7 @@ def api_add_expense():
         notes=data.get("notes"),
         session=session
     )
-    
+
     if expense:
         return jsonify(expense.to_dict()), 201
     else:
@@ -1358,11 +1355,11 @@ def api_get_expense(expense_id):
     """Get a specific expense"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     expense = get_expense_by_id(expense_id, session)
     if not expense:
         return jsonify({"error": "Expense not found"}), 404
-    
+
     return jsonify(expense.to_dict())
 
 @app.route("/api/expenses/<int:expense_id>", methods=["PUT"])
@@ -1370,16 +1367,16 @@ def api_update_expense(expense_id):
     """Update an expense"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data:
         return jsonify({"error": "No data provided"}), 400
-    
+
     try:
         amount = float(data.get("amount")) if "amount" in data else None
     except (ValueError, TypeError):
         return jsonify({"error": "Amount must be a number"}), 400
-    
+
     expense = update_expense(
         expense_id=expense_id,
         description=data.get("description"),
@@ -1394,7 +1391,7 @@ def api_update_expense(expense_id):
         notes=data.get("notes"),
         session=session
     )
-    
+
     if expense:
         return jsonify(expense.to_dict())
     else:
@@ -1405,7 +1402,7 @@ def api_delete_expense(expense_id):
     """Delete an expense"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     success = delete_expense(expense_id, session)
     if success:
         return jsonify({"status": "deleted"})
@@ -1417,7 +1414,7 @@ def api_get_recurring_payments():
     """Get all recurring payments for the current user"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     payments = get_recurring_payments(session)
     return jsonify([payment.to_dict() for payment in payments])
 
@@ -1426,10 +1423,10 @@ def api_get_upcoming_payments():
     """Get upcoming payments due in the next 30 days"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     # Get days parameter (default: 30)
     days = request.args.get("days", 30, type=int)
-    
+
     payments = get_upcoming_payments(session, days)
     return jsonify([payment.to_dict() for payment in payments])
 
@@ -1438,7 +1435,7 @@ def api_mark_payment_paid(payment_id):
     """Mark a recurring payment as paid"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     payment = mark_payment_paid(payment_id, session)
     if payment:
         return jsonify(payment.to_dict())
@@ -1451,10 +1448,10 @@ def api_get_trips():
     """Get all trips for the current user"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     # Parse optional query parameters
     include_past = request.args.get("include_past", "false").lower() == "true"
-    
+
     trips = get_trips(session, include_past)
     return jsonify([trip.to_dict() for trip in trips])
 
@@ -1463,10 +1460,10 @@ def api_get_upcoming_trips():
     """Get trips starting in the next 30 days"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     # Get days parameter (default: 30)
     days = request.args.get("days", 30, type=int)
-    
+
     trips = get_upcoming_trips(session, days)
     return jsonify([trip.to_dict() for trip in trips])
 
@@ -1475,7 +1472,7 @@ def api_get_active_trip():
     """Get currently active trip (if any)"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     trip = get_active_trip(session)
     if trip:
         return jsonify(trip.to_dict())
@@ -1489,11 +1486,11 @@ def api_create_trip():
     """Create a new trip"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data or not data.get("name") or not data.get("destination"):
         return jsonify({"error": "Name and destination are required"}), 400
-    
+
     trip = create_trip(
         name=data.get("name"),
         destination=data.get("destination"),
@@ -1503,7 +1500,7 @@ def api_create_trip():
         notes=data.get("notes"),
         session=session
     )
-    
+
     if trip:
         return jsonify(trip.to_dict()), 201
     else:
@@ -1514,11 +1511,11 @@ def api_get_trip(trip_id):
     """Get a specific trip"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     trip = get_trip_by_id(trip_id, session)
     if not trip:
         return jsonify({"error": "Trip not found"}), 404
-    
+
     return jsonify(trip.to_dict())
 
 @app.route("/api/trips/<int:trip_id>/cost", methods=["GET"])
@@ -1526,11 +1523,11 @@ def api_get_trip_cost(trip_id):
     """Get the total cost of a trip"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     cost_data = get_trip_cost(trip_id, session)
     if not cost_data:
         return jsonify({"error": "Trip not found"}), 404
-    
+
     return jsonify(cost_data)
 
 @app.route("/api/trips/<int:trip_id>", methods=["PUT"])
@@ -1538,11 +1535,11 @@ def api_update_trip(trip_id):
     """Update a trip"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data:
         return jsonify({"error": "No data provided"}), 400
-    
+
     trip = update_trip(
         trip_id=trip_id,
         name=data.get("name"),
@@ -1553,7 +1550,7 @@ def api_update_trip(trip_id):
         notes=data.get("notes"),
         session=session
     )
-    
+
     if trip:
         return jsonify(trip.to_dict())
     else:
@@ -1564,7 +1561,7 @@ def api_delete_trip(trip_id):
     """Delete a trip"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     success = delete_trip(trip_id, session)
     if success:
         return jsonify({"status": "deleted"})
@@ -1577,7 +1574,7 @@ def api_get_itinerary(trip_id):
     """Get all itinerary items for a trip"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     items = get_itinerary(trip_id, session)
     return jsonify([item.to_dict() for item in items])
 
@@ -1586,11 +1583,11 @@ def api_add_itinerary_item(trip_id):
     """Add an item to a trip itinerary"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data or not data.get("name"):
         return jsonify({"error": "Item name is required"}), 400
-    
+
     item = add_itinerary_item(
         trip_id=trip_id,
         name=data.get("name"),
@@ -1605,7 +1602,7 @@ def api_add_itinerary_item(trip_id):
         notes=data.get("notes"),
         session=session
     )
-    
+
     if item:
         return jsonify(item.to_dict()), 201
     else:
@@ -1616,11 +1613,11 @@ def api_update_itinerary_item(item_id):
     """Update an itinerary item"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data:
         return jsonify({"error": "No data provided"}), 400
-    
+
     item = update_itinerary_item(
         item_id=item_id,
         name=data.get("name"),
@@ -1635,7 +1632,7 @@ def api_update_itinerary_item(item_id):
         notes=data.get("notes"),
         session=session
     )
-    
+
     if item:
         return jsonify(item.to_dict())
     else:
@@ -1646,7 +1643,7 @@ def api_delete_itinerary_item(item_id):
     """Delete an itinerary item"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     success = delete_itinerary_item(item_id, session)
     if success:
         return jsonify({"status": "deleted"})
@@ -1659,7 +1656,7 @@ def api_get_accommodations(trip_id):
     """Get all accommodations for a trip"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     accommodations = get_accommodations(trip_id, session)
     return jsonify([accommodation.to_dict() for accommodation in accommodations])
 
@@ -1668,11 +1665,11 @@ def api_add_accommodation(trip_id):
     """Add an accommodation to a trip"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data or not data.get("name"):
         return jsonify({"error": "Accommodation name is required"}), 400
-    
+
     accommodation = add_accommodation(
         trip_id=trip_id,
         name=data.get("name"),
@@ -1686,7 +1683,7 @@ def api_add_accommodation(trip_id):
         notes=data.get("notes"),
         session=session
     )
-    
+
     if accommodation:
         return jsonify(accommodation.to_dict()), 201
     else:
@@ -1697,11 +1694,11 @@ def api_update_accommodation(accommodation_id):
     """Update an accommodation"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data:
         return jsonify({"error": "No data provided"}), 400
-    
+
     accommodation = update_accommodation(
         accommodation_id=accommodation_id,
         name=data.get("name"),
@@ -1715,7 +1712,7 @@ def api_update_accommodation(accommodation_id):
         notes=data.get("notes"),
         session=session
     )
-    
+
     if accommodation:
         return jsonify(accommodation.to_dict())
     else:
@@ -1726,7 +1723,7 @@ def api_delete_accommodation(accommodation_id):
     """Delete an accommodation"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     success = delete_accommodation(accommodation_id, session)
     if success:
         return jsonify({"status": "deleted"})
@@ -1739,7 +1736,7 @@ def api_get_travel_documents(trip_id):
     """Get all travel documents for a trip"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     documents = get_travel_documents(trip_id, session)
     return jsonify([document.to_dict() for document in documents])
 
@@ -1748,11 +1745,11 @@ def api_add_travel_document(trip_id):
     """Add a travel document to a trip"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data or not data.get("name"):
         return jsonify({"error": "Document name is required"}), 400
-    
+
     document = add_travel_document(
         trip_id=trip_id,
         name=data.get("name"),
@@ -1767,7 +1764,7 @@ def api_add_travel_document(trip_id):
         notes=data.get("notes"),
         session=session
     )
-    
+
     if document:
         return jsonify(document.to_dict()), 201
     else:
@@ -1778,11 +1775,11 @@ def api_update_travel_document(document_id):
     """Update a travel document"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data:
         return jsonify({"error": "No data provided"}), 400
-    
+
     document = update_travel_document(
         document_id=document_id,
         name=data.get("name"),
@@ -1797,7 +1794,7 @@ def api_update_travel_document(document_id):
         notes=data.get("notes"),
         session=session
     )
-    
+
     if document:
         return jsonify(document.to_dict())
     else:
@@ -1808,7 +1805,7 @@ def api_delete_travel_document(document_id):
     """Delete a travel document"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     success = delete_travel_document(document_id, session)
     if success:
         return jsonify({"status": "deleted"})
@@ -1821,7 +1818,7 @@ def api_get_packing_list(trip_id):
     """Get all packing items for a trip"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     items = get_packing_list(trip_id, session)
     return jsonify([item.to_dict() for item in items])
 
@@ -1830,7 +1827,7 @@ def api_get_packing_progress(trip_id):
     """Get packing progress statistics"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     progress = get_packing_progress(trip_id, session)
     if progress:
         return jsonify(progress)
@@ -1842,7 +1839,7 @@ def api_generate_packing_list(trip_id):
     """Generate a standard packing list for a trip"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     items = generate_standard_packing_list(trip_id, session)
     if items:
         return jsonify({"message": f"Generated {len(items)} packing items"}), 201
@@ -1854,11 +1851,11 @@ def api_add_packing_item(trip_id):
     """Add an item to a trip packing list"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     data = request.json
     if not data or not data.get("name"):
         return jsonify({"error": "Item name is required"}), 400
-    
+
     item = add_packing_item(
         trip_id=trip_id,
         name=data.get("name"),
@@ -1867,7 +1864,7 @@ def api_add_packing_item(trip_id):
         notes=data.get("notes"),
         session=session
     )
-    
+
     if item:
         return jsonify(item.to_dict()), 201
     else:
@@ -1878,7 +1875,7 @@ def api_toggle_packed_status(item_id):
     """Toggle the packed status of a packing item"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     item = toggle_packed_status(item_id, session)
     if item:
         return jsonify(item.to_dict())
@@ -1890,14 +1887,14 @@ def api_delete_packing_item(item_id):
     """Delete a packing item"""
     if "google_creds" not in session:
         return jsonify({"error": "Not authenticated"}), 401
-    
+
     success = delete_packing_item(item_id, session)
     if success:
         return jsonify({"status": "deleted"})
     else:
         return jsonify({"error": "Failed to delete packing item or item not found"}), 404
-        
-        
+
+
 # Weather API endpoints
 @app.route("/api/weather/current", methods=["GET"])
 def api_get_current_weather():
@@ -1905,33 +1902,33 @@ def api_get_current_weather():
     try:
         location = request.args.get("location")
         units = request.args.get("units", "imperial")
-        
+
         if not location:
             # Try to get primary saved location
             primary_location = WeatherLocation.query.filter_by(user_id=session.get("user_id"), is_primary=True).first()
-            
+
             if primary_location:
                 # Update last accessed time
                 primary_location.last_accessed = datetime.utcnow()
                 db.session.commit()
-                
+
                 # Get weather using coordinates
                 weather_data = get_current_weather(f"{primary_location.latitude},{primary_location.longitude}", primary_location.units)
                 return jsonify({"success": True, "location": primary_location.to_dict(), "weather": weather_data})
             else:
                 return jsonify({"success": False, "error": "No location provided and no primary location saved"}), 400
-        
+
         # Get weather for the provided location
         weather_data = get_current_weather(location, units)
-        
+
         if not weather_data:
             return jsonify({"success": False, "error": "Location not found"}), 404
-            
+
         return jsonify({"success": True, "weather": weather_data})
     except Exception as e:
         logging.error(f"Error getting weather: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 400
-        
+
 @app.route("/api/weather/forecast", methods=["GET"])
 def api_get_weather_forecast():
     """Get weather forecast for a location"""
@@ -1939,33 +1936,33 @@ def api_get_weather_forecast():
         location = request.args.get("location")
         days = int(request.args.get("days", "5"))
         units = request.args.get("units", "imperial")
-        
+
         if not location:
             # Try to get primary saved location
             primary_location = WeatherLocation.query.filter_by(user_id=session.get("user_id"), is_primary=True).first()
-            
+
             if primary_location:
                 # Update last accessed time
                 primary_location.last_accessed = datetime.utcnow()
                 db.session.commit()
-                
+
                 # Get forecast using coordinates
                 forecast_data = get_weather_forecast(f"{primary_location.latitude},{primary_location.longitude}", days, primary_location.units)
                 return jsonify({"success": True, "location": primary_location.to_dict(), "forecast": forecast_data})
             else:
                 return jsonify({"success": False, "error": "No location provided and no primary location saved"}), 400
-        
+
         # Get forecast for provided location
         forecast_data = get_weather_forecast(location, days, units)
-        
+
         if not forecast_data:
             return jsonify({"success": False, "error": "Location not found"}), 404
-            
+
         return jsonify({"success": True, "forecast": forecast_data})
     except Exception as e:
         logging.error(f"Error getting weather forecast: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 400
-        
+
 @app.route("/api/weather/locations", methods=["GET"])
 def api_get_weather_locations():
     """Get all saved weather locations for the current user"""
@@ -1975,30 +1972,30 @@ def api_get_weather_locations():
         return jsonify({"success": True, "locations": [loc.to_dict() for loc in locations]})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 400
-        
+
 @app.route("/api/weather/locations", methods=["POST"])
 def api_add_weather_location():
     """Add a new weather location"""
     try:
         data = request.json
         location_name = data.get("name")
-        
+
         if not location_name:
             return jsonify({"success": False, "error": "Location name is required"}), 400
-            
+
         # Get coordinates using OpenWeatherMap Geocoding API
         lat, lon, display_name = get_location_coordinates(location_name)
-        
+
         if lat is None or lon is None:
             return jsonify({"success": False, "error": "Location not found"}), 404
-            
+
         user_id = session.get("user_id")
         is_primary = data.get("is_primary", False)
-        
+
         # If setting as primary, remove primary flag from other locations
         if is_primary:
             WeatherLocation.query.filter_by(user_id=user_id, is_primary=True).update({"is_primary": False})
-            
+
         # Create new location
         new_location = WeatherLocation(
             name=location_name,
@@ -2010,54 +2007,54 @@ def api_add_weather_location():
             user_id=user_id,
             last_accessed=datetime.utcnow()
         )
-        
+
         db.session.add(new_location)
         db.session.commit()
-        
+
         return jsonify({"success": True, "location": new_location.to_dict()})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 400
-        
+
 @app.route("/api/weather/locations/<int:location_id>", methods=["DELETE"])
 def api_delete_weather_location(location_id):
     """Delete a saved weather location"""
     try:
         location = WeatherLocation.query.filter_by(id=location_id, user_id=session.get("user_id")).first()
-        
+
         if not location:
             return jsonify({"success": False, "error": "Location not found"}), 404
-            
+
         db.session.delete(location)
         db.session.commit()
-        
+
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 400
-        
+
 @app.route("/api/weather/locations/<int:location_id>/primary", methods=["PUT"])
 def api_set_primary_weather_location(location_id):
     """Set a location as the primary weather location"""
     try:
         user_id = session.get("user_id")
-        
+
         # Remove primary flag from all locations
         WeatherLocation.query.filter_by(user_id=user_id, is_primary=True).update({"is_primary": False})
-        
+
         # Set new primary location
         location = WeatherLocation.query.filter_by(id=location_id, user_id=user_id).first()
-        
+
         if not location:
             return jsonify({"success": False, "error": "Location not found"}), 404
-            
+
         location.is_primary = True
         location.last_accessed = datetime.utcnow()
         db.session.commit()
-        
+
         return jsonify({"success": True, "location": location.to_dict()})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 400
-        
-        
+
+
 @app.route("/api/weather/pain-forecast", methods=["GET"])
 def api_pain_flare_forecast():
     """API endpoint to get pain flare forecast based on weather"""
@@ -2066,11 +2063,11 @@ def api_pain_flare_forecast():
         location = request.args.get('location')
         lat = request.args.get('lat')
         lon = request.args.get('lon')
-        
+
         # Either location name or coordinates must be provided
         if not location and not (lat and lon):
             return jsonify({"error": "Either location name or lat/lon coordinates must be provided"}), 400
-            
+
         # Get forecast
         if location:
             # Get by location name
@@ -2080,10 +2077,10 @@ def api_pain_flare_forecast():
             lat = float(lat)
             lon = float(lon)
             forecast = get_pain_flare_forecast(None, lat, lon)
-            
+
         if not forecast:
             return jsonify({"error": "Unable to get pain flare forecast"}), 404
-            
+
         return jsonify(forecast)
     except Exception as e:
         logging.error(f"Error getting pain flare forecast: {str(e)}")
@@ -2100,7 +2097,7 @@ def health_check():
             "version": os.environ.get("APP_VERSION", "1.0.0"),
             "components": {}
         }
-        
+
         # Check database connection
         try:
             # Simple query to check if database is responsive
@@ -2115,7 +2112,7 @@ def health_check():
                 "status": "unhealthy",
                 "message": f"Database connection failed: {str(e)}"
             }
-        
+
         # Check OpenRouter API (if configured)
         from utils.key_config import APIKeyManager
         openrouter_key = APIKeyManager.get_key("openrouter")
@@ -2129,7 +2126,7 @@ def health_check():
                 "status": "unconfigured",
                 "message": "OpenRouter API key is not configured"
             }
-        
+
         # Check external services (just check connectivity)
         external_services = ["https://openrouter.ai/", "https://huggingface.co/"]
         health_status["components"]["external_services"] = {}
@@ -2147,7 +2144,7 @@ def health_check():
                     "status": "unreachable",
                     "message": str(e)
                 }
-        
+
         # Check file system (make sure important directories are writable)
         upload_dir = os.path.join(app.root_path, 'uploads')
         if os.path.exists(upload_dir):
@@ -2167,7 +2164,7 @@ def health_check():
                 "status": "missing",
                 "message": "Upload directory does not exist"
             }
-        
+
         # Return appropriate status code
         status_code = 200 if health_status["status"] == "healthy" else 503
         return jsonify(health_status), status_code

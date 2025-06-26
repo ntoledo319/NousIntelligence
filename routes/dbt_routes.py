@@ -15,8 +15,8 @@ from app_factory import db
 
 # Import DBT models
 from models import (
-    DBTSkillLog, DBTDiaryCard, DBTSkillCategory, 
-    DBTSkillRecommendation, DBTSkillChallenge, 
+    DBTSkillLog, DBTDiaryCard, DBTSkillCategory,
+    DBTSkillRecommendation, DBTSkillChallenge,
     DBTCrisisResource, DBTEmotionTrack
 )
 
@@ -45,19 +45,19 @@ def get_user_id():
 def dashboard():
     """Main DBT dashboard"""
     user_id = get_user_id()
-    
+
     # Get recent skill logs
     recent_skills = get_skill_logs(session, limit=5)
-    
+
     # Get recent diary cards
     recent_cards = get_diary_cards(session, limit=5)
-    
+
     # Get available challenges
     challenges = get_available_challenges(session)
-    
+
     # Get skill recommendations
     recommendations = get_skill_recommendations(session)
-    
+
     return render_template('dbt/dashboard.html',
                           recent_skills=recent_skills,
                           recent_cards=recent_cards,
@@ -70,16 +70,16 @@ def dashboard():
 def skills():
     """DBT skills page"""
     user_id = get_user_id()
-    
+
     # Get skill logs
     logs = get_skill_logs(session)
-    
+
     # Get skill categories
     categories = DBTSkillCategory.query.all()
-    
+
     # Get recommendations
     recommendations = get_skill_recommendations(session)
-    
+
     return render_template('dbt/skills.html',
                           logs=logs,
                           categories=categories,
@@ -90,11 +90,11 @@ def skills():
 def log_skill():
     """Log a DBT skill usage"""
     user_id = get_user_id()
-    
+
     skill_name = request.form.get('skill_name')
     category = request.form.get('category')
     situation = request.form.get('situation')
-    
+
     # Optional fields
     effectiveness = None
     if 'effectiveness' in request.form:
@@ -102,16 +102,16 @@ def log_skill():
             effectiveness = int(request.form.get('effectiveness'))
         except (ValueError, TypeError):
             pass
-            
+
     notes = request.form.get('notes')
-    
+
     result = log_dbt_skill(session, skill_name, category, situation, effectiveness, notes)
-    
+
     if result.get('status') == 'success':
         flash('Skill logged successfully', 'success')
     else:
         flash(f'Error logging skill: {result.get("message")}', 'error')
-        
+
     return redirect(url_for('dbt.skills'))
 
 @dbt_bp.route('/skills/recommend', methods=['GET', 'POST'])
@@ -119,7 +119,7 @@ def log_skill():
 def recommend_skills():
     """Get skill recommendations"""
     user_id = get_user_id()
-    
+
     if request.method == 'POST':
         # Get recommendations based on situation
         situation = request.form.get('situation')
@@ -127,7 +127,7 @@ def recommend_skills():
     else:
         # Get general recommendations
         recommendations = get_skill_recommendations(session)
-    
+
     return render_template('dbt/recommendations.html',
                           recommendations=recommendations)
 
@@ -137,7 +137,7 @@ def recommend_skills():
 def diary():
     """DBT diary card page"""
     user_id = get_user_id()
-    
+
     if request.method == 'POST':
         # Create a new diary card
         mood_rating = request.form.get('mood_rating')
@@ -145,24 +145,24 @@ def diary():
             mood_rating = int(mood_rating)
         except (ValueError, TypeError):
             mood_rating = 3  # Default
-            
+
         triggers = request.form.get('triggers')
         urges = request.form.get('urges')
         skills_used = request.form.get('skills_used')
         reflection = request.form.get('reflection')
-        
+
         result = create_diary_card(session, mood_rating, triggers, urges, skills_used, reflection)
-        
+
         if result.get('status') == 'success':
             flash('Diary card created successfully', 'success')
         else:
             flash(f'Error creating diary card: {result.get("message")}', 'error')
-            
+
         return redirect(url_for('dbt.diary'))
-    
+
     # Get recent diary cards
     cards = get_diary_cards(session)
-    
+
     return render_template('dbt/diary.html', cards=cards)
 
 # Challenge routes
@@ -171,16 +171,16 @@ def diary():
 def challenges():
     """DBT skill challenges page"""
     user_id = get_user_id()
-    
+
     # Get category filter
     category = request.args.get('category')
-    
+
     # Get challenges
     challenges = get_available_challenges(session, category)
-    
+
     # Get categories
     categories = DBTSkillCategory.query.all()
-    
+
     return render_template('dbt/challenges.html',
                           challenges=challenges,
                           categories=categories,
@@ -191,25 +191,25 @@ def challenges():
 def create_new_challenge():
     """Create a new skill challenge"""
     user_id = get_user_id()
-    
+
     name = request.form.get('name')
     description = request.form.get('description')
     category = request.form.get('category')
-    
+
     difficulty = 1
     if 'difficulty' in request.form:
         try:
             difficulty = int(request.form.get('difficulty'))
         except (ValueError, TypeError):
             pass
-            
+
     result = create_challenge(session, name, description, category, difficulty)
-    
+
     if result.get('status') == 'success':
         flash('Challenge created successfully', 'success')
     else:
         flash(f'Error creating challenge: {result.get("message")}', 'error')
-        
+
     return redirect(url_for('dbt.challenges'))
 
 @dbt_bp.route('/challenges/update/<challenge_id>', methods=['POST'])
@@ -217,23 +217,23 @@ def create_new_challenge():
 def update_challenge(challenge_id):
     """Update a challenge's progress"""
     user_id = get_user_id()
-    
+
     progress = request.form.get('progress', 0)
     try:
         progress = int(progress)
     except (ValueError, TypeError):
         progress = 0
-        
+
     result = update_challenge_progress(session, challenge_id, progress)
-    
+
     if result.get('status') == 'success':
         flash('Challenge progress updated', 'success')
-        
+
         if result.get('completed'):
             flash('Congratulations on completing the challenge!', 'success')
     else:
         flash(f'Error updating challenge: {result.get("message")}', 'error')
-        
+
     return redirect(url_for('dbt.challenges'))
 
 @dbt_bp.route('/challenges/complete/<challenge_id>', methods=['POST'])
@@ -241,14 +241,14 @@ def update_challenge(challenge_id):
 def complete_challenge(challenge_id):
     """Mark a challenge as completed"""
     user_id = get_user_id()
-    
+
     result = mark_challenge_completed(session, challenge_id)
-    
+
     if result.get('status') == 'success':
         flash('Challenge completed successfully', 'success')
     else:
         flash(f'Error completing challenge: {result.get("message")}', 'error')
-        
+
     return redirect(url_for('dbt.challenges'))
 
 @dbt_bp.route('/challenges/reset/<challenge_id>', methods=['POST'])
@@ -256,14 +256,14 @@ def complete_challenge(challenge_id):
 def reset_challenge_progress(challenge_id):
     """Reset a challenge to start again"""
     user_id = get_user_id()
-    
+
     result = reset_challenge(session, challenge_id)
-    
+
     if result.get('status') == 'success':
         flash('Challenge reset successfully', 'success')
     else:
         flash(f'Error resetting challenge: {result.get("message")}', 'error')
-        
+
     return redirect(url_for('dbt.challenges'))
 
 @dbt_bp.route('/challenges/generate', methods=['POST'])
@@ -271,16 +271,16 @@ def reset_challenge_progress(challenge_id):
 def generate_challenge():
     """Generate a personalized challenge"""
     user_id = get_user_id()
-    
+
     category = request.form.get('category')
-    
+
     result = generate_personalized_challenge(session, category)
-    
+
     if result.get('status') == 'success':
         flash('New personalized challenge created', 'success')
     else:
         flash(f'Error generating challenge: {result.get("message")}', 'error')
-        
+
     return redirect(url_for('dbt.challenges'))
 
 # DBT chatbot API routes
@@ -289,12 +289,12 @@ def generate_challenge():
 def api_skills_on_demand():
     """API endpoint for skill suggestions"""
     data = request.get_json()
-    
+
     if not data or 'text' not in data:
         return jsonify({"error": "Missing text parameter"}), 400
-        
+
     result = skills_on_demand(data['text'])
-    
+
     return jsonify(result)
 
 @dbt_bp.route('/api/generate-diary-card', methods=['POST'])
@@ -302,12 +302,12 @@ def api_skills_on_demand():
 def api_generate_diary_card():
     """API endpoint to generate a diary card"""
     data = request.get_json()
-    
+
     if not data or 'text' not in data:
         return jsonify({"error": "Missing text parameter"}), 400
-        
+
     result = generate_diary_card(data['text'])
-    
+
     return jsonify(result)
 
 @dbt_bp.route('/api/validate', methods=['POST'])
@@ -315,12 +315,12 @@ def api_generate_diary_card():
 def api_validate():
     """API endpoint for validation"""
     data = request.get_json()
-    
+
     if not data or 'text' not in data:
         return jsonify({"error": "Missing text parameter"}), 400
-        
+
     result = validate_experience(data['text'])
-    
+
     return jsonify(result)
 
 @dbt_bp.route('/api/distress', methods=['POST'])
@@ -328,12 +328,12 @@ def api_validate():
 def api_distress():
     """API endpoint for distress tolerance"""
     data = request.get_json()
-    
+
     if not data or 'text' not in data:
         return jsonify({"error": "Missing text parameter"}), 400
-        
+
     result = distress_tolerance(data['text'])
-    
+
     return jsonify(result)
 
 @dbt_bp.route('/api/chain-analysis', methods=['POST'])
@@ -341,12 +341,12 @@ def api_distress():
 def api_chain_analysis():
     """API endpoint for chain analysis"""
     data = request.get_json()
-    
+
     if not data or 'text' not in data:
         return jsonify({"error": "Missing text parameter"}), 400
-        
+
     result = chain_analysis(data['text'])
-    
+
     return jsonify(result)
 
 @dbt_bp.route('/api/wise-mind', methods=['POST'])
@@ -354,12 +354,12 @@ def api_chain_analysis():
 def api_wise_mind():
     """API endpoint for wise mind"""
     data = request.get_json()
-    
+
     if not data or 'text' not in data:
         return jsonify({"error": "Missing text parameter"}), 400
-        
+
     result = wise_mind(data['text'])
-    
+
     return jsonify(result)
 
 @dbt_bp.route('/api/radical-acceptance', methods=['POST'])
@@ -367,12 +367,12 @@ def api_wise_mind():
 def api_radical_acceptance():
     """API endpoint for radical acceptance"""
     data = request.get_json()
-    
+
     if not data or 'text' not in data:
         return jsonify({"error": "Missing text parameter"}), 400
-        
+
     result = radical_acceptance(data['text'])
-    
+
     return jsonify(result)
 
 @dbt_bp.route('/api/interpersonal', methods=['POST'])
@@ -380,12 +380,12 @@ def api_radical_acceptance():
 def api_interpersonal():
     """API endpoint for interpersonal effectiveness"""
     data = request.get_json()
-    
+
     if not data or 'text' not in data:
         return jsonify({"error": "Missing text parameter"}), 400
-        
+
     result = interpersonal_effectiveness(data['text'])
-    
+
     return jsonify(result)
 
 @dbt_bp.route('/api/dialectic', methods=['POST'])
@@ -393,12 +393,12 @@ def api_interpersonal():
 def api_dialectic():
     """API endpoint for dialectical thinking"""
     data = request.get_json()
-    
+
     if not data or 'text' not in data:
         return jsonify({"error": "Missing text parameter"}), 400
-        
+
     result = dialectic_generator(data['text'])
-    
+
     return jsonify(result)
 
 @dbt_bp.route('/api/trigger-map', methods=['POST'])
@@ -406,12 +406,12 @@ def api_dialectic():
 def api_trigger_map():
     """API endpoint for trigger mapping"""
     data = request.get_json()
-    
+
     if not data or 'text' not in data:
         return jsonify({"error": "Missing text parameter"}), 400
-        
+
     result = trigger_map(data['text'])
-    
+
     return jsonify(result)
 
 @dbt_bp.route('/api/skill-of-day')
@@ -419,7 +419,7 @@ def api_trigger_map():
 def api_skill_of_day():
     """API endpoint for skill of the day"""
     result = skill_of_the_day()
-    
+
     return jsonify(result)
 
 @dbt_bp.route('/api/edit-message', methods=['POST'])
@@ -427,12 +427,12 @@ def api_skill_of_day():
 def api_edit_message():
     """API endpoint to edit a message with DBT skills"""
     data = request.get_json()
-    
+
     if not data or 'original' not in data or 'target_skill' not in data or 'tone' not in data:
         return jsonify({"error": "Missing required parameters"}), 400
-        
+
     result = edit_message(data['original'], data['target_skill'], data['tone'])
-    
+
     return jsonify(result)
 
 @dbt_bp.route('/api/advise', methods=['POST'])
@@ -440,10 +440,10 @@ def api_edit_message():
 def api_advise():
     """API endpoint for DBT advice"""
     data = request.get_json()
-    
+
     if not data or 'text' not in data:
         return jsonify({"error": "Missing text parameter"}), 400
-        
+
     result = advise(data['text'])
-    
-    return jsonify(result) 
+
+    return jsonify(result)

@@ -16,8 +16,8 @@ from datetime import datetime
 import traceback
 
 from models.aa_content_models import (
-    AABigBook, 
-    AABigBookAudio, 
+    AABigBook,
+    AABigBookAudio,
     AASpeakerRecording,
     AADailyReflection,
     db
@@ -33,11 +33,11 @@ AA_SPEAKERS_SOURCE = "https://silkworth.net/alcoholics-anonymous/speakers/"
 
 class AAContentLoader:
     """Class for loading AA content into the database"""
-    
+
     def __init__(self):
         """Initialize the content loader"""
         self.content_dir = os.path.join(os.getcwd(), 'static', 'aa_content')
-        
+
         # Ensure content directory exists
         if not os.path.exists(self.content_dir):
             try:
@@ -45,14 +45,14 @@ class AAContentLoader:
                 logger.info(f"Created AA content directory: {self.content_dir}")
             except Exception as e:
                 logger.error(f"Failed to create AA content directory: {str(e)}")
-    
+
     def load_big_book_text(self, force_reload: bool = False) -> bool:
         """
         Load the AA Big Book text content into the database
-        
+
         Args:
             force_reload: Whether to force reload even if content exists
-            
+
         Returns:
             bool: Success status
         """
@@ -61,13 +61,13 @@ class AAContentLoader:
             if not force_reload and db.session.query(AABigBook).count() > 0:
                 logger.info("AA Big Book text already loaded, skipping")
                 return True
-                
+
             logger.info("Loading AA Big Book text content")
-            
+
             # The Big Book 4th edition content is in the public domain
             # Here we're loading a predefined structure with chapter info
             chapters = self._get_big_book_structure()
-            
+
             # Load each chapter's content
             for chapter in chapters:
                 # Check if chapter already exists
@@ -75,10 +75,10 @@ class AAContentLoader:
                     chapter_number=chapter['number'],
                     edition='4th'
                 ).first()
-                
+
                 if existing and not force_reload:
                     continue
-                    
+
                 # Create or update chapter
                 if existing:
                     existing.chapter_title = chapter['title']
@@ -96,24 +96,24 @@ class AAContentLoader:
                         edition='4th'
                     )
                     db.session.add(new_chapter)
-                
+
             db.session.commit()
             logger.info(f"Successfully loaded {len(chapters)} Big Book chapters")
             return True
-            
+
         except Exception as e:
             logger.error(f"Error loading Big Book text: {str(e)}")
             logger.error(traceback.format_exc())
             db.session.rollback()
             return False
-    
+
     def load_big_book_audio(self, force_reload: bool = False) -> bool:
         """
         Load the AA Big Book audio files into the database
-        
+
         Args:
             force_reload: Whether to force reload even if content exists
-            
+
         Returns:
             bool: Success status
         """
@@ -122,12 +122,12 @@ class AAContentLoader:
             if not force_reload and db.session.query(AABigBookAudio).count() > 0:
                 logger.info("AA Big Book audio already loaded, skipping")
                 return True
-                
+
             logger.info("Loading AA Big Book audio files")
-            
+
             # Get audio file information
             audio_files = self._get_big_book_audio_files()
-            
+
             # Download audio files if needed and add to database
             for audio_file in audio_files:
                 # Get corresponding chapter
@@ -135,30 +135,30 @@ class AAContentLoader:
                     chapter_number=audio_file['chapter_number'],
                     edition='4th'
                 ).first()
-                
+
                 if not chapter:
                     logger.warning(f"No matching chapter found for audio: Chapter {audio_file['chapter_number']}")
                     continue
-                
+
                 # Check if audio file already exists
                 existing = AABigBookAudio.query.filter_by(
                     chapter_id=chapter.id,
                     file_path=audio_file['file_path']
                 ).first()
-                
+
                 if existing and not force_reload:
                     continue
-                
+
                 # Download the file if it doesn't exist locally
                 local_path = os.path.join(self.content_dir, os.path.basename(audio_file['file_path']))
                 if not os.path.exists(local_path) and 'url' in audio_file:
                     success = self._download_file(audio_file['url'], local_path)
                     if not success:
                         continue
-                    
+
                     # Update the file path to the local path
                     audio_file['file_path'] = f"/static/aa_content/{os.path.basename(local_path)}"
-                
+
                 # Create or update audio entry
                 if existing:
                     existing.file_path = audio_file['file_path']
@@ -176,24 +176,24 @@ class AAContentLoader:
                         format=audio_file.get('format', 'mp3')
                     )
                     db.session.add(new_audio)
-                
+
             db.session.commit()
             logger.info(f"Successfully loaded {len(audio_files)} Big Book audio files")
             return True
-            
+
         except Exception as e:
             logger.error(f"Error loading Big Book audio: {str(e)}")
             logger.error(traceback.format_exc())
             db.session.rollback()
             return False
-    
+
     def load_speaker_recordings(self, force_reload: bool = False) -> bool:
         """
         Load AA speaker recordings into the database
-        
+
         Args:
             force_reload: Whether to force reload even if content exists
-            
+
         Returns:
             bool: Success status
         """
@@ -202,12 +202,12 @@ class AAContentLoader:
             if not force_reload and db.session.query(AASpeakerRecording).count() > 0:
                 logger.info("AA speaker recordings already loaded, skipping")
                 return True
-                
+
             logger.info("Loading AA speaker recordings")
-            
+
             # Get speaker recording information
             recordings = self._get_speaker_recordings()
-            
+
             # Download recordings if needed and add to database
             for recording in recordings:
                 # Check if recording already exists
@@ -215,20 +215,20 @@ class AAContentLoader:
                     title=recording['title'],
                     speaker_name=recording['speaker_name']
                 ).first()
-                
+
                 if existing and not force_reload:
                     continue
-                
+
                 # Download the file if it doesn't exist locally
                 local_path = os.path.join(self.content_dir, os.path.basename(recording['file_path']))
                 if not os.path.exists(local_path) and 'url' in recording:
                     success = self._download_file(recording['url'], local_path)
                     if not success:
                         continue
-                    
+
                     # Update the file path to the local path
                     recording['file_path'] = f"/static/aa_content/{os.path.basename(local_path)}"
-                
+
                 # Create or update recording entry
                 if existing:
                     existing.file_path = recording['file_path']
@@ -251,59 +251,59 @@ class AAContentLoader:
                         format=recording.get('format', 'mp3')
                     )
                     db.session.add(new_recording)
-                
+
             db.session.commit()
             logger.info(f"Successfully loaded {len(recordings)} speaker recordings")
             return True
-            
+
         except Exception as e:
             logger.error(f"Error loading speaker recordings: {str(e)}")
             logger.error(traceback.format_exc())
             db.session.rollback()
             return False
-    
+
     def _download_file(self, url: str, destination: str) -> bool:
         """
         Download a file from a URL to a local destination
-        
+
         Args:
             url: URL to download from
             destination: Local destination path
-            
+
         Returns:
             bool: Success status
         """
         try:
             # Ensure the parent directory exists
             os.makedirs(os.path.dirname(destination), exist_ok=True)
-            
+
             # Download the file in chunks
             response = requests.get(url, stream=True)
             response.raise_for_status()
-            
+
             with open(destination, 'wb') as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         f.write(chunk)
-            
+
             logger.info(f"Successfully downloaded file to {destination}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Error downloading file from {url}: {str(e)}")
             return False
-    
+
     def _get_big_book_structure(self) -> List[Dict[str, Any]]:
         """
         Get the structure of the Big Book with content
-        
+
         Returns:
             List of chapter dictionaries with content
         """
         # This would normally fetch from a reliable source or API
         # For now, we'll include a basic structure with sample content
         # In a production environment, you would load complete content
-        
+
         aa_big_book_structure = [
             {
                 "number": 0,
@@ -354,20 +354,20 @@ class AAContentLoader:
                 "content": "The terms \"spiritual experience\" and \"spiritual awakening\" are used many times in this book which, upon careful reading, shows that the personality change sufficient to bring about recovery from alcoholism has manifested itself among us in many different forms..."
             }
         ]
-        
+
         return aa_big_book_structure
-    
+
     def _get_big_book_audio_files(self) -> List[Dict[str, Any]]:
         """
         Get information about Big Book audio files
-        
+
         Returns:
             List of audio file dictionaries
         """
         # This would normally fetch from a reliable source or API
         # For now, we'll include basic sample data
         # In a production environment, you would include actual file data
-        
+
         audio_files = [
             {
                 "chapter_number": 0,
@@ -394,20 +394,20 @@ class AAContentLoader:
                 "format": "mp3"
             }
         ]
-        
+
         return audio_files
-    
+
     def _get_speaker_recordings(self) -> List[Dict[str, Any]]:
         """
         Get information about AA speaker recordings
-        
+
         Returns:
             List of recording dictionaries
         """
         # This would normally fetch from a reliable source or API
         # For now, we'll include basic sample data
         # In a production environment, you would include actual file data
-        
+
         recordings = [
             {
                 "title": "Recovery Story - Gratitude in Sobriety",
@@ -443,16 +443,16 @@ class AAContentLoader:
                 "format": "mp3"
             }
         ]
-        
+
         return recordings
-    
+
     def load_all_content(self, force_reload: bool = False) -> Dict[str, bool]:
         """
         Load all AA content into the database
-        
+
         Args:
             force_reload: Whether to force reload even if content exists
-            
+
         Returns:
             Dict with status of each content type
         """
@@ -461,7 +461,7 @@ class AAContentLoader:
             "big_book_audio": self.load_big_book_audio(force_reload),
             "speaker_recordings": self.load_speaker_recordings(force_reload)
         }
-        
+
         return results
 
 # Create an instance for easy import
@@ -475,10 +475,10 @@ def get_aa_content_loader() -> AAContentLoader:
 def load_aa_content(force_reload: bool = False) -> Dict[str, bool]:
     """
     Convenience function to load all AA content
-    
+
     Args:
         force_reload: Whether to force reload even if content exists
-        
+
     Returns:
         Dict with status of each content type
     """

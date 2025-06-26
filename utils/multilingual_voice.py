@@ -53,7 +53,7 @@ STT_LANGUAGES = {
     'en-US': 'English (United States)',
     'en-GB': 'English (United Kingdom)',
     'es-ES': 'Spanish (Spain)',
-    'es-MX': 'Spanish (Mexico)', 
+    'es-MX': 'Spanish (Mexico)',
     'fr-FR': 'French',
     'de-DE': 'German',
     'it-IT': 'Italian',
@@ -67,14 +67,14 @@ STT_LANGUAGES = {
 def generate_speech(text: str, options: Dict[str, Any] = None) -> Dict[str, Any]:
     """
     Generate speech from text using cost-optimized providers (HuggingFace TTS)
-    
+
     Args:
         text: Text to convert to speech
         options: Dictionary of options including:
             - voice: Voice to use (default: default)
             - speed: Speed of speech (default: 1.0)
             - language: Language code (used for logging/tracking)
-            
+
     Returns:
         Dictionary with speech data and metadata
     """
@@ -85,19 +85,19 @@ def generate_speech(text: str, options: Dict[str, Any] = None) -> Dict[str, Any]
                 "error": "No text provided",
                 "audio_base64": None
             }
-            
+
         # Set default options
         if options is None:
             options = {}
-            
+
         voice = options.get("voice", "default")
         speed = options.get("speed", 1.0)
         language = options.get("language", "en-US")
-        
+
         # Use cost-optimized AI for TTS
         ai_client = get_cost_optimized_ai()
         result = ai_client.text_to_speech(text, voice, language)
-        
+
         if result.get("success"):
             return {
                 "success": True,
@@ -118,7 +118,7 @@ def generate_speech(text: str, options: Dict[str, Any] = None) -> Dict[str, Any]
                 "error": result.get("error", "TTS generation failed"),
                 "audio_base64": None
             }
-        
+
     except Exception as e:
         logger.error(f"Error generating speech: {str(e)}")
         return {
@@ -131,11 +131,11 @@ def generate_speech(text: str, options: Dict[str, Any] = None) -> Dict[str, Any]
 def transcribe_speech(audio_data: bytes, language: str = "en") -> Dict[str, Any]:
     """
     Transcribe speech to text using cost-optimized providers (HuggingFace Whisper)
-    
+
     Args:
         audio_data: Audio data as bytes
         language: Language code (e.g., 'en', 'es', 'fr')
-        
+
     Returns:
         Dictionary with transcription results
     """
@@ -143,7 +143,7 @@ def transcribe_speech(audio_data: bytes, language: str = "en") -> Dict[str, Any]
         # Use cost-optimized AI for STT
         ai_client = get_cost_optimized_ai()
         result = ai_client.speech_to_text(audio_data, language)
-        
+
         if result.get("success"):
             return {
                 "success": True,
@@ -162,7 +162,7 @@ def transcribe_speech(audio_data: bytes, language: str = "en") -> Dict[str, Any]
                 "error": result.get("error", "Speech transcription failed"),
                 "text": None
             }
-        
+
     except Exception as e:
         logger.error(f"Error transcribing speech: {str(e)}")
         return {
@@ -175,12 +175,12 @@ def transcribe_speech(audio_data: bytes, language: str = "en") -> Dict[str, Any]
 def get_pronunciation_feedback(audio_data: bytes, text: str, language: str) -> Dict[str, Any]:
     """
     Analyze pronunciation and provide feedback using cost-optimized providers
-    
+
     Args:
         audio_data: Audio recording of user speaking
         text: Expected text that user was trying to say
         language: Language code
-        
+
     Returns:
         Dictionary with pronunciation feedback
     """
@@ -193,36 +193,36 @@ def get_pronunciation_feedback(audio_data: bytes, text: str, language: str) -> D
                 "error": transcription_result.get("error", "Transcription failed"),
                 "feedback": None
             }
-            
+
         actual_text = transcription_result.get("text", "")
-        
+
         # Use cost-optimized AI for analysis
         ai_client = get_cost_optimized_ai()
-        
+
         # Prepare prompt for pronunciation analysis
         language_name = LANGUAGE_CODES.get(language, language)
         prompt = f"""
         I'm learning {language_name} and practicing pronunciation.
-        
+
         Expected text: "{text}"
         What I said: "{actual_text}"
-        
+
         Please analyze my pronunciation and provide feedback in these categories:
         1. Accuracy (how close was I to saying the correct words)
         2. Specific sound or word issues
         3. Tips for improvement
-        
+
         Format as a JSON object with: accuracy_score (0-100), issues (array), tips (array), and overall_feedback (string).
         """
-        
+
         messages = [
             {"role": "system", "content": f"You are a {language_name} language teacher specializing in pronunciation."},
             {"role": "user", "content": prompt}
         ]
-        
+
         # Get AI feedback using standard complexity
         result = ai_client.chat_completion(messages, complexity=TaskComplexity.STANDARD)
-        
+
         if result.get("success"):
             try:
                 feedback = json.loads(result.get("response", "{}"))
@@ -233,7 +233,7 @@ def get_pronunciation_feedback(audio_data: bytes, text: str, language: str) -> D
                     "tips": ["Continue practicing pronunciation"],
                     "overall_feedback": result.get("response", "Keep practicing!")
                 }
-            
+
             return {
                 "success": True,
                 "transcribed_text": actual_text,
@@ -252,7 +252,7 @@ def get_pronunciation_feedback(audio_data: bytes, text: str, language: str) -> D
                 "error": "Failed to generate pronunciation feedback",
                 "feedback": None
             }
-            
+
     except Exception as e:
         logger.error(f"Error generating pronunciation feedback: {str(e)}")
         return {
@@ -265,12 +265,12 @@ def get_pronunciation_feedback(audio_data: bytes, text: str, language: str) -> D
 def get_available_languages() -> List[Dict[str, str]]:
     """
     Get list of available languages for voice interface
-    
+
     Returns:
         List of dictionaries with language code and name
     """
     languages = []
-    
+
     for code, name in LANGUAGE_CODES.items():
         languages.append({
             "code": code,
@@ -278,5 +278,5 @@ def get_available_languages() -> List[Dict[str, str]]:
             "tts_available": code in TTS_VOICES,
             "stt_available": code in STT_LANGUAGES
         })
-    
+
     return languages

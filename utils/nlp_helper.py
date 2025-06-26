@@ -19,16 +19,16 @@ from dateutil.relativedelta import relativedelta
 def extract_datetime(text: str) -> Optional[datetime.datetime]:
     """
     Extract date and time information from natural language text
-    
+
     Args:
         text: Natural language text containing date/time information
-        
+
     Returns:
         Extracted datetime object or None if no valid datetime found
     """
     # Try to identify common date/time patterns
     now = datetime.datetime.now()
-    
+
     # Check for specific date patterns
     # Tomorrow
     if re.search(r'\btomorrow\b', text, re.IGNORECASE):
@@ -44,7 +44,7 @@ def extract_datetime(text: str) -> Optional[datetime.datetime]:
                 hour = 0
             result = result.replace(hour=hour, minute=minute, second=0, microsecond=0)
         return result
-    
+
     # Today
     if re.search(r'\btoday\b', text, re.IGNORECASE):
         result = now
@@ -59,7 +59,7 @@ def extract_datetime(text: str) -> Optional[datetime.datetime]:
                 hour = 0
             result = result.replace(hour=hour, minute=minute, second=0, microsecond=0)
         return result
-    
+
     # Next [day of week]
     days = {
         'monday': 0, 'mon': 0,
@@ -70,7 +70,7 @@ def extract_datetime(text: str) -> Optional[datetime.datetime]:
         'saturday': 5, 'sat': 5,
         'sunday': 6, 'sun': 6
     }
-    
+
     for day_name, day_index in days.items():
         pattern = rf'\bnext\s+{day_name}\b'
         if re.search(pattern, text, re.IGNORECASE):
@@ -91,7 +91,7 @@ def extract_datetime(text: str) -> Optional[datetime.datetime]:
                     hour = 0
                 result = result.replace(hour=hour, minute=minute, second=0, microsecond=0)
             return result
-    
+
     # This [day of week]
     for day_name, day_index in days.items():
         pattern = rf'\bthis\s+{day_name}\b'
@@ -113,7 +113,7 @@ def extract_datetime(text: str) -> Optional[datetime.datetime]:
                     hour = 0
                 result = result.replace(hour=hour, minute=minute, second=0, microsecond=0)
             return result
-    
+
     # Just a day of the week (assume upcoming)
     for day_name, day_index in days.items():
         pattern = rf'\b{day_name}\b'
@@ -135,7 +135,7 @@ def extract_datetime(text: str) -> Optional[datetime.datetime]:
                     hour = 0
                 result = result.replace(hour=hour, minute=minute, second=0, microsecond=0)
             return result
-    
+
     # Next week
     if re.search(r'\bnext\s+week\b', text, re.IGNORECASE):
         result = now + datetime.timedelta(days=7)
@@ -150,7 +150,7 @@ def extract_datetime(text: str) -> Optional[datetime.datetime]:
                 hour = 0
             result = result.replace(hour=hour, minute=minute, second=0, microsecond=0)
         return result
-    
+
     # Specific date formats (MM/DD, MM/DD/YYYY, etc.)
     date_pattern = r'(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?'
     date_match = re.search(date_pattern, text)
@@ -160,7 +160,7 @@ def extract_datetime(text: str) -> Optional[datetime.datetime]:
         year = int(date_match.group(3)) if date_match.group(3) else now.year
         if year < 100:
             year += 2000  # Assume 21st century for 2-digit years
-        
+
         try:
             result = datetime.datetime(year, month, day)
             # Look for time info
@@ -180,7 +180,7 @@ def extract_datetime(text: str) -> Optional[datetime.datetime]:
         except ValueError:
             # Invalid date, try other patterns
             pass
-    
+
     # Month name patterns
     months = {
         'january': 1, 'jan': 1,
@@ -196,7 +196,7 @@ def extract_datetime(text: str) -> Optional[datetime.datetime]:
         'november': 11, 'nov': 11,
         'december': 12, 'dec': 12
     }
-    
+
     for month_name, month_num in months.items():
         pattern = rf'\b{month_name}\s+(\d{{1,2}})(?:st|nd|rd|th)?(?:,?\s+(\d{{2,4}}))?'
         month_match = re.search(pattern, text, re.IGNORECASE)
@@ -205,7 +205,7 @@ def extract_datetime(text: str) -> Optional[datetime.datetime]:
             year = int(month_match.group(2)) if month_match.group(2) else now.year
             if year < 100:
                 year += 2000  # Assume 21st century for 2-digit years
-            
+
             try:
                 result = datetime.datetime(year, month_num, day)
                 # Look for time info
@@ -225,7 +225,7 @@ def extract_datetime(text: str) -> Optional[datetime.datetime]:
             except ValueError:
                 # Invalid date, try other patterns
                 pass
-    
+
     # If all else fails, try dateutil's parser as a fallback
     try:
         dt = dateutil.parser.parse(text, fuzzy=True)
@@ -236,10 +236,10 @@ def extract_datetime(text: str) -> Optional[datetime.datetime]:
 def extract_duration(text: str) -> Optional[int]:
     """
     Extract duration in minutes from natural language text
-    
+
     Args:
         text: Natural language text containing duration information
-        
+
     Returns:
         Duration in minutes or None if no valid duration found
     """
@@ -250,21 +250,21 @@ def extract_duration(text: str) -> Optional[int]:
         hours = int(match.group(1))
         minutes = int(match.group(2))
         return hours * 60 + minutes
-    
+
     # Look for just hours
     hours_pattern = r'(\d+)\s*(?:hour|hr)s?'
     match = re.search(hours_pattern, text, re.IGNORECASE)
     if match:
         hours = int(match.group(1))
         return hours * 60
-    
+
     # Look for just minutes
     mins_pattern = r'(\d+)\s*(?:minute|min)s?'
     match = re.search(mins_pattern, text, re.IGNORECASE)
     if match:
         minutes = int(match.group(1))
         return minutes
-    
+
     # Look for "half an hour", "an hour", etc.
     special_patterns = {
         r'half\s*(?:an)?\s*hour': 30,
@@ -274,23 +274,23 @@ def extract_duration(text: str) -> Optional[int]:
         r'two\s*hours': 120,
         r'three\s*hours': 180
     }
-    
+
     for pattern, value in special_patterns.items():
         if re.search(pattern, text, re.IGNORECASE):
             return value
-    
+
     return None
 
 def extract_emails(text: str) -> List[str]:
     """
     Extract email addresses from text
-    
+
     Args:
         text: Text containing email addresses
-        
+
     Returns:
         List of extracted email addresses
     """
     email_pattern = r'[\w\.-]+@[\w\.-]+'
     emails = re.findall(email_pattern, text)
-    return emails 
+    return emails

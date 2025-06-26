@@ -16,7 +16,7 @@ def get_maps_api_key():
     # First, try environment variables
     if MAPS_API_KEY:
         return MAPS_API_KEY
-        
+
     # If not found in environment, try to get from Google OAuth credentials
     try:
         from flask import session
@@ -25,7 +25,7 @@ def get_maps_api_key():
             return session['google_credentials'].get('maps_api_key')
     except Exception as e:
         logging.error(f"Error retrieving Maps API key from session: {str(e)}")
-        
+
     return None
 
 def geocode_address(address):
@@ -37,37 +37,37 @@ def geocode_address(address):
                 "success": False,
                 "error": "Maps API key not available"
             }
-            
+
         # Prepare the URL
         url = "https://maps.googleapis.com/maps/api/geocode/json"
         params = {
             "address": address,
             "key": api_key
         }
-        
+
         # Make the request
         response = requests.get(url, params=params)
-        
+
         # Process the response
         if response.status_code != 200:
             return {
                 "success": False,
                 "error": f"Geocoding API returned status {response.status_code}"
             }
-            
+
         data = response.json()
-        
+
         # Check if the request was successful
         if data["status"] != "OK":
             return {
                 "success": False,
                 "error": f"Geocoding failed with status: {data['status']}"
             }
-            
+
         # Extract the coordinates
         location = data["results"][0]["geometry"]["location"]
         formatted_address = data["results"][0]["formatted_address"]
-        
+
         return {
             "success": True,
             "lat": location["lat"],
@@ -75,7 +75,7 @@ def geocode_address(address):
             "formatted_address": formatted_address,
             "place_id": data["results"][0]["place_id"]
         }
-        
+
     except Exception as e:
         logging.error(f"Error geocoding address: {str(e)}")
         return {
@@ -92,43 +92,43 @@ def reverse_geocode(lat, lng):
                 "success": False,
                 "error": "Maps API key not available"
             }
-            
+
         # Prepare the URL
         url = "https://maps.googleapis.com/maps/api/geocode/json"
         params = {
             "latlng": f"{lat},{lng}",
             "key": api_key
         }
-        
+
         # Make the request
         response = requests.get(url, params=params)
-        
+
         # Process the response
         if response.status_code != 200:
             return {
                 "success": False,
                 "error": f"Reverse geocoding API returned status {response.status_code}"
             }
-            
+
         data = response.json()
-        
+
         # Check if the request was successful
         if data["status"] != "OK":
             return {
                 "success": False,
                 "error": f"Reverse geocoding failed with status: {data['status']}"
             }
-            
+
         # Extract the address components
         address_components = data["results"][0]["address_components"]
         formatted_address = data["results"][0]["formatted_address"]
-        
+
         # Extract specific address components
         components = {}
         for component in address_components:
             for type in component["types"]:
                 components[type] = component["long_name"]
-                
+
         return {
             "success": True,
             "formatted_address": formatted_address,
@@ -140,7 +140,7 @@ def reverse_geocode(lat, lng):
             "postal_code": components.get("postal_code", ""),
             "place_id": data["results"][0]["place_id"]
         }
-        
+
     except Exception as e:
         logging.error(f"Error reverse geocoding: {str(e)}")
         return {
@@ -157,23 +157,23 @@ def get_distance_matrix(origins, destinations, mode="driving"):
                 "success": False,
                 "error": "Maps API key not available"
             }
-            
+
         # Validate the mode
         valid_modes = ["driving", "walking", "bicycling", "transit"]
         if mode not in valid_modes:
             mode = "driving"
-            
+
         # Format origins and destinations
         if isinstance(origins, list):
             origins_str = "|".join(origins)
         else:
             origins_str = origins
-            
+
         if isinstance(destinations, list):
             destinations_str = "|".join(destinations)
         else:
             destinations_str = destinations
-            
+
         # Prepare the URL
         url = "https://maps.googleapis.com/maps/api/distancematrix/json"
         params = {
@@ -182,31 +182,31 @@ def get_distance_matrix(origins, destinations, mode="driving"):
             "mode": mode,
             "key": api_key
         }
-        
+
         # Make the request
         response = requests.get(url, params=params)
-        
+
         # Process the response
         if response.status_code != 200:
             return {
                 "success": False,
                 "error": f"Distance Matrix API returned status {response.status_code}"
             }
-            
+
         data = response.json()
-        
+
         # Check if the request was successful
         if data["status"] != "OK":
             return {
                 "success": False,
                 "error": f"Distance Matrix request failed with status: {data['status']}"
             }
-            
+
         return {
             "success": True,
             "results": data
         }
-        
+
     except Exception as e:
         logging.error(f"Error getting distance matrix: {str(e)}")
         return {
@@ -223,7 +223,7 @@ def get_place_details(place_id):
                 "success": False,
                 "error": "Maps API key not available"
             }
-            
+
         # Prepare the URL
         url = "https://maps.googleapis.com/maps/api/place/details/json"
         params = {
@@ -231,31 +231,31 @@ def get_place_details(place_id):
             "fields": "name,rating,formatted_phone_number,formatted_address,opening_hours,website,geometry,types",
             "key": api_key
         }
-        
+
         # Make the request
         response = requests.get(url, params=params)
-        
+
         # Process the response
         if response.status_code != 200:
             return {
                 "success": False,
                 "error": f"Place Details API returned status {response.status_code}"
             }
-            
+
         data = response.json()
-        
+
         # Check if the request was successful
         if data["status"] != "OK":
             return {
                 "success": False,
                 "error": f"Place Details request failed with status: {data['status']}"
             }
-            
+
         return {
             "success": True,
             "details": data["result"]
         }
-        
+
     except Exception as e:
         logging.error(f"Error getting place details: {str(e)}")
         return {
@@ -272,7 +272,7 @@ def search_nearby_places(lat, lng, radius=1000, type=None, keyword=None):
                 "success": False,
                 "error": "Maps API key not available"
             }
-            
+
         # Prepare the URL
         url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
         params = {
@@ -280,38 +280,38 @@ def search_nearby_places(lat, lng, radius=1000, type=None, keyword=None):
             "radius": radius,
             "key": api_key
         }
-        
+
         # Add optional parameters
         if type:
             params["type"] = type
-            
+
         if keyword:
             params["keyword"] = keyword
-            
+
         # Make the request
         response = requests.get(url, params=params)
-        
+
         # Process the response
         if response.status_code != 200:
             return {
                 "success": False,
                 "error": f"Nearby Search API returned status {response.status_code}"
             }
-            
+
         data = response.json()
-        
+
         # Check if the request was successful
         if data["status"] != "OK":
             return {
                 "success": False,
                 "error": f"Nearby Search request failed with status: {data['status']}"
             }
-            
+
         return {
             "success": True,
             "places": data["results"]
         }
-        
+
     except Exception as e:
         logging.error(f"Error searching nearby places: {str(e)}")
         return {
@@ -328,51 +328,51 @@ def search_places(query, location=None, radius=None, type=None):
                 "success": False,
                 "error": "Maps API key not available"
             }
-            
+
         # Prepare the URL
         url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
         params = {
             "query": query,
             "key": api_key
         }
-        
+
         # Add optional parameters
         if location:
             if isinstance(location, str):
                 params["location"] = location
             else:
                 params["location"] = f"{location[0]},{location[1]}"
-                
+
         if radius:
             params["radius"] = radius
-            
+
         if type:
             params["type"] = type
-            
+
         # Make the request
         response = requests.get(url, params=params)
-        
+
         # Process the response
         if response.status_code != 200:
             return {
                 "success": False,
                 "error": f"Places Text Search API returned status {response.status_code}"
             }
-            
+
         data = response.json()
-        
+
         # Check if the request was successful
         if data["status"] != "OK":
             return {
                 "success": False,
                 "error": f"Places Text Search request failed with status: {data['status']}"
             }
-            
+
         return {
             "success": True,
             "places": data["results"]
         }
-        
+
     except Exception as e:
         logging.error(f"Error searching places: {str(e)}")
         return {
@@ -389,12 +389,12 @@ def get_directions(origin, destination, mode="driving", waypoints=None, avoid=No
                 "success": False,
                 "error": "Maps API key not available"
             }
-            
+
         # Validate the mode
         valid_modes = ["driving", "walking", "bicycling", "transit"]
         if mode not in valid_modes:
             mode = "driving"
-            
+
         # Prepare the URL
         url = "https://maps.googleapis.com/maps/api/directions/json"
         params = {
@@ -403,36 +403,36 @@ def get_directions(origin, destination, mode="driving", waypoints=None, avoid=No
             "mode": mode,
             "key": api_key
         }
-        
+
         # Add optional parameters
         if waypoints:
             if isinstance(waypoints, list):
                 params["waypoints"] = "|".join(waypoints)
             else:
                 params["waypoints"] = waypoints
-                
+
         if avoid:
             params["avoid"] = avoid
-            
+
         # Make the request
         response = requests.get(url, params=params)
-        
+
         # Process the response
         if response.status_code != 200:
             return {
                 "success": False,
                 "error": f"Directions API returned status {response.status_code}"
             }
-            
+
         data = response.json()
-        
+
         # Check if the request was successful
         if data["status"] != "OK":
             return {
                 "success": False,
                 "error": f"Directions request failed with status: {data['status']}"
             }
-            
+
         # Format the response
         routes = []
         for route in data["routes"]:
@@ -448,7 +448,7 @@ def get_directions(origin, destination, mode="driving", waypoints=None, avoid=No
                 },
                 "steps": []
             }
-            
+
             # Format the steps
             for step in route["legs"][0]["steps"]:
                 formatted_step = {
@@ -457,14 +457,14 @@ def get_directions(origin, destination, mode="driving", waypoints=None, avoid=No
                     "duration": step["duration"]["text"]
                 }
                 formatted_route["steps"].append(formatted_step)
-                
+
             routes.append(formatted_route)
-            
+
         return {
             "success": True,
             "routes": routes
         }
-        
+
     except Exception as e:
         logging.error(f"Error getting directions: {str(e)}")
         return {
@@ -481,7 +481,7 @@ def get_static_map_url(center, zoom=13, size="600x300", markers=None, path=None)
                 "success": False,
                 "error": "Maps API key not available"
             }
-            
+
         # Prepare the URL
         url = "https://maps.googleapis.com/maps/api/staticmap"
         params = {
@@ -490,7 +490,7 @@ def get_static_map_url(center, zoom=13, size="600x300", markers=None, path=None)
             "size": size,
             "key": api_key
         }
-        
+
         # Add markers if provided
         if markers:
             if isinstance(markers, list):
@@ -506,12 +506,12 @@ def get_static_map_url(center, zoom=13, size="600x300", markers=None, path=None)
                         marker_strs.append(marker_str)
                     else:
                         marker_strs.append(marker)
-                        
+
                 for i, marker_str in enumerate(marker_strs):
                     params[f"markers{i}"] = marker_str
             else:
                 params["markers"] = markers
-                
+
         # Add path if provided
         if path:
             if isinstance(path, dict):
@@ -520,22 +520,22 @@ def get_static_map_url(center, zoom=13, size="600x300", markers=None, path=None)
                     path_str += f"color:{path['color']}|"
                 if "weight" in path:
                     path_str += f"weight:{path['weight']}|"
-                
+
                 if "points" in path and isinstance(path["points"], list):
                     path_str += "|".join(path["points"])
-                    
+
                 params["path"] = path_str
             else:
                 params["path"] = path
-                
+
         # Build the full URL
         static_map_url = f"{url}?{urlencode(params)}"
-        
+
         return {
             "success": True,
             "url": static_map_url
         }
-        
+
     except Exception as e:
         logging.error(f"Error generating static map URL: {str(e)}")
         return {
@@ -547,13 +547,13 @@ def find_nearby_places_by_type(lat, lng, type, radius=5000, limit=5):
     """Find nearby places of a specific type"""
     try:
         result = search_nearby_places(lat, lng, radius=radius, type=type)
-        
+
         if not result["success"]:
             return result
-            
+
         # Limit the number of results
         places = result["places"][:limit]
-        
+
         # Format the places
         formatted_places = []
         for place in places:
@@ -567,12 +567,12 @@ def find_nearby_places_by_type(lat, lng, type, radius=5000, limit=5):
                 "type": place.get("types", [])[0] if place.get("types") else ""
             }
             formatted_places.append(formatted_place)
-            
+
         return {
             "success": True,
             "places": formatted_places
         }
-        
+
     except Exception as e:
         logging.error(f"Error finding nearby places by type: {str(e)}")
         return {

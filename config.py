@@ -12,7 +12,7 @@ class Config:
     SECRET_KEY = os.environ.get("SESSION_SECRET", "nous-secure-key-2025")
     DEBUG = False
     TESTING = False
-    
+
     # Session Configuration
     SESSION_COOKIE_SAMESITE = "Lax"
     SESSION_PERMANENT = True
@@ -20,7 +20,7 @@ class Config:
     SESSION_TYPE = "filesystem"
     SESSION_USE_SIGNER = True
     SESSION_FILE_DIR = os.path.join(os.getcwd(), 'flask_session')
-    
+
     # Database Configuration
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///instance/nous.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -28,7 +28,7 @@ class Config:
         'pool_pre_ping': True,
         'pool_recycle': 300,
     }
-    
+
     # Upload Configuration
     UPLOAD_FOLDER = "uploads"
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB

@@ -29,11 +29,11 @@ def get_user_id():
 def index():
     """Voice mindfulness exercises dashboard"""
     user_id = get_user_id()
-    
+
     # Get a list of pre-defined exercises
     from utils.voice_mindfulness import MINDFULNESS_EXERCISES
     exercises = MINDFULNESS_EXERCISES
-    
+
     return render_template(
         'voice_mindfulness/index.html',
         exercises=exercises
@@ -44,16 +44,16 @@ def index():
 def exercise_detail(exercise_name):
     """Show detail for a specific mindfulness exercise"""
     user_id = get_user_id()
-    
+
     # Get the exercise by name
     exercise = get_exercise_by_name(exercise_name)
     if not exercise:
         flash(f"Exercise '{exercise_name}' not found", "error")
         return redirect(url_for('voice_mindfulness.index'))
-    
+
     # Prepare the exercise for TTS
     prepared_exercise = prepare_exercise_for_tts(exercise)
-    
+
     return render_template(
         'voice_mindfulness/exercise.html',
         exercise=prepared_exercise
@@ -68,13 +68,13 @@ def random_exercise():
         duration = int(request.args.get('duration', 5))
     except ValueError:
         duration = 5
-        
+
     # Get a random exercise within duration constraint
     exercise = get_exercise_by_duration(duration)
-    
+
     # Prepare the exercise for TTS
     prepared_exercise = prepare_exercise_for_tts(exercise)
-    
+
     return render_template(
         'voice_mindfulness/exercise.html',
         exercise=prepared_exercise
@@ -85,7 +85,7 @@ def random_exercise():
 def personalized_exercise():
     """Generate and show a personalized mindfulness exercise"""
     user_id = get_user_id()
-    
+
     if request.method == 'POST':
         # Get parameters from form
         mood = request.form.get('mood', '')
@@ -94,19 +94,19 @@ def personalized_exercise():
             duration = int(request.form.get('duration', 5))
         except ValueError:
             duration = 5
-            
+
         # Generate a personalized exercise
         exercise = generate_personalized_exercise(user_id, mood, situation, duration)
-        
+
         # Prepare the exercise for TTS
         prepared_exercise = prepare_exercise_for_tts(exercise)
-        
+
         return render_template(
             'voice_mindfulness/exercise.html',
             exercise=prepared_exercise,
             personalized=True
         )
-        
+
     # GET request - show the form to create a personalized exercise
     return render_template('voice_mindfulness/personalize.html')
 
@@ -115,7 +115,7 @@ def personalized_exercise():
 def log_completion():
     """Log the completion of a mindfulness exercise"""
     user_id = get_user_id()
-    
+
     # Get parameters from form
     exercise_name = request.form.get('exercise_name', '')
     try:
@@ -124,13 +124,13 @@ def log_completion():
             rating = None
     except ValueError:
         rating = None
-        
+
     # Log the completion
     success = log_exercise_completion(user_id, exercise_name, rating)
-    
+
     if success:
         flash(f"Exercise '{exercise_name}' completed successfully", "success")
     else:
         flash("Failed to log exercise completion", "error")
-        
+
     return redirect(url_for('voice_mindfulness.index'))

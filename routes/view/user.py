@@ -33,19 +33,19 @@ def update_profile():
         # Get form data
         first_name = request.form.get('first_name', '')
         last_name = request.form.get('last_name', '')
-        
+
         # Validate data
         if not first_name or not last_name:
             flash('First name and last name are required', 'danger')
             return redirect(url_for('user.profile'))
-            
+
         # Update user data
         current_user.first_name = first_name
         current_user.last_name = last_name
-        
+
         # Save to database
         db.session.commit()
-        
+
         flash('Profile updated successfully', 'success')
         return redirect(url_for('user.profile'))
     except Exception as e:
@@ -61,7 +61,7 @@ def get_notifications():
     # In a real implementation, you would fetch notifications from a database
     try:
         notifications = []
-        
+
         # Example notifications
         notifications = [
             {
@@ -86,7 +86,7 @@ def get_notifications():
                 'read': False
             }
         ]
-        
+
         return jsonify({
             'success': True,
             'notifications': notifications,
@@ -99,4 +99,4 @@ def get_notifications():
             'message': str(e),
             'notifications': [],
             'unread_count': 0
-        }) 
+        })

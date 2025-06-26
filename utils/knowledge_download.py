@@ -26,7 +26,7 @@ def _load_static_json(filename: str) -> Dict:
         if not filepath.exists():
             logging.error(f"Static file not found: {filepath}")
             return {}
-        
+
         with open(filepath, 'r') as f:
             return json.load(f)
     except Exception as e:
@@ -37,11 +37,11 @@ def _load_static_json(filename: str) -> Dict:
 def _store_knowledge_entries(entries: List[str], category: str) -> int:
     """
     Store multiple knowledge entries in the database.
-    
+
     Args:
         entries: List of knowledge entry texts
         category: Category tag to add to each entry
-        
+
     Returns:
         int: Number of entries successfully added
     """
@@ -49,10 +49,10 @@ def _store_knowledge_entries(entries: List[str], category: str) -> int:
     for entry in entries:
         if not entry.strip():
             continue
-            
+
         # Add category tag to entry
         tagged_entry = f"{entry.strip()} [Category: {category}]"
-        
+
         try:
             add_to_knowledge_base(tagged_entry, source=f"pre_downloaded/{category}")
             count += 1
@@ -60,14 +60,14 @@ def _store_knowledge_entries(entries: List[str], category: str) -> int:
             time.sleep(0.1)
         except Exception as e:
             logging.error(f"Error storing knowledge entry: {str(e)}")
-            
+
     return count
 
 
 def _download_basic_facts() -> int:
     """
     Download basic facts that are frequently requested.
-    
+
     Returns:
         int: Number of entries added
     """
@@ -75,7 +75,7 @@ def _download_basic_facts() -> int:
     basic_facts = _load_static_json('temp_basic_facts.json')
     if basic_facts and isinstance(basic_facts, dict) and 'facts' in basic_facts:
         return _store_knowledge_entries(basic_facts['facts'], "basic_facts")
-    
+
     # Otherwise, use a set of hard-coded basic facts that are commonly requested
     facts = [
         "The Earth is the third planet from the Sun in our solar system.",
@@ -99,14 +99,14 @@ def _download_basic_facts() -> int:
         "Sound travels at approximately 343 meters per second (1,125 feet per second) in air at room temperature.",
         "The human heart beats about 100,000 times per day."
     ]
-    
+
     return _store_knowledge_entries(facts, "basic_facts")
 
 
 def _download_health_information() -> int:
     """
     Download health information that is commonly requested.
-    
+
     Returns:
         int: Number of entries added
     """
@@ -132,20 +132,20 @@ def _download_health_information() -> int:
         "The Mediterranean diet, which emphasizes plant foods, fish, olive oil, and limited red meat, is associated with numerous health benefits.",
         "Maintaining a healthy weight reduces the risk of many conditions including heart disease, stroke, diabetes, and certain cancers."
     ]
-    
+
     return _store_knowledge_entries(health_info, "health_information")
 
 def _download_aa_principles() -> int:
     """
     Download AA principles, steps, and common recovery support information.
-    
+
     Returns:
         int: Number of entries added
     """
     # Try to load from static file first
     aa_data = _load_static_json('aa_data/reflections.json')
     stored_count = 0
-    
+
     # If we have reflections data, store them
     if aa_data and 'reflections' in aa_data:
         reflections = []
@@ -154,7 +154,7 @@ def _download_aa_principles() -> int:
                 reflections.append(reflection['prompt'])
         if reflections:
             stored_count += _store_knowledge_entries(reflections, "aa_principles")
-    
+
     # Add core AA principles and concepts
     aa_principles = [
         "The 12 Steps of AA provide a framework for recovery from alcoholism and addiction.",
@@ -178,7 +178,7 @@ def _download_aa_principles() -> int:
         "H.A.L.T. stands for Hungry, Angry, Lonely, Tired - common triggers for relapse that should be addressed.",
         "Making amends is the process of acknowledging harm done to others and taking action to repair relationships."
     ]
-    
+
     # Add the hard-coded principles as well
     stored_count += _store_knowledge_entries(aa_principles, "aa_principles")
     return stored_count
@@ -187,7 +187,7 @@ def _download_aa_principles() -> int:
 def _download_mindfulness_exercises() -> int:
     """
     Download mindfulness exercises and techniques.
-    
+
     Returns:
         int: Number of entries added
     """
@@ -200,7 +200,7 @@ def _download_mindfulness_exercises() -> int:
                 exercises.append(f"{exercise.get('name', 'Mindfulness Exercise')}: {exercise['instructions']}")
         if exercises:
             return _store_knowledge_entries(exercises, "mindfulness_exercises")
-    
+
     # Default mindfulness exercises if file not found
     exercises = [
         "Body Scan: Lie down and focus your attention slowly from your feet to your head, noticing sensations without judgment.",
@@ -214,14 +214,14 @@ def _download_mindfulness_exercises() -> int:
         "Mindful Listening: Close your eyes and notice all the sounds around you without labeling or judging them.",
         "Mindful Movement: Perform gentle stretches or yoga poses while focusing on bodily sensations and breath."
     ]
-    
+
     return _store_knowledge_entries(exercises, "mindfulness_exercises")
 
 
 def _download_dbt_skills() -> int:
     """
     Download Dialectical Behavior Therapy skills and concepts.
-    
+
     Returns:
         int: Number of entries added
     """
@@ -247,14 +247,14 @@ def _download_dbt_skills() -> int:
         "Chain analysis is a DBT technique to break down a problem behavior to understand what triggers and maintains it.",
         "Willingness vs. willfulness: willingness means accepting reality and responding effectively; willfulness means refusing to accept reality."
     ]
-    
+
     return _store_knowledge_entries(dbt_skills, "dbt_skills")
 
 
 def _download_grounding_exercises() -> int:
     """
     Download grounding exercises for managing anxiety and crisis situations.
-    
+
     Returns:
         int: Number of entries added
     """
@@ -280,7 +280,7 @@ def _download_grounding_exercises() -> int:
         "Mindful Walking: Walk slowly, paying attention to each step and the sensation of your feet touching the ground.",
         "Hand Temperature: Focus on warming or cooling your hands by imagining them in warm water or snow."
     ]
-    
+
     return _store_knowledge_entries(grounding_exercises, "grounding_exercises")
 
 
@@ -288,7 +288,7 @@ def _download_grounding_exercises() -> int:
 KNOWLEDGE_CATEGORIES = [
     # General Knowledge
     "basic_facts",
-    
+
     # Health & Medical
     "health_information",
     "medication_info",
@@ -297,36 +297,36 @@ KNOWLEDGE_CATEGORIES = [
     "crisis_resources",
     "grounding_exercises",
     "emotional_regulation",
-    
+
     # Practical & Daily Life
     "common_procedures",
     "shopping_tips",
     "budgeting_principles",
     "product_information",
-    
+
     # Emergency & Safety
     "emergency_protocols",
-    
+
     # Travel & Location
     "weather_patterns",
     "travel_guidelines",
     "packing_essentials",
-    
+
     # Recovery Support
     "aa_principles",
-    "mindfulness_exercises", 
+    "mindfulness_exercises",
     "reflection_prompts",
     "spot_check_questions",
-    
+
     # Technology & Integration
     "google_api_guides",
     "spotify_features",
     "smart_home_setup",
-    
-    # Doctor & Medication 
+
+    # Doctor & Medication
     "appointment_types",
     "medication_reminders",
-    
+
     # Specialized User Interfaces
     "voice_interaction_tips",
     "accessibility_features"
@@ -335,33 +335,33 @@ KNOWLEDGE_CATEGORIES = [
 def download_and_store_knowledge(category: str, force_refresh: bool = False) -> int:
     """
     Download and store knowledge for a specific category.
-    
+
     Args:
         category: The category of knowledge to download
         force_refresh: Whether to force refresh existing knowledge
-        
+
     Returns:
         int: Number of knowledge entries added
     """
     logging.info(f"Downloading knowledge for category: {category}")
-    
+
     # Check if category already exists in database
     if not force_refresh:
         existing_count = KnowledgeBase.query.filter(
             KnowledgeBase.content.like(f"%[Category: {category}]%")
         ).count()
-        
+
         if existing_count > 0:
             logging.info(f"Category {category} already has {existing_count} entries, skipping")
             return 0
-    
+
     # Different sources for different categories
     entries_added = 0
-    
+
     # General Knowledge
     if category == "basic_facts":
         entries_added = _download_basic_facts()
-    
+
     # Health & Medical
     elif category == "health_information":
         entries_added = _download_health_information()
@@ -369,56 +369,56 @@ def download_and_store_knowledge(category: str, force_refresh: bool = False) -> 
         entries_added = _download_dbt_skills()
     elif category == "grounding_exercises":
         entries_added = _download_grounding_exercises()
-    
+
     # Recovery Support
     elif category == "aa_principles":
         entries_added = _download_aa_principles()
     elif category == "mindfulness_exercises":
         entries_added = _download_mindfulness_exercises()
-    
+
     # Implementation for other categories would follow the same pattern
     # For now, we're focusing on the essential ones with the highest payoff
     else:
         logging.info(f"Category {category} not implemented yet, skipping")
-        
+
     logging.info(f"Added {entries_added} knowledge entries for category {category}")
     return entries_added
 
 def _add_from_json_file(filename: str, category: str) -> int:
     """
     Add knowledge entries from a JSON file.
-    
+
     Args:
         filename: Path to the JSON file
         category: Category to tag entries with
-        
+
     Returns:
         int: Number of entries added
     """
     if not os.path.exists(filename):
         logging.error(f"File not found: {filename}")
         return 0
-        
+
     try:
         with open(filename, 'r') as f:
             data = json.load(f)
-            
+
         count = 0
         for item in data:
             # Format the content to include the category
             if 'content' in item:
                 content = f"{item['content']}\n[Category: {category}]"
-                
+
                 # Add to knowledge base
                 entry = add_to_knowledge_base(
                     content=content,
                     user_id=None,  # Global knowledge
                     source="downloaded"
                 )
-                
+
                 if entry:
                     count += 1
-                    
+
         return count
     except Exception as e:
         logging.error(f"Error adding knowledge from file {filename}: {str(e)}")
@@ -459,19 +459,19 @@ def _download_basic_facts() -> int:
             "content": "Sound travels at approximately 343 meters per second (1,125 feet per second) in air at room temperature."
         }
     ]
-    
+
     # Write to a temporary JSON file
     temp_file = "static/temp_basic_facts.json"
     with open(temp_file, 'w') as f:
         json.dump(facts, f)
-        
+
     # Add from the file
     count = _add_from_json_file(temp_file, "basic_facts")
-    
+
     # Clean up
     if os.path.exists(temp_file):
         os.remove(temp_file)
-        
+
     return count
 
 def _download_health_information() -> int:
@@ -508,19 +508,19 @@ def _download_health_information() -> int:
             "content": "Mental health is as important as physical health. Regular self-care and seeking help when needed are essential for wellbeing."
         }
     ]
-    
+
     # Write to a temporary JSON file
     temp_file = "static/temp_health_info.json"
     with open(temp_file, 'w') as f:
         json.dump(health_info, f)
-        
+
     # Add from the file
     count = _add_from_json_file(temp_file, "health_information")
-    
+
     # Clean up
     if os.path.exists(temp_file):
         os.remove(temp_file)
-        
+
     return count
 
 def _download_common_procedures() -> int:
@@ -542,19 +542,19 @@ def _download_common_procedures() -> int:
             "content": "How to clean and dress a wound: Wash hands thoroughly. Rinse the wound under clean running water. Clean around the wound with mild soap. Apply antibiotic ointment if appropriate. Cover with a sterile bandage or dressing."
         }
     ]
-    
+
     # Write to a temporary JSON file
     temp_file = "static/temp_procedures.json"
     with open(temp_file, 'w') as f:
         json.dump(procedures, f)
-        
+
     # Add from the file
     count = _add_from_json_file(temp_file, "common_procedures")
-    
+
     # Clean up
     if os.path.exists(temp_file):
         os.remove(temp_file)
-        
+
     return count
 
 def _download_medication_info() -> int:
@@ -576,19 +576,19 @@ def _download_medication_info() -> int:
             "content": "Metformin: First-line medication for type 2 diabetes. Common side effects include gastrointestinal issues like nausea and diarrhea. Take with meals to reduce these effects."
         }
     ]
-    
+
     # Write to a temporary JSON file
     temp_file = "static/temp_medications.json"
     with open(temp_file, 'w') as f:
         json.dump(medications, f)
-        
+
     # Add from the file
     count = _add_from_json_file(temp_file, "medication_info")
-    
+
     # Clean up
     if os.path.exists(temp_file):
         os.remove(temp_file)
-        
+
     return count
 
 def _download_emergency_protocols() -> int:
@@ -610,19 +610,19 @@ def _download_emergency_protocols() -> int:
             "content": "Earthquake: Drop, Cover, and Hold On. Drop to the ground, take cover under a sturdy table or desk, and hold on until the shaking stops. Stay away from windows, exterior walls, and anything that could fall. After shaking stops, evacuate to an open area away from buildings."
         }
     ]
-    
+
     # Write to a temporary JSON file
     temp_file = "static/temp_emergency.json"
     with open(temp_file, 'w') as f:
         json.dump(protocols, f)
-        
+
     # Add from the file
     count = _add_from_json_file(temp_file, "emergency_protocols")
-    
+
     # Clean up
     if os.path.exists(temp_file):
         os.remove(temp_file)
-        
+
     return count
 
 def _download_weather_patterns() -> int:
@@ -644,19 +644,19 @@ def _download_weather_patterns() -> int:
             "content": "Weather forecasting combines observations, computer models, and meteorological principles to predict future weather conditions. Modern forecasts are generally accurate for 5-7 days out."
         }
     ]
-    
+
     # Write to a temporary JSON file
     temp_file = "static/temp_weather.json"
     with open(temp_file, 'w') as f:
         json.dump(weather_info, f)
-        
+
     # Add from the file
     count = _add_from_json_file(temp_file, "weather_patterns")
-    
+
     # Clean up
     if os.path.exists(temp_file):
         os.remove(temp_file)
-        
+
     return count
 
 def _download_travel_guidelines() -> int:
@@ -678,19 +678,19 @@ def _download_travel_guidelines() -> int:
             "content": "Register with your country's embassy or consulate when traveling to high-risk or remote areas. This helps them contact you in case of emergency or natural disaster."
         }
     ]
-    
+
     # Write to a temporary JSON file
     temp_file = "static/temp_travel.json"
     with open(temp_file, 'w') as f:
         json.dump(travel_info, f)
-        
+
     # Add from the file
     count = _add_from_json_file(temp_file, "travel_guidelines")
-    
+
     # Clean up
     if os.path.exists(temp_file):
         os.remove(temp_file)
-        
+
     return count
 
 def _download_shopping_tips() -> int:
@@ -712,53 +712,53 @@ def _download_shopping_tips() -> int:
             "content": "Store loyalty programs, cashback apps, and digital coupons can provide significant savings over time."
         }
     ]
-    
+
     # Write to a temporary JSON file
     temp_file = "static/temp_shopping.json"
     with open(temp_file, 'w') as f:
         json.dump(shopping_info, f)
-        
+
     # Add from the file
     count = _add_from_json_file(temp_file, "shopping_tips")
-    
+
     # Clean up
     if os.path.exists(temp_file):
         os.remove(temp_file)
-        
+
     return count
 
 def download_all_knowledge(force_refresh: bool = False) -> Dict[str, int]:
     """
     Download and store all categories of knowledge.
-    
+
     Args:
         force_refresh: Whether to force refresh existing knowledge
-        
+
     Returns:
         Dict[str, int]: Number of entries added per category
     """
     results = {}
-    
+
     for category in KNOWLEDGE_CATEGORIES:
         entries_added = download_and_store_knowledge(category, force_refresh)
         results[category] = entries_added
         # Add a small delay to avoid database contention
         time.sleep(0.5)
-        
+
     total_added = sum(results.values())
     logging.info(f"Added a total of {total_added} knowledge entries across all categories")
-    
+
     return results
 
 def search_knowledge_by_category(category: str, query: str = None, limit: int = 10) -> List[Dict]:
     """
     Search for knowledge entries in a specific category.
-    
+
     Args:
         category: The category to search in
         query: Optional search terms
         limit: Maximum number of results
-        
+
     Returns:
         List of knowledge entries as dictionaries
     """
@@ -766,14 +766,14 @@ def search_knowledge_by_category(category: str, query: str = None, limit: int = 
         base_query = KnowledgeBase.query.filter(
             KnowledgeBase.content.like(f"%[Category: {category}]%")
         )
-        
+
         if query:
             search_terms = [f"%{term}%" for term in query.split()]
             for term in search_terms:
                 base_query = base_query.filter(KnowledgeBase.content.like(term))
-                
+
         entries = base_query.limit(limit).all()
-        
+
         return [
             {
                 'id': entry.id,

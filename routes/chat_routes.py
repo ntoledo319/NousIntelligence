@@ -33,21 +33,21 @@ def chat_interface():
 def chat_message():
     """
     Process a user's chat message and return the appropriate response
-    
+
     This endpoint handles both command processing and general AI conversation.
     """
     try:
         data = request.get_json()
-        
+
         if not data or 'message' not in data:
             logger.warning(f"Invalid chat message request: {request.data}")
             return jsonify({
                 'success': False,
                 'message': 'No message provided'
             }), 400
-        
+
         user_message = data['message']
-        
+
         # Validate message content
         if not isinstance(user_message, str) or len(user_message) > 5000:
             logger.warning(f"Invalid message format or length from user {current_user.id}")
@@ -55,48 +55,48 @@ def chat_message():
                 'success': False,
                 'message': 'Invalid message format or length'
             }), 400
-        
+
         # Process as a potential command
         response = process_chat_command(current_user.id, user_message)
-        
+
         # If it wasn't a recognized command, use the AI for conversational response
         if not response.get('is_command', False) and response.get('success', False):
             # Get chat history
             chat_history = session.get('chat_history', [])
-            
+
             # Add user message to history
             chat_history.append({
                 'role': 'user',
                 'content': user_message
             })
-            
+
             # Get AI response
             ai_response = get_ai_response(
-                user_message, 
-                chat_history, 
+                user_message,
+                chat_history,
                 user_settings=current_user.settings
             )
-            
+
             # Update response with AI's message
             response = {
                 'success': True,
                 'message': ai_response,
                 'is_command': False
             }
-            
+
             # Add AI response to history
             chat_history.append({
                 'role': 'assistant',
                 'content': ai_response
             })
-            
+
             # Limit history length
             if len(chat_history) > current_app.config.get('CHAT_HISTORY_LIMIT', 20):
                 chat_history = chat_history[-current_app.config.get('CHAT_HISTORY_LIMIT', 20):]
-                
+
             # Save updated history
             session['chat_history'] = chat_history
-        
+
         return jsonify(response)
     except BadRequest as e:
         logger.warning(f"Bad request in chat message: {str(e)}")
@@ -162,8 +162,8 @@ def get_command_help():
         }
         # Add other command domains as they're implemented
     }
-    
+
     return jsonify({
         'success': True,
         'commands': commands
-    }) 
+    })

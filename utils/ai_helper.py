@@ -33,39 +33,39 @@ def initialize_ai():
 def get_ai_response(prompt: str, conversation_history: Optional[List[Dict[str, str]]] = None) -> str:
     """
     Get AI-generated response for the user's prompt using cost-optimized providers
-    
+
     Args:
         prompt: The user's text prompt
         conversation_history: Optional list of previous messages for context
-        
+
     Returns:
         AI-generated response text
     """
     try:
         ai_client = get_cost_optimized_ai()
-        
+
         # Build messages for the conversation
         messages = []
         if conversation_history:
             messages.extend(conversation_history)
         messages.append({"role": "user", "content": prompt})
-        
+
         # Determine complexity based on prompt characteristics
         complexity = TaskComplexity.BASIC
         if len(prompt) > 200:
             complexity = TaskComplexity.STANDARD
         if any(word in prompt.lower() for word in ["creative", "write", "analyze", "complex", "detailed"]):
             complexity = TaskComplexity.COMPLEX
-            
+
         # Get AI response
         result = ai_client.chat_completion(messages, complexity=complexity)
-        
+
         if result.get("success"):
             return result.get("response", "I'm here to help! How can I assist you?")
         else:
             logger.warning(f"AI response failed: {result.get('error')}")
             return "I'm here to assist you. You can ask me questions or give me tasks to help with."
-            
+
     except Exception as e:
         logger.error(f"Error getting AI response: {e}")
         return "I'm here to help! How can I assist you today?"
@@ -76,15 +76,15 @@ class RateLimitTracker:
         self.requests = []
         self.max_requests_per_minute = 20  # Adjust based on your tier
         self.window_seconds = 60
-        
+
     def can_make_request(self):
         """Check if we can make a request within rate limits"""
         now = time.time()
         # Remove requests older than our window
         self.requests = [t for t in self.requests if now - t < self.window_seconds]
-        
+
         return len(self.requests) < self.max_requests_per_minute
-        
+
     def add_request(self):
         """Record a request"""
         self.requests.append(time.time())
@@ -96,12 +96,12 @@ class AIHelper:
     """
     Provides AI functionality for the NOUS personal assistant
     """
-    
+
     def __init__(self):
         """Initialize the AI helper"""
         self.logger = logging.getLogger(__name__)
         self.logger.info("Initializing AI Helper")
-        
+
         # Intent patterns for more accurate detection
         self.intent_patterns = {
             'music': [
@@ -171,7 +171,7 @@ class AIHelper:
                 r'\b(?:recovery meeting|support group meeting|therapy appointment)\b'
             ]
         }
-        
+
         # Spotify-specific entity extractors
         self.spotify_entity_patterns = {
             'track': [
@@ -204,7 +204,7 @@ class AIHelper:
                 r'^(play|pause|resume|stop|skip|next|previous|volume|shuffle|repeat)$'
             ]
         }
-        
+
         # Google Docs entity extractors
         self.google_docs_entity_patterns = {
             'document_name': [
@@ -226,7 +226,7 @@ class AIHelper:
                 r'(create|edit|summarize|analyze|share|delete) (?:the|a|my)? (?:document|doc)'
             ]
         }
-        
+
         # Gmail entity extractors
         self.gmail_entity_patterns = {
             'query': [
@@ -252,7 +252,7 @@ class AIHelper:
                 r'(?:in|during|from|last|past) (?:the|this|these)? ([^"\']+) (?:days?|weeks?|months?)'
             ]
         }
-        
+
         # Google Calendar entity extractors
         self.calendar_entity_patterns = {
             'event_name': [
@@ -275,7 +275,7 @@ class AIHelper:
                 r'(?:today|tomorrow|this week|next week|this month|next month)'
             ]
         }
-        
+
         # Google Sheets entity extractors
         self.sheets_entity_patterns = {
             'spreadsheet_name': [
@@ -289,77 +289,77 @@ class AIHelper:
                 r'(create|edit|update|analyze|share|delete) (?:my|the)? (?:spreadsheet|sheet)'
             ]
         }
-    
+
     def process_user_input(self, user_input: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """
         Process user input and generate a response
-        
+
         Args:
             user_input: The raw input from the user
             context: Additional context about the conversation
-            
+
         Returns:
             Dict containing response and any actions to take
         """
         if not context:
             context = {}
-            
+
         # Detect intent
         intent = self._detect_intent(user_input)
-        
+
         # Extract entities based on intent
         entities = self._extract_entities(user_input, intent)
-        
+
         # Generate response
         response_text = self.generate_response(intent, entities)
-        
+
         # Determine actions to take
         actions = self._determine_actions(intent, entities, context)
-        
+
         response = {
             'text': response_text,
             'actions': actions,
             'detected_intent': intent,
             'entities': entities
         }
-        
+
         return response
-    
+
     def _detect_intent(self, text: str) -> str:
         """
         Detect the intent of the user's message using pattern matching
-        
+
         Args:
             text: The user's message
-            
+
         Returns:
             The detected intent
         """
         # Convert to lowercase for consistent matching
         text_lower = text.lower()
-        
+
         # Check each intent's patterns
         for intent, patterns in self.intent_patterns.items():
             for pattern in patterns:
                 if re.search(pattern, text_lower):
                     return intent
-        
+
         # Default to general if no patterns match
         return 'general'
-    
+
     def _extract_entities(self, text: str, intent: str) -> Dict[str, Any]:
         """
         Extract entities from the user's message based on intent
-        
+
         Args:
             text: The user's message
             intent: The detected intent
-            
+
         Returns:
             Dictionary of extracted entities
         """
         entities = {}
-        
+
         # Only process entity extraction for specific intents
         if intent == 'music':
             # Extract Spotify-specific entities
@@ -370,11 +370,11 @@ class AIHelper:
                         # Store the entity value
                         entities[entity_type] = match.group(1).strip()
                         break
-                        
+
             # Detect playback commands
             if re.match(r'^(play|pause|resume|stop|skip|next|previous|shuffle|repeat)$', text.lower()):
                 entities['command'] = text.lower()
-        
+
         elif intent == 'google_docs':
             # Extract Google Docs entities
             for entity_type, patterns in self.google_docs_entity_patterns.items():
@@ -384,7 +384,7 @@ class AIHelper:
                         # Store the entity value
                         entities[entity_type] = match.group(1).strip()
                         break
-        
+
         elif intent == 'gmail':
             # Extract Gmail entities
             for entity_type, patterns in self.gmail_entity_patterns.items():
@@ -394,7 +394,7 @@ class AIHelper:
                         # Store the entity value
                         entities[entity_type] = match.group(1).strip()
                         break
-        
+
         elif intent == 'google_calendar':
             # Extract Google Calendar entities
             for entity_type, patterns in self.calendar_entity_patterns.items():
@@ -404,7 +404,7 @@ class AIHelper:
                         # Store the entity value
                         entities[entity_type] = match.group(1).strip()
                         break
-        
+
         elif intent == 'google_sheets':
             # Extract Google Sheets entities
             for entity_type, patterns in self.sheets_entity_patterns.items():
@@ -414,23 +414,23 @@ class AIHelper:
                         # Store the entity value
                         entities[entity_type] = match.group(1).strip()
                         break
-        
+
         return entities
-    
+
     def _determine_actions(self, intent: str, entities: Dict[str, Any], context: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Determine actions to take based on intent and entities
-        
+
         Args:
             intent: The detected intent
             entities: Extracted entities
             context: Conversation context
-            
+
         Returns:
             List of action objects
         """
         actions = []
-        
+
         if intent == 'music':
             # Handle Spotify commands
             if 'command' in entities:
@@ -478,18 +478,18 @@ class AIHelper:
                     'type': 'spotify_activity',
                     'activity': entities['activity']
                 })
-        
+
         elif intent == 'google_docs':
             # Handle Google Docs actions
             if 'action' in entities:
                 action = entities['action']
-                
+
                 if action == 'create':
                     # Handle document creation
                     if 'template_type' in entities:
                         # Create from template
                         template_type = entities['template_type']
-                        
+
                         if re.search(r'journal|recovery journal', template_type):
                             actions.append({
                                 'type': 'google_docs_create_template',
@@ -530,7 +530,7 @@ class AIHelper:
                             'type': 'google_docs_create',
                             'title': 'Untitled Document'
                         })
-                
+
                 elif action == 'edit' and 'document_name' in entities:
                     # Handle document editing
                     actions.append({
@@ -538,14 +538,14 @@ class AIHelper:
                         'document_name': entities['document_name'],
                         'edit_request': entities.get('edit_request', '')
                     })
-                
+
                 elif action == 'summarize' and 'document_name' in entities:
                     # Handle document summarization
                     actions.append({
                         'type': 'google_docs_summarize',
                         'document_name': entities['document_name']
                     })
-                
+
                 elif action == 'analyze' and 'document_name' in entities:
                     # Handle document analysis
                     actions.append({
@@ -558,12 +558,12 @@ class AIHelper:
                     'type': 'google_docs_view',
                     'document_name': entities['document_name']
                 })
-        
+
         elif intent == 'gmail':
             # Handle Gmail actions
             if 'action' in entities:
                 action = entities['action']
-                
+
                 if action in ['check', 'read', 'show']:
                     # Handle email retrieval
                     if 'query' in entities:
@@ -575,7 +575,7 @@ class AIHelper:
                         actions.append({
                             'type': 'gmail_list_recent'
                         })
-                
+
                 elif action == 'send' and 'recipient' in entities:
                     # Handle email sending
                     actions.append({
@@ -583,26 +583,26 @@ class AIHelper:
                         'recipient': entities['recipient'],
                         'subject': entities.get('subject', '')
                     })
-                
+
                 elif action == 'reply' and 'email_id' in entities:
                     # Handle email reply
                     actions.append({
                         'type': 'gmail_reply',
                         'email_id': entities['email_id']
                     })
-                
+
                 elif action == 'categorize':
                     # Handle email categorization
                     actions.append({
                         'type': 'gmail_categorize'
                     })
-                
+
                 elif action == 'analyze':
                     # Handle email analysis
                     actions.append({
                         'type': 'gmail_analyze'
                     })
-                
+
                 elif action == 'filter':
                     # Handle email filtering for recovery-relevant emails
                     days = 7
@@ -610,17 +610,17 @@ class AIHelper:
                         time_period = entities['time_period']
                         if re.search(r'\d+', time_period):
                             days = int(re.search(r'\d+', time_period).group())
-                    
+
                     actions.append({
                         'type': 'gmail_filter_recovery',
                         'days': days
                     })
-            
+
             elif 'template_type' in entities:
                 # Handle email template creation
                 template_type = entities['template_type']
                 template = 'sponsor_check_in'
-                
+
                 if re.search(r'amend|apology', template_type):
                     template = 'making_amends'
                 elif re.search(r'request|support', template_type):
@@ -629,24 +629,24 @@ class AIHelper:
                     template = 'decline_event'
                 elif re.search(r'time|off|recovery', template_type):
                     template = 'recovery_time_request'
-                
+
                 actions.append({
                     'type': 'gmail_create_template',
                     'template': template
                 })
-            
+
             elif 'query' in entities:
                 # Default to searching emails
                 actions.append({
                     'type': 'gmail_search',
                     'query': entities['query']
                 })
-        
+
         elif intent == 'google_calendar':
             # Handle Google Calendar actions
             if 'action' in entities:
                 action = entities['action']
-                
+
                 if action in ['check', 'view', 'show', 'list']:
                     # Handle calendar viewing
                     period = entities.get('period', 'today')
@@ -654,32 +654,32 @@ class AIHelper:
                         'type': 'calendar_view',
                         'period': period
                     })
-                
+
                 elif action in ['create', 'schedule']:
                     # Handle event creation
                     event_name = entities.get('event_name', 'New Event')
                     date = entities.get('date', '')
                     time = entities.get('time', '')
-                    
+
                     actions.append({
                         'type': 'calendar_create_event',
                         'event_name': event_name,
                         'date': date,
                         'time': time
                     })
-                
+
                 elif action in ['cancel', 'delete'] and 'event_name' in entities:
                     # Handle event cancellation
                     actions.append({
                         'type': 'calendar_cancel_event',
                         'event_name': entities['event_name']
                     })
-            
+
             elif 'event_name' in entities:
                 # Default to creating an event
                 date = entities.get('date', '')
                 time = entities.get('time', '')
-                
+
                 actions.append({
                     'type': 'calendar_create_event',
                     'event_name': entities['event_name'],
@@ -692,18 +692,18 @@ class AIHelper:
                     'type': 'calendar_view',
                     'period': entities['period']
                 })
-        
+
         elif intent == 'google_sheets':
             # Handle Google Sheets actions
             if 'action' in entities:
                 action = entities['action']
-                
+
                 if action == 'create':
                     # Handle spreadsheet creation
                     if 'sheet_type' in entities:
                         # Create specific spreadsheet type
                         sheet_type = entities['sheet_type']
-                        
+
                         if re.search(r'medication|med', sheet_type):
                             actions.append({
                                 'type': 'sheets_create_template',
@@ -737,61 +737,61 @@ class AIHelper:
                             'type': 'sheets_create',
                             'title': 'Untitled Spreadsheet'
                         })
-                
+
                 elif action in ['edit', 'update'] and 'spreadsheet_name' in entities:
                     # Handle spreadsheet editing
                     actions.append({
                         'type': 'sheets_edit',
                         'spreadsheet_name': entities['spreadsheet_name']
                     })
-                
+
                 elif action == 'analyze' and 'spreadsheet_name' in entities:
                     # Handle spreadsheet analysis
                     actions.append({
                         'type': 'sheets_analyze',
                         'spreadsheet_name': entities['spreadsheet_name']
                     })
-            
+
             elif 'sheet_type' in entities:
                 # Create specific spreadsheet type
                 sheet_type = entities['sheet_type']
                 template = 'generic'
-                
+
                 if re.search(r'medication|med', sheet_type):
                     template = 'medication_tracker'
                 elif re.search(r'recovery|metrics|dashboard', sheet_type):
                     template = 'recovery_metrics'
                 elif re.search(r'budget|financial', sheet_type):
                     template = 'budget'
-                
+
                 actions.append({
                     'type': 'sheets_create_template',
                     'template': template
                 })
-            
+
             elif 'spreadsheet_name' in entities:
                 # Default to viewing the spreadsheet
                 actions.append({
                     'type': 'sheets_view',
                     'spreadsheet_name': entities['spreadsheet_name']
                 })
-        
+
         return actions
-    
+
     def generate_response(self, intent: str, entities: Dict[str, Any] = None) -> str:
         """
         Generate a response based on intent and entities
-        
+
         Args:
             intent: The detected intent
             entities: Any entities extracted from the user's message
-            
+
         Returns:
             A response string
         """
         if not entities:
             entities = {}
-            
+
         # Generate response based on intent and entities
         if intent == 'music':
             if 'command' in entities:
@@ -827,7 +827,7 @@ class AIHelper:
                 return f"I'll play suitable music for {entities['activity']}."
             else:
                 return "I can help you play music. What would you like to hear?"
-        
+
         elif intent == 'google_docs':
             if 'action' in entities:
                 action = entities['action']
@@ -860,7 +860,7 @@ class AIHelper:
                 return f"I'll open the document '{entities['document_name']}' for you."
             else:
                 return "I can help you with Google Docs. What would you like to do?"
-        
+
         elif intent == 'gmail':
             if 'action' in entities:
                 action = entities['action']
@@ -894,7 +894,7 @@ class AIHelper:
                 return f"I'll search for emails about '{entities['query']}' for you."
             else:
                 return "I can help you with your emails. What would you like to do?"
-        
+
         elif intent == 'google_calendar':
             if 'action' in entities:
                 action = entities['action']
@@ -915,7 +915,7 @@ class AIHelper:
                 return f"I'll show you your calendar for {entities['period']}."
             else:
                 return "I can help you manage your calendar. What would you like to do?"
-        
+
         elif intent == 'google_sheets':
             if 'action' in entities:
                 action = entities['action']
@@ -954,7 +954,7 @@ class AIHelper:
                 return f"I'll open the spreadsheet '{entities['spreadsheet_name']}' for you."
             else:
                 return "I can help you with Google Sheets. What would you like to do?"
-        
+
         elif intent == 'weather':
             return "I can check the weather for you. Which location are you interested in?"
         elif intent == 'task':
@@ -969,44 +969,44 @@ ai_helper = AIHelper()
 
 def get_ai_helper() -> AIHelper:
     """Get the singleton instance of AIHelper"""
-    return ai_helper 
+    return ai_helper
 
 def generate_ai_text(prompt, model="gpt-3.5-turbo", max_tokens=1000, temperature=0.7):
     """
     Generate text using AI
-    
+
     Args:
         prompt: Text prompt for generation
-        model: AI model to use 
+        model: AI model to use
         max_tokens: Maximum tokens to generate
         temperature: Creativity factor (0.0-1.0)
-        
+
     Returns:
         Generated text
     """
     try:
         ai_client = get_cost_optimized_ai()
-        
+
         # Determine complexity based on prompt and parameters
         complexity = TaskComplexity.STANDARD
         if max_tokens > 1500 or temperature > 0.8:
             complexity = TaskComplexity.COMPLEX
         elif max_tokens < 300 and temperature < 0.3:
             complexity = TaskComplexity.BASIC
-            
+
         messages = [
             {"role": "system", "content": "You are a helpful assistant for a recovery-focused application."},
             {"role": "user", "content": prompt}
         ]
-        
+
         result = ai_client.chat_completion(messages, max_tokens=max_tokens, temperature=temperature, complexity=complexity)
-        
+
         if result.get("success"):
             return result.get("response", "Unable to generate response")
         else:
             logger.warning(f"AI text generation failed: {result.get('error')}")
             return "AI service temporarily unavailable. Please try again shortly."
-            
+
     except Exception as e:
         logger.error(f"Error generating AI text: {str(e)}")
         return f"Error generating text: {str(e)}"
@@ -1014,18 +1014,18 @@ def generate_ai_text(prompt, model="gpt-3.5-turbo", max_tokens=1000, temperature
 def analyze_document_content(content, analysis_type="general", max_tokens=1000):
     """
     Analyze document content using AI
-    
+
     Args:
         content: Text content to analyze
         analysis_type: Type of analysis to perform (general, sentiment, therapeutic)
         max_tokens: Maximum tokens for the response
-        
+
     Returns:
         Analysis results as a dictionary
     """
     try:
         ai_client = get_cost_optimized_ai()
-        
+
         # Select the appropriate prompt based on analysis type
         if analysis_type == "sentiment":
             system_prompt = "You are an emotional intelligence expert. Analyze the sentiment and emotional content of the provided text."
@@ -1036,20 +1036,20 @@ def analyze_document_content(content, analysis_type="general", max_tokens=1000):
         else:  # general analysis
             system_prompt = "You are a document analysis assistant. Analyze the provided text and extract key information."
             user_prompt = "Analyze this document content and provide a comprehensive assessment. Format your response as JSON with keys for 'summary', 'key_topics', 'action_items', 'main_theme', and 'insights'."
-        
+
         # Truncate content if too long
         if len(content) > 10000:
             content = content[:10000] + "...[content truncated]"
-        
+
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
             {"role": "user", "content": content}
         ]
-        
+
         # Use complex reasoning for detailed analysis
         result = ai_client.chat_completion(messages, max_tokens=max_tokens, temperature=0.5, complexity=TaskComplexity.COMPLEX)
-        
+
         if result.get("success"):
             analysis_text = result.get("response", "{}")
             try:
@@ -1065,7 +1065,7 @@ def analyze_document_content(content, analysis_type="general", max_tokens=1000):
         else:
             logger.warning(f"Document analysis failed: {result.get('error')}")
             return {"error": "AI analysis temporarily unavailable. Please try again shortly."}
-            
+
     except Exception as e:
         logger.error(f"Error analyzing document content: {str(e)}")
         return {"error": str(e)}
@@ -1073,19 +1073,19 @@ def analyze_document_content(content, analysis_type="general", max_tokens=1000):
 def generate_recovery_content(topic, format_type="journal_prompt", recovery_program="general", max_tokens=500):
     """
     Generate recovery-specific content
-    
+
     Args:
         topic: Recovery topic or theme
         format_type: Type of content to generate (journal_prompt, reflection, exercise)
         recovery_program: Recovery program context (aa, dbt, general)
         max_tokens: Maximum tokens for the response
-        
+
     Returns:
         Generated recovery content
     """
     try:
         ai_client = get_cost_optimized_ai()
-        
+
         # Create a context-appropriate prompt based on the recovery program
         if recovery_program.lower() == "aa":
             system_prompt = "You are an experienced AA sponsor with deep knowledge of 12-step recovery. Provide supportive, non-judgmental guidance focused on the principles of Alcoholics Anonymous."
@@ -1093,7 +1093,7 @@ def generate_recovery_content(topic, format_type="journal_prompt", recovery_prog
             system_prompt = "You are a DBT therapist assistant with expertise in dialectical behavior therapy. Provide balanced, skills-focused guidance that incorporates DBT principles and techniques."
         else:
             system_prompt = "You are a recovery support specialist with broad knowledge of recovery principles. Provide supportive, evidence-based guidance for people in recovery."
-        
+
         # Create a format-appropriate prompt
         if format_type == "journal_prompt":
             user_prompt = f"Create a thoughtful journal prompt about {topic} that encourages deep reflection on recovery. The prompt should be specific, thought-provoking, and recovery-oriented."
@@ -1103,21 +1103,21 @@ def generate_recovery_content(topic, format_type="journal_prompt", recovery_prog
             user_prompt = f"Design a practical exercise related to {topic} that someone in recovery can complete. Include clear steps, a purpose statement, and reflection questions."
         else:
             user_prompt = f"Create recovery-focused content about {topic}. Make it supportive, insightful, and practical for someone in recovery."
-        
+
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
         ]
-        
+
         # Use standard complexity for recovery content generation
         result = ai_client.chat_completion(messages, max_tokens=max_tokens, temperature=0.7, complexity=TaskComplexity.STANDARD)
-        
+
         if result.get("success"):
             return result.get("response", "Recovery content generation temporarily unavailable")
         else:
             logger.warning(f"Recovery content generation failed: {result.get('error')}")
             return "Recovery content generation temporarily unavailable. Please try again shortly."
-            
+
     except Exception as e:
         logger.error(f"Error generating recovery content: {str(e)}")
-        return f"Error generating content: {str(e)}" 
+        return f"Error generating content: {str(e)}"
