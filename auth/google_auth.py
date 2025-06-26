@@ -47,8 +47,12 @@ def _load_client_secret():
         logger.error(f"Error loading client_secret.json: {str(e)}")
     return {}
 
-# Get credentials from environment or client_secret.json
+# Load credentials and set environment variables if not already set
 creds = _load_client_secret()
+if creds.get('client_id') and not os.environ.get('GOOGLE_CLIENT_ID'):
+    os.environ['GOOGLE_CLIENT_ID'] = creds.get('client_id')
+if creds.get('client_secret') and not os.environ.get('GOOGLE_CLIENT_SECRET'):
+    os.environ['GOOGLE_CLIENT_SECRET'] = creds.get('client_secret')
 
 # OAuth configuration
 CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID') or creds.get('client_id')

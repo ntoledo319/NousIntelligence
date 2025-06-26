@@ -38,6 +38,13 @@ def create_app():
         response.headers['X-Replit-Auth'] = 'false'
         return response
     
+    # Register health API blueprint
+    try:
+        from routes.health_api import health_api_bp
+        app.register_blueprint(health_api_bp)
+    except ImportError as e:
+        logger.warning(f"Could not register health API blueprint: {e}")
+    
     # Main routes
     @app.route('/')
     def index():
@@ -147,12 +154,21 @@ app = create_app()
 
 def main():
     """Main entry point"""
+    # Load Google OAuth credentials at startup
+    try:
+        from load_credentials import load_google_credentials
+        load_google_credentials()
+    except Exception as e:
+        logger.warning(f"Could not load Google credentials: {e}")
+    
     port = int(os.environ.get('PORT', 8080))
     
     logger.info("=" * 60)
     logger.info("NOUS Personal Assistant - Unified Application")
     logger.info(f"Starting server on http://0.0.0.0:{port}")
     logger.info("Public access enabled (no Replit login required)")
+    logger.info("Google OAuth integration available")
+    logger.info("API health checks available at /api/health")
     logger.info("=" * 60)
     
     try:
