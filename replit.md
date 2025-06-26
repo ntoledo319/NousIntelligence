@@ -26,10 +26,11 @@ NOUS Personal Assistant is a Flask-based web application designed to provide int
 
 ## Key Components
 
-### 1. Application Factory Pattern
-- **Main Entry Points**: Multiple deployment configurations (`app.py`, `deployment.py`, `main.py`)
-- **Configuration**: Environment-based configuration with secure defaults
-- **Modular Design**: Separates concerns between routing, models, and utilities
+### 1. Unified Application Architecture
+- **Single Entry Point**: `nous_app.py` - consolidated authoritative application
+- **Clean Launcher**: `main.py` - simple entry point that launches the unified app
+- **Streamlined Configuration**: Single `replit.toml` for deployment
+- **Eliminated Redundancy**: Removed 15+ duplicate application files and 10+ deployment scripts
 
 ### 2. Database Layer
 - **ORM**: SQLAlchemy with declarative base
@@ -124,6 +125,7 @@ Route Handler → SQLAlchemy Model → Database Query → Result Processing → 
 ## Changelog
 - June 26, 2025. Initial setup
 - June 26, 2025. Fixed landing page and Google OAuth authentication system
+- June 26, 2025. MAJOR REFACTOR: Consolidated all redundant entry points into single unified application (`nous_app.py`). Eliminated 15+ duplicate app files, 10+ deployment scripts, and redundant documentation. Moved all obsolete files to `backup/consolidated_redundant_files/`. Updated configuration to use unified entry point. Application now runs cleanly with single command via `main.py`.
 
 ## User Preferences
 
