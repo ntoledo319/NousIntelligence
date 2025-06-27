@@ -165,7 +165,7 @@ def list_endpoints():
             if rule.rule.startswith('/api/'):
                 endpoints.append({
                     'endpoint': rule.rule,
-                    'methods': list(rule.methods - {'HEAD', 'OPTIONS'}),
+                    'methods': list((rule.methods or set()) - {'HEAD', 'OPTIONS'}),
                     'function': rule.endpoint
                 })
     
