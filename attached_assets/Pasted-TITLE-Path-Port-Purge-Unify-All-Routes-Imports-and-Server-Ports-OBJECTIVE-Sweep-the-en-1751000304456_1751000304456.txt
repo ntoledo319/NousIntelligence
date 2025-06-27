@@ -1,0 +1,47 @@
+TITLE: “Path & Port Purge — Unify All Routes, Imports, and Server Ports”
+
+OBJECTIVE
+• Sweep the **entire codebase** for:
+  – Hard-coded relative import paths (‘../../src/foo.js’, etc.).  
+  – Duplicate route strings or mismatched API endpoints.  
+  – Mixed or hard-coded port numbers (3000, 5000, 5173, 8000, etc.).  
+• Normalize everything so:
+  – **All server entry points** listen with `const PORT = process.env.PORT || 3000` (Node) or equivalent (`FLASK_RUN_PORT`, etc.).  
+  – Front-end dev servers (Vite, React, etc.) respect the same variable or `5173`.  
+  – Path imports use **project-root aliases** (e.g. `@/components/Button`) instead of long relative chains.  
+  – Express/Flask route strings use a single base prefix (`/api/v1`) stored in `config.js`/`config.py`.
+• Update build tooling (`webpack.config.js`, `vite.config.js`, `tsconfig.json`, etc.) to register those aliases.
+• Auto-patch any client-side fetch calls to hit `${BASE_URL || ""}/api/v1` so staging/prod swaps are painless.
+• **Do NOT** touch `.replit` or deployment YAMLs unless they reference hard-coded ports—then patch them.
+• Scan secrets & env vars; move any stray port numbers or base paths into Replit Secrets.
+• Generate `PORT_README.md` summarizing the new rules and a grep report of what was changed.
+
+TASK LIST
+1. **Audit Phase**: grep repo for `:[0-9]{3,5}` and `../` import chains; log matches in `audit.log`.
+2. **Refactor Imports**:  
+   – Create `alias.config.json` mapping `@` → `/src` (or appropriate root).  
+   – Rewrite imports using that alias.  
+   – Update bundler configs (`webpack`, `vite`, `tsconfig`, etc.).
+3. **Route Refactor**:  
+   – Extract all Express/Flask/Koa/FastAPI base paths to `BASE_PATH` constant.  
+   – Ensure `router.use(BASE_PATH, …)` or blueprint prefix.  
+4. **Port Standardization**:  
+   – Replace any `listen(8080|5173|5000|8000)` with env-based fallback.  
+   – For language X, follow its doc-approved pattern:
+       • Node/Express → `process.env.PORT || 3000`  
+       • Flask → `int(os.getenv("FLASK_RUN_PORT", 3000))`  
+       • Go → `os.LookupEnv("PORT")` default `:3000`  
+   – Flag any secondary services that still require separate ports (e.g. Redis). Leave them untouched.
+5. **Secrets Migration**: move hard-coded ports / base URLs into Replit Secrets `PORT`, `BASE_PATH`, `BASE_URL`.
+6. **Static Assets**: if using `express.static`, ensure virtual prefix (`/static`) is uniform — update calls accordingly.
+7. **Acceptance Tests**: run `npm test` / `pytest`; spin up dev server; ping health check `GET /api/v1/health`.
+8. **Docs & Commit**: write `PORT_README.md` + update `README.md`; commit “chore(refactor): unify paths & ports”.
+
+ACCEPTANCE CRITERIA
+✓ Zero hard-coded ports outside designated env vars.  
+✓ All imports resolved via root aliases; no `../../` chains > two levels.  
+✓ One base API prefix across services.  
+✓ Build & tests pass; server reachable on `$PORT`.  
+✓ `audit.log` attached to commit with before/after counts.
+
+END OF PROMPT
