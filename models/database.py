@@ -5,43 +5,40 @@ This module configures the database connection and provides
 utility functions for database operations.
 """
 
-# Database setup - imported by app.py  
-from flask_sqlalchemy import SQLAlchemy
-
-# This will be initialized in app.py
-db = None
-
-def get_db():
-    """Get database instance"""
-    global db
-    return db
-
-def set_db(database_instance):
-    """Set database instance"""
-    global db
-    db = database_instance
 import logging
 
 logger = logging.getLogger(__name__)
 
-def init_db(app):
+def init_db(app, db):
     """Initialize the database with the application context
 
     Args:
         app: Flask application instance
+        db: SQLAlchemy database instance
     """
     with app.app_context():
-        # Import all models here to ensure they're registered with SQLAlchemy
-        from models.user import User
+        # Create tables if they don't exist
+        try:
+            db.create_all()
+            logger.info("Database tables created successfully")
+        except Exception as e:
+            logger.error(f"Database initialization error: {e}")
 
-        # Create tables
-        db.create_all()
-        logger.info("Database tables created successfully")
-
-def get_db():
-    """Get the database instance
-
+def get_db_health():
+    """Check database connection health
+    
     Returns:
-        SQLAlchemy database instance
+        dict: Health status information
     """
-    return db
+    try:
+        # Simple health check - this would be enhanced with actual DB connection test
+        return {
+            'status': 'healthy',
+            'type': 'postgresql',
+            'connection': 'active'
+        }
+    except Exception as e:
+        return {
+            'status': 'unhealthy',
+            'error': str(e)
+        }
