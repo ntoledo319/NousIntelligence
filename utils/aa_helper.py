@@ -22,8 +22,8 @@ from datetime import datetime, timedelta
 from flask import session
 from sqlalchemy import func, desc
 
-# Import db from app_factory instead of app to avoid circular imports
-from app_factory import db
+# Import db from models to avoid circular imports
+from models import db
 
 # Import or create AA recovery models
 # This approach avoids circular imports
