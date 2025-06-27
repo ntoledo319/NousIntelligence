@@ -1,0 +1,48 @@
+TITLE: “Doc Rebuild v2 — Checkpointed & Dependency-Aware”
+
+# ————— 0. PREP —————
+• Install missing CLIs & plugins:  
+  replit.nix += { pkgs.jdk17, pkgs.gradle, pkgs.nodejs, pkgs.git, pkgs.graphviz };  
+  npm i -g markdown-link-check lighthouse-ci;  
+  ./gradlew detekt dokkaGfm dokkaHtml --no-daemon;  
+  ./gradlew ktorOpenApiGenerate;  # if Ktor plugin present  
+• Make checkpoint “deps-installed”.
+
+# ————— 1. SOURCE SCAN —————
+• Run detekt CLI ⇒ reports/html/detekt.html.  
+• Run Dokka (HTML + GFM) ⇒ docs/dokka/.  
+• Export OpenAPI 3.1 ⇒ docs/api/openapi.yaml and spin Swagger UI at /docs/api.  
+• Introspect Exposed schema ⇒ docs/mermaid/schema.mmd.  
+• Make checkpoint “raw-docs”.
+
+# ————— 2. STANDARD FILE ENFORCER —————
+For each file below, create if missing OR patch existing front-matter only:  
+  README.md · LICENSE · CONTRIBUTING.md · CODE_OF_CONDUCT.md (Contributor Covenant v2.1) · SECURITY.md · CHANGELOG.md (Keep-a-Changelog) · ARCHITECTURE.md.  
+Insert project name, year, and author placeholders where required.  
+Checkpoint “std-files-ok”.
+
+# ————— 3. QUALITY GATES —————
+• markdown-link-check **all** markdown. Fail build on any 4xx/5xx.  
+• lighthouse-ci autorun on docs build; enforce perf ≥ 90 & a11y ≥ 90.  
+Checkpoint “quality-green”.
+
+# ————— 4. CI / CD —————
+• Add `.github/workflows/docs.yml` that:  
+  – Runs steps 1-3 on push to main.  
+  – Uses peaceiris/actions-gh-pages to deploy `docs/` to `gh-pages`.  
+  – Caches Gradle + npm for speed.  
+Checkpoint “ci-ready”.
+
+# ————— 5. MERGE & RELEASE —————
+• Replace body content of existing docs (keep filenames).  
+• Append CHANGELOG entry “Rebuilt docs from live code – $(date +%Y-%m-%d)”.  
+• Commit: `docs(rebuild): checkpointed regen + std-file enforcement`.
+
+ACCEPTANCE CRITERIA
+✓ Dokka HTML/GFM render, Swagger UI live, Mermaid diagrams display.  
+✓ README, LICENSE, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, CHANGELOG, ARCHITECTURE all present.  
+✓ detekt report shows 0 **defect** severities.  
+✓ markdown-link-check & Lighthouse pass.  
+✓ Workflow deploys to `gh-pages` without errors.
+
+END OF PROMPT
