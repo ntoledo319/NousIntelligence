@@ -1,15 +1,3 @@
-
----
-**MIGRATION NOTICE**: This file contains legacy information and may be outdated.
-
-**Current Documentation**: 
-- Complete documentation: `make docs && make serve-docs`
-- API documentation: `/api/docs/` (when app is running)
-- Architecture guide: `docs/architecture.rst`
-
-**Last Updated**: June 27, 2025
----
-
 # NOUS Architecture Documentation
 
 *Generated: 2025-06-26 21:23:30*
@@ -50,8 +38,8 @@ NOUS Personal Assistant follows a modular, chat-first architecture designed for 
 Routes are distributed across 56 files:
 - `api_documentation.py`: 2 routes
 - `cleanup/app.py`: 93 routes
-- `app.py`: 6 routes
-- `app.py`: 9 routes
+- `minimal_public_app.py`: 6 routes
+- `nous_surgical_app.py`: 9 routes
 - `routes/aa_content.py`: 11 routes
 - `routes/aa_routes.py`: 1 routes
 - `routes/admin_routes.py`: 2 routes
@@ -98,7 +86,7 @@ Routes are distributed across 56 files:
 - `routes/voice_emotion_routes.py`: 2 routes
 - `routes/voice_mindfulness_routes.py`: 5 routes
 - `routes/voice_routes.py`: 7 routes
-- `app.py`: 6 routes
+- `surgical_nous_app.py`: 6 routes
 - `tests/test_api_key_manager.py`: 2 routes
 - `tests/test_jwt_auth.py`: 2 routes
 - `tests/test_schema_validation.py`: 2 routes

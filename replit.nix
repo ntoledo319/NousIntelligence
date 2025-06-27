@@ -1,6 +1,5 @@
 { pkgs }: {
   deps = [
-    pkgs.graphviz
     pkgs.python311
     pkgs.python311Packages.flask
     pkgs.python311Packages.flask-login

@@ -1,15 +1,3 @@
-
----
-**MIGRATION NOTICE**: This file contains legacy information and may be outdated.
-
-**Current Documentation**: 
-- Complete documentation: `make docs && make serve-docs`
-- API documentation: `/api/docs/` (when app is running)
-- Architecture guide: `docs/architecture.rst`
-
-**Last Updated**: June 27, 2025
----
-
 # CODEBASE PURGE OPERATION REPORT
 
 Generated: Thu Jun 26 09:17:04 PM UTC 2025
@@ -84,7 +72,7 @@ These files appear unused but might be referenced dynamically:
 - `utils/url_utils.py`
 - `templates/meet/analysis_result.html`
 - `templates/beta/features.html`
-- `routes/api/v1/health.py`
+- `routes/api/health.py`
 - `utils/dbt_emotion_helper.py`
 - `utils/ai_integration.py`
 - `utils/smart_shopping.py`

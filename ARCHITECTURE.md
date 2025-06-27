@@ -1,53 +1,27 @@
-# NOUS Personal Assistant - System Architecture
+# NOUS Architecture - Scorched Earth Rebuild
 
-## Overview
+## System Overview
 
-NOUS Personal Assistant follows a layered monolithic architecture optimized for simplicity, maintainability, and cost-effectiveness while providing enterprise-grade features. The system implements comprehensive backend stability, beta testing infrastructure, and cost-optimized AI integration.
+The NOUS Personal Assistant has been completely rebuilt using a modern, streamlined architecture focused on Google-only authentication and professional chat interface. This document outlines the technical architecture and design decisions.
 
-**Current Status**: Production-ready with comprehensive documentation, health monitoring, and beta management capabilities.
-
-## System Architecture Diagram
+## Architecture Diagram
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Presentation Layer                    │
-│  ┌─────────────────┐  ┌─────────────────┐ ┌──────────┐  │
-│  │   Landing Page  │  │   Chat Interface │ │ Admin UI │  │
-│  │  (Public Access)│  │ (Authenticated) │ │(Admin)   │  │
-│  └─────────────────┘  └─────────────────┘ └──────────┘  │
-└─────────────────────────────────────────────────────────┘
-                                │
-┌─────────────────────────────────────────────────────────┐
-│                   Application Layer                     │
-│  ┌─────────────────┐  ┌─────────────────┐ ┌──────────┐  │
-│  │  Flask Router   │  │ Authentication  │ │Middleware│  │
-│  │   (Routes)      │  │   (OAuth)       │ │(ProxyFix)│  │
-│  └─────────────────┘  └─────────────────┘ └──────────┘  │
-└─────────────────────────────────────────────────────────┘
-                                │
-┌─────────────────────────────────────────────────────────┐
-│                    Business Layer                       │
-│  ┌─────────────────┐  ┌─────────────────┐ ┌──────────┐  │
-│  │  Chat Handler   │  │  Health Monitor │ │Beta Mgmt │  │
-│  │  (AI Integration│  │ (System Status) │ │(Features)│  │
-│  └─────────────────┘  └─────────────────┘ └──────────┘  │
-└─────────────────────────────────────────────────────────┘
-                                │
-┌─────────────────────────────────────────────────────────┐
-│                     Data Layer                          │
-│  ┌─────────────────┐  ┌─────────────────┐ ┌──────────┐  │
-│  │   SQLAlchemy    │  │   File Storage  │ │  Cache   │  │
-│  │  (PostgreSQL)   │  │   (Sessions)    │ │(Memory)  │  │
-│  └─────────────────┘  └─────────────────┘ └──────────┘  │
-└─────────────────────────────────────────────────────────┘
-                                │
-┌─────────────────────────────────────────────────────────┐
-│                  External Services                      │
-│  ┌─────────────────┐  ┌─────────────────┐ ┌──────────┐  │
-│  │   OpenRouter    │  │  HuggingFace    │ │Google    │  │
-│  │   (AI Models)   │  │  (Free AI)      │ │(OAuth)   │  │
-│  └─────────────────┘  └─────────────────┘ └──────────┘  │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   User Browser  │────│  Replit Proxy   │────│   Flask App     │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                        │                        │
+         │                        │                        │
+         ▼                        ▼                        ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ Chat Interface  │    │  ProxyFix       │    │  Session Store  │
+│ (HTML/CSS/JS)   │    │  Middleware     │    │  (Flask)        │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                                              │
+         │              ┌─────────────────┐            │
+         └──────────────│  Google OAuth   │────────────┘
+                        │   Service       │
+                        └─────────────────┘
 ```
 
 ## Application Stack
@@ -120,8 +94,8 @@ def create_app():
 - Mobile-responsive layout
 
 **Backend API:**
-- `/api/v1/chat` - Send/receive messages
-- `/api/v1/user` - Get user information
+- `/api/chat` - Send/receive messages
+- `/api/user` - Get user information
 - Authentication middleware on all API routes
 
 ### 4. Theme System
@@ -197,10 +171,10 @@ nous-personal-assistant/
 │   ├── styles.css        # CSS with theme system
 │   ├── app.js           # Chat application logic
 │   └── favicon.ico      # Application favicon
-├── backup-12-27-2025/   # Pre-rebuild backup
+├── backup-12-27-2024/   # Pre-rebuild backup
 ├── replit.toml          # Replit configuration
 ├── README.md            # User documentation
-└── docs/architecture.rst      # This file
+└── ARCHITECTURE.md      # This file
 ```
 
 ## Design Patterns
@@ -317,4 +291,4 @@ nous-personal-assistant/
 
 ---
 
-This architecture document reflects the current state of the NOUS Personal Assistant after the Comprehensive Documentation System. The system is designed for simplicity, security, and scalability while maintaining a professional user experience.
+This architecture document reflects the current state of the NOUS Personal Assistant after the Scorched Earth rebuild. The system is designed for simplicity, security, and scalability while maintaining a professional user experience.
