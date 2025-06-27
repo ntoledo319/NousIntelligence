@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deployment Guide - NOUS Documentation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            line-height: 1.6;
+            background: #fafafa;
+        }
+        
+        .content {
+            background: white;
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #2563eb;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+        
+        h2 {
+            color: #1e40af;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 0.3rem;
+            margin-top: 2rem;
+        }
+        
+        h3 {
+            color: #1f2937;
+            margin-top: 1.5rem;
+        }
+        
+        code {
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.875rem;
+        }
+        
+        pre {
+            background: #f8f9fa;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+        
+        pre code {
+            background: none;
+            padding: 0;
+        }
+        
+        p {
+            margin: 1rem 0;
+        }
+        
+        strong {
+            color: #374151;
+            font-weight: 600;
+        }
+        
+        em {
+            color: #6b7280;
+            font-style: italic;
+        }
+        
+        .navigation {
+            background: #2563eb;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        
+        .navigation a {
+            color: white;
+            text-decoration: none;
+            margin-right: 1rem;
+        }
+        
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="index.html">Home</a>
+        <a href="overview.html">Overview</a>
+        <a href="installation.html">Installation</a>
+        <a href="api_reference.html">API Reference</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="development.html">Development</a>
+        <a href="deployment.html">Deployment</a>
+        <a href="troubleshooting.html">Troubleshooting</a>
+        <a href="changelog.html">Changelog</a>
+    </div>
+    
+    <div class="content">
+        <h1>Deployment Guide</h1>
+<br>
+<p>This guide covers deployment strategies for NOUS Personal Assistant, with primary focus on Replit Cloud deployment and alternative deployment options.</p>
+<br>
+<h2>Replit Cloud Deployment</h2>
+<br>
+<p>NOUS is optimized for seamless deployment on Replit Cloud with minimal configuration.</p>
+<br>
+<h3>Prerequisites</h3>
+<br>
+<em> Replit account with appropriate subscription
+<em> Google OAuth credentials configured
+<em> PostgreSQL database (automatically provided by Replit)
+<br>
+<h3>One-Click Deployment</h3>
+<br>
+<p>1. <strong>Import Project<strong></p>
+<br>
+<p>   - Fork or import the repository to your Replit workspace</p>
+<p>   - Replit automatically detects the Python environment</p>
+<br>
+<p>2. <strong>Configure Secrets<strong></p>
+<br>
+<p>   Navigate to Secrets tab and add:</p>
+<br>
+<pre><code>
+   
+   GOOGLE_CLIENT_ID=your_google_client_id
+   GOOGLE_CLIENT_SECRET=your_google_client_secret
+   OPENROUTER_API_KEY=your_openrouter_key  # Optional
+   HUGGINGFACE_API_KEY=your_hf_key         # Optional
+
+</code></pre>
+<p>3. <strong>Deploy<strong></p>
+<br>
+<p>   - Click the Run button or use <code>python main.py<code></p>
+<p>   - Application automatically starts on port 5000</p>
+<p>   - Public URL generated automatically</p>
+<br>
+<h3>Configuration Files</h3>
+<br>
+<strong>replit.toml<strong> (Deployment Configuration):
+<br>
+<pre><code>
+
+run = ["python3", "main.py"]
+
+[deployment]
+run = ["python3", "main.py"]
+deploymentTarget = "cloudrun"
+
+[env]
+PORT = "5000"
+FLASK_ENV = "production"
+PUBLIC_MODE = "true"
+
+[auth]
+pageEnabled = false
+buttonEnabled = false
+
+</code></pre>
+<strong>replit.nix<strong> (Environment Dependencies):
+<br>
+<pre><code>
+
+{ pkgs }: {
+  deps = [
+    pkgs.python311
+    pkgs.python311Packages.pip
+    pkgs.graphviz
+    # Additional system dependencies
+  ];
+}
+
+</code></pre>
+<h3>Health Monitoring</h3>
+<br>
+<p>Replit provides built-in monitoring. Additional health checks available at:</p>
+<br>
+<em> <code>/health<code> - Basic application health
+<em> <code>/healthz<code> - Comprehensive system health
+<em> <code>/api/health/chat<code> - Chat system health
+<br>
+<h3>Production Considerations</h3>
+<br>
+<strong>Environment Variables:<strong>
+<br>
+<pre><code>
+
+# Automatic Replit variables
+REPL_ID=your-repl-id
+REPL_SLUG=your-repl-slug
+REPLIT_DB_URL=your-database-url
+
+# Application variables
+DATABASE_URL=${REPLIT_DB_URL}
+PORT=5000
+FLASK_ENV=production
+PUBLIC_MODE=true
+
+</code></pre>
+<strong>Performance Optimization:<strong>
+<br>
+<em> Database connection pooling configured for Replit
+<em> Static asset serving optimized
+<em> Memory usage monitored via <code>/healthz<code>
+<br>
+<h2>Alternative Deployment Options</h2>
+<br>
+<h3>Heroku Deployment</h3>
+<br>
+<strong>Prerequisites:<strong>
+<br>
+<em> Heroku account and CLI installed
+<em> PostgreSQL add-on
+<br>
+<strong>Setup:<strong>
+<br>
+<pre><code>
+
+# Create Heroku app
+heroku create your-app-name
+
+# Add PostgreSQL
+heroku addons:create heroku-postgresql:hobby-dev
+
+# Set environment variables
+heroku config:set FLASK_ENV=production
+heroku config:set GOOGLE_CLIENT_ID=your_client_id
+heroku config:set GOOGLE_CLIENT_SECRET=your_client_secret
+
+# Deploy
+git push heroku main
+
+</code></pre>
+<strong>Procfile:<strong>
+<br>
+<pre><code>
+
+web: gunicorn --bind 0.0.0.0:$PORT main:app
+
+</code></pre>
+<h3>Docker Deployment</h3>
+<br>
+<strong>Dockerfile:<strong>
+<br>
+<pre><code>
+
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY . .
+
+# Create non-root user
+RUN adduser --disabled-password --gecos '' appuser
+RUN chown -R appuser:appuser /app
+USER appuser
+
+# Expose port
+EXPOSE 5000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:5000/health || exit 1
+
+# Start application
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "main:app"]
+
+</code></pre>
+<strong>docker-compose.yml:<strong>
+<br>
+<pre><code>
+
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/nous
+      - FLASK_ENV=production
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=nous
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+</code></pre>
+<strong>Build and Deploy:<strong>
+<br>
+<pre><code>
+
+# Build image
+docker build -t nous-assistant .
+
+# Run with Docker Compose
+docker-compose up -d
+
+# Check logs
+docker-compose logs -f web
+
+</code></pre>
+<h3>DigitalOcean App Platform</h3>
+<br>
+<strong>app.yaml:<strong>
+<br>
+<pre><code>
+
+name: nous-assistant
+
+services:
+- name: web
+  source_dir: /
+  github:
+    repo: your-username/nous-personal-assistant
+    branch: main
+  run_command: gunicorn --bind 0.0.0.0:$PORT main:app
+  environment_slug: python
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  
+  envs:
+  - key: FLASK_ENV
+    value: production
+  - key: GOOGLE_CLIENT_ID
+    value: ${GOOGLE_CLIENT_ID}
+    type: SECRET
+  - key: GOOGLE_CLIENT_SECRET  
+    value: ${GOOGLE_CLIENT_SECRET}
+    type: SECRET
+  
+  health_check:
+    http_path: /health
+
+databases:
+- name: db
+  engine: PG
+  version: "13"
+
+</code></pre>
+<h3>AWS Elastic Beanstalk</h3>
+<br>
+<strong>requirements.txt<strong> (must include):
+<br>
+<pre><code>
+
+flask==3.0.0
+gunicorn==21.2.0
+# ... other dependencies
+
+</code></pre>
+<strong>application.py<strong> (EB entry point):
+<br>
+<pre><code>
+
+from main import app
+
+if __name__ == "__main__":
+    app.run()
+
+</code></pre>
+<strong>.ebextensions/python.config:<strong>
+<br>
+<pre><code>
+
+option_settings:
+  aws:elasticbeanstalk:container:python:
+    WSGIPath: application.py
+  aws:elasticbeanstalk:application:environment:
+    FLASK_ENV: production
+
+</code></pre>
+<h2>Environment Configuration</h2>
+<br>
+<h3>Development Environment</h3>
+<br>
+<pre><code>
+
+# .env.development
+FLASK_ENV=development
+FLASK_DEBUG=True
+DATABASE_URL=sqlite:///instance/nous.db
+BASE_URL=http://localhost:5000
+PORT=5000
+
+</code></pre>
+<h3>Staging Environment</h3>
+<br>
+<pre><code>
+
+# .env.staging
+FLASK_ENV=staging
+FLASK_DEBUG=False
+DATABASE_URL=postgresql://user:pass@staging-db/nous
+BASE_URL=https://staging-nous.example.com
+PORT=5000
+
+</code></pre>
+<h3>Production Environment</h3>
+<br>
+<pre><code>
+
+# .env.production
+FLASK_ENV=production
+FLASK_DEBUG=False
+DATABASE_URL=${DATABASE_URL}  # Provided by platform
+BASE_URL=https://your-app.replit.app
+PORT=5000
+
+# Security
+SESSION_SECRET=${SESSION_SECRET}  # Strong random key
+
+# OAuth
+GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+
+# AI Services
+OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+
+</code></pre>
+<h2>SSL/TLS Configuration</h2>
+<br>
+<h3>Replit Cloud (Automatic)</h3>
+<br>
+<em> SSL certificates automatically managed
+<em> HTTPS enforced by default
+<em> Custom domains supported with SSL
+<br>
+<h3>Manual SSL Setup</h3>
+<br>
+<p>For self-hosted deployments:</p>
+<br>
+<pre><code>
+
+# nginx configuration
+server {
+    listen 80;
+    server_name your-domain.com;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com;
+    
+    ssl_certificate /path/to/certificate.crt;
+    ssl_certificate_key /path/to/private.key;
+    
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512;
+    ssl_prefer_server_ciphers off;
+    
+    location / {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+</code></pre>
+<h2>Database Migration</h2>
+<br>
+<h3>PostgreSQL Setup</h3>
+<br>
+<strong>For production deployments:<strong>
+<br>
+<pre><code>
+
+# Create database
+createdb nous_production
+
+# Create user
+createuser --interactive nous_user
+
+# Grant permissions
+psql -c "GRANT ALL PRIVILEGES ON DATABASE nous_production TO nous_user;"
+
+</code></pre>
+<strong>Connection string:<strong>
+<br>
+<pre><code>
+
+DATABASE_URL=postgresql://nous_user:password@host:5432/nous_production
+
+</code></pre>
+<h3>Data Migration</h3>
+<br>
+<pre><code>
+
+# Migration script
+from app import app, db
+import json
+
+def migrate_data():
+    """Migrate data between environments."""
+    with app.app_context():
+        # Export data
+        users = User.query.all()
+        user_data = [user.to_dict() for user in users]
+        
+        with open('user_backup.json', 'w') as f:
+            json.dump(user_data, f)
+        
+        print(f"Exported {len(users)} users")
+
+</code></pre>
+<h2>Monitoring and Logging</h2>
+<br>
+<h3>Application Monitoring</h3>
+<br>
+<strong>Health Check Endpoints:<strong>
+<br>
+<pre><code>
+
+@app.route('/health')
+def health_check():
+    """Basic health check."""
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.utcnow().isoformat()
+    })
+
+@app.route('/healthz')  
+def detailed_health():
+    """Comprehensive health check."""
+    health_data = {
+        'status': 'healthy',
+        'timestamp': datetime.utcnow().isoformat(),
+        'database': check_database_health(),
+        'external_services': check_external_services(),
+        'system': get_system_metrics()
+    }
+    
+    overall_status = 200
+    if any(service['status'] == 'unhealthy' for service in health_data.values()):
+        overall_status = 503
+        health_data['status'] = 'unhealthy'
+        
+    return jsonify(health_data), overall_status
+
+</code></pre>
+<h3>Log Management</h3>
+<br>
+<strong>Production Logging:<strong>
+<br>
+<pre><code>
+
+import logging
+from logging.handlers import RotatingFileHandler
+
+if not app.debug:
+    # File logging
+    file_handler = RotatingFileHandler(
+        'logs/nous.log', 
+        maxBytes=10240000, 
+        backupCount=10
+    )
+    file_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+    ))
+    file_handler.setLevel(logging.INFO)
+    app.logger.addHandler(file_handler)
+    
+    app.logger.setLevel(logging.INFO)
+    app.logger.info('NOUS startup')
+
+</code></pre>
+<h2>Performance Optimization</h2>
+<br>
+<h3>Database Optimization</h3>
+<br>
+<pre><code>
+
+# Connection pooling
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_size": 5,
+    "max_overflow": 15,
+    "pool_recycle": 3600,
+    "pool_pre_ping": True,
+}
+
+</code></pre>
+<h3>Caching Strategy</h3>
+<br>
+<pre><code>
+
+from flask_caching import Cache
+
+# Configure caching
+cache = Cache(app, config={
+    'CACHE_TYPE': 'simple',
+    'CACHE_DEFAULT_TIMEOUT': 300
+})
+
+@cache.cached(timeout=300)
+def get_feature_flags():
+    """Cached feature flag retrieval."""
+    return FeatureFlag.query.all()
+
+</code></pre>
+<h3>Static File Optimization</h3>
+<br>
+<pre><code>
+
+# Serve static files efficiently
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    return send_from_directory('static', filename, max_age=31536000)
+
+</code></pre>
+<h2>Security Considerations</h2>
+<br>
+<h3>Production Security Checklist</h3>
+<br>
+<em> ✅ HTTPS enabled with strong SSL configuration
+<em> ✅ Security headers configured (CSP, HSTS, etc.)
+<em> ✅ Database connections encrypted
+<em> ✅ Session cookies secure and HTTP-only
+<em> ✅ CSRF protection enabled
+<em> ✅ Input validation on all endpoints
+<em> ✅ Rate limiting implemented
+<em> ✅ Error messages don't expose sensitive information
+<em> ✅ Regular security updates applied
+<em> ✅ Access logs monitored
+<br>
+<h3>Environment Variables Security</h3>
+<br>
+<pre><code>
+
+import secrets
+
+# Generate secure session secret
+def generate_secret_key():
+    return secrets.token_hex(32)
+
+# Validate required environment variables
+required_vars = [
+    'DATABASE_URL',
+    'SESSION_SECRET', 
+    'GOOGLE_CLIENT_ID',
+    'GOOGLE_CLIENT_SECRET'
+]
+
+for var in required_vars:
+    if not os.getenv(var):
+        raise ValueError(f"Required environment variable {var} not set")
+
+</code></pre>
+<h2>Backup and Recovery</h2>
+<br>
+<h3>Database Backup</h3>
+<br>
+<pre><code>
+
+#!/bin/bash
+# backup.sh
+
+BACKUP_DIR="/backups"
+DATE=$(date +%Y%m%d_%H%M%S)
+
+# Create backup
+pg_dump $DATABASE_URL > "$BACKUP_DIR/nous_backup_$DATE.sql"
+
+# Compress backup
+gzip "$BACKUP_DIR/nous_backup_$DATE.sql"
+
+# Remove old backups (keep 30 days)
+find $BACKUP_DIR -name "nous_backup_*.sql.gz" -mtime +30 -delete
+
+</code></pre>
+<h3>Application Backup</h3>
+<br>
+<pre><code>
+
+import json
+from datetime import datetime
+
+def backup_application_data():
+    """Backup critical application data."""
+    backup_data = {
+        'timestamp': datetime.utcnow().isoformat(),
+        'users': [user.to_dict() for user in User.query.all()],
+        'feature_flags': [flag.to_dict() for flag in FeatureFlag.query.all()],
+        'feedback': [fb.to_dict() for fb in UserFeedback.query.all()]
+    }
+    
+    filename = f"app_backup_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
+    with open(filename, 'w') as f:
+        json.dump(backup_data, f, indent=2)
+    
+    return filename
+
+</code></pre>
+<h2>Troubleshooting</h2>
+<br>
+<h3>Common Deployment Issues</h3>
+<br>
+<strong>Database Connection Errors:<strong>
+<br>
+<pre><code>
+
+# Check DATABASE_URL format
+echo $DATABASE_URL
+
+# Test connection
+python -c "
+import os
+from sqlalchemy import create_engine
+engine = create_engine(os.getenv('DATABASE_URL'))
+with engine.connect() as conn:
+    print('Database connection successful')
+"
+
+</code></pre>
+<strong>OAuth Redirect Errors:<strong>
+<br>
+<em> Verify redirect URI in Google Console matches exactly
+<em> Check BASE_URL environment variable
+<em> Ensure HTTPS is properly configured
+<br>
+<strong>Port Binding Issues:<strong>
+<br>
+<pre><code>
+
+# Ensure proper port configuration
+port = int(os.environ.get('PORT', 5000))
+app.run(host='0.0.0.0', port=port)
+
+</code></pre>
+<strong>Memory Issues:<strong>
+<br>
+<em> Monitor memory usage via <code>/healthz<code>
+<em> Optimize database queries
+<em> Implement proper caching
+<br>
+<h3>Rollback Strategy</h3>
+<br>
+<pre><code>
+
+# Git-based rollback
+git log --oneline  # Find previous commit
+git revert <commit-hash>
+git push origin main
+
+# Database rollback (if using migrations)
+flask db downgrade <revision>
+
+</code></pre>
+<p>This deployment guide provides comprehensive coverage for deploying NOUS Personal Assistant across various platforms, with Replit Cloud being the primary and most streamlined option.</p>
+    </div>
+</body>
+</html>

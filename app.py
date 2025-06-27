@@ -8,7 +8,7 @@ import logging
 import urllib.parse
 import urllib.request
 from datetime import datetime
-from flask import Flask, render_template, redirect, url_for, session, request, jsonify, flash
+from flask import Flask, render_template, render_template_string, redirect, url_for, session, request, jsonify, flash
 from werkzeug.middleware.proxy_fix import ProxyFix
 from config import AppConfig, PORT, HOST, DEBUG
 
