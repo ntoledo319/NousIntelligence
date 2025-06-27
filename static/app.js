@@ -13,6 +13,8 @@ class ChatApp {
         this.initializeEventListeners();
         this.initializeTheme();
         this.setupAutoResize();
+        this.registerServiceWorker();
+        this.setupIntersectionObserver();
         
         console.log('NOUS Chat App initialized');
     }
@@ -341,6 +343,67 @@ class ChatApp {
             sender: 'system',
             timestamp: new Date()
         });
+    }
+    
+    // Service Worker registration for PWA functionality
+    async registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            try {
+                const registration = await navigator.serviceWorker.register('/static/sw.js');
+                console.log('Service Worker registered successfully:', registration);
+                
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            this.showUpdateNotification();
+                        }
+                    });
+                });
+            } catch (error) {
+                console.log('Service Worker registration failed:', error);
+            }
+        }
+    }
+    
+    showUpdateNotification() {
+        const notification = document.createElement('div');
+        notification.className = 'update-notification';
+        notification.innerHTML = `
+            <div class="notification-content">
+                <span>A new version is available!</span>
+                <button class="update-btn" onclick="window.location.reload()">Update</button>
+                <button class="dismiss-btn" onclick="this.parentElement.parentElement.remove()">×</button>
+            </div>
+        `;
+        
+        notification.style.cssText = `
+            position: fixed; top: 1rem; right: 1rem;
+            background: var(--surface-color); border: 1px solid var(--border-color);
+            border-radius: 0.5rem; padding: 1rem; z-index: 1000; max-width: 300px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        `;
+        
+        document.body.appendChild(notification);
+        setTimeout(() => notification.parentElement && notification.remove(), 10000);
+    }
+    
+    setupIntersectionObserver() {
+        if ('IntersectionObserver' in window) {
+            this.messageObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('message-visible');
+                    }
+                });
+            }, { threshold: 0.1, rootMargin: '50px' });
+        }
+    }
+    
+    observeMessage(messageElement) {
+        if (this.messageObserver) {
+            this.messageObserver.observe(messageElement);
+        }
     }
 }
 
