@@ -1,122 +1,190 @@
 # Configuration file for the Sphinx documentation builder.
 #
-# For the full list of built-in configuration values, see the documentation:
+# This file only contains a selection of the most common options. For a full
+# list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-# -- Project information -----------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
+# -- Path setup --------------------------------------------------------------
 
+# If extensions (or modules to document) are in another directory,
+# add these directories to sys.path here. If the directory is relative to the
+# documentation root, use os.path.abspath to make it absolute, like shown here.
+#
 import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 
+
+# -- Project information -----------------------------------------------------
+
 project = 'NOUS Personal Assistant'
-copyright = '2025, NOUS Team'
-author = 'NOUS Team'
+copyright = '2025, NOUS Development Team'
+author = 'NOUS Development Team'
+
+# The full version, including alpha/beta/rc tags
 release = '1.0.0'
 
-# -- General configuration ---------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
+# -- General configuration ---------------------------------------------------
+
+# Add any Sphinx extension names here, as strings. They can be
+# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
+# ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.intersphinx',
     'sphinx.ext.autosummary',
-    'sphinx_autodoc_typehints',
-    'sphinxcontrib.mermaid',
-    'autoapi.extension',
-    'myst_parser',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.doctest',
+    'sphinx.ext.coverage',
+    'sphinx.ext.ifconfig',
+    'sphinx.ext.todo',
 ]
 
-# AutoAPI settings
-autoapi_dirs = ['../']
-autoapi_type = 'python'
-autoapi_file_patterns = ['*.py']
-autoapi_ignore = [
-    '*backup*',
-    '*__pycache__*',
-    '*tests*',
-    '*venv*',
-    '*env*',
-    '*node_modules*',
-    '*flask_session*',
-    '*logs*',
-    '*uploads*',
-    '*instance*',
-    '*attached_assets*'
-]
-autoapi_options = [
-    'members',
-    'undoc-members',
-    'show-inheritance',
-    'show-module-summary',
-    'special-members',
-    'imported-members',
-]
-autoapi_member_order = 'groupwise'
-autoapi_python_class_content = 'both'
-
-# Napoleon settings
-napoleon_google_docstring = True
-napoleon_numpy_docstring = True
-napoleon_include_init_with_doc = False
-napoleon_include_private_with_doc = False
-
-# Mermaid settings
-mermaid_version = "latest"
-mermaid_init_js = "mermaid.initialize({startOnLoad:true});"
-
+# Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
+
+# List of patterns, relative to source directory, that match files and
+# directories to ignore when looking for source files.
+# This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
+# The name of the Pygments (syntax highlighting) style to use.
+pygments_style = 'sphinx'
+
 # -- Options for HTML output -------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_rtd_theme'
-html_static_path = ['_static']
-html_title = 'NOUS Personal Assistant Documentation'
-html_short_title = 'NOUS Docs'
-
-# Theme options
-html_theme_options = {
-    'analytics_id': '',
-    'logo_only': False,
-    'display_version': True,
-    'prev_next_buttons_location': 'bottom',
-    'style_external_links': False,
-    'vcs_pageview_mode': '',
-    'style_nav_header_background': '#2980B9',
-    'collapse_navigation': True,
-    'sticky_navigation': True,
-    'navigation_depth': 4,
-    'includehidden': True,
-    'titles_only': False
-}
+# The theme to use for HTML and HTML Help pages.  See the documentation for
+# a list of builtin themes.
+#
+html_theme = 'default'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_css_files = [
-    'custom.css',
-]
+html_static_path = ['_static']
 
-# Intersphinx mapping
+# -- Napoleon settings -------------------------------------------------------
+napoleon_google_docstring = True
+napoleon_numpy_docstring = True
+napoleon_include_init_with_doc = False
+napoleon_include_private_with_doc = False
+napoleon_include_special_with_doc = True
+napoleon_use_admonition_for_examples = False
+napoleon_use_admonition_for_notes = False
+napoleon_use_admonition_for_references = False
+napoleon_use_ivar = False
+napoleon_use_param = True
+napoleon_use_rtype = True
+napoleon_preprocess_types = False
+napoleon_type_aliases = None
+napoleon_attr_annotations = True
+
+# -- Intersphinx configuration -----------------------------------------------
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
     'flask': ('https://flask.palletsprojects.com/en/2.3.x/', None),
     'sqlalchemy': ('https://docs.sqlalchemy.org/en/20/', None),
 }
 
+# -- Todo extension configuration --------------------------------------------
+todo_include_todos = True
+
+# -- Autosummary configuration -----------------------------------------------
+autosummary_generate = True
+
+# -- Autodoc configuration ---------------------------------------------------
+autodoc_default_options = {
+    'members': True,
+    'member-order': 'bysource',
+    'special-members': '__init__',
+    'undoc-members': True,
+    'exclude-members': '__weakref__'
+}
+
+# Mock imports for modules that might not be available during documentation build
+autodoc_mock_imports = ['psutil', 'gunicorn']
+
+# -- HTML theme options ------------------------------------------------------
+html_theme_options = {
+    'navigation_depth': 4,
+    'titles_only': False
+}
+
+# Custom CSS
+html_css_files = [
+    'custom.css',
+]
+
+# -- Custom configuration ----------------------------------------------------
+
 # Source file suffixes
 source_suffix = {
     '.rst': None,
-    '.md': 'myst_parser',
+    '.md': 'myst',
 }
 
 # Master document
 master_doc = 'index'
 
-# Add numbered figures and tables
-numfig = True
+# Language for content autogenerated by Sphinx
+language = 'en'
+
+# The name of an image file (relative to this directory) to place at the top
+# of the sidebar.
+html_logo = None
+
+# The name of an image file (within the static path) to use as favicon of the
+# docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
+# pixels large.
+html_favicon = None
+
+# If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
+# using the given strftime format.
+html_last_updated_fmt = '%b %d, %Y'
+
+# If true, SmartyPants will be used to convert quotes and dashes to
+# typographically correct entities.
+html_use_smartypants = True
+
+# Custom sidebar templates, maps document names to template names.
+html_sidebars = {
+    '**': [
+        'relations.html',  # needs 'show_related': True theme option to display
+        'searchbox.html',
+    ]
+}
+
+# Additional templates that should be rendered to pages, maps page names to
+# template names.
+html_additional_pages = {}
+
+# If false, no module index is generated.
+html_domain_indices = True
+
+# If false, no index is generated.
+html_use_index = True
+
+# If true, the index is split into individual pages for each letter.
+html_split_index = False
+
+# If true, links to the reST sources are added to the pages.
+html_show_sourcelink = True
+
+# If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
+html_show_sphinx = True
+
+# If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
+html_show_copyright = True
+
+# If true, an OpenSearch description file will be output, and all pages will
+# contain a <link> tag referring to it.  The value of this option must be the
+# base URL from which the finished HTML is served.
+html_use_opensearch = ''
+
+# This is the file name suffix for HTML files (e.g. ".xhtml").
+html_file_suffix = None
+
+# Output file base name for HTML help builder.
+htmlhelp_basename = 'NOUSPersonalAssistantdoc'
