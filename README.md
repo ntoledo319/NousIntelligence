@@ -20,6 +20,13 @@ A modern Flask-based AI personal assistant with Google OAuth authentication, res
 - **Voice Interface** - Speech recognition and synthesis capabilities
 - **Smart Home** - IoT device integration framework
 - **Maps & Navigation** - Location services and mapping integration
+- **Email Notifications** - Email-based alerts and notifications
+- **In-App Notifications** - Web dashboard notifications and alerts
+
+### Communication Limitations
+- **SMS/Text Messaging** - Not currently supported (use email or in-app notifications instead)
+- **Push Notifications** - Not currently supported
+- **Phone Calls** - Not currently supported
 
 ## Quick Start
 
