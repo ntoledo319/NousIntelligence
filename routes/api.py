@@ -11,7 +11,7 @@ import logging
 from flask import Blueprint, jsonify, request, session
 from flask_login import login_required, current_user
 from models import db, Task
-from utils.chat_processor import get_chat_processor
+# Chat processor functionality temporarily disabled during cleanup
 
 # Create blueprint with version prefix
 api_bp = Blueprint('api', __name__, url_prefix='/api/v1')
