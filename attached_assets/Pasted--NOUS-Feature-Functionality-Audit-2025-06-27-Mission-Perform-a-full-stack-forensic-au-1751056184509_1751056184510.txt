@@ -1,0 +1,46 @@
+# 🔍 NOUS Feature-Functionality Audit - 2025-06-27  
+## Mission  
+Perform a **full-stack forensic audit** of the NOUS Personal Assistant codebase and its docs.  
+Deliver a *single* Markdown report listing every user-facing feature and classifying each as:  
+- ✅ **Functional** (works end-to-end, tests pass)  
+- 🟡 **Partial** (code exists but missing tests, integrations, or UI)  
+- ❌ **Missing** (spec’d in docs but absent in code)  
+
+### 1. Scope & Inputs  
+1. Parse and index these docs (if present):  
+   - `/docs/complete_feature_excavation_2025-06-27.md`  
+   - Any file matching `/docs/**feature*.md` or `/analysis/**features*.md`  
+2. Crawl the entire repo (all sub-dirs, all languages).  
+3. Treat *existing documentation as possibly stale*—source-of-truth is code + tests.
+
+### 2. Workflow  
+- Use `repo_overview` then `search_filesystem` to map modules, endpoints, commands, and UI components.  
+- Run `run_tests` (or create temp pytest harnesses if tests are missing) to verify actual runtime health.  
+- For each discovered feature:  
+  1. Cross-reference with doc claims.  
+  2. Mark status (✅ / 🟡 / ❌).  
+  3. If 🟡 or ❌, list exact TODOs: missing files, failing tests, unmet deps, unclear specs.  
+- Detect **duplicate or orphan files**; note any `.replit`/workflow conflicts.  
+- After major scan phases, checkpoint so rollback is painless.
+
+### 3. Output  
+Create `feature_functionality_audit_{{date}}.md` at repo root containing:  
+1. **Executive Summary** – one-paragraph verdict.  
+2. **Feature Matrix** – table with columns: *Feature*, *Doc Source*, *Code Location(s)*, *Status*, *Key Gaps / Next Steps*.  
+3. **Risk Hotlist** – top 5 blockers that could derail release.  
+4. **Low-Hanging Fruit** – quick wins (≤30 min fixes).  
+5. **Appendix** – raw grep logs & test results (collapse long logs in `<details>` tags).  
+
+### 4. Guardrails  
+- **NO code modifications** today—read-only analysis.  
+- Never create duplicate files; if names clash, log it, don’t overwrite.  
+- If dependencies are missing, log the `packager_tool` commands you *would* run—do not run them.  
+- If a step errors, capture the stack trace in the report and continue; do **not** halt the entire run.  
+- When done, call `report_progress` with a ✓ summary and ask:  
+  > “What’s next—fix gaps, generate tests, or deploy?”  
+
+### 5. Tone & Verbosity  
+- Keep the report professional; no apologies, no filler.  
+- Use emojis (✅🟡❌) only in the Feature Matrix for instant scanning.  
+
+**Begin audit now.**
