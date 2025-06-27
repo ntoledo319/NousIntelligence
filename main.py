@@ -1,10 +1,9 @@
 """
-NOUS Personal Assistant - Scorched Earth UI Rebuild
+NOUS Personal Assistant - Unified Port Configuration
 Google-Only Authentication with Professional Chat Interface
 """
 from app import app
+from config import PORT, HOST, DEBUG
 
 if __name__ == "__main__":
-    import os
-    port = int(os.environ.get('PORT', 8080))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host=HOST, port=PORT, debug=DEBUG)

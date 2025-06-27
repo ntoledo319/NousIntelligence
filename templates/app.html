@@ -117,8 +117,10 @@
         window.chatApp = new ChatApp({
             userName: {{ user.name | tojson }},
             userAvatar: {{ user.avatar | tojson }},
-            apiEndpoint: '/api/chat',
-            userEndpoint: '/api/user'
+            apiEndpoint: '/api/v1/chat',
+            userEndpoint: '/api/v1/user',
+            legacyApiEndpoint: '/api/chat',  // Fallback support
+            legacyUserEndpoint: '/api/user'
         });
     </script>
 </body>
