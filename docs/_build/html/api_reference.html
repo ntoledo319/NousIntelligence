@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Reference - NOUS Documentation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            line-height: 1.6;
+            background: #fafafa;
+        }
+        
+        .content {
+            background: white;
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #2563eb;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+        
+        h2 {
+            color: #1e40af;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 0.3rem;
+            margin-top: 2rem;
+        }
+        
+        h3 {
+            color: #1f2937;
+            margin-top: 1.5rem;
+        }
+        
+        code {
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.875rem;
+        }
+        
+        pre {
+            background: #f8f9fa;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+        
+        pre code {
+            background: none;
+            padding: 0;
+        }
+        
+        p {
+            margin: 1rem 0;
+        }
+        
+        strong {
+            color: #374151;
+            font-weight: 600;
+        }
+        
+        em {
+            color: #6b7280;
+            font-style: italic;
+        }
+        
+        .navigation {
+            background: #2563eb;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        
+        .navigation a {
+            color: white;
+            text-decoration: none;
+            margin-right: 1rem;
+        }
+        
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="index.html">Home</a>
+        <a href="overview.html">Overview</a>
+        <a href="installation.html">Installation</a>
+        <a href="api_reference.html">API Reference</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="development.html">Development</a>
+        <a href="deployment.html">Deployment</a>
+        <a href="troubleshooting.html">Troubleshooting</a>
+        <a href="changelog.html">Changelog</a>
+    </div>
+    
+    <div class="content">
+        <h1>API Reference</h1>
+<br>
+<p>This section provides comprehensive documentation for all API endpoints, models, and utilities in the NOUS Personal Assistant application.</p>
+<br>
+<h2>Core Application Module</h2>
+<br>
+<p>.. automodule:: app</p>
+<p>   :members:</p>
+<p>   :undoc-members:</p>
+<p>   :show-inheritance:</p>
+<br>
+<h2>Authentication Endpoints</h2>
+<br>
+<h3>Google OAuth Flow</h3>
+<br>
+<strong>Login Endpoint<strong>
+<p>  <code>GET /login<code></p>
+<br>
+<p>  Initiates Google OAuth authentication flow.</p>
+<br>
+<strong>OAuth Callback<strong>
+<p>  <code>GET /oauth/callback<code></p>
+<br>
+<p>  Handles Google OAuth callback and creates user session.</p>
+<br>
+<strong>Demo Login<strong> (Development Only)
+<p>  <code>POST /demo-login<code></p>
+<br>
+<p>  Creates demo session for development testing.</p>
+<br>
+<strong>Logout<strong>
+<p>  <code>POST /logout<code></p>
+<br>
+<p>  Terminates user session and clears authentication data.</p>
+<br>
+<h2>Core API Endpoints</h2>
+<br>
+<h3>Chat API</h3>
+<br>
+<strong>Main Chat Endpoint<strong>
+<p>  <code>POST /api/chat<code></p>
+<br>
+<p>  Primary chat interface for AI interactions.</p>
+<br>
+<p>  <strong>Request Body:<strong></p>
+<br>
+<pre><code>
+  
+  {
+      "message": "User input message",
+      "context": {
+          "conversation_id": "optional-uuid",
+          "user_preferences": {}
+      }
+  }
+  
+</code></pre>
+<p>  <strong>Response:<strong></p>
+<br>
+<pre><code>
+  
+  {
+      "response": "AI response text",
+      "context": {
+          "conversation_id": "uuid",
+          "tokens_used": 150,
+          "model": "gemini-pro"
+      },
+      "status": "success"
+  }
+
+</code></pre>
+<strong>Chat Handler Registration<strong>
+<p>  <code>GET /api/chat/handlers<code></p>
+<br>
+<p>  Lists all available chat handlers and their intent patterns.</p>
+<br>
+<h3>User Management API</h3>
+<br>
+<strong>Get Current User<strong>
+<p>  <code>GET /api/user<code></p>
+<br>
+<p>  Returns current authenticated user information.</p>
+<br>
+<p>  <strong>Response:<strong></p>
+<br>
+<pre><code>
+  
+  {
+      "id": "user-uuid",
+      "email": "user@example.com",
+      "name": "User Name",
+      "authenticated": true,
+      "beta_access": false
+  }
+
+</code></pre>
+<h3>Health Monitoring API</h3>
+<br>
+<strong>Application Health<strong>
+<p>  <code>GET /health<code></p>
+<br>
+<p>  Basic application health check.</p>
+<br>
+<strong>Comprehensive Health<strong>
+<p>  <code>GET /healthz<code></p>
+<br>
+<p>  Detailed system health with database connectivity.</p>
+<br>
+<p>  <strong>Response:<strong></p>
+<br>
+<pre><code>
+  
+  {
+      "status": "healthy",
+      "timestamp": "2025-06-27T12:00:00Z",
+      "database": {
+          "status": "connected",
+          "response_time_ms": 15
+      },
+      "external_services": {
+          "openrouter": "operational",
+          "huggingface": "operational"
+      },
+      "system": {
+          "memory_usage": "45%",
+          "cpu_usage": "12%"
+      }
+  }
+
+</code></pre>
+<strong>Chat API Health<strong>
+<p>  <code>GET /api/health/chat<code></p>
+<br>
+<p>  Chat system specific health checks.</p>
+<br>
+<h2>Beta Management API</h2>
+<br>
+<p>.. note::</p>
+<p>   Beta management endpoints require administrative privileges (toledonick98@gmail.com).</p>
+<br>
+<h3>Feature Flags</h3>
+<br>
+<strong>List Feature Flags<strong>
+<p>  <code>GET /api/beta/flags<code></p>
+<br>
+<p>  Returns all feature flags and their current states.</p>
+<br>
+<strong>Update Feature Flag<strong>
+<p>  <code>PUT /api/beta/flags/{flag_id}<code></p>
+<br>
+<p>  Updates feature flag configuration.</p>
+<br>
+<p>  <strong>Request Body:<strong></p>
+<br>
+<pre><code>
+  
+  {
+      "enabled": true,
+      "rollout_percentage": 50,
+      "target_users": ["user1", "user2"]
+  }
+
+</code></pre>
+<h3>User Feedback API</h3>
+<br>
+<strong>Submit Feedback<strong>
+<p>  <code>POST /api/feedback<code></p>
+<br>
+<p>  Submits user feedback for analysis.</p>
+<br>
+<p>  <strong>Request Body:<strong></p>
+<br>
+<pre><code>
+  
+  {
+      "type": "bug_report",
+      "message": "Detailed feedback message",
+      "rating": 4,
+      "metadata": {
+          "page": "/dashboard",
+          "browser": "Chrome 91.0"
+      }
+  }
+
+</code></pre>
+<strong>Get Feedback Analytics<strong> (Admin Only)
+<p>  <code>GET /api/admin/feedback/analytics<code></p>
+<br>
+<p>  Returns aggregated feedback analytics.</p>
+<br>
+<h2>Database Models</h2>
+<br>
+<p>.. automodule:: models</p>
+<p>   :members:</p>
+<p>   :undoc-members:</p>
+<p>   :show-inheritance:</p>
+<br>
+<h3>User Model</h3>
+<br>
+<p>.. autoclass:: models.User</p>
+<p>   :members:</p>
+<p>   :undoc-members:</p>
+<br>
+<h3>Beta Models</h3>
+<br>
+<p>.. automodule:: models.beta_models</p>
+<p>   :members:</p>
+<p>   :undoc-members:</p>
+<p>   :show-inheritance:</p>
+<br>
+<h2>Utility Modules</h2>
+<br>
+<h3>Health Monitor</h3>
+<br>
+<p>.. automodule:: utils.health_monitor</p>
+<p>   :members:</p>
+<p>   :undoc-members:</p>
+<p>   :show-inheritance:</p>
+<br>
+<h3>Database Optimizer</h3>
+<br>
+<p>.. automodule:: utils.database_optimizer</p>
+<p>   :members:</p>
+<p>   :undoc-members:</p>
+<p>   :show-inheritance:</p>
+<br>
+<h3>Cost Optimized AI</h3>
+<br>
+<p>.. automodule:: utils.cost_optimized_ai</p>
+<p>   :members:</p>
+<p>   :undoc-members:</p>
+<p>   :show-inheritance:</p>
+<br>
+<h2>Route Handlers</h2>
+<br>
+<h3>Main Routes</h3>
+<br>
+<p>.. automodule:: routes.main</p>
+<p>   :members:</p>
+<p>   :undoc-members:</p>
+<p>   :show-inheritance:</p>
+<br>
+<h3>API Routes</h3>
+<br>
+<p>.. automodule:: routes.api</p>
+<p>   :members:</p>
+<p>   :undoc-members:</p>
+<p>   :show-inheritance:</p>
+<br>
+<h3>Beta Admin Routes</h3>
+<br>
+<p>.. automodule:: routes.beta_admin</p>
+<p>   :members:</p>
+<p>   :undoc-members:</p>
+<p>   :show-inheritance:</p>
+<br>
+<h2>Error Handling</h2>
+<br>
+<h3>Standard Error Responses</h3>
+<br>
+<p>All API endpoints return standardized error responses:</p>
+<br>
+<pre><code>
+
+{
+    "error": {
+        "code": "ERROR_CODE",
+        "message": "Human readable error message",
+        "details": "Additional technical details",
+        "timestamp": "2025-06-27T12:00:00Z"
+    },
+    "status": "error"
+}
+
+</code></pre>
+<h3>Common Error Codes</h3>
+<br>
+<em> <code>AUTHENTICATION_REQUIRED<code> - User must be logged in
+<em> <code>INSUFFICIENT_PERMISSIONS<code> - User lacks required permissions
+<em> <code>INVALID_REQUEST<code> - Request format or parameters invalid
+<em> <code>RESOURCE_NOT_FOUND<code> - Requested resource does not exist
+<em> <code>RATE_LIMIT_EXCEEDED<code> - Too many requests from user
+<em> <code>EXTERNAL_SERVICE_ERROR<code> - Third-party service unavailable
+<em> <code>DATABASE_ERROR<code> - Database connectivity or query error
+<br>
+<h3>HTTP Status Codes</h3>
+<br>
+<em> <code>200 OK<code> - Successful request
+<em> <code>201 Created<code> - Resource successfully created
+<em> <code>400 Bad Request<code> - Invalid request format
+<em> <code>401 Unauthorized<code> - Authentication required
+<em> <code>403 Forbidden<code> - Insufficient permissions
+<em> <code>404 Not Found<code> - Resource not found
+<em> <code>429 Too Many Requests<code> - Rate limit exceeded
+<em> <code>500 Internal Server Error<code> - Server error
+<em> <code>503 Service Unavailable<code> - External service error
+<br>
+<h2>Authentication & Authorization</h2>
+<br>
+<h3>OAuth 2.0 Flow</h3>
+<br>
+<p>NOUS uses Google OAuth 2.0 for user authentication:</p>
+<br>
+<p>1. <strong>Authorization Request<strong>: User clicks login, redirected to Google</p>
+<p>2. <strong>Authorization Grant<strong>: User approves access, Google redirects with code</p>
+<p>3. <strong>Access Token Request<strong>: Application exchanges code for access token</p>
+<p>4. <strong>Resource Access<strong>: Token used to access user information</p>
+<p>5. <strong>Session Creation<strong>: User session established in Flask application</p>
+<br>
+<h3>Session Management</h3>
+<br>
+<em> <strong>Session Duration<strong>: 30 days default, configurable
+<em> <strong>Session Storage<strong>: Filesystem-based (development) or Redis (production)
+<em> <strong>CSRF Protection<strong>: Enabled for all forms
+<em> <strong>Secure Cookies<strong>: HTTPOnly and Secure flags enabled in production
+<br>
+<h3>Permission Levels</h3>
+<br>
+<em> <strong>Public Access<strong>: Landing page, health checks, static assets
+<em> <strong>Authenticated Users<strong>: Chat interface, user settings, API access
+<em> <strong>Beta Users<strong>: Feature flag enabled features
+<em> <strong>Administrators<strong>: Beta management, user analytics, system administration
+<br>
+<h3>Rate Limiting</h3>
+<br>
+<em> <strong>Chat API<strong>: 100 requests per hour per user
+<em> <strong>Health Endpoints<strong>: 1000 requests per hour per IP
+<em> <strong>Admin APIs<strong>: 50 requests per hour per admin user
+<em> <strong>Public Assets<strong>: No rate limiting
+<br>
+<h2>Data Privacy & Security</h2>
+<br>
+<h3>Data Collection</h3>
+<br>
+<em> <strong>User Information<strong>: Email, name, OAuth profile data
+<em> <strong>Chat History<strong>: Conversation data for context (encrypted at rest)
+<em> <strong>Analytics Data<strong>: Anonymous usage statistics
+<em> <strong>Feedback Data<strong>: User feedback and ratings
+<br>
+<h3>Data Retention</h3>
+<br>
+<em> <strong>Session Data<strong>: 30 days after last activity
+<em> <strong>Chat History<strong>: 90 days, then archived
+<em> <strong>Analytics<strong>: Aggregated data retained indefinitely
+<em> <strong>Feedback<strong>: 1 year retention policy
+<br>
+<h3>Security Measures</h3>
+<br>
+<em> <strong>Data Encryption<strong>: AES-256 encryption for sensitive data
+<em> <strong>Transport Security<strong>: TLS 1.3 for all communications
+<em> <strong>Access Logging<strong>: Comprehensive audit trail
+<em> <strong>Regular Security Scans<strong>: Automated vulnerability assessments
+<br>
+<p>This API reference provides comprehensive documentation for integrating with and extending the NOUS Personal Assistant platform. For additional examples and tutorials, see the development guide.</p>
+    </div>
+</body>
+</html>
