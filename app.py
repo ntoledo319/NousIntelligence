@@ -53,7 +53,7 @@ def create_app():
         SESSION_COOKIE_SECURE=False,  # HTTP for Replit
         PERMANENT_SESSION_LIFETIME=86400,  # 24 hours
         # Database optimization settings
-        SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL'),
+        SQLALCHEMY_DATABASE_URI=AppConfig.get_database_url(),
         SQLALCHEMY_ENGINE_OPTIONS={
             'pool_size': 2,
             'max_overflow': 10,

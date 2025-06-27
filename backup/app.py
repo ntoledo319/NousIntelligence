@@ -82,13 +82,11 @@ app.config['ENABLE_BETA_MODE'] = os.environ.get('ENABLE_BETA_MODE', 'true').lowe
 app.config['BETA_ACCESS_CODE'] = os.environ.get('BETA_ACCESS_CODE', 'BETANOUS2025')
 app.config['MAX_BETA_TESTERS'] = int(os.environ.get('MAX_BETA_TESTERS', '30'))
 
-# Configure database
-database_url = os.environ.get("DATABASE_URL")
-# Make sure DATABASE_URL is in the correct format for SQLAlchemy
-if database_url and database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql://", 1)
+# Configure database using centralized config
+from config.app_config import AppConfig
 
-if database_url:
+try:
+    database_url = AppConfig.get_database_url()
     print(f"Using database URL: {database_url}")
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False

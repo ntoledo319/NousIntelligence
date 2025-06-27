@@ -63,7 +63,7 @@ class AppConfig:
     TESTING = os.environ.get('TESTING', 'false').lower() == 'true'
     
     # ===== DATABASE CONFIGURATION =====
-    DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///nous.db')
+    DATABASE_URL = os.environ.get('DATABASE_URL')
     
     @classmethod
     def to_dict(cls) -> Dict[str, Any]:
@@ -79,6 +79,25 @@ class AppConfig:
         }
     
     @classmethod
+    def get_database_url(cls) -> str:
+        """Get database URL with proper fallback handling"""
+        database_url = cls.DATABASE_URL
+        if not database_url:
+            # For production, require explicit DATABASE_URL
+            if not cls.DEBUG:
+                raise ValueError("DATABASE_URL environment variable is required in production")
+            # Development fallback to SQLite
+            from pathlib import Path
+            db_path = Path(__file__).resolve().parent.parent / 'instance' / 'nous.db'
+            return f'sqlite:///{db_path}'
+        
+        # Handle postgres:// to postgresql:// conversion for SQLAlchemy compatibility
+        if database_url.startswith("postgres://"):
+            database_url = database_url.replace("postgres://", "postgresql://", 1)
+        
+        return database_url
+    
+    @classmethod
     def validate(cls) -> list:
         """Validate configuration and return any issues"""
         issues = []
@@ -88,6 +107,12 @@ class AppConfig:
         
         if not cls.SECRET_KEY or len(cls.SECRET_KEY) < 16:
             issues.append("SECRET_KEY is too short or missing")
+        
+        # Validate database configuration
+        try:
+            cls.get_database_url()
+        except ValueError as e:
+            issues.append(f"Database configuration error: {e}")
         
         return issues
 
