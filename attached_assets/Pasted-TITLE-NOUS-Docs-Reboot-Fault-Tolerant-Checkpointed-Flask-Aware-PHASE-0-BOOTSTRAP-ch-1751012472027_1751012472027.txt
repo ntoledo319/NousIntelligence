@@ -1,0 +1,51 @@
+TITLE: “NOUS Docs Reboot — Fault-Tolerant, Checkpointed, Flask-Aware”
+
+### PHASE 0 · BOOTSTRAP   (checkpoint: deps-ok)
+1. Extend `replit.nix` → `{ pkgs.python311Full pkgs.graphviz pkgs.nodejs pkgs.git }`.
+2. `pip install --quiet pdoc markdown-link-check bandit flake8 flask-smorest apispec[marshmallow]`
+3. `npm i -g markdown-link-check @lhci/cli`
+
+### PHASE 1 · INVENTORY   (checkpoint: map-ok)
+• `git ls-files | grep -Ei '\.(md|rst|adoc)$'` → save `doc_map.json`, tagging every filename that matches `(doc|guide|notes|spec|howto)` as *custom*.
+
+### PHASE 2 · CODE-DRIVEN DOCS   (checkpoint: api-html)
+A. **Fast path**  
+   `pdoc --output-dir docs/_build/html nous_app`
+B. **OpenAPI**  
+   `python -m nous_app.scripts.generate_openapi` → `docs/api/openapi.yaml`; mount Swagger UI on `/docs/api`.
+C. **DB & Flow diagrams**  
+   – Inspect SQLAlchemy → `docs/schema.mmd`  
+   – Mermaid sequence: login → DB write → `docs/flow.mmd`
+**If pdoc fails:**  
+   • `pip install sphinx sphinx-autoapi sphinxcontrib-mermaid sphinx_rtd_theme`  
+   • run AutoAPI to regenerate HTML in the same folder.
+
+### PHASE 3 · STANDARD FILES   (checkpoint: std-files)
+Ensure these exist (or overwrite content, keep names/front-matter):  
+`README.md` · `LICENSE` · `CONTRIBUTING.md` · `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1) · `SECURITY.md` · `CHANGELOG.md` (Keep-a-Changelog) · `ARCHITECTURE.md` (embeds Mermaid diagrams).
+
+### PHASE 4 · QUALITY GATES   (checkpoint: green)
+1. `markdown-link-check '**/*.md' --quiet` — fail on 4xx/5xx.  
+2. `bandit -r nous_app -lll -o docs/reports/bandit.txt` — no **HIGH** issues.  
+3. `flake8 nous_app` — stylistic sanity.  
+4. `lhci autorun --staticDistDir=docs/_build/html || echo "⚠ Lighthouse skipped (timeout)"`.
+
+### PHASE 5 · CI / CD   (checkpoint: ci-ready)
+Create `.github/workflows/docs.yml` that:
+  • installs cached pip/node deps  
+  • re-runs phases 1-4  
+  • deploys `docs/_build/html` ➜ `gh-pages` via **peaceiris/actions-gh-pages**.
+
+### PHASE 6 · COMMIT & RELEASE
+• Overwrite body of every file listed in `doc_map.json` (filenames unchanged).  
+• Append CHANGELOG entry: “Full Flask + pdoc doc reboot – $(date +%Y-%m-%d)”.  
+• Commit: `docs(reboot): pdoc-based rebuild + fault-tolerant checkpoints`.
+
+ACCEPTANCE CRITERIA
+✓ `docs/_build/html/index.html` loads; Swagger UI live at `/docs/api`.  
+✓ Bandit HIGH = 0; markdown-link-check clean.  
+✓ Standard files present & updated.  
+✓ If Lighthouse ran, performance & a11y ≥ 90.  
+✓ GitHub Action pushes to `gh-pages` without error.
+
+END OF PROMPT
