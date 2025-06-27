@@ -63,9 +63,9 @@ def create_app():
     # Initialize database
     db.init_app(app)
     
-    # Set up database for models
-    from models.database import set_db
-    set_db(db)
+    # Initialize database with models
+    from models.database import init_db
+    init_db(app, db)
     
     # Initialize health monitoring
     health_monitor.init_app(app)
