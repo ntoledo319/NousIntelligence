@@ -360,6 +360,7 @@ def get_weather_health_insights(location: str, health_conditions: List[str] = No
         pain_flare_data = None
         if include_pain_flare_risk:
             try:
+                from utils.weather_helper import (
                     get_pressure_trend, calculate_pain_flare_risk, get_storm_severity
                 )
 
