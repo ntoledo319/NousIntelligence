@@ -5,7 +5,8 @@ This module configures the database connection and provides
 utility functions for database operations.
 """
 
-from app import db
+from flask_sqlalchemy import SQLAlchemy
+db = SQLAlchemy()
 import logging
 
 logger = logging.getLogger(__name__)
