@@ -1,0 +1,96 @@
+🚑  GLOBAL CODEBASE HEALTH-CHECK & AUTO-FIX  🚑
+
+Mission:
+   • Crawl every file, config, and dependency in this Replit repo.
+   • Identify and AUTOMATICALLY fix or propose fixes for ALL classes of problems that trigger login loops, runtime crashes, security holes, style drift, or deployment failures.
+   • Leave detailed, commented commits; abort if smoke tests fail.
+
+Core Rules:
+   1. **No .replit edits** (platform restriction)—conform to its current `run` command.
+   2. Create new files ONLY when consolidation is impossible; otherwise refactor in place.
+   3. All secrets must be read from Replit Secrets.
+   4. Every code change must pass lint, type-check, unit tests, AND new smoke tests.
+   5. Commit messages follow Conventional Commits.
+
+================================================================================
+STEP 0 — INVENTORY & BASELINE
+--------------------------------------------------------------------------------
+• Parse repo for:
+    - Duplicate configs (`.replit`, `Procfile`, `Dockerfile`, `replit.workflows`)
+    - Auth middleware, cookie options, CSRF settings
+    - `process.env` / `os.getenv` usages → verify in Secrets
+    - Dependencies with known CVEs (call `npm audit` / `pip-audit`)
+    - Lint/format configs; TypeScript strictness; Python type hints
+• Generate a markdown report of findings.
+
+================================================================================
+STEP 1 — PROXY & COOKIE HARDENING
+--------------------------------------------------------------------------------
+• Node/Express/Fastify → add `app.set('trust proxy', 1);`
+• Flask → wrap app in `ProxyFix(x_for=1, x_proto=1)`
+• Django → `SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')`
+• Force cookies `{ httpOnly:true, sameSite:'lax', secure:prod }`
+• For cross-site OAuth cookies → `SameSite:'None'; secure:true`
+
+================================================================================
+STEP 2 — SECRETS & ENV-VAR SYNC
+--------------------------------------------------------------------------------
+• List every env-var reference; prompt user if missing from Secrets.
+• Delete `.env` files (Replit ignores them in Deployment anyway) and add `.env.example`.
+
+================================================================================
+STEP 3 — DEPENDENCY & STATIC ANALYSIS
+--------------------------------------------------------------------------------
+• Run `npm audit --json` or `pip-audit -f json`; auto-upgrade patch-level vulnerabilities.
+• Apply ESLint + Prettier or `ruff` (Py) with recommended rules.
+• If TypeScript present, enable `"strict": true` in `tsconfig.json`.
+
+================================================================================
+STEP 4 — DUPLICATE & DEAD CODE PURGE
+--------------------------------------------------------------------------------
+• Hash-scan for duplicate files (`fdupes`-style).
+• Remove stale builds, old migrations, unused images, commented-out code blocks.
+
+================================================================================
+STEP 5 — SPA ROUTER SAFETY
+--------------------------------------------------------------------------------
+• If React/Vite/SvelteKit detected and no `_redirects` file exists, create:
+      /*   /index.html   200
+  to stop hard-refresh 404 → auth loops.
+
+================================================================================
+STEP 6 — TEST GRID
+--------------------------------------------------------------------------------
+• Auto-generate Jest/PyTest smoke suite:
+      1. GET /          ⇒ 200
+      2. GET /dashboard ⇒ 302→/login
+      3. POST /api/login (fixture) ⇒ 200 + Set-Cookie
+      4. Auth GET /dashboard ⇒ 200
+• Fail CI if any test fails.
+
+================================================================================
+STEP 7 — WORKFLOW CONSOLIDATION
+--------------------------------------------------------------------------------
+• Keep ONE `replit.workflows` named `build-and-run`:
+      - Install deps
+      - Run lint + tests
+      - Start server
+• Delete extra workflows or launch files.
+
+================================================================================
+STEP 8 — COMMIT & DEPLOY
+--------------------------------------------------------------------------------
+• Commit in chunks (`fix(proxy)`, `chore(lint)`, `refactor(routes)`, etc.).
+• Tag `post-universal-fix`.
+• Trigger new Deployment; stream logs and test endpoints.
+
+================================================================================
+FAIL-SAFE
+--------------------------------------------------------------------------------
+• If Deployment or tests fail, `git reset --hard post-inventory` and exit non-zero.
+
+================================================================================
+END — print:
+   • Fix summary + next steps for any unresolved issues
+   • Secrets to add
+   • Deployment URL
