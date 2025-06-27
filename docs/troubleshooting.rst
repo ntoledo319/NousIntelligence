@@ -447,7 +447,7 @@ Frontend Issues
    .. code-block:: javascript
    
        // Test API endpoint
-       fetch('/api/health')
+       fetch('/api/v1/health')
            .then(response => response.json())
            .then(data => console.log('API Status:', data))
            .catch(error => console.error('API Error:', error));
@@ -499,7 +499,7 @@ Use built-in health endpoints:
     curl https://your-app.replit.app/healthz
     
     # Chat system health
-    curl https://your-app.replit.app/api/health/chat
+    curl https://your-app.replit.app/api/v1/health/chat
 
 Database Diagnostics
 ~~~~~~~~~~~~~~~~~~~~
@@ -687,6 +687,6 @@ Health check URLs:
 
 * ``/health`` - Basic status
 * ``/healthz`` - Comprehensive health
-* ``/api/health/chat`` - Chat system status
+* ``/api/v1/health/chat`` - Chat system status
 
 This troubleshooting guide covers the most common issues encountered with NOUS Personal Assistant. For issues not covered here, check the application logs and health endpoints for additional diagnostic information.

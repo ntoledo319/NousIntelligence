@@ -582,7 +582,7 @@
 <pre><code>
    
    // Test API endpoint
-   fetch('/api/health')
+   fetch('/api/v1/health')
        .then(response => response.json())
        .then(data => console.log('API Status:', data))
        .catch(error => console.error('API Error:', error));
@@ -634,7 +634,7 @@ curl https://your-app.replit.app/health
 curl https://your-app.replit.app/healthz
 
 # Chat system health
-curl https://your-app.replit.app/api/health/chat
+curl https://your-app.replit.app/api/v1/health/chat
 
 </code></pre>
 <h3>Database Diagnostics</h3>
@@ -821,7 +821,7 @@ def after_cursor_execute(conn, cursor, statement, parameters, context, executema
 <br>
 <em> <code>/health<code> - Basic status
 <em> <code>/healthz<code> - Comprehensive health
-<em> <code>/api/health/chat<code> - Chat system status
+<em> <code>/api/v1/health/chat<code> - Chat system status
 <br>
 <p>This troubleshooting guide covers the most common issues encountered with NOUS Personal Assistant. For issues not covered here, check the application logs and health endpoints for additional diagnostic information.</p>
     </div>

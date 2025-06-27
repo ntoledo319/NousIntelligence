@@ -281,7 +281,7 @@ Test Writing Guidelines
     
     def test_api_health_endpoint(client):
         """Test health check API endpoint."""
-        response = client.get('/api/health')
+        response = client.get('/api/v1/health')
         assert response.status_code == 200
         
         data = response.get_json()
@@ -539,7 +539,7 @@ Use modern JavaScript with consistent style:
     const ChatInterface = {
         async sendMessage(message) {
             try {
-                const response = await fetch('/api/chat', {
+                const response = await fetch('/api/v1/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

@@ -24,8 +24,8 @@ This document tracks major development operations completed on the NOUS Personal
 
 ### 3. Documentation Revolution
 - ✅ Generated unified README.md
-- ✅ Created ARCHITECTURE.md with live stats
-- ✅ Built API_REFERENCE.md from routes
+- ✅ Created docs/architecture.rst with live stats
+- ✅ Built docs/api_reference.rst from routes
 - ✅ Updated executive board report
 - ✅ Established CHANGELOG.md
 

@@ -82,7 +82,7 @@ Replit provides built-in monitoring. Additional health checks available at:
 
 * ``/health`` - Basic application health
 * ``/healthz`` - Comprehensive system health
-* ``/api/health/chat`` - Chat system health
+* ``/api/v1/health/chat`` - Chat system health
 
 Production Considerations
 ~~~~~~~~~~~~~~~~~~~~~~~~~

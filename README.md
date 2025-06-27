@@ -118,7 +118,7 @@ NOUS Personal Assistant is a comprehensive Flask-based web application that serv
 3. Enable Google+ API and Google Identity API
 4. Create OAuth 2.0 credentials
 5. Add authorized redirect URIs:
-   - `http://localhost:8080/oauth2callback`
+   - `http://localhost:5000/oauth2callback`
    - `https://your-replit-domain/oauth2callback`
 
 ## Architecture
@@ -250,7 +250,7 @@ The application includes comprehensive testing:
 
 ### Health Checks
 - `/health` - Application health status
-- `/api/user` - User authentication status
+- `/api/v1/user` - User authentication status
 
 ## API Reference
 
@@ -263,8 +263,8 @@ The application includes comprehensive testing:
 
 ### Authenticated Endpoints
 - `GET /app` - Chat interface
-- `POST /api/chat` - Send chat message
-- `GET /api/user` - Get user info
+- `POST /api/v1/chat` - Send chat message
+- `GET /api/v1/user` - Get user info
 - `POST /api/feedback` - Submit user feedback
 - `GET /logout` - User logout
 

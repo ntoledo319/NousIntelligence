@@ -124,7 +124,7 @@ Product Search → Price Analysis → Tracking Setup → Alert Configuration →
 ### Automated Processes
 
 1. **Health Monitoring System**
-   - Continuous service health checks (`/api/health/`)
+   - Continuous service health checks (`/api/v1/health/`)
    - External API status monitoring
    - Database connection validation
    - Performance metrics collection
@@ -389,10 +389,10 @@ dependencies = [
 
 #### Health Endpoints
 - **`/health`:** Basic application health
-- **`/api/health/`:** Comprehensive service health check
-- **`/api/health/google-oauth`:** OAuth service status
-- **`/api/health/ai-services`:** AI provider status
-- **`/api/health/database`:** Database connectivity
+- **`/api/v1/health/`:** Comprehensive service health check
+- **`/api/v1/health/google-oauth`:** OAuth service status
+- **`/api/v1/health/ai-services`:** AI provider status
+- **`/api/v1/health/database`:** Database connectivity
 
 #### Logging Strategy
 - **Structured Logging:** Timestamp, level, message format

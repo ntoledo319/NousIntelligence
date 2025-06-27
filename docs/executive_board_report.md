@@ -420,7 +420,7 @@ NOUS Personal Assistant is a comprehensive Flask-based AI-powered personal assis
 
 #### Chat Interface Routes
 1. **`/chat/`** - Main chat interface with conversation history
-2. **`/api/chat/message`** - Process chat messages with AI response generation
+2. **`/api/v1/chat/message`** - Process chat messages with AI response generation
 
 #### Chat Processing Features
 - **Command Detection** - Identifies and routes chat commands to appropriate handlers
@@ -847,18 +847,18 @@ User Message → Command Detection → AI Processing → Context Integration →
 - `/settings` → `settings_page()`
 - `/settings` → `save_settings()`
 
-#### minimal_public_app.py
+#### app.py
 - `/` → `index()`
 - `/about` → `about()`
-- `/api/chat` → `api_chat()`
+- `/api/v1/chat` → `api_chat()`
 - `/dashboard` → `dashboard()`
 - `/health` → `health()`
 - `/healthz` → `health()`
 
-#### nous_surgical_app.py
+#### app.py
 - `/` → `index()`
 - `/admin/routes` → `admin_routes()`
-- `/api/chat` → `api_chat()`
+- `/api/v1/chat` → `api_chat()`
 - `/api/voice` → `api_voice()`
 - `/dashboard` → `dashboard()`
 - `/health` → `health()`
@@ -1230,9 +1230,9 @@ User Message → Command Detection → AI Processing → Context Integration →
 - `/test-whisper` → `test_whisper()`
 - `/upload-audio` → `upload_audio()`
 
-#### surgical_nous_app.py
+#### app.py
 - `/` → `index()`
-- `/api/chat` → `api_chat()`
+- `/api/v1/chat` → `api_chat()`
 - `/crisis/mobile` → `crisis_mobile()`
 - `/health` → `health()`
 - `/pulse` → `pulse()`
@@ -1307,9 +1307,9 @@ User Message → Command Detection → AI Processing → Context Integration →
 
 - `_local_chat_fallback()` (`utils/cost_optimized_ai.py`)
 - `_openrouter_chat()` (`utils/cost_optimized_ai.py`)
-- `api_chat()` (`nous_surgical_app.py`)
-- `api_chat()` (`surgical_nous_app.py`)
-- `api_chat()` (`minimal_public_app.py`)
+- `api_chat()` (`app.py`)
+- `api_chat()` (`app.py`)
+- `api_chat()` (`app.py`)
 - `chat_completion()` (`utils/cost_optimized_ai.py`)
 - `chat_interface()` (`routes/chat_routes.py`)
 - `chat_message()` (`routes/chat_routes.py`)
@@ -1357,7 +1357,7 @@ User Message → Command Detection → AI Processing → Context Integration →
 **CodeSurgeon_v2** has successfully executed comprehensive streamlining and feature enhancement across the NOUS application ecosystem. The surgical intervention has achieved all 15 high-level objectives while maintaining full functionality and improving performance.
 
 #### Added Files (✅)
-• **surgical_nous_app.py** - Ultra-consolidated single-file application with all features
+• **app.py** - Ultra-consolidated single-file application with all features
 • **core/health.py** - Health management consolidation with caching
 • **core/finance.py** - Budget tracking with heat-map visualization
 • **core/shopping.py** - Shopping lists with auto-replenishment logic

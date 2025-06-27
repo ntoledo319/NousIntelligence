@@ -120,8 +120,8 @@ def create_app():
 - Mobile-responsive layout
 
 **Backend API:**
-- `/api/chat` - Send/receive messages
-- `/api/user` - Get user information
+- `/api/v1/chat` - Send/receive messages
+- `/api/v1/user` - Get user information
 - Authentication middleware on all API routes
 
 ### 4. Theme System
@@ -197,10 +197,10 @@ nous-personal-assistant/
 │   ├── styles.css        # CSS with theme system
 │   ├── app.js           # Chat application logic
 │   └── favicon.ico      # Application favicon
-├── backup-12-27-2024/   # Pre-rebuild backup
+├── backup-12-27-2025/   # Pre-rebuild backup
 ├── replit.toml          # Replit configuration
 ├── README.md            # User documentation
-└── ARCHITECTURE.md      # This file
+└── docs/architecture.rst      # This file
 ```
 
 ## Design Patterns
@@ -317,4 +317,4 @@ nous-personal-assistant/
 
 ---
 
-This architecture document reflects the current state of the NOUS Personal Assistant after the Scorched Earth rebuild. The system is designed for simplicity, security, and scalability while maintaining a professional user experience.
+This architecture document reflects the current state of the NOUS Personal Assistant after the Comprehensive Documentation System. The system is designed for simplicity, security, and scalability while maintaining a professional user experience.

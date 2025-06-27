@@ -1,20 +1,23 @@
-# NOUS API Reference
+# API Reference - Legacy
 
-*Generated: 2025-06-26 21:23:30*
+**Note**: This file has been superseded by the comprehensive API documentation system.
 
-## Overview
+## Current API Documentation
 
-The NOUS API provides programmatic access to all personal assistant features through RESTful endpoints.
+The complete, up-to-date API reference is now available through:
 
-## Base URL
+- **Interactive API Documentation**: `/api/docs/` (when application is running)
+- **OpenAPI Specification**: `/api/docs/openapi.json`
+- **Comprehensive API Guide**: See `docs/api_reference.rst`
 
-```
-https://your-app.replit.app
-```
+## Migration Notice
 
-## Authentication
+This legacy API reference file has been replaced by:
+1. **Sphinx-based Documentation**: Complete API reference in reStructuredText format
+2. **Interactive Swagger UI**: Live API testing and documentation
+3. **Auto-generated Schemas**: Current endpoint definitions and response formats
 
-All API endpoints support session-based authentication. For public routes, no authentication is required.
+Please refer to the new documentation system for accurate, current API information.
 
 ## Core Endpoints
 
@@ -29,28 +32,28 @@ All API endpoints support session-based authentication. For public routes, no au
 GET /
 ```
 
-#### `/api/chat`
+#### `/api/v1/chat`
 
 **Handler**: `api_chat()`  
-**File**: `nous_surgical_app.py`
+**File**: `app.py`
 
 ```http
 GET /api/chat
 ```
 
-#### `/api/chat`
+#### `/api/v1/chat`
 
 **Handler**: `api_chat()`  
-**File**: `surgical_nous_app.py`
+**File**: `app.py`
 
 ```http
 GET /api/chat
 ```
 
-#### `/api/chat`
+#### `/api/v1/chat`
 
 **Handler**: `api_chat()`  
-**File**: `minimal_public_app.py`
+**File**: `app.py`
 
 ```http
 GET /api/chat
@@ -142,7 +145,7 @@ GET /google-oauth
 #### `/health`
 
 **Handler**: `health()`  
-**File**: `nous_surgical_app.py`
+**File**: `app.py`
 
 ```http
 GET /health
@@ -151,7 +154,7 @@ GET /health
 #### `/health`
 
 **Handler**: `health()`  
-**File**: `surgical_nous_app.py`
+**File**: `app.py`
 
 ```http
 GET /health
@@ -160,7 +163,7 @@ GET /health
 #### `/health`
 
 **Handler**: `health()`  
-**File**: `minimal_public_app.py`
+**File**: `app.py`
 
 ```http
 GET /health
@@ -232,7 +235,7 @@ GET /health/system
 #### `/healthz`
 
 **Handler**: `health()`  
-**File**: `nous_surgical_app.py`
+**File**: `app.py`
 
 ```http
 GET /healthz
@@ -241,7 +244,7 @@ GET /healthz
 #### `/healthz`
 
 **Handler**: `health()`  
-**File**: `minimal_public_app.py`
+**File**: `app.py`
 
 ```http
 GET /healthz
@@ -270,7 +273,7 @@ GET /add-resource
 #### `/crisis/mobile`
 
 **Handler**: `crisis_mobile()`  
-**File**: `surgical_nous_app.py`
+**File**: `app.py`
 
 ```http
 GET /crisis/mobile
@@ -371,7 +374,7 @@ GET /admin
 #### `/admin/routes`
 
 **Handler**: `admin_routes()`  
-**File**: `nous_surgical_app.py`
+**File**: `app.py`
 
 ```http
 GET /admin/routes
@@ -1698,7 +1701,7 @@ GET /api/verify
 #### `/api/voice`
 
 **Handler**: `api_voice()`  
-**File**: `nous_surgical_app.py`
+**File**: `app.py`
 
 ```http
 GET /api/voice
@@ -2132,7 +2135,7 @@ GET
 #### `/`
 
 **Handler**: `index()`  
-**File**: `nous_surgical_app.py`
+**File**: `app.py`
 
 ```http
 GET /
@@ -2141,7 +2144,7 @@ GET /
 #### `/`
 
 **Handler**: `index()`  
-**File**: `surgical_nous_app.py`
+**File**: `app.py`
 
 ```http
 GET /
@@ -2150,7 +2153,7 @@ GET /
 #### `/`
 
 **Handler**: `index()`  
-**File**: `minimal_public_app.py`
+**File**: `app.py`
 
 ```http
 GET /
@@ -2348,7 +2351,7 @@ GET /<path:path>
 #### `/about`
 
 **Handler**: `about()`  
-**File**: `minimal_public_app.py`
+**File**: `app.py`
 
 ```http
 GET /about
@@ -2609,7 +2612,7 @@ GET /daily-check-in
 #### `/dashboard`
 
 **Handler**: `dashboard()`  
-**File**: `nous_surgical_app.py`
+**File**: `app.py`
 
 ```http
 GET /dashboard
@@ -2618,7 +2621,7 @@ GET /dashboard
 #### `/dashboard`
 
 **Handler**: `dashboard()`  
-**File**: `minimal_public_app.py`
+**File**: `app.py`
 
 ```http
 GET /dashboard
@@ -3113,7 +3116,7 @@ GET /profile/new
 #### `/pulse`
 
 **Handler**: `pulse()`  
-**File**: `surgical_nous_app.py`
+**File**: `app.py`
 
 ```http
 GET /pulse
@@ -3257,7 +3260,7 @@ GET /settings/assistant
 #### `/settings/audit`
 
 **Handler**: `settings_audit()`  
-**File**: `nous_surgical_app.py`
+**File**: `app.py`
 
 ```http
 GET /settings/audit
@@ -3266,7 +3269,7 @@ GET /settings/audit
 #### `/settings/audit`
 
 **Handler**: `settings_audit()`  
-**File**: `surgical_nous_app.py`
+**File**: `app.py`
 
 ```http
 GET /settings/audit
@@ -3302,7 +3305,7 @@ GET /settings/profile
 #### `/setup`
 
 **Handler**: `setup_wizard()`  
-**File**: `nous_surgical_app.py`
+**File**: `app.py`
 
 ```http
 GET /setup
