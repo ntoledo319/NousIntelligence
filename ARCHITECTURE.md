@@ -1,27 +1,53 @@
-# NOUS Architecture - Scorched Earth Rebuild
+# NOUS Personal Assistant - System Architecture
 
-## System Overview
+## Overview
 
-The NOUS Personal Assistant has been completely rebuilt using a modern, streamlined architecture focused on Google-only authentication and professional chat interface. This document outlines the technical architecture and design decisions.
+NOUS Personal Assistant follows a layered monolithic architecture optimized for simplicity, maintainability, and cost-effectiveness while providing enterprise-grade features. The system implements comprehensive backend stability, beta testing infrastructure, and cost-optimized AI integration.
 
-## Architecture Diagram
+**Current Status**: Production-ready with comprehensive documentation, health monitoring, and beta management capabilities.
+
+## System Architecture Diagram
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   User Browser  │────│  Replit Proxy   │────│   Flask App     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                        │                        │
-         │                        │                        │
-         ▼                        ▼                        ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ Chat Interface  │    │  ProxyFix       │    │  Session Store  │
-│ (HTML/CSS/JS)   │    │  Middleware     │    │  (Flask)        │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                                              │
-         │              ┌─────────────────┐            │
-         └──────────────│  Google OAuth   │────────────┘
-                        │   Service       │
-                        └─────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│                    Presentation Layer                    │
+│  ┌─────────────────┐  ┌─────────────────┐ ┌──────────┐  │
+│  │   Landing Page  │  │   Chat Interface │ │ Admin UI │  │
+│  │  (Public Access)│  │ (Authenticated) │ │(Admin)   │  │
+│  └─────────────────┘  └─────────────────┘ └──────────┘  │
+└─────────────────────────────────────────────────────────┘
+                                │
+┌─────────────────────────────────────────────────────────┐
+│                   Application Layer                     │
+│  ┌─────────────────┐  ┌─────────────────┐ ┌──────────┐  │
+│  │  Flask Router   │  │ Authentication  │ │Middleware│  │
+│  │   (Routes)      │  │   (OAuth)       │ │(ProxyFix)│  │
+│  └─────────────────┘  └─────────────────┘ └──────────┘  │
+└─────────────────────────────────────────────────────────┘
+                                │
+┌─────────────────────────────────────────────────────────┐
+│                    Business Layer                       │
+│  ┌─────────────────┐  ┌─────────────────┐ ┌──────────┐  │
+│  │  Chat Handler   │  │  Health Monitor │ │Beta Mgmt │  │
+│  │  (AI Integration│  │ (System Status) │ │(Features)│  │
+│  └─────────────────┘  └─────────────────┘ └──────────┘  │
+└─────────────────────────────────────────────────────────┘
+                                │
+┌─────────────────────────────────────────────────────────┐
+│                     Data Layer                          │
+│  ┌─────────────────┐  ┌─────────────────┐ ┌──────────┐  │
+│  │   SQLAlchemy    │  │   File Storage  │ │  Cache   │  │
+│  │  (PostgreSQL)   │  │   (Sessions)    │ │(Memory)  │  │
+│  └─────────────────┘  └─────────────────┘ └──────────┘  │
+└─────────────────────────────────────────────────────────┘
+                                │
+┌─────────────────────────────────────────────────────────┐
+│                  External Services                      │
+│  ┌─────────────────┐  ┌─────────────────┐ ┌──────────┐  │
+│  │   OpenRouter    │  │  HuggingFace    │ │Google    │  │
+│  │   (AI Models)   │  │  (Free AI)      │ │(OAuth)   │  │
+│  └─────────────────┘  └─────────────────┘ └──────────┘  │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ## Application Stack
