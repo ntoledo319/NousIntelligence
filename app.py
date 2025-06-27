@@ -366,7 +366,7 @@ def create_app():
 def main():
     """Main entry point - follows Operation Zero-Redirect specs"""
     app = create_app()
-    port = int(os.environ.get('PORT', 8080))
+    port = int(os.environ.get('PORT', 5000))
     
     logger.info("=" * 60)
     logger.info("🚀 OPERATION ZERO-REDIRECT: DEPLOYMENT INITIATED")
