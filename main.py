@@ -1,10 +1,10 @@
 """
 NOUS Personal Assistant - Main Entry Point
 
-Ultra-minimal public application with ZERO authentication loops.
-Optimized for Replit Cloud deployment.
+OPERATION ZERO-REDIRECT: Bulletproof deployment
+Proxy-aware, cookie-secure, zero authentication loops
 """
-from minimal_public_app import main
+from app import main
 
 if __name__ == "__main__":
     main()
