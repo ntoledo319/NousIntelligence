@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOUS Chat - {{ user.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body class="chat-app" data-theme="light">
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1 class="app-title">
+                    <span class="logo">🧠</span>
+                    NOUS
+                </h1>
+            </div>
+            
+            <div class="header-right">
+                <!-- Theme Selector -->
+                <div class="theme-selector">
+                    <select id="theme-select" aria-label="Select theme">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                        <option value="ocean">Ocean</option>
+                        <option value="forest">Forest</option>
+                        <option value="sunset">Sunset</option>
+                        <option value="purple">Purple</option>
+                    </select>
+                </div>
+                
+                <!-- User Menu -->
+                <div class="user-menu">
+                    <div class="user-avatar">
+                        {% if user.avatar %}
+                            <img src="{{ user.avatar }}" alt="{{ user.name }}" class="avatar-image">
+                        {% else %}
+                            <div class="avatar-placeholder">{{ user.name[0].upper() }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name">{{ user.name }}</span>
+                        <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Chat Interface -->
+    <main class="chat-container">
+        <!-- Chat Messages -->
+        <div class="chat-messages" id="chat-messages">
+            <!-- Welcome message -->
+            <div class="message-bubble system-message">
+                <div class="message-content">
+                    <h3>Welcome to NOUS, {{ user.name }}! 👋</h3>
+                    <p>I'm your intelligent personal assistant. I can help you with:</p>
+                    <ul>
+                        <li>Answering questions on any topic</li>
+                        <li>Creative writing and brainstorming</li>
+                        <li>Problem-solving and analysis</li>
+                        <li>Learning and education</li>
+                        <li>And much more!</li>
+                    </ul>
+                    <p>What would you like to explore today?</p>
+                </div>
+                <div class="message-time">{{ moment().format('LT') }}</div>
+            </div>
+        </div>
+
+        <!-- Chat Input -->
+        <div class="chat-input-container">
+            <form class="chat-form" id="chat-form">
+                <div class="input-wrapper">
+                    <textarea 
+                        id="message-input" 
+                        placeholder="Type your message here..." 
+                        rows="1"
+                        maxlength="2000"
+                        aria-label="Chat message input"
+                    ></textarea>
+                    <button type="submit" class="send-btn" id="send-btn" aria-label="Send message">
+                        <svg viewBox="0 0 24 24" class="send-icon">
+                            <path fill="currentColor" d="M2,21L23,12L2,3V10L17,12L2,14V21Z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="input-actions">
+                    <div class="char-count">
+                        <span id="char-count">0</span>/2000
+                    </div>
+                    <button type="button" class="clear-btn" id="clear-chat">
+                        Clear Chat
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Loading Indicator -->
+    <div class="loading-indicator" id="loading-indicator">
+        <div class="loading-spinner"></div>
+        <span>NOUS is thinking...</span>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <script>
+        // Initialize chat app with user data
+        window.chatApp = new ChatApp({
+            userName: {{ user.name | tojson }},
+            userAvatar: {{ user.avatar | tojson }},
+            apiEndpoint: '/api/chat',
+            userEndpoint: '/api/user'
+        });
+    </script>
+</body>
+</html>

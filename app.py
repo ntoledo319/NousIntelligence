@@ -1,38 +1,54 @@
 """
-OPERATION ZERO-REDIRECT: Bulletproof Flask App
-Proxy-aware, cookie-secure, zero authentication loops
+Scorched Earth UI Rebuild - Google-Only Authentication
+Professional-Grade Chat Interface with Modern Design
 """
 import os
+import json
 import logging
 from datetime import datetime
-from flask import Flask, request, jsonify, render_template_string, session
+from flask import Flask, render_template, redirect, url_for, session, request, jsonify, flash
 from werkzeug.middleware.proxy_fix import ProxyFix
+from authlib.integrations.flask_client import OAuth
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)s: %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='[%(asctime)s] %(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
 
 def create_app():
-    """Create Flask application with zero-redirect configuration"""
+    """Create Flask application with Google-only authentication"""
     app = Flask(__name__)
     
-    # Essential configuration for Replit deployment
-    app.secret_key = os.environ.get('SESSION_SECRET', 'nous-zero-redirect-key-2025')
+    # Essential configuration
+    app.secret_key = os.environ.get('SESSION_SECRET', 'scorched-earth-rebuild-2025')
     
-    # ProxyFix for Replit deployment - essential for cookie handling
+    # ProxyFix for Replit deployment
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
     
-    # Trust proxy for cookies to survive Replit proxy
+    # Session configuration
     app.config.update(
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE='Lax',
-        SESSION_COOKIE_SECURE=False,  # HTTP for Replit development
-        PERMANENT_SESSION_LIFETIME=3600
+        SESSION_COOKIE_SECURE=False,  # HTTP for Replit
+        PERMANENT_SESSION_LIFETIME=86400  # 24 hours
+    )
+    
+    # OAuth setup
+    oauth = OAuth(app)
+    
+    # Google OAuth configuration
+    google = oauth.register(
+        name='google',
+        client_id=os.environ.get('GOOGLE_CLIENT_ID'),
+        client_secret=os.environ.get('GOOGLE_CLIENT_SECRET'),
+        server_metadata_url='https://accounts.google.com/.well-known/openid_connect_configuration',
+        client_kwargs={
+            'scope': 'openid email profile'
+        }
     )
     
     @app.after_request
     def add_security_headers(response):
-        """Add security headers while ensuring public access"""
+        """Add security headers"""
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['Access-Control-Allow-Origin'] = '*'
@@ -40,354 +56,109 @@ def create_app():
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
         return response
     
+    def is_authenticated():
+        """Check if user is authenticated"""
+        return 'user' in session
+    
     @app.route('/')
-    def index():
-        """Landing page - completely public"""
-        html = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NOUS - Zero Redirect</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .container {
-            text-align: center;
-            max-width: 600px;
-            padding: 40px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-        }
-        h1 { font-size: 3em; margin: 0 0 20px 0; }
-        .status { 
-            background: rgba(46, 204, 113, 0.3);
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            font-weight: bold;
-        }
-        .api-test {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-        button {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 10px;
-        }
-        button:hover { background: #2980b9; }
-        .result {
-            margin: 15px 0;
-            padding: 15px;
-            border-radius: 6px;
-            background: rgba(255, 255, 255, 0.1);
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🚀 NOUS</h1>
-        <p>Operation Zero-Redirect: SUCCESS</p>
-        
-        <div class="status">
-            ✅ Authentication loops eliminated<br>
-            ✅ Proxy-aware configuration<br>
-            ✅ Cookie-secure session handling<br>
-            ✅ Public access guaranteed
-        </div>
-        
-        <div class="api-test">
-            <h3>API Test Suite</h3>
-            <button onclick="testLogin()">Test Login</button>
-            <button onclick="testProtected()">Test Protected Route</button>
-            <button onclick="testLogout()">Test Logout</button>
-            <div id="results"></div>
-        </div>
-        
-        <p><strong>Server Time:</strong> {{ timestamp }}</p>
-        <p><strong>Environment:</strong> {{ environment }}</p>
-    </div>
+    def landing():
+        """Public landing page with Google sign-in"""
+        return render_template('landing.html')
     
-    <script>
-        async function testAPI(endpoint, method = 'GET', body = null) {
-            const options = {
-                method,
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' }
-            };
-            if (body) options.body = JSON.stringify(body);
+    @app.route('/login')
+    def login():
+        """Initiate Google OAuth flow"""
+        if is_authenticated():
+            return redirect(url_for('app_chat'))
+        
+        redirect_uri = url_for('oauth_callback', _external=True)
+        return google.authorize_redirect(redirect_uri)
+    
+    @app.route('/oauth2callback')
+    def oauth_callback():
+        """Handle Google OAuth callback"""
+        try:
+            token = google.authorize_access_token()
+            user_info = token.get('userinfo')
             
-            try {
-                const response = await fetch(endpoint, options);
-                const data = await response.json();
-                return { status: response.status, data };
-            } catch (error) {
-                return { status: 'ERROR', data: { error: error.message } };
-            }
-        }
-        
-        async function testLogin() {
-            const result = await testAPI('/api/login', 'POST', { 
-                username: 'test_user', 
-                password: 'test_pass' 
-            });
-            displayResult('Login Test', result);
-        }
-        
-        async function testProtected() {
-            const result = await testAPI('/api/me');
-            displayResult('Protected Route Test', result);
-        }
-        
-        async function testLogout() {
-            const result = await testAPI('/api/logout', 'POST');
-            displayResult('Logout Test', result);
-        }
-        
-        function displayResult(test, result) {
-            const resultsDiv = document.getElementById('results');
-            const color = result.status === 200 ? '#2ecc71' : '#e74c3c';
-            resultsDiv.innerHTML += `
-                <div class="result" style="border-left: 4px solid ${color}">
-                    <strong>${test}:</strong> Status ${result.status}<br>
-                    <small>${JSON.stringify(result.data, null, 2)}</small>
-                </div>
-            `;
-        }
-    </script>
-</body>
-</html>
-        """
-        return render_template_string(html, 
-            timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC'),
-            environment=os.environ.get('FLASK_ENV', 'production')
-        )
+            if user_info:
+                session['user'] = {
+                    'id': user_info['sub'],
+                    'name': user_info['name'],
+                    'email': user_info['email'],
+                    'avatar': user_info.get('picture', ''),
+                    'login_time': datetime.now().isoformat()
+                }
+                session.permanent = True
+                logger.info(f"User authenticated: {user_info['email']}")
+                return redirect(url_for('app_chat'))
+            else:
+                flash('Authentication failed. Please try again.', 'error')
+                return redirect(url_for('landing'))
+                
+        except Exception as e:
+            logger.error(f"OAuth callback error: {str(e)}")
+            flash('Authentication error. Please try again.', 'error')
+            return redirect(url_for('landing'))
     
-    @app.route('/api/login', methods=['POST'])
-    def api_login():
-        """Create session - no real authentication, just session demo"""
-        data = request.get_json() or {}
-        username = data.get('username', 'anonymous')
-        
-        # Create session (demo purposes - no real auth)
-        session['user'] = {
-            'username': username,
-            'login_time': datetime.now().isoformat(),
-            'session_id': os.urandom(16).hex()
-        }
-        session.permanent = True
-        
-        logger.info(f"Session created for user: {username}")
-        
-        return jsonify({
-            'status': 'success',
-            'message': 'Session created successfully',
-            'user': session['user']
-        })
-    
-    @app.route('/api/logout', methods=['POST'])
-    def api_logout():
-        """Destroy session"""
-        user = session.get('user', {}).get('username', 'anonymous')
+    @app.route('/logout')
+    def logout():
+        """Logout user"""
         session.clear()
-        
-        logger.info(f"Session cleared for user: {user}")
-        
-        return jsonify({
-            'status': 'success',
-            'message': 'Session cleared successfully',
-            'user': user
-        }), 200
+        flash('You have been logged out successfully.', 'success')
+        return redirect(url_for('landing'))
     
-    @app.route('/api/me')
-    def api_me():
-        """Return user session info or 401 if no session"""
-        if 'user' not in session:
-            return jsonify({
-                'status': 'unauthorized',
-                'message': 'No active session'
-            }), 401
+    @app.route('/app')
+    def app_chat():
+        """Main chat application - requires authentication"""
+        if not is_authenticated():
+            return redirect(url_for('login'))
         
-        return jsonify({
-            'status': 'authenticated',
-            'user': session['user'],
-            'session_active': True
-        })
+        return render_template('app.html', user=session['user'])
     
-    @app.route('/app.html')
-    def protected_page():
-        """Protected page that checks session"""
-        if 'user' not in session:
-            # Redirect to login instead of returning 401 for HTML requests
-            if 'text/html' in request.headers.get('Accept', ''):
-                return f"""
-                <html>
-                <head><title>Login Required</title></head>
-                <body>
-                    <h1>Login Required</h1>
-                    <p>Please <a href="/">go back to login</a>.</p>
-                    <script>
-                        // Auto-redirect after 3 seconds
-                        setTimeout(() => window.location = '/', 3000);
-                    </script>
-                </body>
-                </html>
-                """, 401
-            
-            return jsonify({
-                'status': 'unauthorized',
-                'message': 'Please login first'
-            }), 401
+    @app.route('/api/chat', methods=['POST'])
+    def api_chat():
+        """Chat API endpoint"""
+        if not is_authenticated():
+            return jsonify({'error': 'Authentication required'}), 401
         
-        html = f"""
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NOUS Dashboard</title>
-    <style>
-        body {{
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            background: #f8f9fa;
-            color: #333;
-        }}
-        .header {{
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }}
-        .container {{ max-width: 800px; margin: 0 auto; padding: 20px; }}
-        .welcome {{ 
-            background: rgba(46, 204, 113, 0.1);
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }}
-        button {{
-            background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-        }}
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>🎯 NOUS Dashboard</h1>
-    </div>
-    <div class="container">
-        <div class="welcome">
-            <h2>Welcome, {session['user']['username']}!</h2>
-            <p><strong>Session ID:</strong> {session['user']['session_id']}</p>
-            <p><strong>Login Time:</strong> {session['user']['login_time']}</p>
-        </div>
+        data = request.get_json()
+        message = data.get('message', '').strip()
         
-        <p>This is a protected page that requires an active session.</p>
-        <p>Authentication flow working correctly!</p>
+        if not message:
+            return jsonify({'error': 'Message cannot be empty'}), 400
         
-        <button onclick="logout()">Logout</button>
-    </div>
+        # Simple echo response for now - can be enhanced with actual AI
+        response = {
+            'message': f"Echo: {message}",
+            'timestamp': datetime.now().isoformat(),
+            'user': session['user']['name']
+        }
+        
+        return jsonify(response)
     
-    <script>
-        async function logout() {{
-            await fetch('/api/logout', {{ 
-                method: 'POST',
-                credentials: 'include'
-            }});
-            window.location = '/';
-        }}
-    </script>
-</body>
-</html>
-        """
-        return html
+    @app.route('/api/user')
+    def api_user():
+        """Get current user info"""
+        if not is_authenticated():
+            return jsonify({'error': 'Not authenticated'}), 401
+        
+        return jsonify(session['user'])
     
     @app.route('/health')
-    @app.route('/healthz')
     def health():
         """Health check endpoint"""
         return jsonify({
             'status': 'healthy',
             'timestamp': datetime.now().isoformat(),
-            'version': '1.0.0-zero-redirect',
-            'environment': os.environ.get('FLASK_ENV', 'production'),
-            'proxy_aware': True,
-            'session_config': {
-                'cookie_secure': app.config.get('SESSION_COOKIE_SECURE'),
-                'cookie_samesite': app.config.get('SESSION_COOKIE_SAMESITE'),
-                'cookie_httponly': app.config.get('SESSION_COOKIE_HTTPONLY')
-            }
+            'authenticated_users': 1 if is_authenticated() else 0
         })
-    
-    @app.errorhandler(404)
-    def not_found(error):
-        """Handle 404 errors"""
-        return jsonify({
-            'error': 'Not Found',
-            'message': 'The requested resource was not found',
-            'status': 404
-        }), 404
-    
-    @app.errorhandler(500)
-    def server_error(error):
-        """Handle 500 errors"""
-        logger.error(f"Server error: {error}")
-        return jsonify({
-            'error': 'Internal Server Error',
-            'message': 'An internal server error occurred',
-            'status': 500
-        }), 500
     
     return app
 
-def main():
-    """Main entry point - follows Operation Zero-Redirect specs"""
-    app = create_app()
-    port = int(os.environ.get('PORT', 5000))
-    
-    logger.info("=" * 60)
-    logger.info("🚀 OPERATION ZERO-REDIRECT: DEPLOYMENT INITIATED")
-    logger.info("=" * 60)
-    logger.info(f"Server starting on port {port}")
-    logger.info("✅ Proxy-aware configuration enabled")
-    logger.info("✅ Cookie-secure session handling enabled")
-    logger.info("✅ Zero authentication loops guaranteed")
-    logger.info("✅ Public access routes available")
-    logger.info("=" * 60)
-    
-    try:
-        app.run(
-            host='0.0.0.0',
-            port=port,
-            debug=os.environ.get('FLASK_ENV') == 'development'
-        )
-    except Exception as e:
-        logger.error(f"❌ Server startup failed: {e}")
-        raise
+# Create app instance
+app = create_app()
 
 if __name__ == '__main__':
-    main()
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
