@@ -37,7 +37,7 @@ Comprehensive health check completed on NOUS Personal Assistant codebase. **Crit
 
 ### ⚠️ STEP 4 — PORT CONFIGURATION MISMATCH
 - **CRITICAL FINDING:** PORT environment variable set to 8080 but replit.toml configured for 5000
-- **STATUS:** Server starts successfully on port 5000 but may cause deployment issues
+- **STATUS:** Server starts successfully on port 8080 but may cause deployment issues
 - **RECOMMENDATION:** Align PORT environment variable with replit.toml configuration
 
 ### ✅ STEP 5 — SECURITY HEADERS
@@ -109,7 +109,7 @@ Comprehensive health check completed on NOUS Personal Assistant codebase. **Crit
 **Server Startup:** ✅ SUCCESSFUL  
 ```
 🚀 OPERATION ZERO-REDIRECT: DEPLOYMENT INITIATED
-Server starting on port 5000
+Server starting on port 8080
 ✅ Proxy-aware configuration enabled
 ✅ Cookie-secure session handling enabled  
 ✅ Zero authentication loops guaranteed
