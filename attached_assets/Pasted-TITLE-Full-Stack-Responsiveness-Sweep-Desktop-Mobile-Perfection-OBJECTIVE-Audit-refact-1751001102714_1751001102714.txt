@@ -1,0 +1,40 @@
+TITLE: “Full-Stack Responsiveness Sweep — Desktop & Mobile Perfection”
+
+OBJECTIVE
+• **Audit + refactor** every file so the entire system (front-end + back-end) is optimized for BOTH desktop and mobile use.
+
+RESPONSIVE LAYOUT & UI
+1. Convert any fixed-width or pixel-locked elements to fluid units (%, vw/vh, rem).  
+2. Implement a **mobile-first** CSS architecture with media queries for ≥768 px (tablet), ≥1024 px (desktop), plus prefers-color-scheme.  
+3. Use CSS Grid + Flexbox; deprecate float-based layouts.  
+4. Inject `<meta name="viewport" content="width=device-width, initial-scale=1">` into every HTML template.  
+5. Add a breakpoint-aware utility class set (e.g., `.hide-md`, `.col-6@lg`) or integrate Tailwind with purge enabled.
+
+PERFORMANCE & PWA
+6. Enforce Lighthouse performance score ≥90 on both mobile and desktop profiles.  
+7. Add a service worker (Workbox) with runtime-caching for `GET /api/*` and precache critical assets.  
+8. Enable lazy loading (`loading="lazy"`) for images/iframes and dynamic imports for JS bundles.
+
+ACCESSIBILITY & UX
+9. Run accessibility lint; color-contrast ≥4.5:1; fix any missing ARIA labels or improper heading hierarchy.  
+10. Touch target min size 48 × 48 px; ensure focus states are visible.
+
+BACK-END / DEVOPS CONSISTENCY
+11. Standardize port exposure: `process.env.PORT || 3000` (Node) / `FLASK_RUN_PORT` default `3000` (Flask).  
+12. Update environment & Docker/Replit secrets; remove all stray hard-coded port numbers.  
+13. Alias root imports (`@/components`, `@/lib`) in bundler configs; eliminate `../../` chains deeper than two levels.  
+14. Add automated Lighthouse CI in `replit.nix` or GitHub Actions, failing build if scores <90.
+
+DOCUMENTATION & TESTS
+15. Generate `RESPONSIVE_README.md` summarizing breakpoints, performance budgets, and test commands.  
+16. Append accessibility-check script (`npm run a11y`) using Axe.  
+17. Commit as `feat(responsive): unify desktop+mobile UX`.
+
+ACCEPTANCE CRITERIA
+✓ Layout adapts from 320 px to 1920 px with zero overflow.  
+✓ Lighthouse ≥90 (mobile & desktop).  
+✓ All interactive elements pass touch-target & ARIA checks.  
+✓ No hard-coded ports; single `PORT` env var.  
+✓ Documentation & CI pipelines updated.
+
+END OF PROMPT
