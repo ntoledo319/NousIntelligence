@@ -214,8 +214,9 @@ def create_app():
         
         return jsonify({
             'status': 'success',
-            'message': 'Session cleared successfully'
-        }), 204
+            'message': 'Session cleared successfully',
+            'user': user
+        }), 200
     
     @app.route('/api/me')
     def api_me():
