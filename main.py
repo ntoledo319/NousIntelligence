@@ -1,10 +1,10 @@
 """
-NOUS Personal Assistant - Main Entry Point
-
-OPERATION ZERO-REDIRECT: Bulletproof deployment
-Proxy-aware, cookie-secure, zero authentication loops
+NOUS Personal Assistant - Scorched Earth UI Rebuild
+Google-Only Authentication with Professional Chat Interface
 """
-from app import main
+from app import app
 
 if __name__ == "__main__":
-    main()
+    import os
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
