@@ -11,11 +11,14 @@ from datetime import datetime
 from flask import Flask, render_template, redirect, url_for, session, request, jsonify, flash
 from werkzeug.middleware.proxy_fix import ProxyFix
 from config import AppConfig, PORT, HOST, DEBUG
+from flask_sqlalchemy import SQLAlchemy
+
+# Initialize database
+db = SQLAlchemy()
 
 # Import new backend stability components
 from utils.health_monitor import health_monitor
 from utils.database_optimizer import db_optimizer
-from routes.beta_admin import beta_admin_bp
 from routes.api.feedback import feedback_api
 
 # Configure comprehensive logging
@@ -57,11 +60,17 @@ def create_app():
         SQLALCHEMY_TRACK_MODIFICATIONS=False
     )
     
+    # Initialize database
+    db.init_app(app)
+    
+    # Set up database for models
+    from models.database import set_db
+    set_db(db)
+    
     # Initialize health monitoring
     health_monitor.init_app(app)
     
-    # Register blueprints for beta management
-    app.register_blueprint(beta_admin_bp)
+    # Register blueprints
     app.register_blueprint(feedback_api)
     
     # Create logs directory
