@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - NOUS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .analytics-dashboard {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .analytics-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px var(--shadow-color);
+        }
+        .analytics-card h3 {
+            margin: 0 0 1rem 0;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .progress-container {
+            margin: 1rem 0;
+        }
+        .progress-bar-analytics {
+            width: 100%;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-fill-analytics {
+            height: 100%;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            margin-bottom: 2rem;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="analytics-dashboard">
+        <a href="/app" class="back-link">← Back to Chat</a>
+        
+        <h1>📊 Analytics Dashboard</h1>
+        <p>Track your productivity, health, and engagement metrics.</p>
+
+        <div class="analytics-grid">
+            <div class="analytics-card">
+                <h3>💪 This Week</h3>
+                <div class="metric-value" id="weekly-tasks">-</div>
+                <div class="metric-label">Tasks Completed</div>
+                <div class="progress-container">
+                    <div class="progress-bar-analytics">
+                        <div class="progress-fill-analytics" style="width: 0%" id="task-progress"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="analytics-card">
+                <h3>💬 Chat Activity</h3>
+                <div class="metric-value" id="chat-messages">-</div>
+                <div class="metric-label">Messages This Week</div>
+            </div>
+
+            <div class="analytics-card">
+                <h3>😊 Average Mood</h3>
+                <div class="metric-value" id="avg-mood">-</div>
+                <div class="metric-label">Out of 10</div>
+            </div>
+
+            <div class="analytics-card">
+                <h3>🎯 Active Goals</h3>
+                <div class="metric-value" id="active-goals">-</div>
+                <div class="metric-label">Goals in Progress</div>
+                <div class="progress-container">
+                    <div class="progress-bar-analytics">
+                        <div class="progress-fill-analytics" style="width: 0%" id="goal-progress"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="analytics-card">
+                <h3>🔥 Current Streak</h3>
+                <div class="metric-value" id="current-streak">-</div>
+                <div class="metric-label">Days Active</div>
+            </div>
+
+            <div class="analytics-card">
+                <h3>⚡ Features Used</h3>
+                <div class="metric-value" id="features-count">-</div>
+                <div class="metric-label">Different Features</div>
+            </div>
+        </div>
+
+        <div class="analytics-card">
+            <h3>📈 Recent Insights</h3>
+            <div id="recent-insights">
+                <p style="color: var(--text-muted); text-align: center; padding: 2rem;">
+                    Loading insights...
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load analytics data
+        async function loadAnalytics() {
+            try {
+                const response = await fetch('/api/v1/analytics/dashboard?days=7', {
+                    credentials: 'same-origin'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateAnalyticsDashboard(data.data);
+                } else {
+                    console.error('Failed to load analytics');
+                }
+            } catch (error) {
+                console.error('Analytics error:', error);
+            }
+        }
+
+        function updateAnalyticsDashboard(data) {
+            // Update metrics
+            document.getElementById('weekly-tasks').textContent = data.productivity_metrics?.tasks_completed || 0;
+            document.getElementById('chat-messages').textContent = data.productivity_metrics?.chat_messages_sent || 0;
+            document.getElementById('avg-mood').textContent = data.health_metrics?.avg_mood?.toFixed(1) || 'N/A';
+            document.getElementById('active-goals').textContent = data.goals_progress?.length || 0;
+            document.getElementById('current-streak').textContent = data.engagement_metrics?.current_streak || 0;
+            document.getElementById('features-count').textContent = data.productivity_metrics?.features_used_count || 0;
+
+            // Update progress bars
+            const taskGoal = 50; // Weekly goal
+            const taskProgress = Math.min(100, ((data.productivity_metrics?.tasks_completed || 0) / taskGoal) * 100);
+            document.getElementById('task-progress').style.width = taskProgress + '%';
+
+            const goalProgress = data.goals_progress?.length > 0 
+                ? data.goals_progress.reduce((sum, goal) => sum + goal.progress_percentage, 0) / data.goals_progress.length 
+                : 0;
+            document.getElementById('goal-progress').style.width = goalProgress + '%';
+
+            // Update insights
+            const insightsContainer = document.getElementById('recent-insights');
+            if (data.insights && data.insights.length > 0) {
+                insightsContainer.innerHTML = data.insights.map(insight => `
+                    <div style="margin-bottom: 1rem; padding: 1rem; background: var(--background-color); border-radius: 0.25rem;">
+                        <strong>${insight.title}</strong>
+                        <p style="margin: 0.5rem 0 0 0; color: var(--text-secondary);">${insight.content}</p>
+                    </div>
+                `).join('');
+            } else {
+                insightsContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No insights available yet. Keep using NOUS to generate insights!</p>';
+            }
+        }
+
+        // Load analytics on page load
+        document.addEventListener('DOMContentLoaded', loadAnalytics);
+    </script>
+</body>
+</html>

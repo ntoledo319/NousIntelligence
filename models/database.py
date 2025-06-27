@@ -17,6 +17,15 @@ def init_db(app, db):
         db: SQLAlchemy database instance
     """
     with app.app_context():
+        # Import models here to ensure they are registered with SQLAlchemy
+        from models.user import User
+        from models.beta_models import BetaUser, BetaUserFeedback
+        from models.health_models import (
+            DBTSkillLog, DBTDiaryCard, DBTSkillCategory,
+            DBTSkillRecommendation, DBTSkillChallenge,
+            DBTCrisisResource, DBTEmotionTrack,
+            AABigBook, AABigBookAudio, AASpeakerRecording, AAFavorite
+        )
         # Create tables if they don't exist
         try:
             db.create_all()

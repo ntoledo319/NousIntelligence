@@ -1,0 +1,131 @@
+{% extends "app.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<style>
+    #map { height: 400px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3>Maps & Navigation</h3>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Get Directions</h5>
+                    <form id="directions-form">
+                        <div class="form-group">
+                            <label for="origin">Origin</label>
+                            <input type="text" class="form-control" id="origin" placeholder="e.g., New York, NY">
+                        </div>
+                        <div class="form-group">
+                            <label for="destination">Destination</label>
+                            <input type="text" class="form-control" id="destination" placeholder="e.g., Los Angeles, CA">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Get Directions</button>
+                    </form>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">Search Nearby</h5>
+                    <form id="search-form">
+                        <div class="form-group">
+                            <label for="search-query">What are you looking for?</label>
+                            <input type="text" class="form-control" id="search-query" placeholder="e.g., coffee shops">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div id="map"></div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-12">
+            <h4>Results</h4>
+            <div id="results-display" style="height: 200px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px;">
+                <!-- Results will be displayed here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const map = L.map('map').setView([40.7128, -74.0060], 13); // Default to NYC
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    const directionsForm = document.getElementById('directions-form');
+    const searchForm = document.getElementById('search-form');
+    const resultsDisplay = document.getElementById('results-display');
+
+    directionsForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const origin = document.getElementById('origin').value;
+        const destination = document.getElementById('destination').value;
+        
+        const response = await fetch('/maps/directions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ origin, destination })
+        });
+        const data = await response.json();
+        displayDirections(data);
+    });
+
+    searchForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const query = document.getElementById('search-query').value;
+        const center = map.getCenter();
+        
+        const response = await fetch('/maps/search_places', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query, location: `${center.lat},${center.lng}` })
+        });
+        const data = await response.json();
+        displayPlaces(data);
+    });
+
+    function displayDirections(data) {
+        resultsDisplay.innerHTML = '';
+        if (data.success) {
+            const route = data.routes[0];
+            resultsDisplay.innerHTML += `<h5>Directions: ${route.summary}</h5>`;
+            resultsDisplay.innerHTML += `<p>Duration: ${route.duration.text}, Distance: ${route.distance.text}</p>`;
+            const steps = route.steps.map(step => `<li>${step.html_instructions}</li>`).join('');
+            resultsDisplay.innerHTML += `<ol>${steps}</ol>`;
+        } else {
+            resultsDisplay.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+        }
+    }
+
+    function displayPlaces(data) {
+        resultsDisplay.innerHTML = '';
+        if (data.success) {
+            const places = data.places;
+            resultsDisplay.innerHTML += `<h5>Found ${places.length} places:</h5>`;
+            const placesList = places.map(place => {
+                const marker = L.marker([place.geometry.location.lat, place.geometry.location.lng]).addTo(map);
+                marker.bindPopup(`<b>${place.name}</b><br>${place.formatted_address}`);
+                return `<li><b>${place.name}</b> - ${place.formatted_address}</li>`;
+            }).join('');
+            resultsDisplay.innerHTML += `<ul>${placesList}</ul>`;
+        } else {
+            resultsDisplay.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+        }
+    }
+});
+</script>
+{% endblock %} 

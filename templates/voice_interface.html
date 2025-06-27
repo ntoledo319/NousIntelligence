@@ -1,0 +1,107 @@
+{% extends "app.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header text-center">
+            <h3>Voice Assistant</h3>
+            <p>Press the button and speak to the assistant.</p>
+        </div>
+        <div class="card-body">
+            <div id="conversation-display" class="mb-3" style="height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
+                <!-- Conversation will be displayed here -->
+            </div>
+            <div class="text-center">
+                <button id="record-btn" class="btn btn-primary btn-lg">Start Recording</button>
+                <p id="status" class="mt-2"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const recordBtn = document.getElementById('record-btn');
+        const statusEl = document.getElementById('status');
+        const conversationDisplay = document.getElementById('conversation-display');
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        recordBtn.addEventListener('click', async () => {
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = async () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const reader = new FileReader();
+                        reader.readAsDataURL(audioBlob);
+                        reader.onloadend = async () => {
+                            const base64Audio = reader.result.split(',')[1];
+                            
+                            statusEl.textContent = 'Processing...';
+                            
+                            const response = await fetch('/voice/process', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ audio: base64Audio })
+                            });
+
+                            const result = await response.json();
+
+                            if (result.success) {
+                                appendMessage('You', result.command);
+                                appendMessage('Assistant', result.response_text);
+
+                                if (result.voice_response && result.voice_response.success) {
+                                    const audio = new Audio('data:audio/mpeg;base64,' + result.voice_response.audio_base64);
+                                    audio.play();
+                                }
+                            } else {
+                                appendMessage('Error', result.error);
+                            }
+                            
+                            statusEl.textContent = 'Press to start recording.';
+                        };
+                        
+                        audioChunks = [];
+                    };
+
+                    mediaRecorder.start();
+                    isRecording = true;
+                    recordBtn.textContent = 'Stop Recording';
+                    recordBtn.classList.remove('btn-primary');
+                    recordBtn.classList.add('btn-danger');
+                    statusEl.textContent = 'Recording...';
+                    
+                } catch (error) {
+                    console.error('Error accessing microphone:', error);
+                    statusEl.textContent = 'Could not access microphone. Please grant permission.';
+                }
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                recordBtn.textContent = 'Start Recording';
+                recordBtn.classList.remove('btn-danger');
+                recordBtn.classList.add('btn-primary');
+                statusEl.textContent = 'Processing...';
+            }
+        });
+
+        function appendMessage(sender, message) {
+            const messageEl = document.createElement('div');
+            messageEl.innerHTML = `<strong>${sender}:</strong><p>${message}</p>`;
+            conversationDisplay.appendChild(messageEl);
+            conversationDisplay.scrollTop = conversationDisplay.scrollHeight;
+        }
+    });
+</script>
+{% endblock %} 

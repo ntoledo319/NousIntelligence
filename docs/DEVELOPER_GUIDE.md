@@ -5,235 +5,213 @@ This guide provides instructions for setting up the NOUS development environment
 ## Table of Contents
 1. [Environment Setup](#environment-setup)
 2. [Project Structure](#project-structure)
-3. [Running the Application](#running-the-application)
-4. [Testing](#testing)
-5. [Working with the Database](#working-with-the-database)
-6. [API Integration](#api-integration)
+3. [Key Components & Feature Modules](#key-components-feature-modules)
+4. [Running the Application](#running-the-application)
+5. [Testing](#testing)
+6. [Code Style Guide](#code-style-guide)
 7. [Development Workflow](#development-workflow)
-8. [Code Style Guide](#code-style-guide)
-9. [Troubleshooting](#troubleshooting)
 
 ## Environment Setup
 
 ### Prerequisites
-- Python 3.9+ 
-- PostgreSQL 13+
-- Redis (optional, for production caching)
+- A Replit account
+- Access to the NOUS project on Replit
 
 ### Setting Up the Development Environment
+The project is configured to run directly on Replit, which handles the environment and dependencies automatically.
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/nous.git
-   cd nous
-   ```
+1. **Open the project in Replit.**
+2. **Set up environment variables (Secrets):**
+   - In the Replit sidebar, go to the "Secrets" tool.
+   - Add the necessary secrets as defined in `ENV_VARS.md`. Key variables include:
+     - `DATABASE_URL`: The Replit Postgres connection string.
+     - `SESSION_SECRET`: A long, random string for session security.
+     - `GOOGLE_CLIENT_ID` & `GOOGLE_CLIENT_SECRET`: For Google OAuth.
+     - `HUGGINGFACE_API_TOKEN`: For AI-powered features.
+     - `OPENROUTER_API_KEY`: For the primary AI chat model.
+     - `GEMINI_API_KEY`: For direct access to the Gemini API.
+     - `OPENWEATHER_API_KEY`: For weather data.
+     - `MAPS_API_KEY`: For Google Maps services.
 
-2. **Create a virtual environment**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   pip install -r requirements_dev.txt  # Install development dependencies
-   ```
-
-4. **Set up environment variables**
-   
-   Create a `.env` file in the project root with the following variables:
-   ```
-   # Required Environment Variables
-   DATABASE_URL=postgresql://username:password@localhost:5432/nous
-   FLASK_SECRET=your_secure_secret_key
-   SESSION_SECRET=another_secure_secret_key
-   
-   # OAuth Configuration
-   GOOGLE_CLIENT_ID=your_google_client_id
-   GOOGLE_CLIENT_SECRET=your_google_client_secret
-   GOOGLE_REDIRECT_URI=http://localhost:5000/callback/google
-   
-   SPOTIFY_CLIENT_ID=your_spotify_client_id
-   SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
-   SPOTIFY_REDIRECT_URI=http://localhost:5000/callback/spotify
-   
-   # AI Service Configuration
-   OPENROUTER_API_KEY=your_openrouter_api_key
-   
-   # Optional Configuration
-   REDIS_URL=redis://localhost:6379/0
-   ENABLE_BETA_MODE=true
-   BETA_ACCESS_CODE=BETANOUS2025
-   MAX_BETA_TESTERS=30
-   ```
-
-5. **Set up the database**
-   ```bash
-   # Create a PostgreSQL database
-   createdb nous
-   
-   # Initialize the database schema
-   flask db upgrade
-   ```
+The database is managed by Replit, and schema is created automatically on application startup.
 
 ## Project Structure
-
-The NOUS codebase is organized as follows:
-
 ```
 nous/
-├── app.py                 # Main Flask application
-├── models.py              # SQLAlchemy models
-├── routes/                # API route blueprints
-├── utils/                 # Utility modules
+├── app.py                 # Main Flask application and app factory
+├── main.py                # Application entry point
+├── routes/                # Route blueprints for each feature
+│   ├── api.py
+│   ├── maps_routes.py
+│   ├── image_routes.py
+│   └── ...
+├── utils/                 # Business logic and helper modules
+│   ├── ai_service_manager.py
+│   ├── gemini_helper.py
+│   ├── huggingface_helper.py
+│   └── ...
+├── models/                # SQLAlchemy database models
 ├── templates/             # HTML templates
 ├── static/                # Static assets (CSS, JS, images)
 ├── tests/                 # Unit and integration tests
-├── migrations/            # Database migration scripts
-├── cache/                 # Cache files (when using file cache)
-├── docs/                  # Documentation
-└── requirements.txt       # Project dependencies
+├── docs/                  # Project documentation
+└── replit.toml            # Replit configuration file
 ```
 
-### Key Components:
+## Key Components & Feature Modules
 
-- **app.py**: Main Flask application with route definitions
-- **models.py**: Database models for SQLAlchemy
-- **utils/**: Utility modules for various functions
-  - **cache_helper.py**: Caching system for improved performance
-  - **security_helper.py**: Security functions for authentication and protection
-  - **ai_helper.py**: AI service integration
-  - **knowledge_helper.py**: Knowledge base management
-- **routes/**: Blueprints for API routes
-- **tests/**: Test modules organized by component
+### Core Architecture
+- **`app.py`**: Contains the `create_app` factory, which initializes the Flask app, loads configuration, and registers all blueprints.
+- **`routes/`**: Contains all route blueprints, organized by feature including new analytics, search, notification, financial, and collaboration routes.
+- **`models/`**: Database models organized into feature-specific files with 20+ models for comprehensive data management.
+- **`utils/`**: Business logic services including new analytics, search, and notification services.
+- **`utils/ai_service_manager.py`**: A key module that intelligently routes requests to different AI services (OpenAI, Gemini, OpenRouter, Hugging Face) for cost and performance optimization.
+
+### New Feature Architecture (v2.0)
+
+#### Analytics System
+- **Models**: `models/analytics_models.py` - UserActivity, UserMetrics, UserInsight, UserGoal
+- **Routes**: `routes/analytics_routes.py` - Dashboard, activity tracking, goal management, insights generation
+- **Service**: `utils/analytics_service.py` - Data processing, pattern recognition, AI insight generation
+- **Frontend**: Real-time dashboard with charts, goal tracking, and personalized recommendations
+
+#### Global Search System
+- **Routes**: `routes/search_routes.py` - Global search, suggestions, content indexing
+- **Service**: `utils/search_service.py` - Real-time search, content ranking, suggestion engine
+- **Frontend**: Instant search with `Ctrl+K` shortcut, real-time suggestions, category filtering
+
+#### Notification System
+- **Models**: Enhanced NotificationQueue in core models
+- **Routes**: `routes/notification_routes.py` - Notification management, priority handling
+- **Service**: `utils/notification_service.py` - Smart prioritization, multi-channel delivery
+- **Frontend**: Notification center with priority indicators and action buttons
+
+#### Financial Management
+- **Models**: `models/financial_models.py` - BankAccount, Transaction, Budget, ExpenseCategory, FinancialGoal
+- **Routes**: `routes/financial_routes.py` - Account management, transaction tracking, budget monitoring
+- **Frontend**: Comprehensive financial dashboard with budget tracking and spending insights
+
+#### Collaboration Features
+- **Models**: `models/collaboration_models.py` - Family, FamilyMember, SharedTask, ActivityLog
+- **Routes**: `routes/collaboration_routes.py` - Family management, shared task coordination
+- **Frontend**: Family dashboard with member management and shared task tracking
+
+#### Enhanced Health Tracking
+- **Models**: `models/enhanced_health_models.py` - HealthMetric, HealthGoal, WellnessInsight, MoodEntry
+- **Integration**: Enhanced health tracking with goal setting and AI-powered insights
+- **Frontend**: Comprehensive wellness dashboard with progress tracking
+
+### Progressive Web App Enhancements
+- **Service Worker**: Offline functionality and intelligent caching
+- **Mobile Optimization**: Touch-friendly interface with gesture support
+- **Keyboard Shortcuts**: Comprehensive shortcut system for power users
+- **Accessibility**: Full ARIA compliance and keyboard navigation
+- **Real-time Updates**: Live data updates with polling mechanisms
+
+### Voice Emotion Analysis
+- **Description**: This feature analyzes an audio file to determine the emotion of the speaker.
+- **How it works**:
+  1. The user uploads an audio file via the `voice_routes.py` endpoint or uses the voice interface.
+  2. The route calls `utils.emotion_detection.analyze_voice_audio`.
+  3. This function uses `utils/huggingface_helper.py` to perform speech-to-text and `utils.emotion_detection.py` to perform direct audio-based emotion analysis, then combines the results.
+- **Key Files**:
+  - `routes/voice_routes.py`
+  - `utils/emotion_detection.py`
+  - `utils/huggingface_helper.py`
+  - `templates/voice_interface.html`
+
+### Mindfulness Voice Assistant
+- **Description**: Provides users with pre-defined or AI-generated guided mindfulness exercises.
+- **How it works**:
+  1. The user interacts with the `voice_mindfulness_routes.py` endpoints.
+  2. The routes call functions in `utils/voice_mindfulness.py` to fetch or generate exercises.
+  3. The `text_to_speech` function from `utils/voice_interaction.py` is used to generate the audio.
+  4. The `templates/voice_mindfulness/exercise.html` template plays the audio.
+- **Key Files**:
+  - `routes/voice_mindfulness_routes.py`
+  - `utils/voice_mindfulness.py`
+  - `utils/voice_interaction.py`
+  - `templates/voice_mindfulness/exercise.html`
+
+### Image Analysis & Gallery
+- **Description**: Allows users to upload images for various types of analysis and view them in an organized gallery.
+- **How it works**:
+  1. The user uploads an image via `routes/image_routes.py`.
+  2. The route calls functions in `utils/image_helper.py` to perform the analysis.
+  3. The `image_helper.py` uses `utils/huggingface_helper.py` to interact with various Hugging Face models.
+  4. The gallery route dynamically organizes images using the classification data.
+- **Key Files**:
+  - `routes/image_routes.py`
+  - `utils/image_helper.py`
+  - `utils/huggingface_helper.py`
+  - `templates/image_gallery.html`
+  - `templates/image_upload.html`
+  - `templates/image_results.html`
+
+### Maps & Navigation
+- **Description**: Provides an interactive map with directions and search functionality.
+- **How it works**:
+  1. The `routes/maps_routes.py` provides the endpoints for the maps page.
+  2. The frontend in `templates/maps.html` makes API calls to these endpoints.
+  3. The routes call functions in `utils/maps_helper.py` to interact with the Google Maps API.
+- **Key Files**:
+  - `routes/maps_routes.py`
+  - `utils/maps_helper.py`
+  - `templates/maps.html`
+
+### Weather Dashboard
+- **Description**: Displays detailed weather information.
+- **How it works**:
+  1. The `routes/weather_routes.py` provides the endpoints for the weather dashboard.
+  2. The route calls functions in `utils/weather_helper.py` to get data from the OpenWeatherMap API.
+- **Key Files**:
+  - `routes/weather_routes.py`
+  - `utils/weather_helper.py`
+  - `templates/weather.html`
+
+### Task Management
+- **Description**: Allows users to manage a to-do list and sync with Google Tasks.
+- **How it works**:
+  1. `routes/tasks_routes.py` provides endpoints for the tasks dashboard.
+  2. The routes interact with the `Task` model in the database.
+  3. The `/sync` route uses `utils/google_tasks_helper.py` to communicate with the Google Tasks API.
+- **Key Files**:
+  - `routes/tasks_routes.py`
+  - `utils/google_tasks_helper.py`
+  - `models/Task.py` (or equivalent)
+  - `templates/tasks.html`
+
+### Recovery Insights
+- **Description**: A dashboard for tracking and visualizing recovery progress.
+- **How it works**:
+  1. `routes/recovery_routes.py` provides the endpoint for the insights dashboard.
+  2. The route calls `utils/aa_helper.py` to get recovery statistics.
+  3. It uses `utils/ai_helper.py` to generate personalized insights.
+- **Key Files**:
+  - `routes/recovery_routes.py`
+  - `utils/aa_helper.py`
+  - `templates/recovery_insights.html`
 
 ## Running the Application
 
-1. **Development Server**
-   ```bash
-   python main.py
-   ```
-   This will start the Flask development server at http://localhost:5000
-
-2. **Production Deployment**
-   ```bash
-   python deploy.py
-   ```
-   This runs the deployment script that validates the environment and runs migrations.
+Click the "Run" button at the top of the Replit interface. Replit will install dependencies and start the Flask development server.
 
 ## Testing
 
-The project uses pytest for testing. Tests are located in the `tests/` directory.
+The project uses `pytest`. Tests are located in the `tests/` directory.
 
-1. **Running All Tests**
-   ```bash
-   python run_tests.py
-   ```
-
-2. **Running with Coverage**
-   ```bash
-   python run_tests.py --html
-   ```
-   This generates an HTML coverage report in the `htmlcov/` directory.
-
-3. **Running Specific Tests**
-   ```bash
-   python -m pytest tests/test_security_helper.py
-   ```
-
-## Working with the Database
-
-### Migrations
-
-Database migrations are handled using Flask-Migrate (Alembic).
-
-1. **Creating a Migration**
-   ```bash
-   flask db migrate -m "Description of changes"
-   ```
-
-2. **Applying Migrations**
-   ```bash
-   flask db upgrade
-   ```
-
-3. **Reverting Migrations**
-   ```bash
-   flask db downgrade
-   ```
-
-### Model Relationships
-
-The database schema is defined in `models.py`. Key relationships include:
-
-- User → UserSettings (one-to-one)
-- User → UserMemoryEntry (one-to-many)
-- User → UserTopicInterest (one-to-many)
-- User → UserEntityMemory (one-to-many)
-
-## API Integration
-
-### OAuth Setup
-
-1. **Google OAuth**:
-   - Create a project in the [Google Developer Console](https://console.developers.google.com/)
-   - Configure OAuth consent screen
-   - Create OAuth credentials
-   - Set the redirect URI to `http://localhost:5000/callback/google`
-
-2. **Spotify OAuth**:
-   - Create an app in the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/)
-   - Set the redirect URI to `http://localhost:5000/callback/spotify`
-
-### AI Service Integration
-
-1. **OpenRouter Setup**:
-   - Create an account at [OpenRouter](https://openrouter.ai/)
-   - Generate an API key
-   - Add it to your `.env` file as `OPENROUTER_API_KEY`
-
-## Development Workflow
-
-1. **Create a feature branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-2. **Make changes and test**
-   ```bash
-   # Run tests to ensure changes don't break existing functionality
-   python run_tests.py
-   ```
-
-3. **Commit changes with descriptive messages**
-   ```bash
-   git commit -m "Add feature: detailed description of changes"
-   ```
-
-4. **Push changes and create a pull request**
-   ```bash
-   git push origin feature/your-feature-name
-   ```
+To run all tests, open the "Shell" tab in Replit and run:
+```bash
+pytest
+```
 
 ## Code Style Guide
 
 The project follows PEP 8 style guidelines with the following tools:
 
 - **Black**: Code formatting
-  ```bash
-  black .
-  ```
-
 - **Flake8**: Linting
-  ```bash
-  flake8 .
-  ```
-
 - **isort**: Import sorting
-  ```bash
-  isort .
-  ```
 
 ### Documentation Standards
 
@@ -241,44 +219,13 @@ The project follows PEP 8 style guidelines with the following tools:
 - All public functions should have docstrings with parameter descriptions
 - Use type hints for function parameters and return values
 
-Example:
-```python
-def secure_hash(data: str, salt: Optional[bytes] = None) -> str:
-    """
-    Create a secure hash using SHA-256.
-    
-    Args:
-        data: The string to hash
-        salt: Optional salt for the hash
-        
-    Returns:
-        A secure hash string
-    """
-    # Implementation...
-```
+## Development Workflow
 
-## Troubleshooting
+1.  **Create a feature branch**: `git checkout -b feature/your-feature-name`
+2.  **Make changes and test**: Run `pytest` to ensure changes don't break existing functionality.
+3.  **Commit changes**: Use descriptive commit messages.
+4.  **Push changes and create a pull request**.
 
-### Common Issues
+## Getting Help
 
-1. **Database Connection Issues**
-   - Verify PostgreSQL is running
-   - Check DATABASE_URL environment variable
-   - Ensure database user has proper permissions
-
-2. **OAuth Authentication Failures**
-   - Verify client IDs and secrets
-   - Check that redirect URIs match exactly
-   - Ensure OAuth consent screen is configured properly
-
-3. **Redis Connection Issues**
-   - Verify Redis is running if using Redis cache
-   - Check REDIS_URL environment variable
-   - Application will fall back to file cache if Redis is unavailable
-
-### Getting Help
-
-If you encounter issues not covered here, please:
-1. Check existing GitHub issues
-2. Create a new issue with detailed information about your problem
-3. Include environment details and steps to reproduce 
+If you encounter issues not covered here, please check existing GitHub issues or discuss with the team. 

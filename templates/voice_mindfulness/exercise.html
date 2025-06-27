@@ -1,0 +1,39 @@
+{% extends "app.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h3>{{ exercise.name }}</h3>
+            {% if personalized %}
+            <span class="badge badge-success">Personalized</span>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <p><strong>Duration:</strong> {{ exercise.duration }} minutes</p>
+            <p><strong>Description:</strong> {{ exercise.description }}</p>
+            
+            {% if audio_base64 %}
+            <div class="mt-4">
+                <h4>Guided Session</h4>
+                <audio controls autoplay class="w-100">
+                    <source src="data:audio/mpeg;base64,{{ audio_base64 }}" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+            {% else %}
+            <div class="alert alert-warning mt-4">
+                Could not generate audio for this exercise. Please try again later.
+            </div>
+            {% endif %}
+
+            <hr>
+
+            <h4 class="mt-4">Full Script</h4>
+            <p style="white-space: pre-wrap;">{{ exercise.script }}</p>
+
+            <a href="{{ url_for('voice_mindfulness.index') }}" class="btn btn-secondary mt-3">Back to Exercises</a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

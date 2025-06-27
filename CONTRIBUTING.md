@@ -1,50 +1,62 @@
 # Contributing to NOUS Personal Assistant
 
-Thank you for your interest in contributing to NOUS Personal Assistant! This document outlines how to contribute to this project.
+First off, thank you for considering contributing! We welcome any and all contributions that help make this project better.
 
-## Getting Started
+## 🤝 Code of Conduct
+This project and everyone participating in it is governed by our [Code of Conduct](./CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
 
-1. Fork the repository
-2. Clone your fork locally
-3. Create a new branch for your feature or bug fix
-4. Make your changes
-5. Test your changes thoroughly
-6. Submit a pull request
+## ▶️ Getting Started
 
-## Development Setup
+1.  **Fork & Clone:** Fork the repository to your own GitHub account and then clone it locally.
+2.  **Branch:** Create a new branch for your changes: `git checkout -b feature/your-awesome-feature`.
+3.  **Develop:** Make your changes. Follow the code style guidelines below.
+4.  **Test:** Run the test suite to ensure your changes don't break existing functionality: `pytest`.
+5.  **Commit:** Commit your changes with a clear and descriptive message.
+6.  **Push & Pull Request:** Push your branch to your fork and submit a pull request to the main repository.
 
-### Prerequisites
-- Python 3.11+
-- PostgreSQL (or SQLite for development)
-- Node.js (for build tools)
+## ⚙️ Development Setup
 
-### Installation
+The application is configured to run on Replit, which handles most dependency management. For a local setup:
+
+1.  **Install Dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    pip install -r requirements_dev.txt
+    ```
+
+2.  **Environment Variables:**
+    Copy the documented variables from `ENV_VARS.md` into a `.env` file. At a minimum, you will need to set `DATABASE_URL`, `GOOGLE_CLIENT_ID`, and `GOOGLE_CLIENT_SECRET`.
+
+3.  **Run the App:**
+    ```bash
+    python main.py
+    ```
+
+## 🎨 Code Style
+
+-   **Python:** We follow `PEP 8` for all Python code.
+-   **Docstrings:** Use Google-style docstrings for all modules, classes, and functions.
+-   **Naming:** Use descriptive and consistent names for variables, functions, and classes.
+
+## ✅ Pre-Commit Hooks (Recommended)
+We highly recommend using `pre-commit` to automatically lint and format your code before you commit it.
+
+1.  **Install pre-commit:**
+    ```bash
+    pip install pre-commit
+    ```
+2.  **Install the git hooks:**
+    ```bash
+    pre-commit install
+    ```
+Now, `pre-commit` will run automatically on `git commit`!
+
+## 🧪 Testing
+The test suite uses `pytest`. To run all tests:
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/nous-personal-assistant.git
-cd nous-personal-assistant
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your configuration
-
-# Initialize the database
-python -c "from app import db; db.create_all()"
-
-# Run the application
-python main.py
+pytest
 ```
-
-## Code Style
-
-- Follow PEP 8 for Python code
-- Use meaningful variable and function names
-- Add docstrings to all functions and classes
-- Write unit tests for new functionality
-- Ensure all tests pass before submitting
+Ensure all tests pass before submitting a pull request. New features should include corresponding tests.
 
 ## Project Structure
 

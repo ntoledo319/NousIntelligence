@@ -1,0 +1,99 @@
+{% extends "app.html" %}
+
+{% block head %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Recovery Insights</h3>
+    </div>
+
+    <!-- Key Stats -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Days Sober</h5>
+                    <p class="card-text display-4">{{ stats.days_sober }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Meetings Attended</h5>
+                    <p class="card-text display-4">{{ stats.meetings_attended }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Honesty Streak</h5>
+                    <p class="card-text display-4">{{ stats.current_streak }} days</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Insight -->
+    <div class="card my-4">
+        <div class="card-header">
+            <h4>AI-Powered Insight</h4>
+        </div>
+        <div class="card-body">
+            <p>{{ insight }}</p>
+        </div>
+    </div>
+
+    <!-- Progress Charts -->
+    <div class="card">
+        <div class="card-header">
+            <h4>Progress Over Time</h4>
+        </div>
+        <div class="card-body">
+            <canvas id="progressChart"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    
+    // This is placeholder data. A real implementation would fetch this from the backend.
+    const progressData = {
+        labels: ['January', 'February', 'March', 'April', 'May', 'June'],
+        datasets: [{
+            label: 'Meetings Attended',
+            data: [5, 7, 8, 10, 12, 15],
+            borderColor: 'rgba(75, 192, 192, 1)',
+            tension: 0.1
+        }, {
+            label: 'Mood Rating (Avg)',
+            data: [6, 6.5, 7, 7.2, 8, 8.5],
+            borderColor: 'rgba(255, 99, 132, 1)',
+            tension: 0.1
+        }]
+    };
+
+    new Chart(ctx, {
+        type: 'line',
+        data: progressData,
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,44 @@
+name: Docs CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.md'
+      - 'docs/**'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm install -g markdown-link-check
+
+      - name: Check Markdown Links
+        run: markdown-link-check '**/*.md' --quiet
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install Python Dependencies
+        run: pip install bandit
+
+      - name: Security Scan
+        run: bandit -r . -f txt -o bandit-report.txt || true
+      
+      - name: Upload Bandit Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: bandit-security-report
+          path: bandit-report.txt 
