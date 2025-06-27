@@ -1,0 +1,137 @@
+# NOUS Personal Assistant - Replit Development Guide
+
+## Overview
+
+NOUS is a comprehensive AI-powered personal assistant and life management platform built with Flask and deployed on Replit. The system provides intelligent task management, health tracking, financial management, collaborative features, and advanced analytics through a progressive web application interface.
+
+## System Architecture
+
+### Backend Architecture
+- **Framework**: Flask with SQLAlchemy ORM
+- **Database**: PostgreSQL (production) / SQLite (development)
+- **Authentication**: Google OAuth 2.0 with session management
+- **AI Integration**: OpenRouter and HuggingFace APIs for cost-effective AI services
+- **Deployment**: Replit Cloud with ProxyFix for reverse proxy handling
+
+### Frontend Architecture
+- **Progressive Web App**: Mobile-first responsive design
+- **Authentication Flow**: OAuth-based with secure session cookies
+- **Real-time Features**: Advanced search, notifications, and analytics dashboard
+- **Offline Capabilities**: Service worker integration for PWA functionality
+
+### Modular Blueprint Structure
+The application uses Flask blueprints for organized routing:
+- Core routes (auth, health, main)
+- Analytics routes (dashboard, insights, goals)
+- Search routes (global search, suggestions)
+- Notification routes (alerts, management)
+- Financial routes (banking, transactions)
+- Collaboration routes (families, shared tasks)
+- Health routes (wellness tracking)
+
+## Key Components
+
+### Analytics & Insights System
+- **Real-time Analytics Dashboard**: Tracks productivity, health, and engagement metrics
+- **AI-Generated Insights**: Pattern recognition with personalized recommendations
+- **Goal Management**: SMART goal setting with automated progress tracking
+- **Activity Monitoring**: Detailed user interaction analysis
+
+### Global Search & Navigation
+- **Universal Search**: Search across all content with real-time suggestions
+- **Smart Indexing**: Automatic content categorization and tagging
+- **Keyboard Shortcuts**: Power user productivity features (Ctrl+K for search)
+- **Advanced Filtering**: Category-based search with intelligent ranking
+
+### Smart Notification Center
+- **Priority-Based Notifications**: AI-powered importance scoring
+- **Multi-Channel Delivery**: In-app, email, and push notification support
+- **Contextual Alerts**: Location and time-aware notifications
+- **Batch Management**: Efficient notification handling with quick actions
+
+### Financial Management Suite
+- **Bank Integration**: Secure OAuth-based account linking
+- **Transaction Tracking**: Automatic categorization and expense analysis
+- **Budget Management**: Category-based budgeting with smart alerts
+- **Investment Monitoring**: Portfolio tracking with goal integration
+
+### Collaborative Features
+- **Family Management**: Shared dashboards and task coordination
+- **Group Activities**: Collaborative shopping lists and event planning
+- **Support Systems**: Community features and shared wellness tracking
+
+## Data Flow
+
+### Authentication Flow
+1. User initiates Google OAuth login
+2. Callback handles token exchange and session creation
+3. User data stored in SQLAlchemy models with secure session management
+4. Subsequent requests authenticated via session cookies
+
+### Analytics Pipeline
+1. User actions tracked through activity logging
+2. Data aggregated into metrics and insights
+3. AI services process patterns for recommendations
+4. Dashboard displays real-time analytics and trends
+
+### Search Architecture
+1. Content automatically indexed on creation/update
+2. Global search queries processed with intelligent ranking
+3. Real-time suggestions generated from indexed content
+4. Results filtered by user permissions and relevance
+
+## External Dependencies
+
+### AI Services
+- **OpenRouter**: Primary AI provider for chat and language processing (~$0.49/month cost-effective)
+- **HuggingFace**: Text-to-speech, speech-to-text, and specialized models
+- **Google Gemini Pro**: Additional AI capabilities for specific use cases
+
+### Google Services Integration
+- **OAuth 2.0**: Authentication and authorization
+- **Calendar API**: Event management and scheduling
+- **Tasks API**: Task creation and management
+- **Keep API**: Note-taking and voice memo storage
+
+### Third-Party Services
+- **Spotify API**: Music control and mood-based recommendations
+- **Weather Services**: AI-powered weather insights and activity suggestions
+- **Banking APIs**: Secure financial data integration (OAuth-based)
+
+### Infrastructure
+- **PostgreSQL**: Production database with connection pooling
+- **Replit Object Storage**: File and media storage
+- **Sentry**: Error tracking and performance monitoring
+
+## Deployment Strategy
+
+### Replit Cloud Configuration
+- **Deployment Type**: Autoscale for cost efficiency
+- **Port Configuration**: Single port (5000) with ProxyFix for reverse proxy
+- **Environment Variables**: All secrets managed through Replit Secrets
+- **Health Checks**: `/healthz` endpoint for deployment monitoring
+
+### Security Measures
+- **OAuth 2.0**: Secure authentication with Google
+- **Session Security**: HTTPOnly, SameSite=Lax cookies with secure flag in production
+- **Environment Variables**: No hard-coded secrets, all configuration via Replit Secrets
+- **Database Security**: Connection pooling with prepared statements
+
+### Performance Optimization
+- **Database**: Optimized queries with indexing strategies
+- **Caching**: Strategic caching for frequently accessed data
+- **Progressive Web App**: Offline capabilities and mobile optimization
+- **Cost Management**: Efficient AI API usage with provider selection based on cost-effectiveness
+
+## Changelog
+
+```
+Changelog:
+- June 27, 2025. Initial setup
+```
+
+## User Preferences
+
+```
+Preferred communication style: Simple, everyday language.
+```
