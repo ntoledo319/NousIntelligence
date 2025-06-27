@@ -43,7 +43,9 @@ class SpotifyAIIntegration:
         # Get credentials from environment variables
         self.client_id = os.environ.get("SPOTIFY_CLIENT_ID")
         self.client_secret = os.environ.get("SPOTIFY_CLIENT_SECRET")
-        self.redirect_uri = os.environ.get("SPOTIFY_REDIRECT_URI", "http://localhost:8080/callback")
+        from config import AppConfig
+        default_redirect = AppConfig.get_external_url('callback')
+        self.redirect_uri = os.environ.get("SPOTIFY_REDIRECT_URI", default_redirect)
 
         self.logger.info("Spotify AI Integration initialized")
 

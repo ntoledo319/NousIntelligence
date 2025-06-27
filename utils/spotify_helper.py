@@ -35,7 +35,9 @@ def get_spotify_client(session=None, client_id=None, client_secret=None, redirec
     # Ensure credentials are set
     client_id = client_id or os.environ.get('SPOTIFY_CLIENT_ID')
     client_secret = client_secret or os.environ.get('SPOTIFY_CLIENT_SECRET')
-    redirect_uri = redirect_uri or os.environ.get('SPOTIFY_REDIRECT_URI', 'http://localhost:8080/callback')
+    from config import AppConfig
+    default_redirect = AppConfig.get_external_url('callback')
+    redirect_uri = redirect_uri or os.environ.get('SPOTIFY_REDIRECT_URI', default_redirect)
 
     if not client_id or not client_secret:
         logger.warning('Spotify credentials not found')

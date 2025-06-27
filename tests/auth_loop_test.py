@@ -8,7 +8,10 @@ import json
 from urllib.parse import urljoin
 
 class AuthLoopTester:
-    def __init__(self, base_url='http://localhost:5000'):
+    def __init__(self, base_url=None):
+        if base_url is None:
+            from config import PORT, HOST
+            base_url = f'http://{HOST}:{PORT}'
         self.base_url = base_url
         self.session = requests.Session()
         self.test_results = []
@@ -216,8 +219,8 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description='Auth Loop Smoke Tests')
-    parser.add_argument('--url', default='http://localhost:5000', 
-                       help='Base URL to test (default: http://localhost:5000)')
+    parser.add_argument('--url', default=None, 
+                       help='Base URL to test (default: auto-detect from config)')
     parser.add_argument('--json', action='store_true',
                        help='Output results as JSON')
     
