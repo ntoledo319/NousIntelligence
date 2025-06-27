@@ -103,6 +103,131 @@
     --card-gradient: linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(168, 85, 247, 0.05) 100%);
 }
 
+/* Pink Theme */
+[data-theme="pink"] {
+    --primary-color: #ec4899;
+    --primary-hover: #db2777;
+    --secondary-color: #f472b6;
+    --background-color: #fdf2f8;
+    --surface-color: #fce7f3;
+    --text-primary: #831843;
+    --text-secondary: #be185d;
+    --text-muted: #ec4899;
+    --border-color: #f9a8d4;
+    --shadow-color: rgba(236, 72, 153, 0.1);
+    --hero-gradient: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+    --card-gradient: linear-gradient(135deg, rgba(236, 72, 153, 0.1) 0%, rgba(244, 114, 182, 0.05) 100%);
+}
+
+/* Peacock Theme */
+[data-theme="peacock"] {
+    --primary-color: #0891b2;
+    --primary-hover: #0e7490;
+    --secondary-color: #06b6d4;
+    --background-color: #ecfeff;
+    --surface-color: #cffafe;
+    --text-primary: #164e63;
+    --text-secondary: #0891b2;
+    --text-muted: #06b6d4;
+    --border-color: #67e8f9;
+    --shadow-color: rgba(8, 145, 178, 0.15);
+    --hero-gradient: linear-gradient(135deg, #0891b2 0%, #06b6d4 50%, #8b5cf6 100%);
+    --card-gradient: linear-gradient(135deg, rgba(8, 145, 178, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+}
+
+/* Love Theme */
+[data-theme="love"] {
+    --primary-color: #dc2626;
+    --primary-hover: #b91c1c;
+    --secondary-color: #f87171;
+    --background-color: #fef2f2;
+    --surface-color: #fee2e2;
+    --text-primary: #7f1d1d;
+    --text-secondary: #dc2626;
+    --text-muted: #ef4444;
+    --border-color: #fca5a5;
+    --shadow-color: rgba(220, 38, 38, 0.1);
+    --hero-gradient: linear-gradient(135deg, #dc2626 0%, #f87171 50%, #fbbf24 100%);
+    --card-gradient: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(248, 113, 113, 0.05) 100%);
+}
+
+/* Real Star Theme */
+[data-theme="star"] {
+    --primary-color: #1e40af;
+    --primary-hover: #1d4ed8;
+    --secondary-color: #3b82f6;
+    --background-color: #0f172a;
+    --surface-color: #1e293b;
+    --text-primary: #f8fafc;
+    --text-secondary: #e2e8f0;
+    --text-muted: #94a3b8;
+    --border-color: #334155;
+    --shadow-color: rgba(59, 130, 246, 0.2);
+    --hero-gradient: linear-gradient(135deg, #0f172a 0%, #1e40af 50%, #7c3aed 100%);
+    --card-gradient: linear-gradient(135deg, rgba(30, 64, 175, 0.1) 0%, rgba(124, 58, 237, 0.05) 100%);
+}
+
+/* Star Theme Special Effects */
+[data-theme="star"] body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+                radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(2px 2px at 160px 30px, #ddd, transparent);
+    background-repeat: repeat;
+    background-size: 200px 100px;
+    animation: sparkle 3s linear infinite;
+    pointer-events: none;
+    z-index: -1;
+}
+
+@keyframes sparkle {
+    from { background-position: 0 0; }
+    to { background-position: -200px -100px; }
+}
+
+/* Love Theme Special Effects */
+[data-theme="love"] .logo {
+    animation: heartbeat 2s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Peacock Theme Special Effects */
+[data-theme="peacock"] .hero-title {
+    background: linear-gradient(45deg, #0891b2, #06b6d4, #8b5cf6, #ec4899);
+    background-size: 400% 400%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: peacockShimmer 3s ease-in-out infinite;
+}
+
+@keyframes peacockShimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+/* Pink Theme Enhancements */
+[data-theme="pink"] .message-bubble.user-message .message-content {
+    background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+    box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+}
+
+/* Star Theme Message Enhancements */
+[data-theme="star"] .message-bubble {
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+}
+
 /* Base Styles */
 * {
     margin: 0;

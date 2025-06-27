@@ -25,9 +25,10 @@ NOUS is a professional-grade AI personal assistant with Google-only authenticati
 - **Clear Chat**: Option to clear conversation history
 
 ### Theme System
-- **6 Beautiful Themes**: Light, Dark, Ocean, Forest, Sunset, Purple
+- **10 Beautiful Themes**: Light, Dark, Ocean, Forest, Sunset, Purple, Pink, Peacock, Love, Real Star
 - **Persistent Preferences**: Theme selection saved to localStorage
 - **Smooth Transitions**: CSS animations for theme switching
+- **Special Effects**: Animated stars (Real Star), heartbeat logo (Love), rainbow text (Peacock)
 - **CSS Variables**: Modern variable-based theming system
 
 ### Responsive Design
@@ -121,7 +122,7 @@ nous-personal-assistant/
 
 ## 🎨 Theme System
 
-The application includes 6 professionally designed themes:
+The application includes 10 professionally designed themes:
 
 1. **Light** - Clean, minimal design with light backgrounds
 2. **Dark** - Modern dark mode with blue accents
@@ -129,8 +130,12 @@ The application includes 6 professionally designed themes:
 4. **Forest** - Green-themed with nature colors
 5. **Sunset** - Warm orange/red gradient theme
 6. **Purple** - Rich purple theme with elegant feel
+7. **Pink** - Vibrant pink theme with enhanced message bubbles
+8. **Peacock** - Teal and purple with animated rainbow text effects
+9. **Love** - Romantic red theme with heartbeat logo animation
+10. **Real Star** - Dark space theme with animated twinkling stars
 
-Themes are implemented using CSS variables and persist across sessions.
+Themes are implemented using CSS variables and persist across sessions. Special themes include visual effects and animations.
 
 ## 🔒 Security Features
 

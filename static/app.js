@@ -335,7 +335,7 @@ if (typeof module !== 'undefined' && module.exports) {
 
 // Additional utility functions for theme management
 function getAvailableThemes() {
-    return ['light', 'dark', 'ocean', 'forest', 'sunset', 'purple'];
+    return ['light', 'dark', 'ocean', 'forest', 'sunset', 'purple', 'pink', 'peacock', 'love', 'star'];
 }
 
 function validateTheme(themeName) {
