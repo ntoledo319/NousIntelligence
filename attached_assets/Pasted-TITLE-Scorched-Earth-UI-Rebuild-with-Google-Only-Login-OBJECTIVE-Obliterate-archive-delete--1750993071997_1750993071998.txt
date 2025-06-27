@@ -1,0 +1,44 @@
+TITLE: “Scorched-Earth UI Rebuild with Google-Only Login”
+
+OBJECTIVE
+• Obliterate (archive → delete) every existing UI/UX file: HTML, CSS, JS, React, templates, static assets—anything that touches presentation.  
+• Scaffold a **professional-grade chat interface** (`/app`) that is:
+  – Fully responsive (mobile-first).  
+  – Supports light/dark plus at least 4 extra preset color themes (users can pick from a dropdown, preference stored in `localStorage`).  
+  – Displays timestamped, left/right-aligned chat bubbles with auto-scroll.  
+• Create a **public landing page** at `/` with:
+  – Brief hero copy, feature list, and a single “Sign in with Google” button.  
+  – No other sign-in options.  
+• Implement **Google OAuth** using the built-in Replit integration (trigger via keyword). After auth, redirect to `/app`.  
+• **Do NOT** modify the `.replit` file (workspace quirks).  
+• Remove duplicate/legacy files Replit tends to spawn; consolidate everything into one clean source per type (`index.html`, `app.js`, `styles.css`, etc.).  
+• Auto-generate/patch `README.md` and in-code comments to reflect the new architecture.
+
+TECH STACK (default unless better is detected)  
+• Front-end: vanilla JS + minimal HTML/CSS (keep dependencies light).  
+• Auth / Back-end: Flask or Next.js—whatever yields the simplest Google OAuth flow on Replit.
+
+TASK LIST
+1. **Pre-flight:** checkpoint; back up current repo in `/backup-mm-dd-yyyy`.  
+2. **Purge UI:** delete redundant/static UI files; leave back-end routes & env vars untouched.  
+3. **Landing Page:** build `/index.html` with hero section, feature bullets, “Sign in with Google” button.  
+4. **Auth:** enable **Google OAuth** integration; set callback to `/oauth2callback`; store user profile (name, email, avatar) in session.  
+5. **Chat UI:** generate `/templates/app.html` (or React equivalent) featuring:  
+   – chat window, scroll-snap, timestamped bubbles, input box + send button, theme picker.  
+6. **Theme Engine:** `styles.css` includes CSS variables; `app.js` toggles theme and persists selection.  
+7. **Docs:** update `README.md`, inline comments, and add `ARCHITECTURE.md` diagram.  
+8. **Checkpoint & Test:**  
+   – Run lint/tests.  
+   – Confirm landing page loads without auth.  
+   – Confirm Google login redirects to `/app`.  
+   – Switch themes and reload; preference should stick.  
+9. **Final checkpoint:** commit as “feat(ui-rebuild): fresh chat UI + Google auth”.
+
+ACCEPTANCE CRITERIA
+✓ Only one landing page, one chat UI, one workflow.  
+✓ Duplicate/legacy files gone.  
+✓ Google OAuth is the **sole** login path.  
+✓ Theme picker works across sessions.  
+✓ Updated documentation, zero TODOs left.
+
+END OF PROMPT
