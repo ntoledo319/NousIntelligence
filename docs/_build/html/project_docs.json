@@ -1,0 +1,1866 @@
+{
+  "project_name": "NOUS Personal Assistant",
+  "generated_at": "2025-06-27T08:26:07.926986",
+  "total_files": 105,
+  "files": [
+    {
+      "file": "api/chat.py",
+      "module_doc": "Unified /api/chat dispatcher\nAuto-registers handlers and routes messages by intent pattern",
+      "functions": [
+        "__init__",
+        "api_chat",
+        "list_chat_handlers",
+        "chat_api_health",
+        "register_chat_handler",
+        "auto_discover_handlers",
+        "_generate_intent_patterns"
+      ],
+      "classes": [
+        "ChatDispatcher"
+      ],
+      "total_lines": 228,
+      "status": "success"
+    },
+    {
+      "file": "app.py",
+      "module_doc": "Backend Stability + Beta Suite Overhaul\nProfessional-Grade Chat Interface with Health Monitoring & Beta Management",
+      "functions": [
+        "create_app",
+        "add_security_headers",
+        "is_authenticated",
+        "landing",
+        "login",
+        "demo_login",
+        "oauth_callback",
+        "logout",
+        "app_chat",
+        "api_chat",
+        "api_user",
+        "health"
+      ],
+      "classes": [],
+      "total_lines": 228,
+      "status": "success"
+    },
+    {
+      "file": "config/__init__.py",
+      "module_doc": "Configuration module for NOUS application",
+      "functions": [],
+      "classes": [],
+      "total_lines": 6,
+      "status": "success"
+    },
+    {
+      "file": "config/app_config.py",
+      "module_doc": "NOUS Application Configuration\nCentralized configuration management for ports, base paths, and API endpoints",
+      "functions": [
+        "get_external_url",
+        "get_api_url",
+        "to_dict",
+        "validate"
+      ],
+      "classes": [
+        "AppConfig"
+      ],
+      "total_lines": 99,
+      "status": "success"
+    },
+    {
+      "file": "config/routes_config.py",
+      "module_doc": "Unified Route Configuration\nStandardizes all API routes under consistent base paths",
+      "functions": [
+        "get_route_url",
+        "get_api_v1_url",
+        "get_legacy_api_url",
+        "validate_routes"
+      ],
+      "classes": [
+        "RouteConfig"
+      ],
+      "total_lines": 98,
+      "status": "success"
+    },
+    {
+      "file": "core/chat/__init__.py",
+      "module_doc": "Core Chat Module - CHAT-FIRST UNIFICATION\nAuto-discovery and registration system for chat handlers",
+      "functions": [],
+      "classes": [],
+      "total_lines": 17,
+      "status": "success"
+    },
+    {
+      "file": "core/chat/blueprint.py",
+      "module_doc": "Chat Blueprint - Flask Blueprint for chat routes with SocketIO support",
+      "functions": [
+        "init_socketio",
+        "chat_health",
+        "list_handlers",
+        "handle_message",
+        "generate_stubs",
+        "debug_info",
+        "register_socketio_handlers",
+        "on_connect",
+        "on_disconnect",
+        "on_join_room",
+        "on_leave_room",
+        "on_message",
+        "chat_interface",
+        "setup_default_handlers",
+        "preprocess_message",
+        "default_fallback"
+      ],
+      "classes": [],
+      "total_lines": 206,
+      "status": "success"
+    },
+    {
+      "file": "core/chat/dispatcher.py",
+      "module_doc": "Chat Dispatcher - Routes messages to appropriate handlers",
+      "functions": [
+        "__init__",
+        "add_middleware",
+        "set_fallback_handler",
+        "generate_handler_stubs",
+        "_generate_stub_code",
+        "get_stats"
+      ],
+      "classes": [
+        "ChatDispatcher"
+      ],
+      "total_lines": 201,
+      "status": "success"
+    },
+    {
+      "file": "core/chat/handler_registry.py",
+      "module_doc": "Handler Registry - Auto-discovery system for chat handlers",
+      "functions": [
+        "__init__",
+        "load_codegraph",
+        "register_handler_from_codegraph",
+        "_extract_intent_patterns",
+        "register_handler",
+        "find_handler",
+        "_calculate_match_score",
+        "list_handlers",
+        "get_handler_info"
+      ],
+      "classes": [
+        "HandlerRegistry"
+      ],
+      "total_lines": 135,
+      "status": "success"
+    },
+    {
+      "file": "main.py",
+      "module_doc": "NOUS Personal Assistant - Unified Port Configuration\nGoogle-Only Authentication with Professional Chat Interface",
+      "functions": [],
+      "classes": [],
+      "total_lines": 9,
+      "status": "success"
+    },
+    {
+      "file": "models/__init__.py",
+      "module_doc": "Models Package\n\nThis package contains all database models for the NOUS application,\norganized into related modules for better maintainability.",
+      "functions": [],
+      "classes": [],
+      "total_lines": 21,
+      "status": "success"
+    },
+    {
+      "file": "models/beta_models.py",
+      "module_doc": "Beta Testing System Models\nDatabase models for beta user management and feature flags",
+      "functions": [
+        "__repr__",
+        "to_dict",
+        "has_flag",
+        "set_flag",
+        "is_owner",
+        "is_admin",
+        "__repr__",
+        "to_dict",
+        "__repr__",
+        "to_dict",
+        "is_enabled_for_user",
+        "__repr__",
+        "to_dict"
+      ],
+      "classes": [
+        "BetaUser",
+        "BetaFeedback",
+        "FeatureFlag",
+        "SystemMetrics"
+      ],
+      "total_lines": 171,
+      "status": "success"
+    },
+    {
+      "file": "models/database.py",
+      "module_doc": "Database Configuration Module\n\nThis module configures the database connection and provides\nutility functions for database operations.",
+      "functions": [
+        "init_db",
+        "get_db"
+      ],
+      "classes": [],
+      "total_lines": 33,
+      "status": "success"
+    },
+    {
+      "file": "models/user.py",
+      "module_doc": "User Models\n\nThis module defines user-related database models for the NOUS application,\nincluding user account data, preferences, and authentication.",
+      "functions": [
+        "is_active",
+        "__repr__"
+      ],
+      "classes": [
+        "User"
+      ],
+      "total_lines": 30,
+      "status": "success"
+    },
+    {
+      "file": "routes/__init__.py",
+      "module_doc": "Routes initialization module\nCentralizes the registration of all application blueprints with standardized patterns",
+      "functions": [
+        "register_all_blueprints"
+      ],
+      "classes": [],
+      "total_lines": 75,
+      "status": "success"
+    },
+    {
+      "file": "routes/api.py",
+      "module_doc": "API Routes Module\n\nThis module defines API routes for accessing application data.\n\n@module routes.api\n@description API routes for data access",
+      "functions": [
+        "api_status",
+        "get_user_info",
+        "get_settings",
+        "update_settings",
+        "get_tasks",
+        "create_task",
+        "get_task",
+        "update_task",
+        "delete_task",
+        "process_chat",
+        "get_user_profile",
+        "user_settings"
+      ],
+      "classes": [],
+      "total_lines": 288,
+      "status": "success"
+    },
+    {
+      "file": "routes/api/feedback.py",
+      "module_doc": "Beta Feedback API\nCollects and stores user feedback for beta features",
+      "functions": [
+        "submit_feedback",
+        "feedback_stats",
+        "_ensure_feedback_table"
+      ],
+      "classes": [],
+      "total_lines": 228,
+      "status": "success"
+    },
+    {
+      "file": "routes/api/health.py",
+      "module_doc": "Health API Blueprint\n\nThis module provides health-related API endpoints for the NOUS application.",
+      "functions": [
+        "health_check",
+        "system_health"
+      ],
+      "classes": [],
+      "total_lines": 107,
+      "status": "success"
+    },
+    {
+      "file": "routes/api/shopping.py",
+      "module_doc": "Shopping API routes.\nHandles shopping-related functionality such as shopping lists, products, etc.\n\n@module shopping\n@context_boundary Shopping Management",
+      "functions": [
+        "handle_exception",
+        "get_shopping_lists",
+        "get_shopping_list",
+        "create_shopping_list",
+        "get_list_items",
+        "add_list_item",
+        "toggle_item_checked",
+        "remove_list_item",
+        "get_products",
+        "get_product",
+        "add_product"
+      ],
+      "classes": [],
+      "total_lines": 405,
+      "status": "success"
+    },
+    {
+      "file": "routes/api/v1/settings.py",
+      "module_doc": "Settings API Routes\n\nThis module contains API routes for user settings management.\n\n@module routes.api.v1.settings\n@author NOUS Development Team",
+      "functions": [
+        "get_settings",
+        "update_settings",
+        "reset_settings"
+      ],
+      "classes": [],
+      "total_lines": 120,
+      "status": "success"
+    },
+    {
+      "file": "routes/api/v1/weather.py",
+      "module_doc": "Weather API Routes\n\nThis module contains API routes for weather data and location management.\n\n@module routes.api.v1.weather\n@author NOUS Development Team",
+      "functions": [
+        "api_get_current_weather",
+        "api_get_weather_forecast",
+        "api_get_weather_locations",
+        "api_add_weather_location",
+        "api_delete_weather_location",
+        "api_set_primary_weather_location",
+        "api_pain_flare_forecast"
+      ],
+      "classes": [],
+      "total_lines": 269,
+      "status": "success"
+    },
+    {
+      "file": "routes/auth/__init__.py",
+      "module_doc": "Authentication Module Initialization\n\nThis module initializes the authentication components\nand makes them available for blueprint registration.",
+      "functions": [],
+      "classes": [],
+      "total_lines": 8,
+      "status": "success"
+    },
+    {
+      "file": "routes/auth/standardized_routes.py",
+      "module_doc": "Standardized Authentication Routes\n\nThis module implements authentication routes using standardized routing patterns.",
+      "functions": [
+        "login",
+        "logout",
+        "register",
+        "password_reset_request",
+        "password_reset"
+      ],
+      "classes": [],
+      "total_lines": 168,
+      "status": "success"
+    },
+    {
+      "file": "routes/beta_admin.py",
+      "module_doc": "Beta Admin Console Routes\nProtected admin interface for toledonick98@gmail.com",
+      "functions": [
+        "admin_required",
+        "decorated_function",
+        "dashboard",
+        "manage_users",
+        "add_user",
+        "toggle_user_status",
+        "manage_flags",
+        "add_flag",
+        "toggle_flag",
+        "view_feedback",
+        "export_feedback",
+        "_ensure_tables_exist"
+      ],
+      "classes": [],
+      "total_lines": 519,
+      "status": "success"
+    },
+    {
+      "file": "routes/dashboard.py",
+      "module_doc": "Dashboard Routes for NOUS Personal Assistant\n\nThis module defines dashboard routes for the NOUS application.",
+      "functions": [
+        "dashboard"
+      ],
+      "classes": [],
+      "total_lines": 26,
+      "status": "success"
+    },
+    {
+      "file": "routes/index.py",
+      "module_doc": "Index Routes Module\n\nThis module defines routes for the main pages of the application.\n\n@module routes.index\n@description Main application routes",
+      "functions": [
+        "index",
+        "help_page"
+      ],
+      "classes": [],
+      "total_lines": 70,
+      "status": "success"
+    },
+    {
+      "file": "routes/main.py",
+      "module_doc": "Main Routes Blueprint\n\nThis module defines the main routes for the NOUS application.",
+      "functions": [
+        "index",
+        "dashboard",
+        "help",
+        "health",
+        "serve_static",
+        "catch_all"
+      ],
+      "classes": [],
+      "total_lines": 95,
+      "status": "success"
+    },
+    {
+      "file": "routes/pulse.py",
+      "module_doc": "NOUS Pulse Dashboard - Unified Alert Hub\nAggregates top alerts from health, DBT, finance, shopping, and weather",
+      "functions": [
+        "pulse_dashboard",
+        "pulse_api",
+        "health_details",
+        "finance_details",
+        "calculate_urgency_score"
+      ],
+      "classes": [],
+      "total_lines": 117,
+      "status": "success"
+    },
+    {
+      "file": "routes/settings.py",
+      "module_doc": "Settings Routes Module\n\nThis module defines routes for the user settings and preferences.\n\n@module routes.settings\n@description User settings and preferences routes",
+      "functions": [
+        "settings_page",
+        "update_profile",
+        "update_appearance",
+        "update_assistant",
+        "update_password",
+        "delete_account"
+      ],
+      "classes": [],
+      "total_lines": 149,
+      "status": "success"
+    },
+    {
+      "file": "routes/user_routes.py",
+      "module_doc": "User Routes\n\nThis module provides routes for user account management,\nincluding profile viewing and editing.",
+      "functions": [
+        "profile",
+        "preferences",
+        "activity"
+      ],
+      "classes": [],
+      "total_lines": 34,
+      "status": "success"
+    },
+    {
+      "file": "routes/view/auth.py",
+      "module_doc": "Authentication View Routes\n\nThis module contains view routes for user authentication,\nincluding login, logout and registration.\n\n@module routes.view.auth\n@description Authentication routes with enhanced security",
+      "functions": [
+        "login",
+        "email_login",
+        "direct_google_login",
+        "logout",
+        "check_rate_limit"
+      ],
+      "classes": [],
+      "total_lines": 201,
+      "status": "success"
+    },
+    {
+      "file": "routes/view/dashboard.py",
+      "module_doc": "Dashboard View Routes\n\nThis module contains view routes for the dashboard page.\n\n@module routes.view.dashboard\n@author NOUS Development Team",
+      "functions": [
+        "dashboard"
+      ],
+      "classes": [],
+      "total_lines": 217,
+      "status": "success"
+    },
+    {
+      "file": "routes/view/index.py",
+      "module_doc": "Index View Routes\n\nThis module contains view routes for the main index/home page.\n\n@module routes.view.index\n@author NOUS Development Team",
+      "functions": [
+        "index",
+        "process_command",
+        "clear_log",
+        "help_page"
+      ],
+      "classes": [],
+      "total_lines": 119,
+      "status": "success"
+    },
+    {
+      "file": "routes/view/settings.py",
+      "module_doc": "Settings View Routes\n\nThis module contains view routes for the settings page.\n\n@module routes.view.settings\n@author NOUS Development Team",
+      "functions": [
+        "settings_page",
+        "save_settings",
+        "reset_settings"
+      ],
+      "classes": [],
+      "total_lines": 68,
+      "status": "success"
+    },
+    {
+      "file": "routes/view/user.py",
+      "module_doc": "User routes and views.\nHandles user-specific functionality like user guide and profile management.\n\n@module user\n@context_boundary User Interface",
+      "functions": [
+        "user_guide",
+        "profile",
+        "update_profile",
+        "get_notifications"
+      ],
+      "classes": [],
+      "total_lines": 102,
+      "status": "success"
+    },
+    {
+      "file": "scripts/backend_stability_test.py",
+      "module_doc": "",
+      "functions": [
+        "__init__",
+        "run_all_tests",
+        "test_health_endpoints",
+        "test_admin_access",
+        "test_feedback_api",
+        "test_database_connectivity",
+        "test_performance_metrics",
+        "test_error_handling",
+        "test_authentication_flow",
+        "test_feature_flags",
+        "main"
+      ],
+      "classes": [
+        "BackendStabilityTester"
+      ],
+      "total_lines": 313,
+      "status": "success"
+    },
+    {
+      "file": "scripts/generate_api_docs.py",
+      "module_doc": "",
+      "functions": [
+        "generate_module_docs",
+        "generate_flask_routes_docs",
+        "generate_html_docs",
+        "generate_functions_html",
+        "generate_classes_html",
+        "main"
+      ],
+      "classes": [],
+      "total_lines": 250,
+      "status": "success"
+    },
+    {
+      "file": "scripts/project_docs_generator.py",
+      "module_doc": "",
+      "functions": [
+        "get_project_files",
+        "analyze_file",
+        "generate_docs",
+        "generate_html_docs"
+      ],
+      "classes": [],
+      "total_lines": 371,
+      "status": "success"
+    },
+    {
+      "file": "scripts/simple_docs_generator.py",
+      "module_doc": "",
+      "functions": [
+        "scan_python_files",
+        "extract_docstrings",
+        "generate_simple_docs",
+        "generate_html"
+      ],
+      "classes": [],
+      "total_lines": 222,
+      "status": "success"
+    },
+    {
+      "file": "tests/auth_loop_test.py",
+      "module_doc": "Operation Zero-Redirect: Smoke Test Suite\nTests authentication flow to prevent redirect loops",
+      "functions": [
+        "__init__",
+        "log_test",
+        "test_public_landing_page",
+        "test_protected_page_unauthenticated",
+        "test_login_creates_session",
+        "test_protected_page_authenticated",
+        "test_me_endpoint_authenticated",
+        "test_logout_destroys_session",
+        "test_protected_page_after_logout",
+        "test_health_endpoint",
+        "run_all_tests",
+        "main"
+      ],
+      "classes": [
+        "AuthLoopTester"
+      ],
+      "total_lines": 241,
+      "status": "success"
+    },
+    {
+      "file": "tests/smoke_test_suite.py",
+      "module_doc": "GLOBAL HEALTH CHECK: Automated Smoke Test Suite\nAuto-generated test grid for login loop prevention and deployment verification",
+      "functions": [
+        "setup_class",
+        "test_01_root_endpoint_public_access",
+        "test_02_health_check_endpoint",
+        "test_03_dashboard_access_pattern",
+        "test_04_api_endpoints_no_auth_loops",
+        "test_05_cors_headers_present",
+        "test_06_security_headers_present",
+        "test_07_no_server_errors_on_basic_routes"
+      ],
+      "classes": [
+        "TestSmokeSuite"
+      ],
+      "total_lines": 106,
+      "status": "success"
+    },
+    {
+      "file": "utils/__init__.py",
+      "module_doc": "Utility Module\n\nThis module provides utility functions and helpers for the application.",
+      "functions": [],
+      "classes": [],
+      "total_lines": 5,
+      "status": "success"
+    },
+    {
+      "file": "utils/adaptive_conversation.py",
+      "module_doc": "Adaptive conversation module for adjusting response complexity based on user preferences.\nThis module helps customize AI responses to match the user's preferred difficulty level.",
+      "functions": [
+        "set_difficulty",
+        "get_current_difficulty",
+        "get_difficulty_context",
+        "adapt_response",
+        "_simplify_sentences",
+        "_add_term_explanations"
+      ],
+      "classes": [],
+      "total_lines": 186,
+      "status": "success"
+    },
+    {
+      "file": "utils/api_key_manager.py",
+      "module_doc": "API Key Management Module\n\nThis module provides utilities for API key generation, validation, rotation,\nand lifecycle management to enhance security through regular key rotation.\n\n@module: api_key_manager\n@author: NOUS Development Team",
+      "functions": [
+        "generate_api_key",
+        "hash_api_key",
+        "validate_api_key",
+        "check_api_key_scope",
+        "create_api_key",
+        "revoke_api_key",
+        "rotate_api_key",
+        "check_rate_limits",
+        "init_api_key_cleanup",
+        "cleanup_worker",
+        "api_key_required",
+        "decorated",
+        "get_request_info"
+      ],
+      "classes": [
+        "APIKeyError",
+        "APIKeyInvalidError",
+        "APIKeyExpiredError",
+        "APIKeyScopeError",
+        "APIKeyRotationError",
+        "APIKeyRateLimitError"
+      ],
+      "total_lines": 615,
+      "status": "success"
+    },
+    {
+      "file": "utils/api_route_helper.py",
+      "module_doc": "API Route Helper\n\nThis module provides utilities to standardize API route creation and documentation.\nIt ensures consistent versioning, documentation, and error handling for API endpoints.",
+      "functions": [
+        "api_route",
+        "decorator",
+        "wrapper",
+        "create_api_blueprint",
+        "register_api_error_handlers",
+        "handle_bad_request",
+        "handle_unauthorized",
+        "handle_forbidden",
+        "handle_not_found",
+        "handle_method_not_allowed",
+        "handle_too_many_requests",
+        "handle_server_error"
+      ],
+      "classes": [],
+      "total_lines": 187,
+      "status": "success"
+    },
+    {
+      "file": "utils/cache_helper.py",
+      "module_doc": "Cache Helper Utility\n\nThis module provides caching functionality for the NOUS personal assistant.\nIt helps improve performance by caching expensive operations.\n\n@module utils.cache_helper\n@description Caching utilities for performance optimization",
+      "functions": [
+        "__init__",
+        "get",
+        "set",
+        "delete",
+        "clear_all",
+        "warmup",
+        "cached",
+        "decorator",
+        "wrapper",
+        "get_cache_helper"
+      ],
+      "classes": [
+        "CacheHelper"
+      ],
+      "total_lines": 208,
+      "status": "success"
+    },
+    {
+      "file": "utils/character_customization.py",
+      "module_doc": "Character customization module for personalizing the AI assistant.\nThis module helps create a more engaging and personalized AI character\nbased on user preferences.",
+      "functions": [
+        "get_character_settings",
+        "get_character_system_prompt",
+        "apply_character_style",
+        "has_emoji"
+      ],
+      "classes": [],
+      "total_lines": 301,
+      "status": "success"
+    },
+    {
+      "file": "utils/command_parser.py",
+      "module_doc": "",
+      "functions": [
+        "parse_command"
+      ],
+      "classes": [],
+      "total_lines": 530,
+      "status": "success"
+    },
+    {
+      "file": "utils/create_default_user.py",
+      "module_doc": "Default User Creator\n\nThis module creates a default admin user for the application\nwhen no users exist in the database.\n\n@module create_default_user\n@description Create default admin user for initial login",
+      "functions": [
+        "create_default_admin"
+      ],
+      "classes": [],
+      "total_lines": 79,
+      "status": "success"
+    },
+    {
+      "file": "utils/database_optimizer.py",
+      "module_doc": "Database Optimization and Query Analysis\nAutomatically analyzes queries, suggests indexes, and optimizes performance",
+      "functions": [
+        "__init__",
+        "execute_with_timing",
+        "analyze_query_performance",
+        "suggest_indexes",
+        "optimize_connection_pool",
+        "create_performance_report",
+        "_log_slow_query",
+        "_record_query_metric",
+        "_parse_explain_output",
+        "_generate_optimization_suggestions",
+        "_analyze_query_for_indexes",
+        "_extract_table_names",
+        "_get_query_type",
+        "_get_database_health",
+        "_get_query_performance_summary",
+        "_get_slow_queries_summary",
+        "_get_performance_recommendations"
+      ],
+      "classes": [
+        "DatabaseOptimizer"
+      ],
+      "total_lines": 417,
+      "status": "success"
+    },
+    {
+      "file": "utils/db_helpers.py",
+      "module_doc": "Database Helper Utilities\n\nThis module provides helper functions for database operations",
+      "functions": [
+        "get_user_by_id"
+      ],
+      "classes": [],
+      "total_lines": 24,
+      "status": "success"
+    },
+    {
+      "file": "utils/db_optimizations.py",
+      "module_doc": "Database Optimization Utilities\n\nThis module provides utilities for optimizing database operations in the application.\nIt includes query caching, query timing, and connection pooling enhancements.\n\n@module utils.db_optimizations\n@description Database performance optimization utilities",
+      "functions": [
+        "optimize_query",
+        "decorator",
+        "wrapper",
+        "get_db_stats",
+        "clear_db_stats",
+        "before_cursor_execute",
+        "after_cursor_execute",
+        "get_or_create",
+        "paginate_query",
+        "bulk_create",
+        "bulk_update",
+        "setup_db_optimizations",
+        "setup_db_context",
+        "log_db_stats",
+        "reset_db_stats",
+        "view_db_stats",
+        "clear_db_stats_route"
+      ],
+      "classes": [],
+      "total_lines": 271,
+      "status": "success"
+    },
+    {
+      "file": "utils/deployment_logger.py",
+      "module_doc": "Deployment Logging Module\n\nThis module configures enhanced logging for deployment environments\nto ensure better visibility into application issues.",
+      "functions": [
+        "configure_deployment_logging",
+        "log_exception",
+        "log_deployment_event"
+      ],
+      "classes": [],
+      "total_lines": 103,
+      "status": "success"
+    },
+    {
+      "file": "utils/doctor_appointment_helper.py",
+      "module_doc": "",
+      "functions": [
+        "get_user_id_from_session",
+        "get_doctors",
+        "get_doctor_by_id",
+        "get_doctor_by_name",
+        "add_doctor",
+        "update_doctor",
+        "delete_doctor",
+        "get_upcoming_appointments",
+        "get_appointments_by_doctor",
+        "add_appointment",
+        "update_appointment_status",
+        "set_appointment_reminder",
+        "get_due_appointment_reminders"
+      ],
+      "classes": [],
+      "total_lines": 209,
+      "status": "success"
+    },
+    {
+      "file": "utils/enhanced_memory.py",
+      "module_doc": "Enhanced conversation memory management with personalization features.\nThis module provides improved memory persistence and recall capabilities.",
+      "functions": [
+        "init_db",
+        "__init__",
+        "_load_from_db",
+        "add_message",
+        "_analyze_message_for_entities_and_topics",
+        "_update_topic_interest",
+        "_update_entity_memory",
+        "get_recent_messages",
+        "get_topic_summary",
+        "get_entity_summary",
+        "get_memory_context",
+        "get_user_memory"
+      ],
+      "classes": [
+        "UserMemory"
+      ],
+      "total_lines": 372,
+      "status": "success"
+    },
+    {
+      "file": "utils/enhanced_weather_helper.py",
+      "module_doc": "Enhanced weather helper module with advanced weather features:\n- Weather alerts and notifications\n- Weather-based health insights\n- Trip planning weather integration\n- Personalized activity recommendations",
+      "functions": [
+        "get_extended_forecast",
+        "get_personalized_activity_recommendations",
+        "get_weather_alerts_for_location",
+        "get_weather_health_insights",
+        "get_trip_weather_overview",
+        "set_user_weather_preferences",
+        "enable_pain_flare_monitoring"
+      ],
+      "classes": [],
+      "total_lines": 691,
+      "status": "success"
+    },
+    {
+      "file": "utils/error_handler.py",
+      "module_doc": "Error Handlers Module\n\nThis module contains error handlers for the NOUS application.",
+      "functions": [
+        "register_error_handlers",
+        "page_not_found",
+        "server_error",
+        "handle_exception"
+      ],
+      "classes": [],
+      "total_lines": 87,
+      "status": "success"
+    },
+    {
+      "file": "utils/forms_helper.py",
+      "module_doc": "Google Forms Helper Module\n\nProvides utilities for working with Google Forms, including\nform creation, response handling, and analysis.",
+      "functions": [
+        "get_forms_service",
+        "create_form",
+        "get_form",
+        "add_text_item",
+        "add_multiple_choice_item",
+        "get_form_responses",
+        "analyze_form_responses",
+        "create_recovery_assessment_form",
+        "create_anonymous_sharing_form",
+        "create_daily_check_in_form"
+      ],
+      "classes": [],
+      "total_lines": 519,
+      "status": "success"
+    },
+    {
+      "file": "utils/health_monitor.py",
+      "module_doc": "Backend Stability - Health Monitoring System\nImplements comprehensive health checks, connection pooling, and error tracking",
+      "functions": [
+        "__init__",
+        "init_app",
+        "health_check",
+        "detailed_health",
+        "get_metrics",
+        "_check_database",
+        "_check_memory",
+        "_get_system_metrics",
+        "_get_database_health",
+        "_get_app_health",
+        "_check_external_services",
+        "_start_background_monitoring",
+        "monitor",
+        "_register_shutdown_handlers",
+        "shutdown_handler",
+        "_graceful_shutdown",
+        "_get_percentile",
+        "record_request"
+      ],
+      "classes": [
+        "HealthMonitor"
+      ],
+      "total_lines": 335,
+      "status": "success"
+    },
+    {
+      "file": "utils/image_helper.py",
+      "module_doc": "Image processing and analysis utilities for Nous\nUses Hugging Face's free services for cost-effective image analysis",
+      "functions": [
+        "describe_image",
+        "detect_objects_in_image",
+        "analyze_image_for_travel",
+        "encode_image_to_base64",
+        "segment_image",
+        "organize_images_by_content",
+        "get_uploaded_image_file"
+      ],
+      "classes": [],
+      "total_lines": 210,
+      "status": "success"
+    },
+    {
+      "file": "utils/knowledge_download.py",
+      "module_doc": "Knowledge download utility to pre-fetch and store frequently accessed information.\nThis reduces API calls and improves response time for common queries.",
+      "functions": [
+        "_load_static_json",
+        "_store_knowledge_entries",
+        "_download_basic_facts",
+        "_download_health_information",
+        "_download_aa_principles",
+        "_download_mindfulness_exercises",
+        "_download_dbt_skills",
+        "_download_grounding_exercises",
+        "download_and_store_knowledge",
+        "_add_from_json_file",
+        "_download_basic_facts",
+        "_download_health_information",
+        "_download_common_procedures",
+        "_download_medication_info",
+        "_download_emergency_protocols",
+        "_download_weather_patterns",
+        "_download_travel_guidelines",
+        "_download_shopping_tips",
+        "download_all_knowledge",
+        "search_knowledge_by_category"
+      ],
+      "classes": [],
+      "total_lines": 789,
+      "status": "success"
+    },
+    {
+      "file": "utils/logger.py",
+      "module_doc": "",
+      "functions": [
+        "ensure_directory",
+        "log_workout",
+        "log_mood",
+        "get_workout_entries",
+        "get_mood_entries"
+      ],
+      "classes": [],
+      "total_lines": 116,
+      "status": "success"
+    },
+    {
+      "file": "utils/login_security.py",
+      "module_doc": "Login Security Module\n\nThis module provides enhanced security features for login functionality.\nIt includes brute force protection, account lockout, and IP-based security controls.\n\n@module utils.login_security\n@description Enhanced login security utilities",
+      "functions": [
+        "track_login_attempt",
+        "lock_account",
+        "is_account_locked",
+        "unlock_account",
+        "throttle_ip",
+        "flag_suspicious_ip",
+        "block_ip",
+        "is_ip_restricted",
+        "get_client_security_info",
+        "is_request_suspicious",
+        "calculate_request_risk_score",
+        "is_tor_exit_node",
+        "is_known_proxy",
+        "is_known_vpn",
+        "get_country_from_ip",
+        "require_secure_login",
+        "decorated_function",
+        "is_password_strong",
+        "generate_csrf_token",
+        "validate_csrf_token",
+        "log_security_event",
+        "is_secure_password",
+        "cleanup_expired_sessions"
+      ],
+      "classes": [],
+      "total_lines": 612,
+      "status": "success"
+    },
+    {
+      "file": "utils/maps_helper.py",
+      "module_doc": "Helper module for Google Maps integration",
+      "functions": [
+        "get_maps_api_key",
+        "geocode_address",
+        "reverse_geocode",
+        "get_distance_matrix",
+        "get_place_details",
+        "search_nearby_places",
+        "search_places",
+        "get_directions",
+        "get_static_map_url",
+        "find_nearby_places_by_type"
+      ],
+      "classes": [],
+      "total_lines": 581,
+      "status": "success"
+    },
+    {
+      "file": "utils/medication_helper.py",
+      "module_doc": "",
+      "functions": [
+        "get_medications",
+        "get_medication_by_id",
+        "get_medication_by_name",
+        "add_medication",
+        "update_medication_quantity",
+        "refill_medication",
+        "get_medications_to_refill",
+        "get_medications_by_doctor"
+      ],
+      "classes": [],
+      "total_lines": 139,
+      "status": "success"
+    },
+    {
+      "file": "utils/meet_helper.py",
+      "module_doc": "Google Meet Integration Helper Module\n====================================\n\nThis module provides utilities for integrating with Google Meet and Google Calendar APIs.\nIt enables creating, managing, and analyzing various types of meetings specifically tailored\nfor recovery and support purposes.\n\nKey Features:\n- Creating standard Google Meet meetings with all necessary parameters\n- Specialized meeting creation for therapy sessions, recovery groups, sponsor meetings, and mindfulness sessions\n- Meeting management (viewing, updating, deleting)\n- AI-powered meeting agenda generation based on meeting type\n- Meeting notes analysis for extracting key points and action items\n- Utility functions for working with Google Calendar API\n\nUsage Examples:\n```python\n# Create a standard meeting\nresult = create_meeting(\n    calendar_service,\n    \"Weekly Check-in\",\n    \"Regular team check-in meeting\",\n    start_datetime,\n    end_datetime,\n    [\"participant@example.com\"]\n)\n\n# Create a specialized therapy session\nresult = create_therapy_session(\n    calendar_service,\n    \"client@example.com\",\n    session_type=\"cbt\",\n    start_time=tomorrow_6pm,\n    duration_minutes=50\n)\n\n# Generate an AI-powered agenda\nagenda = generate_meeting_agenda(\n    calendar_service,\n    meeting_id=\"abc123\",\n    meeting_type=\"recovery\"\n)\n\n# Analyze meeting notes\nanalysis = analyze_meeting_notes(\n    notes_text=\"Meeting notes content...\",\n    meeting_type=\"sponsor\"\n)\n```\n\nThis module is part of the NOUS Assistant, supporting recovery and mental health\nthrough integrated technology solutions.\n\n@ai_prompt: \"Create a function to integrate Google Meet with [therapy|recovery|mindfulness] sessions\"",
+      "functions": [
+        "get_meet_service",
+        "create_meeting",
+        "get_meeting",
+        "update_meeting",
+        "delete_meeting",
+        "list_upcoming_meetings",
+        "create_therapy_session",
+        "create_recovery_group_meeting",
+        "create_mindfulness_session",
+        "create_sponsor_meeting",
+        "generate_meeting_agenda",
+        "analyze_meeting_notes",
+        "calculate_duration_minutes"
+      ],
+      "classes": [],
+      "total_lines": 892,
+      "status": "success"
+    },
+    {
+      "file": "utils/memory_initializer.py",
+      "module_doc": "Memory System Initializer\n\nThis module handles the initialization of the memory system during application startup,\nensuring that the database connection is properly set up for the memory service and\nthat any required initial data is loaded.\n\n@module utils.memory_initializer\n@description Memory system initialization",
+      "functions": [
+        "initialize_memory_system",
+        "initialize_memory_for_users"
+      ],
+      "classes": [],
+      "total_lines": 42,
+      "status": "success"
+    },
+    {
+      "file": "utils/multilingual_voice.py",
+      "module_doc": "Multilingual Voice Interface Utilities\n\nThis module provides text-to-speech and speech-to-text functions for multiple languages,\noptimized for language learning applications.",
+      "functions": [
+        "generate_speech",
+        "transcribe_speech",
+        "get_pronunciation_feedback",
+        "get_available_languages"
+      ],
+      "classes": [],
+      "total_lines": 282,
+      "status": "success"
+    },
+    {
+      "file": "utils/nlp_helper.py",
+      "module_doc": "Natural Language Processing Helper Functions\n===========================================\n\nThis module provides utility functions for extracting structured information\nfrom natural language inputs, specifically designed to support chat-based\ncommand interpretation.\n\nThese functions help the assistant understand dates, times, durations, emails,\nand other structured data within user messages.",
+      "functions": [
+        "extract_datetime",
+        "extract_duration",
+        "extract_emails"
+      ],
+      "classes": [],
+      "total_lines": 296,
+      "status": "success"
+    },
+    {
+      "file": "utils/performance_middleware.py",
+      "module_doc": "Performance Middleware\n\nThis module provides middleware for optimizing request processing and response time.\nIt includes request timing, response compression, and caching headers.\n\n@module utils.performance_middleware\n@description Performance optimization middleware",
+      "functions": [
+        "setup_performance_middleware",
+        "start_timer",
+        "optimize_response",
+        "should_compress",
+        "compress_response",
+        "add_cache_headers"
+      ],
+      "classes": [],
+      "total_lines": 176,
+      "status": "success"
+    },
+    {
+      "file": "utils/photos_helper.py",
+      "module_doc": "Helper module for Google Photos integration",
+      "functions": [
+        "get_photos_service",
+        "list_albums",
+        "get_album_contents",
+        "search_media_items",
+        "create_album",
+        "get_recent_photos",
+        "get_media_item",
+        "download_photo",
+        "analyze_photo_content",
+        "search_photos_by_content"
+      ],
+      "classes": [],
+      "total_lines": 463,
+      "status": "success"
+    },
+    {
+      "file": "utils/price_tracking.py",
+      "module_doc": "Price tracking and management utilities\nSupports product price history tracking, price comparison, and alerts",
+      "functions": [
+        "track_product",
+        "get_user_tracked_products",
+        "update_product_price",
+        "get_price_history",
+        "create_price_alert",
+        "check_price_alerts",
+        "get_highest_price_since_last_alert",
+        "scrape_product_details",
+        "scrape_product_price",
+        "extract_source_from_url",
+        "scrape_amazon_product",
+        "scrape_amazon_price",
+        "scrape_walmart_product",
+        "scrape_walmart_price",
+        "scrape_generic_product",
+        "scrape_generic_price",
+        "extract_price",
+        "is_likely_deal",
+        "analyze_best_time_to_buy",
+        "find_seasonal_deals"
+      ],
+      "classes": [],
+      "total_lines": 956,
+      "status": "success"
+    },
+    {
+      "file": "utils/product_helper.py",
+      "module_doc": "",
+      "functions": [
+        "get_products",
+        "get_product_by_id",
+        "get_product_by_name",
+        "add_product",
+        "extract_source_from_url",
+        "fetch_product_details",
+        "set_product_as_recurring",
+        "mark_product_as_ordered",
+        "get_due_product_orders",
+        "update_product_price"
+      ],
+      "classes": [],
+      "total_lines": 193,
+      "status": "success"
+    },
+    {
+      "file": "utils/route_diagnostics.py",
+      "module_doc": "Route Diagnostics Tool\n\nThis module provides tools to diagnose and report on route standardization\nand compliance across the application.",
+      "functions": [
+        "__init__",
+        "analyze_routes",
+        "generate_report",
+        "check_url_compliance",
+        "check_endpoint_compliance",
+        "_get_all_routes",
+        "_determine_url_type",
+        "_categorize_routes",
+        "_check_compliance",
+        "_analyze_blueprints",
+        "_extract_blueprint_prefix",
+        "_get_route_details",
+        "_format_text_report",
+        "analyze_routes"
+      ],
+      "classes": [
+        "RouteDiagnostics"
+      ],
+      "total_lines": 471,
+      "status": "success"
+    },
+    {
+      "file": "utils/route_standards.py",
+      "module_doc": "Route Standards Utility\n\nThis module provides standards and validation for route definitions.\nIt ensures consistent URL patterns and blueprint conventions across the application.",
+      "functions": [
+        "validate_url_pattern",
+        "get_standardized_blueprint_name",
+        "standardize_url_prefix",
+        "__init__",
+        "register",
+        "verify_all_routes",
+        "register_blueprint",
+        "verify_routes"
+      ],
+      "classes": [
+        "RouteValidator",
+        "BlueprintRegistry"
+      ],
+      "total_lines": 188,
+      "status": "success"
+    },
+    {
+      "file": "utils/route_validator.py",
+      "module_doc": "Route Validator Module\n\nThis module provides validation and standardization for application routes.\nIt ensures proper URL formatting, path validation, and consistent naming conventions.",
+      "functions": [
+        "__init__",
+        "init_app",
+        "_register_validation_middleware",
+        "validate_request_route",
+        "_determine_route_type",
+        "_validate_api_route",
+        "_validate_web_route",
+        "_validate_auth_route",
+        "analyze_routes",
+        "init_app",
+        "analyze_routes"
+      ],
+      "classes": [
+        "RouteValidator"
+      ],
+      "total_lines": 229,
+      "status": "success"
+    },
+    {
+      "file": "utils/scraper.py",
+      "module_doc": "",
+      "functions": [
+        "scrape_aa_reflection"
+      ],
+      "classes": [],
+      "total_lines": 41,
+      "status": "success"
+    },
+    {
+      "file": "utils/security.py",
+      "module_doc": "Security Utilities Module\n\nThis module provides utility functions for security features.\n\n@module utils.security\n@description Security utility functions",
+      "functions": [
+        "generate_csrf_token",
+        "validate_csrf_token",
+        "require_csrf_token",
+        "decorated_function",
+        "log_security_event",
+        "is_password_strong",
+        "hash_password",
+        "check_password",
+        "is_ip_in_allowed_range",
+        "rate_limit_exceeded",
+        "get_client_info",
+        "sanitize_input"
+      ],
+      "classes": [],
+      "total_lines": 362,
+      "status": "success"
+    },
+    {
+      "file": "utils/security_headers.py",
+      "module_doc": "Security Headers Module\n\nThis module provides middleware for adding security headers to HTTP responses\nto protect against various web vulnerabilities like XSS, clickjacking, etc.\n\n@module: security_headers\n@author: NOUS Development Team",
+      "functions": [
+        "init_security_headers",
+        "add_security_headers",
+        "get_csp_header",
+        "get_hsts_header",
+        "get_permissions_policy_header"
+      ],
+      "classes": [],
+      "total_lines": 178,
+      "status": "success"
+    },
+    {
+      "file": "utils/security_helper.py",
+      "module_doc": "Security Helper\n\nThis module provides security-related functions including:\n- CSRF protection\n- Admin authorization\n- Access controls\n- Security event logging\n- Input sanitization\n\n@module security_helper\n@description Security-related helper functions",
+      "functions": [
+        "csrf_protect",
+        "decorated_function",
+        "admin_required",
+        "decorated_function",
+        "sanitize_input",
+        "log_security_event",
+        "set_admin_status",
+        "generate_csrf_token"
+      ],
+      "classes": [],
+      "total_lines": 162,
+      "status": "success"
+    },
+    {
+      "file": "utils/security_middleware.py",
+      "module_doc": "Security Middleware Module\n\nThis module provides security-focused middleware for the Flask application.\nIt includes protection against common web vulnerabilities like XSS, CSRF, and clickjacking.\n\n@module utils.security_middleware\n@description Security middleware functions",
+      "functions": [
+        "apply_security_headers",
+        "setup_security_middleware",
+        "csrf_protect",
+        "inject_csrf_token",
+        "detect_suspicious_request",
+        "log_request",
+        "require_https",
+        "decorated_function",
+        "allowed_roles",
+        "decorator",
+        "decorated_function",
+        "rate_limit",
+        "decorator",
+        "decorated_function",
+        "secure_admin_required",
+        "decorated_function",
+        "xss_protect"
+      ],
+      "classes": [],
+      "total_lines": 334,
+      "status": "success"
+    },
+    {
+      "file": "utils/service_health_checker.py",
+      "module_doc": "Service Health Checker\n\nThis module provides health check functionality for all external service integrations\nto verify authentication status and service availability.\n\n@module utils.service_health_checker\n@description Comprehensive health checking for external API integrations",
+      "functions": [
+        "__init__",
+        "check_google_oauth",
+        "check_openai_api",
+        "check_openrouter_api",
+        "check_huggingface_api",
+        "check_database_connection",
+        "run_full_health_check"
+      ],
+      "classes": [
+        "ServiceHealthChecker"
+      ],
+      "total_lines": 312,
+      "status": "success"
+    },
+    {
+      "file": "utils/settings.py",
+      "module_doc": "Settings Utility\n\nThis module provides functions for retrieving and managing application settings.\nIt handles retrieving settings from the database with fallback to defaults.\n\n@module utils.settings\n@description System settings utility functions",
+      "functions": [
+        "get_setting",
+        "get_all_settings",
+        "set_setting",
+        "_convert_value_type"
+      ],
+      "classes": [],
+      "total_lines": 171,
+      "status": "success"
+    },
+    {
+      "file": "utils/settings_cache.py",
+      "module_doc": "Settings Cache Utility\n\nThis module provides caching functionality for system settings to reduce database load.\nIt caches frequently accessed system settings in memory for better performance.\n\n@module utils.settings_cache\n@description Cache utility for system settings",
+      "functions": [
+        "get_system_setting",
+        "set_system_setting",
+        "clear_settings_cache",
+        "_get_from_cache",
+        "_add_to_cache",
+        "initialize_settings_cache",
+        "_ensure_default_settings_exist",
+        "_ensure_setting_exists"
+      ],
+      "classes": [],
+      "total_lines": 225,
+      "status": "success"
+    },
+    {
+      "file": "utils/setup_wizard.py",
+      "module_doc": "Setup wizard module for NOUS assistant\nHandles customization and personalization of the assistant",
+      "functions": [
+        "get_assistant_profile",
+        "create_default_assistant_profile",
+        "customize_assistant",
+        "initialize_user_settings",
+        "delete_customization",
+        "get_personality_options",
+        "get_setup_progress",
+        "update_setup_progress"
+      ],
+      "classes": [],
+      "total_lines": 412,
+      "status": "success"
+    },
+    {
+      "file": "utils/shopping_helper.py",
+      "module_doc": "",
+      "functions": [
+        "get_shopping_lists",
+        "get_shopping_list_by_id",
+        "get_shopping_list_by_name",
+        "create_shopping_list",
+        "add_item_to_list",
+        "get_items_in_list",
+        "toggle_item_checked",
+        "remove_item_from_list",
+        "set_list_as_recurring",
+        "mark_list_as_ordered",
+        "get_due_shopping_lists"
+      ],
+      "classes": [],
+      "total_lines": 186,
+      "status": "success"
+    },
+    {
+      "file": "utils/smart_home_helper.py",
+      "module_doc": "Smart Home Integration module\nFeatures:\n- Smart device control integration\n- Weather-based automation suggestions\n- Spotify playback on home devices\n- Remote control of smart home devices",
+      "functions": [
+        "__init__",
+        "set_platform",
+        "reset",
+        "has_devices",
+        "has_audio_devices",
+        "configure_smart_home_integration",
+        "discover_devices",
+        "control_device",
+        "control_room",
+        "play_spotify_on_device",
+        "get_weather_based_automation_suggestions",
+        "create_voice_command",
+        "create_routine",
+        "get_device_status"
+      ],
+      "classes": [
+        "SmartHomeStatus"
+      ],
+      "total_lines": 1100,
+      "status": "success"
+    },
+    {
+      "file": "utils/smart_shopping.py",
+      "module_doc": "Smart shopping list generation and management\nUses AI to generate and organize shopping lists based on user's needs",
+      "functions": [
+        "generate_smart_shopping_list",
+        "save_smart_shopping_list",
+        "generate_medication_shopping_list",
+        "analyze_shopping_patterns",
+        "suggest_list_improvements"
+      ],
+      "classes": [],
+      "total_lines": 419,
+      "status": "success"
+    },
+    {
+      "file": "utils/spotify_ai_integration.py",
+      "module_doc": "Spotify AI Integration\n\nThis module provides integration between AI features and Spotify music services.\nIt allows for intelligent music recommendations and playlist generation based on user preferences.\n\n@module utils.spotify_ai_integration\n@description AI-powered Spotify recommendation and assistant features",
+      "functions": [
+        "__init__",
+        "authenticate",
+        "is_authenticated",
+        "recommend_music_by_mood",
+        "_apply_diversity",
+        "_get_user_top_genres",
+        "get_playlist_for_activity",
+        "analyze_user_listening_history",
+        "_calculate_average_features",
+        "_analyze_listening_patterns",
+        "_analyze_mood_distribution",
+        "_get_recent_discoveries",
+        "_get_similar_artists",
+        "_suggest_new_genres",
+        "_extract_top_genres",
+        "generate_smart_playlist",
+        "compare_music_taste",
+        "get_concert_recommendations",
+        "classify_track_mood",
+        "get_spotify_ai"
+      ],
+      "classes": [
+        "SpotifyAIIntegration"
+      ],
+      "total_lines": 728,
+      "status": "success"
+    },
+    {
+      "file": "utils/spotify_client.py",
+      "module_doc": "Spotify Client\n\nThis module provides a custom Spotify API client implementation.\nIt handles authentication and provides methods for interacting with the Spotify API.\n\n@module utils.spotify_client\n@description Custom Spotify API client implementation",
+      "functions": [
+        "__init__",
+        "is_authenticated",
+        "set_access_token",
+        "get_authorize_url",
+        "exchange_code",
+        "_make_api_request",
+        "current_user",
+        "current_user_playlists",
+        "current_user_top_tracks",
+        "current_user_top_artists",
+        "current_user_recently_played",
+        "current_user_saved_tracks",
+        "current_user_saved_albums",
+        "current_user_followed_artists",
+        "search",
+        "search_tracks",
+        "search_artists",
+        "search_albums",
+        "search_playlists",
+        "user_playlist_create",
+        "user_playlist_add_tracks",
+        "playlist_add_items",
+        "track",
+        "audio_features",
+        "artist",
+        "artist_top_tracks",
+        "artist_related_artists",
+        "get_available_genre_seeds",
+        "get_recommendations",
+        "current_playback",
+        "devices",
+        "start_playback",
+        "pause_playback",
+        "next_track",
+        "previous_track",
+        "volume",
+        "shuffle",
+        "repeat",
+        "categories",
+        "category_playlists",
+        "featured_playlists",
+        "new_releases",
+        "recommendations"
+      ],
+      "classes": [
+        "SpotifyClient"
+      ],
+      "total_lines": 876,
+      "status": "success"
+    },
+    {
+      "file": "utils/spotify_health_integration.py",
+      "module_doc": "Spotify Health Integration\n\nThis module integrates Spotify music services with health-related features.\nIt provides functionality for mood-based music recommendations, pain management\nthrough music, and personalized playlists for health activities.\n\n@module utils.spotify_health_integration\n@description Health-related Spotify features and integrations",
+      "functions": [
+        "__init__",
+        "get_pain_management_playlist",
+        "get_mood_improvement_tracks",
+        "get_sleep_playlist",
+        "get_spotify_health"
+      ],
+      "classes": [
+        "SpotifyHealthIntegration"
+      ],
+      "total_lines": 204,
+      "status": "success"
+    },
+    {
+      "file": "utils/spotify_helper.py",
+      "module_doc": "Spotify Helper\n\nThis module provides helper functions for working with the Spotify API.\nIt handles authentication, client creation, and basic API operations.\n\n@module utils.spotify_helper\n@description Helper functions for Spotify API integration",
+      "functions": [
+        "get_spotify_client",
+        "refresh_spotify_token",
+        "get_auth_url",
+        "handle_oauth_callback",
+        "save_token_to_db",
+        "load_token_from_db"
+      ],
+      "classes": [],
+      "total_lines": 258,
+      "status": "success"
+    },
+    {
+      "file": "utils/spotify_visualizer.py",
+      "module_doc": "",
+      "functions": [
+        "generate_top_artists_chart",
+        "generate_top_tracks_chart",
+        "generate_genre_chart",
+        "generate_listening_history_chart",
+        "generate_audio_features_radar_chart",
+        "generate_playlist_mood_analysis",
+        "generate_spotify_listening_report",
+        "generate_audio_feature_comparison",
+        "io_to_base64"
+      ],
+      "classes": [],
+      "total_lines": 684,
+      "status": "success"
+    },
+    {
+      "file": "utils/template_filters.py",
+      "module_doc": "Template Filters Module\n\nThis module provides custom template filters for the application templates.\n\n@module utils.template_filters\n@description Custom template filters for Jinja templates",
+      "functions": [
+        "register_template_filters",
+        "format_date",
+        "format_datetime",
+        "time_ago",
+        "truncate_text",
+        "truncate_words",
+        "markdown_filter"
+      ],
+      "classes": [],
+      "total_lines": 150,
+      "status": "success"
+    },
+    {
+      "file": "utils/travel_ai_helper.py",
+      "module_doc": "AI Travel Assistant helper functions\nFeatures:\n- Trip recommendations based on preferences\n- Local event discovery\n- Smart packing recommendations based on weather\n- Personalized itinerary suggestions\n\nUses a multi-tier approach to AI services:\n1. OpenAI (primary for complex tasks)\n2. OpenRouter (fallback for complex tasks)\n3. Hugging Face (for lighter AI tasks like phrase translation, summarization)\n4. Local fallbacks (when all services are unavailable)",
+      "functions": [
+        "get_trip_recommendations",
+        "discover_local_events",
+        "generate_smart_packing_list",
+        "suggest_personalized_itinerary",
+        "estimate_trip_budget",
+        "get_safety_information",
+        "translate_common_phrases"
+      ],
+      "classes": [],
+      "total_lines": 655,
+      "status": "success"
+    },
+    {
+      "file": "utils/travel_helper.py",
+      "module_doc": "",
+      "functions": [
+        "get_trips",
+        "get_trip_by_id",
+        "get_trip_by_name",
+        "create_trip",
+        "update_trip",
+        "delete_trip",
+        "get_trip_cost",
+        "get_upcoming_trips",
+        "get_active_trip",
+        "get_itinerary",
+        "get_itinerary_by_day",
+        "add_itinerary_item",
+        "update_itinerary_item",
+        "delete_itinerary_item",
+        "get_accommodations",
+        "add_accommodation",
+        "update_accommodation",
+        "delete_accommodation",
+        "get_travel_documents",
+        "add_travel_document",
+        "update_travel_document",
+        "delete_travel_document",
+        "get_packing_list",
+        "get_packing_items_by_category",
+        "add_packing_item",
+        "update_packing_item",
+        "toggle_packed_status",
+        "delete_packing_item",
+        "generate_standard_packing_list",
+        "get_packing_progress"
+      ],
+      "classes": [],
+      "total_lines": 782,
+      "status": "success"
+    },
+    {
+      "file": "utils/two_factor.py",
+      "module_doc": "Two-Factor Authentication Module\n\nThis module provides utilities for implementing two-factor authentication\nusing the TOTP (Time-based One-Time Password) standard.\n\n@module two_factor\n@description Two-factor authentication utilities",
+      "functions": [
+        "generate_totp_secret",
+        "create_totp_uri",
+        "generate_qr_code",
+        "verify_totp",
+        "generate_backup_codes",
+        "verify_backup_code",
+        "setup_2fa_session",
+        "clear_2fa_session",
+        "is_2fa_session_valid",
+        "is_trusted_device",
+        "add_trusted_device"
+      ],
+      "classes": [],
+      "total_lines": 278,
+      "status": "success"
+    },
+    {
+      "file": "utils/two_factor_auth.py",
+      "module_doc": "Two-Factor Authentication Utilities\n\nThis module provides functions for setting up and verifying two-factor authentication.\nIt uses the Time-based One-Time Password (TOTP) algorithm.\n\n@module utils.two_factor_auth\n@description Two-factor authentication utilities",
+      "functions": [
+        "generate_totp_secret",
+        "get_totp_uri",
+        "generate_qr_code",
+        "generate_backup_codes",
+        "setup_2fa_session",
+        "confirm_2fa_setup",
+        "verify_totp",
+        "verify_backup_code"
+      ],
+      "classes": [
+        "TOTPVerificationError"
+      ],
+      "total_lines": 188,
+      "status": "success"
+    },
+    {
+      "file": "utils/url_utils.py",
+      "module_doc": "URL Utilities\n\nThis module provides utilities for standardized URL handling in the application.\nIt ensures consistent URL generation and validation across features.",
+      "functions": [
+        "get_absolute_url",
+        "normalize_path",
+        "validate_url_path",
+        "append_query_params",
+        "is_valid_blueprint_url_prefix",
+        "get_absolute_url",
+        "normalize_path",
+        "validate_url_path",
+        "append_query_params"
+      ],
+      "classes": [
+        "URLStandardizer"
+      ],
+      "total_lines": 243,
+      "status": "success"
+    },
+    {
+      "file": "utils/voice_interaction.py",
+      "module_doc": "Voice interaction module for processing speech input and providing voice responses.\nThis module handles speech recognition, speech synthesis, and voice emotion detection.",
+      "functions": [
+        "process_user_message",
+        "analyze_voice_audio",
+        "get_character_settings",
+        "transcribe_audio",
+        "text_to_speech",
+        "process_voice_command"
+      ],
+      "classes": [],
+      "total_lines": 284,
+      "status": "success"
+    },
+    {
+      "file": "utils/voice_interface.py",
+      "module_doc": "Voice Interface Module\n\nThis module provides the core functionality for the voice interface of NOUS.\nIt integrates local speech-to-text (Whisper.cpp) and text-to-speech (Piper) capabilities\nwithout requiring external API calls.\n\nThe module handles:\n1. Audio processing from browser/frontend\n2. Transcription of speech using Whisper.cpp\n3. Text-to-speech generation using Piper\n4. Audio format conversion and processing",
+      "functions": [
+        "__init__",
+        "transcribe_audio",
+        "generate_speech",
+        "get_voice_interface"
+      ],
+      "classes": [
+        "VoiceInterface"
+      ],
+      "total_lines": 169,
+      "status": "success"
+    },
+    {
+      "file": "utils/voice_mindfulness.py",
+      "module_doc": "Voice-guided mindfulness exercises utility\n\nThis module provides functions for generating and delivering\nvoice-guided mindfulness exercises using the system's text-to-speech capabilities.",
+      "functions": [
+        "get_exercise_by_name",
+        "get_random_exercise",
+        "get_exercise_by_duration",
+        "generate_personalized_exercise",
+        "log_exercise_completion",
+        "prepare_exercise_for_tts"
+      ],
+      "classes": [],
+      "total_lines": 175,
+      "status": "success"
+    },
+    {
+      "file": "utils/voice_optimizer.py",
+      "module_doc": "Voice Optimization Module\n\nThis module provides optimizations for the voice interface to reduce costs\nwhile maintaining high quality. It implements:\n\n1. Audio compression before sending to cloud APIs\n2. Adaptive sampling rate based on speech detection\n3. Batch processing for non-real-time transcriptions\n4. Local voice processing when available\n5. Voice activity detection to avoid processing silence\n\n@module utils.voice_optimizer\n@description Voice processing optimizations for reduced API costs",
+      "functions": [
+        "__init__",
+        "optimize_audio_for_api",
+        "_get_audio_info",
+        "_detect_speech",
+        "_get_pcm_samples",
+        "_get_optimal_sample_rate",
+        "_resample_audio",
+        "_compress_audio",
+        "_trim_silence",
+        "add_to_batch",
+        "process_batch",
+        "get_voice_optimizer"
+      ],
+      "classes": [
+        "VoiceOptimizer"
+      ],
+      "total_lines": 505,
+      "status": "success"
+    },
+    {
+      "file": "utils/weather_helper.py",
+      "module_doc": "Weather helper module for NOUS Assistant\nUses OpenWeatherMap API to fetch weather data\nIncludes pain flare prediction based on barometric pressure changes",
+      "functions": [
+        "kelvin_to_fahrenheit",
+        "kelvin_to_celsius",
+        "get_location_coordinates",
+        "get_current_weather",
+        "get_weather_forecast",
+        "get_weather_alerts",
+        "get_pollution_data",
+        "format_weather_output",
+        "format_forecast_output",
+        "get_pressure_trend",
+        "calculate_pain_flare_risk",
+        "get_storm_severity",
+        "format_pain_forecast_output"
+      ],
+      "classes": [],
+      "total_lines": 623,
+      "status": "success"
+    },
+    {
+      "file": "utils/youtube_helper.py",
+      "module_doc": "Helper module for YouTube API integration",
+      "functions": [
+        "get_youtube_service",
+        "search_videos",
+        "get_video_details",
+        "get_channel_info",
+        "get_channel_videos",
+        "get_recommended_videos",
+        "get_playlists",
+        "get_playlist_items",
+        "create_playlist",
+        "add_video_to_playlist",
+        "search_recovery_videos",
+        "create_recovery_playlist",
+        "search_guided_meditations",
+        "analyze_video_content",
+        "get_video_comments",
+        "create_topical_playlist"
+      ],
+      "classes": [],
+      "total_lines": 577,
+      "status": "success"
+    }
+  ],
+  "summary": {
+    "successful_files": 105,
+    "total_functions": 851,
+    "total_classes": 36,
+    "total_lines": 29425
+  }
+}

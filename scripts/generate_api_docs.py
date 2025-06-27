@@ -80,7 +80,7 @@ def generate_flask_routes_docs():
             for rule in app.url_map.iter_rules():
                 route_doc = {
                     'endpoint': rule.endpoint,
-                    'methods': list(rule.methods),
+                    'methods': list(rule.methods) if rule.methods else [],
                     'url': str(rule),
                     'function': rule.endpoint
                 }
@@ -104,33 +104,31 @@ def generate_flask_routes_docs():
 
 def generate_html_docs(docs_data, output_file):
     """Generate HTML documentation from docs data"""
-    html_template = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>NOUS API Documentation</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 40px; }
-            .module { margin-bottom: 40px; padding: 20px; border: 1px solid #ddd; }
-            .function, .class { margin: 20px 0; padding: 15px; background: #f9f9f9; }
-            .signature { font-family: monospace; background: #e9e9e9; padding: 5px; }
-            .docstring { margin: 10px 0; white-space: pre-wrap; }
-            .route { margin: 15px 0; padding: 10px; background: #f0f8ff; }
-            .methods { color: #007; font-weight: bold; }
-        </style>
-    </head>
-    <body>
-        <h1>NOUS Personal Assistant - API Documentation</h1>
-        <p>Generated on: {timestamp}</p>
-        
-        <h2>Flask Routes</h2>
-        {routes_html}
-        
-        <h2>Python Modules</h2>
-        {modules_html}
-    </body>
-    </html>
-    """
+    html_template = """<!DOCTYPE html>
+<html>
+<head>
+    <title>NOUS API Documentation</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; margin: 40px; }}
+        .module {{ margin-bottom: 40px; padding: 20px; border: 1px solid #ddd; }}
+        .function, .class {{ margin: 20px 0; padding: 15px; background: #f9f9f9; }}
+        .signature {{ font-family: monospace; background: #e9e9e9; padding: 5px; }}
+        .docstring {{ margin: 10px 0; white-space: pre-wrap; }}
+        .route {{ margin: 15px 0; padding: 10px; background: #f0f8ff; }}
+        .methods {{ color: #007; font-weight: bold; }}
+    </style>
+</head>
+<body>
+    <h1>NOUS Personal Assistant - API Documentation</h1>
+    <p>Generated on: {timestamp}</p>
+    
+    <h2>Flask Routes</h2>
+    {routes_html}
+    
+    <h2>Python Modules</h2>
+    {modules_html}
+</body>
+</html>"""
     
     routes_html = ""
     if 'routes' in docs_data:

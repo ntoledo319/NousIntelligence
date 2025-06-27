@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOUS Personal Assistant - Documentation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: #f5f7fa;
+            color: #333;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .stats {
+            background: white;
+            margin: 30px 0;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .file-section {
+            background: white;
+            margin: 20px 0;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .file-header {
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .file-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .file-meta {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .doc-content {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 15px 0;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+        }
+        .items-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .item {
+            background: #e8f4f8;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .error {
+            color: #e74c3c;
+            background: #fdf2f2;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #e74c3c;
+        }
+        .toc {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        .toc ul {
+            list-style: none;
+            padding: 0;
+        }
+        .toc li {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .toc a {
+            text-decoration: none;
+            color: #667eea;
+        }
+        .toc a:hover {
+            color: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>NOUS Personal Assistant</h1>
+            <p>Code Documentation - Generated 2025-06-27T08:26:07.926986</p>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">105</div>
+                <div>Python Files</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">851</div>
+                <div>Functions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">36</div>
+                <div>Classes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">29,425</div>
+                <div>Lines of Code</div>
+            </div>
+        </div>
+        
+        <div class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+<li><a href="#api_chat_py">api/chat.py</a></li><li><a href="#app_py">app.py</a></li><li><a href="#config___init___py">config/__init__.py</a></li><li><a href="#config_app_config_py">config/app_config.py</a></li><li><a href="#config_routes_config_py">config/routes_config.py</a></li><li><a href="#core_chat___init___py">core/chat/__init__.py</a></li><li><a href="#core_chat_blueprint_py">core/chat/blueprint.py</a></li><li><a href="#core_chat_dispatcher_py">core/chat/dispatcher.py</a></li><li><a href="#core_chat_handler_registry_py">core/chat/handler_registry.py</a></li><li><a href="#main_py">main.py</a></li><li><a href="#models___init___py">models/__init__.py</a></li><li><a href="#models_beta_models_py">models/beta_models.py</a></li><li><a href="#models_database_py">models/database.py</a></li><li><a href="#models_user_py">models/user.py</a></li><li><a href="#routes___init___py">routes/__init__.py</a></li><li><a href="#routes_api_py">routes/api.py</a></li><li><a href="#routes_api_feedback_py">routes/api/feedback.py</a></li><li><a href="#routes_api_health_py">routes/api/health.py</a></li><li><a href="#routes_api_shopping_py">routes/api/shopping.py</a></li><li><a href="#routes_api_v1_settings_py">routes/api/v1/settings.py</a></li><li><a href="#routes_api_v1_weather_py">routes/api/v1/weather.py</a></li><li><a href="#routes_auth___init___py">routes/auth/__init__.py</a></li><li><a href="#routes_auth_standardized_routes_py">routes/auth/standardized_routes.py</a></li><li><a href="#routes_beta_admin_py">routes/beta_admin.py</a></li><li><a href="#routes_dashboard_py">routes/dashboard.py</a></li><li><a href="#routes_index_py">routes/index.py</a></li><li><a href="#routes_main_py">routes/main.py</a></li><li><a href="#routes_pulse_py">routes/pulse.py</a></li><li><a href="#routes_settings_py">routes/settings.py</a></li><li><a href="#routes_user_routes_py">routes/user_routes.py</a></li><li><a href="#routes_view_auth_py">routes/view/auth.py</a></li><li><a href="#routes_view_dashboard_py">routes/view/dashboard.py</a></li><li><a href="#routes_view_index_py">routes/view/index.py</a></li><li><a href="#routes_view_settings_py">routes/view/settings.py</a></li><li><a href="#routes_view_user_py">routes/view/user.py</a></li><li><a href="#scripts_backend_stability_test_py">scripts/backend_stability_test.py</a></li><li><a href="#scripts_generate_api_docs_py">scripts/generate_api_docs.py</a></li><li><a href="#scripts_project_docs_generator_py">scripts/project_docs_generator.py</a></li><li><a href="#scripts_simple_docs_generator_py">scripts/simple_docs_generator.py</a></li><li><a href="#tests_auth_loop_test_py">tests/auth_loop_test.py</a></li><li><a href="#tests_smoke_test_suite_py">tests/smoke_test_suite.py</a></li><li><a href="#utils___init___py">utils/__init__.py</a></li><li><a href="#utils_adaptive_conversation_py">utils/adaptive_conversation.py</a></li><li><a href="#utils_api_key_manager_py">utils/api_key_manager.py</a></li><li><a href="#utils_api_route_helper_py">utils/api_route_helper.py</a></li><li><a href="#utils_cache_helper_py">utils/cache_helper.py</a></li><li><a href="#utils_character_customization_py">utils/character_customization.py</a></li><li><a href="#utils_command_parser_py">utils/command_parser.py</a></li><li><a href="#utils_create_default_user_py">utils/create_default_user.py</a></li><li><a href="#utils_database_optimizer_py">utils/database_optimizer.py</a></li><li><a href="#utils_db_helpers_py">utils/db_helpers.py</a></li><li><a href="#utils_db_optimizations_py">utils/db_optimizations.py</a></li><li><a href="#utils_deployment_logger_py">utils/deployment_logger.py</a></li><li><a href="#utils_doctor_appointment_helper_py">utils/doctor_appointment_helper.py</a></li><li><a href="#utils_enhanced_memory_py">utils/enhanced_memory.py</a></li><li><a href="#utils_enhanced_weather_helper_py">utils/enhanced_weather_helper.py</a></li><li><a href="#utils_error_handler_py">utils/error_handler.py</a></li><li><a href="#utils_forms_helper_py">utils/forms_helper.py</a></li><li><a href="#utils_health_monitor_py">utils/health_monitor.py</a></li><li><a href="#utils_image_helper_py">utils/image_helper.py</a></li><li><a href="#utils_knowledge_download_py">utils/knowledge_download.py</a></li><li><a href="#utils_logger_py">utils/logger.py</a></li><li><a href="#utils_login_security_py">utils/login_security.py</a></li><li><a href="#utils_maps_helper_py">utils/maps_helper.py</a></li><li><a href="#utils_medication_helper_py">utils/medication_helper.py</a></li><li><a href="#utils_meet_helper_py">utils/meet_helper.py</a></li><li><a href="#utils_memory_initializer_py">utils/memory_initializer.py</a></li><li><a href="#utils_multilingual_voice_py">utils/multilingual_voice.py</a></li><li><a href="#utils_nlp_helper_py">utils/nlp_helper.py</a></li><li><a href="#utils_performance_middleware_py">utils/performance_middleware.py</a></li><li><a href="#utils_photos_helper_py">utils/photos_helper.py</a></li><li><a href="#utils_price_tracking_py">utils/price_tracking.py</a></li><li><a href="#utils_product_helper_py">utils/product_helper.py</a></li><li><a href="#utils_route_diagnostics_py">utils/route_diagnostics.py</a></li><li><a href="#utils_route_standards_py">utils/route_standards.py</a></li><li><a href="#utils_route_validator_py">utils/route_validator.py</a></li><li><a href="#utils_scraper_py">utils/scraper.py</a></li><li><a href="#utils_security_py">utils/security.py</a></li><li><a href="#utils_security_headers_py">utils/security_headers.py</a></li><li><a href="#utils_security_helper_py">utils/security_helper.py</a></li><li><a href="#utils_security_middleware_py">utils/security_middleware.py</a></li><li><a href="#utils_service_health_checker_py">utils/service_health_checker.py</a></li><li><a href="#utils_settings_py">utils/settings.py</a></li><li><a href="#utils_settings_cache_py">utils/settings_cache.py</a></li><li><a href="#utils_setup_wizard_py">utils/setup_wizard.py</a></li><li><a href="#utils_shopping_helper_py">utils/shopping_helper.py</a></li><li><a href="#utils_smart_home_helper_py">utils/smart_home_helper.py</a></li><li><a href="#utils_smart_shopping_py">utils/smart_shopping.py</a></li><li><a href="#utils_spotify_ai_integration_py">utils/spotify_ai_integration.py</a></li><li><a href="#utils_spotify_client_py">utils/spotify_client.py</a></li><li><a href="#utils_spotify_health_integration_py">utils/spotify_health_integration.py</a></li><li><a href="#utils_spotify_helper_py">utils/spotify_helper.py</a></li><li><a href="#utils_spotify_visualizer_py">utils/spotify_visualizer.py</a></li><li><a href="#utils_template_filters_py">utils/template_filters.py</a></li><li><a href="#utils_travel_ai_helper_py">utils/travel_ai_helper.py</a></li><li><a href="#utils_travel_helper_py">utils/travel_helper.py</a></li><li><a href="#utils_two_factor_py">utils/two_factor.py</a></li><li><a href="#utils_two_factor_auth_py">utils/two_factor_auth.py</a></li><li><a href="#utils_url_utils_py">utils/url_utils.py</a></li><li><a href="#utils_voice_interaction_py">utils/voice_interaction.py</a></li><li><a href="#utils_voice_interface_py">utils/voice_interface.py</a></li><li><a href="#utils_voice_mindfulness_py">utils/voice_mindfulness.py</a></li><li><a href="#utils_voice_optimizer_py">utils/voice_optimizer.py</a></li><li><a href="#utils_weather_helper_py">utils/weather_helper.py</a></li><li><a href="#utils_youtube_helper_py">utils/youtube_helper.py</a></li>
+            </ul>
+        </div>
+        
+        <h2>File Documentation</h2>
+<div class="file-section" id="api_chat_py">
+            <div class="file-header">
+                <div class="file-title">api/chat.py</div>
+                <div class="file-meta">
+                    7 functions, 
+                    1 classes, 
+                    228 lines
+                </div>
+            </div>
+            <div class="doc-content">Unified /api/chat dispatcher
+Auto-registers handlers and routes messages by intent pattern</div><h4>Functions</h4><div class="items-list"><div class="item">__init__</div><div class="item">api_chat</div><div class="item">list_chat_handlers</div><div class="item">chat_api_health</div><div class="item">register_chat_handler</div><div class="item">auto_discover_handlers</div><div class="item">_generate_intent_patterns</div></div><h4>Classes</h4><div class="items-list"><div class="item">ChatDispatcher</div></div></div><div class="file-section" id="app_py">
+            <div class="file-header">
+                <div class="file-title">app.py</div>
+                <div class="file-meta">
+                    12 functions, 
+                    0 classes, 
+                    228 lines
+                </div>
+            </div>
+            <div class="doc-content">Backend Stability + Beta Suite Overhaul
+Professional-Grade Chat Interface with Health Monitoring & Beta Management</div><h4>Functions</h4><div class="items-list"><div class="item">create_app</div><div class="item">add_security_headers</div><div class="item">is_authenticated</div><div class="item">landing</div><div class="item">login</div><div class="item">demo_login</div><div class="item">oauth_callback</div><div class="item">logout</div><div class="item">app_chat</div><div class="item">api_chat</div><div class="item">api_user</div><div class="item">health</div></div></div><div class="file-section" id="config___init___py">
+            <div class="file-header">
+                <div class="file-title">config/__init__.py</div>
+                <div class="file-meta">
+                    0 functions, 
+                    0 classes, 
+                    6 lines
+                </div>
+            </div>
+            <div class="doc-content">Configuration module for NOUS application</div></div><div class="file-section" id="config_app_config_py">
+            <div class="file-header">
+                <div class="file-title">config/app_config.py</div>
+                <div class="file-meta">
+                    4 functions, 
+                    1 classes, 
+                    99 lines
+                </div>
+            </div>
+            <div class="doc-content">NOUS Application Configuration
+Centralized configuration management for ports, base paths, and API endpoints</div><h4>Functions</h4><div class="items-list"><div class="item">get_external_url</div><div class="item">get_api_url</div><div class="item">to_dict</div><div class="item">validate</div></div><h4>Classes</h4><div class="items-list"><div class="item">AppConfig</div></div></div><div class="file-section" id="config_routes_config_py">
+            <div class="file-header">
+                <div class="file-title">config/routes_config.py</div>
+                <div class="file-meta">
+                    4 functions, 
+                    1 classes, 
+                    98 lines
+                </div>
+            </div>
+            <div class="doc-content">Unified Route Configuration
+Standardizes all API routes under consistent base paths</div><h4>Functions</h4><div class="items-list"><div class="item">get_route_url</div><div class="item">get_api_v1_url</div><div class="item">get_legacy_api_url</div><div class="item">validate_routes</div></div><h4>Classes</h4><div class="items-list"><div class="item">RouteConfig</div></div></div><div class="file-section" id="core_chat___init___py">
+            <div class="file-header">
+                <div class="file-title">core/chat/__init__.py</div>
+                <div class="file-meta">
+                    0 functions, 
+                    0 classes, 
+                    17 lines
+                </div>
+            </div>
+            <div class="doc-content">Core Chat Module - CHAT-FIRST UNIFICATION
+Auto-discovery and registration system for chat handlers</div></div><div class="file-section" id="core_chat_blueprint_py">
+            <div class="file-header">
+                <div class="file-title">core/chat/blueprint.py</div>
+                <div class="file-meta">
+                    16 functions, 
+                    0 classes, 
+                    206 lines
+                </div>
+            </div>
+            <div class="doc-content">Chat Blueprint - Flask Blueprint for chat routes with SocketIO support</div><h4>Functions</h4><div class="items-list"><div class="item">init_socketio</div><div class="item">chat_health</div><div class="item">list_handlers</div><div class="item">handle_message</div><div class="item">generate_stubs</div><div class="item">debug_info</div><div class="item">register_socketio_handlers</div><div class="item">on_connect</div><div class="item">on_disconnect</div><div class="item">on_join_room</div><div class="item">on_leave_room</div><div class="item">on_message</div><div class="item">chat_interface</div><div class="item">setup_default_handlers</div><div class="item">preprocess_message</div><div class="item">default_fallback</div></div></div><div class="file-section" id="core_chat_dispatcher_py">
+            <div class="file-header">
+                <div class="file-title">core/chat/dispatcher.py</div>
+                <div class="file-meta">
+                    6 functions, 
+                    1 classes, 
+                    201 lines
+                </div>
+            </div>
+            <div class="doc-content">Chat Dispatcher - Routes messages to appropriate handlers</div><h4>Functions</h4><div class="items-list"><div class="item">__init__</div><div class="item">add_middleware</div><div class="item">set_fallback_handler</div><div class="item">generate_handler_stubs</div><div class="item">_generate_stub_code</div><div class="item">get_stats</div></div><h4>Classes</h4><div class="items-list"><div class="item">ChatDispatcher</div></div></div><div class="file-section" id="core_chat_handler_registry_py">
+            <div class="file-header">
+                <div class="file-title">core/chat/handler_registry.py</div>
+                <div class="file-meta">
+                    9 functions, 
+                    1 classes, 
+                    135 lines
+                </div>
+            </div>
+            <div class="doc-content">Handler Registry - Auto-discovery system for chat handlers</div><h4>Functions</h4><div class="items-list"><div class="item">__init__</div><div class="item">load_codegraph</div><div class="item">register_handler_from_codegraph</div><div class="item">_extract_intent_patterns</div><div class="item">register_handler</div><div class="item">find_handler</div><div class="item">_calculate_match_score</div><div class="item">list_handlers</div><div class="item">get_handler_info</div></div><h4>Classes</h4><div class="items-list"><div class="item">HandlerRegistry</div></div></div><div class="file-section" id="main_py">
+            <div class="file-header">
+                <div class="file-title">main.py</div>
+                <div class="file-meta">
+                    0 functions, 
+                    0 classes, 
+                    9 lines
+                </div>
+            </div>
+            <div class="doc-content">NOUS Personal Assistant - Unified Port Configuration
+Google-Only Authentication with Professional Chat Interface</div></div><div class="file-section" id="models___init___py">
+            <div class="file-header">
+                <div class="file-title">models/__init__.py</div>
+                <div class="file-meta">
+                    0 functions, 
+                    0 classes, 
+                    21 lines
+                </div>
+            </div>
+            <div class="doc-content">Models Package
+
+This package contains all database models for the NOUS application,
+organized into related modules for better maintainability.</div></div><div class="file-section" id="models_beta_models_py">
+            <div class="file-header">
+                <div class="file-title">models/beta_models.py</div>
+                <div class="file-meta">
+                    13 functions, 
+                    4 classes, 
+                    171 lines
+                </div>
+            </div>
+            <div class="doc-content">Beta Testing System Models
+Database models for beta user management and feature flags</div><h4>Functions</h4><div class="items-list"><div class="item">__repr__</div><div class="item">to_dict</div><div class="item">has_flag</div><div class="item">set_flag</div><div class="item">is_owner</div><div class="item">is_admin</div><div class="item">__repr__</div><div class="item">to_dict</div><div class="item">__repr__</div><div class="item">to_dict</div><div class="item">is_enabled_for_user</div><div class="item">__repr__</div><div class="item">to_dict</div></div><h4>Classes</h4><div class="items-list"><div class="item">BetaUser</div><div class="item">BetaFeedback</div><div class="item">FeatureFlag</div><div class="item">SystemMetrics</div></div></div><div class="file-section" id="models_database_py">
+            <div class="file-header">
+                <div class="file-title">models/database.py</div>
+                <div class="file-meta">
+                    2 functions, 
+                    0 classes, 
+                    33 lines
+                </div>
+            </div>
+            <div class="doc-content">Database Configuration Module
+
+This module configures the database connection and provides
+utility functions for database operations.</div><h4>Functions</h4><div class="items-list"><div class="item">init_db</div><div class="item">get_db</div></div></div><div class="file-section" id="models_user_py">
+            <div class="file-header">
+                <div class="file-title">models/user.py</div>
+                <div class="file-meta">
+                    2 functions, 
+                    1 classes, 
+                    30 lines
+                </div>
+            </div>
+            <div class="doc-content">User Models
+
+This module defines user-related database models for the NOUS application,
+including user account data, preferences, and authentication.</div><h4>Functions</h4><div class="items-list"><div class="item">is_active</div><div class="item">__repr__</div></div><h4>Classes</h4><div class="items-list"><div class="item">User</div></div></div><div class="file-section" id="routes___init___py">
+            <div class="file-header">
+                <div class="file-title">routes/__init__.py</div>
+                <div class="file-meta">
+                    1 functions, 
+                    0 classes, 
+                    75 lines
+                </div>
+            </div>
+            <div class="doc-content">Routes initialization module
+Centralizes the registration of all application blueprints with standardized patterns</div><h4>Functions</h4><div class="items-list"><div class="item">register_all_blueprints</div></div></div><div class="file-section" id="routes_api_py">
+            <div class="file-header">
+                <div class="file-title">routes/api.py</div>
+                <div class="file-meta">
+                    12 functions, 
+                    0 classes, 
+                    288 lines
+                </div>
+            </div>
+            <div class="doc-content">API Routes Module
+
+This module defines API routes for accessing application data.
+
+@module routes.api
+@description API routes for data access</div><h4>Functions</h4><div class="items-list"><div class="item">api_status</div><div class="item">get_user_info</div><div class="item">get_settings</div><div class="item">update_settings</div><div class="item">get_tasks</div><div class="item">create_task</div><div class="item">get_task</div><div class="item">update_task</div><div class="item">delete_task</div><div class="item">process_chat</div><div class="item">get_user_profile</div><div class="item">user_settings</div></div></div><div class="file-section" id="routes_api_feedback_py">
+            <div class="file-header">
+                <div class="file-title">routes/api/feedback.py</div>
+                <div class="file-meta">
+                    3 functions, 
+                    0 classes, 
+                    228 lines
+                </div>
+            </div>
+            <div class="doc-content">Beta Feedback API
+Collects and stores user feedback for beta features</div><h4>Functions</h4><div class="items-list"><div class="item">submit_feedback</div><div class="item">feedback_stats</div><div class="item">_ensure_feedback_table</div></div></div><div class="file-section" id="routes_api_health_py">
+            <div class="file-header">
+                <div class="file-title">routes/api/health.py</div>
+                <div class="file-meta">
+                    2 functions, 
+                    0 classes, 
+                    107 lines
+                </div>
+            </div>
+            <div class="doc-content">Health API Blueprint
+
+This module provides health-related API endpoints for the NOUS application.</div><h4>Functions</h4><div class="items-list"><div class="item">health_check</div><div class="item">system_health</div></div></div><div class="file-section" id="routes_api_shopping_py">
+            <div class="file-header">
+                <div class="file-title">routes/api/shopping.py</div>
+                <div class="file-meta">
+                    11 functions, 
+                    0 classes, 
+                    405 lines
+                </div>
+            </div>
+            <div class="doc-content">Shopping API routes.
+Handles shopping-related functionality such as shopping lists, products, etc.
+
+@module shopping
+@context_boundary Shopping Management</div><h4>Functions</h4><div class="items-list"><div class="item">handle_exception</div><div class="item">get_shopping_lists</div><div class="item">get_shopping_list</div><div class="item">create_shopping_list</div><div class="item">get_list_items</div><div class="item">add_list_item</div><div class="item">toggle_item_checked</div><div class="item">remove_list_item</div><div class="item">get_products</div><div class="item">get_product</div><div class="item">add_product</div></div></div><div class="file-section" id="routes_api_v1_settings_py">
+            <div class="file-header">
+                <div class="file-title">routes/api/v1/settings.py</div>
+                <div class="file-meta">
+                    3 functions, 
+                    0 classes, 
+                    120 lines
+                </div>
+            </div>
+            <div class="doc-content">Settings API Routes
+
+This module contains API routes for user settings management.
+
+@module routes.api.v1.settings
+@author NOUS Development Team</div><h4>Functions</h4><div class="items-list"><div class="item">get_settings</div><div class="item">update_settings</div><div class="item">reset_settings</div></div></div><div class="file-section" id="routes_api_v1_weather_py">
+            <div class="file-header">
+                <div class="file-title">routes/api/v1/weather.py</div>
+                <div class="file-meta">
+                    7 functions, 
+                    0 classes, 
+                    269 lines
+                </div>
+            </div>
+            <div class="doc-content">Weather API Routes
+
+This module contains API routes for weather data and location management.
+
+@module routes.api.v1.weather
+@author NOUS Development Team</div><h4>Functions</h4><div class="items-list"><div class="item">api_get_current_weather</div><div class="item">api_get_weather_forecast</div><div class="item">api_get_weather_locations</div><div class="item">api_add_weather_location</div><div class="item">api_delete_weather_location</div><div class="item">api_set_primary_weather_location</div><div class="item">api_pain_flare_forecast</div></div></div><div class="file-section" id="routes_auth___init___py">
+            <div class="file-header">
+                <div class="file-title">routes/auth/__init__.py</div>
+                <div class="file-meta">
+                    0 functions, 
+                    0 classes, 
+                    8 lines
+                </div>
+            </div>
+            <div class="doc-content">Authentication Module Initialization
+
+This module initializes the authentication components
+and makes them available for blueprint registration.</div></div><div class="file-section" id="routes_auth_standardized_routes_py">
+            <div class="file-header">
+                <div class="file-title">routes/auth/standardized_routes.py</div>
+                <div class="file-meta">
+                    5 functions, 
+                    0 classes, 
+                    168 lines
+                </div>
+            </div>
+            <div class="doc-content">Standardized Authentication Routes
+
+This module implements authentication routes using standardized routing patterns.</div><h4>Functions</h4><div class="items-list"><div class="item">login</div><div class="item">logout</div><div class="item">register</div><div class="item">password_reset_request</div><div class="item">password_reset</div></div></div><div class="file-section" id="routes_beta_admin_py">
+            <div class="file-header">
+                <div class="file-title">routes/beta_admin.py</div>
+                <div class="file-meta">
+                    12 functions, 
+                    0 classes, 
+                    519 lines
+                </div>
+            </div>
+            <div class="doc-content">Beta Admin Console Routes
+Protected admin interface for toledonick98@gmail.com</div><h4>Functions</h4><div class="items-list"><div class="item">admin_required</div><div class="item">decorated_function</div><div class="item">dashboard</div><div class="item">manage_users</div><div class="item">add_user</div><div class="item">toggle_user_status</div><div class="item">manage_flags</div><div class="item">add_flag</div><div class="item">toggle_flag</div><div class="item">view_feedback</div><div class="item">export_feedback</div><div class="item">_ensure_tables_exist</div></div></div><div class="file-section" id="routes_dashboard_py">
+            <div class="file-header">
+                <div class="file-title">routes/dashboard.py</div>
+                <div class="file-meta">
+                    1 functions, 
+                    0 classes, 
+                    26 lines
+                </div>
+            </div>
+            <div class="doc-content">Dashboard Routes for NOUS Personal Assistant
+
+This module defines dashboard routes for the NOUS application.</div><h4>Functions</h4><div class="items-list"><div class="item">dashboard</div></div></div><div class="file-section" id="routes_index_py">
+            <div class="file-header">
+                <div class="file-title">routes/index.py</div>
+                <div class="file-meta">
+                    2 functions, 
+                    0 classes, 
+                    70 lines
+                </div>
+            </div>
+            <div class="doc-content">Index Routes Module
+
+This module defines routes for the main pages of the application.
+
+@module routes.index
+@description Main application routes</div><h4>Functions</h4><div class="items-list"><div class="item">index</div><div class="item">help_page</div></div></div><div class="file-section" id="routes_main_py">
+            <div class="file-header">
+                <div class="file-title">routes/main.py</div>
+                <div class="file-meta">
+                    6 functions, 
+                    0 classes, 
+                    95 lines
+                </div>
+            </div>
+            <div class="doc-content">Main Routes Blueprint
+
+This module defines the main routes for the NOUS application.</div><h4>Functions</h4><div class="items-list"><div class="item">index</div><div class="item">dashboard</div><div class="item">help</div><div class="item">health</div><div class="item">serve_static</div><div class="item">catch_all</div></div></div><div class="file-section" id="routes_pulse_py">
+            <div class="file-header">
+                <div class="file-title">routes/pulse.py</div>
+                <div class="file-meta">
+                    5 functions, 
+                    0 classes, 
+                    117 lines
+                </div>
+            </div>
+            <div class="doc-content">NOUS Pulse Dashboard - Unified Alert Hub
+Aggregates top alerts from health, DBT, finance, shopping, and weather</div><h4>Functions</h4><div class="items-list"><div class="item">pulse_dashboard</div><div class="item">pulse_api</div><div class="item">health_details</div><div class="item">finance_details</div><div class="item">calculate_urgency_score</div></div></div><div class="file-section" id="routes_settings_py">
+            <div class="file-header">
+                <div class="file-title">routes/settings.py</div>
+                <div class="file-meta">
+                    6 functions, 
+                    0 classes, 
+                    149 lines
+                </div>
+            </div>
+            <div class="doc-content">Settings Routes Module
+
+This module defines routes for the user settings and preferences.
+
+@module routes.settings
+@description User settings and preferences routes</div><h4>Functions</h4><div class="items-list"><div class="item">settings_page</div><div class="item">update_profile</div><div class="item">update_appearance</div><div class="item">update_assistant</div><div class="item">update_password</div><div class="item">delete_account</div></div></div><div class="file-section" id="routes_user_routes_py">
+            <div class="file-header">
+                <div class="file-title">routes/user_routes.py</div>
+                <div class="file-meta">
+                    3 functions, 
+                    0 classes, 
+                    34 lines
+                </div>
+            </div>
+            <div class="doc-content">User Routes
+
+This module provides routes for user account management,
+including profile viewing and editing.</div><h4>Functions</h4><div class="items-list"><div class="item">profile</div><div class="item">preferences</div><div class="item">activity</div></div></div><div class="file-section" id="routes_view_auth_py">
+            <div class="file-header">
+                <div class="file-title">routes/view/auth.py</div>
+                <div class="file-meta">
+                    5 functions, 
+                    0 classes, 
+                    201 lines
+                </div>
+            </div>
+            <div class="doc-content">Authentication View Routes
+
+This module contains view routes for user authentication,
+including login, logout and registration.
+
+@module routes.view.auth
+@description Authentication routes with enhanced security</div><h4>Functions</h4><div class="items-list"><div class="item">login</div><div class="item">email_login</div><div class="item">direct_google_login</div><div class="item">logout</div><div class="item">check_rate_limit</div></div></div><div class="file-section" id="routes_view_dashboard_py">
+            <div class="file-header">
+                <div class="file-title">routes/view/dashboard.py</div>
+                <div class="file-meta">
+                    1 functions, 
+                    0 classes, 
+                    217 lines
+                </div>
+            </div>
+            <div class="doc-content">Dashboard View Routes
+
+This module contains view routes for the dashboard page.
+
+@module routes.view.dashboard
+@author NOUS Development Team</div><h4>Functions</h4><div class="items-list"><div class="item">dashboard</div></div></div><div class="file-section" id="routes_view_index_py">
+            <div class="file-header">
+                <div class="file-title">routes/view/index.py</div>
+                <div class="file-meta">
+                    4 functions, 
+                    0 classes, 
+                    119 lines
+                </div>
+            </div>
+            <div class="doc-content">Index View Routes
+
+This module contains view routes for the main index/home page.
+
+@module routes.view.index
+@author NOUS Development Team</div><h4>Functions</h4><div class="items-list"><div class="item">index</div><div class="item">process_command</div><div class="item">clear_log</div><div class="item">help_page</div></div></div><div class="file-section" id="routes_view_settings_py">
+            <div class="file-header">
+                <div class="file-title">routes/view/settings.py</div>
+                <div class="file-meta">
+                    3 functions, 
+                    0 classes, 
+                    68 lines
+                </div>
+            </div>
+            <div class="doc-content">Settings View Routes
+
+This module contains view routes for the settings page.
+
+@module routes.view.settings
+@author NOUS Development Team</div><h4>Functions</h4><div class="items-list"><div class="item">settings_page</div><div class="item">save_settings</div><div class="item">reset_settings</div></div></div><div class="file-section" id="routes_view_user_py">
+            <div class="file-header">
+                <div class="file-title">routes/view/user.py</div>
+                <div class="file-meta">
+                    4 functions, 
+                    0 classes, 
+                    102 lines
+                </div>
+            </div>
+            <div class="doc-content">User routes and views.
+Handles user-specific functionality like user guide and profile management.
+
+@module user
+@context_boundary User Interface</div><h4>Functions</h4><div class="items-list"><div class="item">user_guide</div><div class="item">profile</div><div class="item">update_profile</div><div class="item">get_notifications</div></div></div><div class="file-section" id="scripts_backend_stability_test_py">
+            <div class="file-header">
+                <div class="file-title">scripts/backend_stability_test.py</div>
+                <div class="file-meta">
+                    11 functions, 
+                    1 classes, 
+                    313 lines
+                </div>
+            </div>
+            <h4>Functions</h4><div class="items-list"><div class="item">__init__</div><div class="item">run_all_tests</div><div class="item">test_health_endpoints</div><div class="item">test_admin_access</div><div class="item">test_feedback_api</div><div class="item">test_database_connectivity</div><div class="item">test_performance_metrics</div><div class="item">test_error_handling</div><div class="item">test_authentication_flow</div><div class="item">test_feature_flags</div><div class="item">main</div></div><h4>Classes</h4><div class="items-list"><div class="item">BackendStabilityTester</div></div></div><div class="file-section" id="scripts_generate_api_docs_py">
+            <div class="file-header">
+                <div class="file-title">scripts/generate_api_docs.py</div>
+                <div class="file-meta">
+                    6 functions, 
+                    0 classes, 
+                    250 lines
+                </div>
+            </div>
+            <h4>Functions</h4><div class="items-list"><div class="item">generate_module_docs</div><div class="item">generate_flask_routes_docs</div><div class="item">generate_html_docs</div><div class="item">generate_functions_html</div><div class="item">generate_classes_html</div><div class="item">main</div></div></div><div class="file-section" id="scripts_project_docs_generator_py">
+            <div class="file-header">
+                <div class="file-title">scripts/project_docs_generator.py</div>
+                <div class="file-meta">
+                    4 functions, 
+                    0 classes, 
+                    371 lines
+                </div>
+            </div>
+            <h4>Functions</h4><div class="items-list"><div class="item">get_project_files</div><div class="item">analyze_file</div><div class="item">generate_docs</div><div class="item">generate_html_docs</div></div></div><div class="file-section" id="scripts_simple_docs_generator_py">
+            <div class="file-header">
+                <div class="file-title">scripts/simple_docs_generator.py</div>
+                <div class="file-meta">
+                    4 functions, 
+                    0 classes, 
+                    222 lines
+                </div>
+            </div>
+            <h4>Functions</h4><div class="items-list"><div class="item">scan_python_files</div><div class="item">extract_docstrings</div><div class="item">generate_simple_docs</div><div class="item">generate_html</div></div></div><div class="file-section" id="tests_auth_loop_test_py">
+            <div class="file-header">
+                <div class="file-title">tests/auth_loop_test.py</div>
+                <div class="file-meta">
+                    12 functions, 
+                    1 classes, 
+                    241 lines
+                </div>
+            </div>
+            <div class="doc-content">Operation Zero-Redirect: Smoke Test Suite
+Tests authentication flow to prevent redirect loops</div><h4>Functions</h4><div class="items-list"><div class="item">__init__</div><div class="item">log_test</div><div class="item">test_public_landing_page</div><div class="item">test_protected_page_unauthenticated</div><div class="item">test_login_creates_session</div><div class="item">test_protected_page_authenticated</div><div class="item">test_me_endpoint_authenticated</div><div class="item">test_logout_destroys_session</div><div class="item">test_protected_page_after_logout</div><div class="item">test_health_endpoint</div><div class="item">run_all_tests</div><div class="item">main</div></div><h4>Classes</h4><div class="items-list"><div class="item">AuthLoopTester</div></div></div><div class="file-section" id="tests_smoke_test_suite_py">
+            <div class="file-header">
+                <div class="file-title">tests/smoke_test_suite.py</div>
+                <div class="file-meta">
+                    8 functions, 
+                    1 classes, 
+                    106 lines
+                </div>
+            </div>
+            <div class="doc-content">GLOBAL HEALTH CHECK: Automated Smoke Test Suite
+Auto-generated test grid for login loop prevention and deployment verification</div><h4>Functions</h4><div class="items-list"><div class="item">setup_class</div><div class="item">test_01_root_endpoint_public_access</div><div class="item">test_02_health_check_endpoint</div><div class="item">test_03_dashboard_access_pattern</div><div class="item">test_04_api_endpoints_no_auth_loops</div><div class="item">test_05_cors_headers_present</div><div class="item">test_06_security_headers_present</div><div class="item">test_07_no_server_errors_on_basic_routes</div></div><h4>Classes</h4><div class="items-list"><div class="item">TestSmokeSuite</div></div></div><div class="file-section" id="utils___init___py">
+            <div class="file-header">
+                <div class="file-title">utils/__init__.py</div>
+                <div class="file-meta">
+                    0 functions, 
+                    0 classes, 
+                    5 lines
+                </div>
+            </div>
+            <div class="doc-content">Utility Module
+
+This module provides utility functions and helpers for the application.</div></div><div class="file-section" id="utils_adaptive_conversation_py">
+            <div class="file-header">
+                <div class="file-title">utils/adaptive_conversation.py</div>
+                <div class="file-meta">
+                    6 functions, 
+                    0 classes, 
+                    186 lines
+                </div>
+            </div>
+            <div class="doc-content">Adaptive conversation module for adjusting response complexity based on user preferences.
+This module helps customize AI responses to match the user's preferred difficulty level.</div><h4>Functions</h4><div class="items-list"><div class="item">set_difficulty</div><div class="item">get_current_difficulty</div><div class="item">get_difficulty_context</div><div class="item">adapt_response</div><div class="item">_simplify_sentences</div><div class="item">_add_term_explanations</div></div></div><div class="file-section" id="utils_api_key_manager_py">
+            <div class="file-header">
+                <div class="file-title">utils/api_key_manager.py</div>
+                <div class="file-meta">
+                    13 functions, 
+                    6 classes, 
+                    615 lines
+                </div>
+            </div>
+            <div class="doc-content">API Key Management Module
+
+This module provides utilities for API key generation, validation, rotation,
+and lifecycle management to enhance security through regular key rotation.
+
+@module: api_key_manager
+@author: NOUS Development Team</div><h4>Functions</h4><div class="items-list"><div class="item">generate_api_key</div><div class="item">hash_api_key</div><div class="item">validate_api_key</div><div class="item">check_api_key_scope</div><div class="item">create_api_key</div><div class="item">revoke_api_key</div><div class="item">rotate_api_key</div><div class="item">check_rate_limits</div><div class="item">init_api_key_cleanup</div><div class="item">cleanup_worker</div><div class="item">api_key_required</div><div class="item">decorated</div><div class="item">get_request_info</div></div><h4>Classes</h4><div class="items-list"><div class="item">APIKeyError</div><div class="item">APIKeyInvalidError</div><div class="item">APIKeyExpiredError</div><div class="item">APIKeyScopeError</div><div class="item">APIKeyRotationError</div><div class="item">APIKeyRateLimitError</div></div></div><div class="file-section" id="utils_api_route_helper_py">
+            <div class="file-header">
+                <div class="file-title">utils/api_route_helper.py</div>
+                <div class="file-meta">
+                    12 functions, 
+                    0 classes, 
+                    187 lines
+                </div>
+            </div>
+            <div class="doc-content">API Route Helper
+
+This module provides utilities to standardize API route creation and documentation.
+It ensures consistent versioning, documentation, and error handling for API endpoints.</div><h4>Functions</h4><div class="items-list"><div class="item">api_route</div><div class="item">decorator</div><div class="item">wrapper</div><div class="item">create_api_blueprint</div><div class="item">register_api_error_handlers</div><div class="item">handle_bad_request</div><div class="item">handle_unauthorized</div><div class="item">handle_forbidden</div><div class="item">handle_not_found</div><div class="item">handle_method_not_allowed</div><div class="item">handle_too_many_requests</div><div class="item">handle_server_error</div></div></div><div class="file-section" id="utils_cache_helper_py">
+            <div class="file-header">
+                <div class="file-title">utils/cache_helper.py</div>
+                <div class="file-meta">
+                    10 functions, 
+                    1 classes, 
+                    208 lines
+                </div>
+            </div>
+            <div class="doc-content">Cache Helper Utility
+
+This module provides caching functionality for the NOUS personal assistant.
+It helps improve performance by caching expensive operations.
+
+@module utils.cache_helper
+@description Caching utilities for performance optimization</div><h4>Functions</h4><div class="items-list"><div class="item">__init__</div><div class="item">get</div><div class="item">set</div><div class="item">delete</div><div class="item">clear_all</div><div class="item">warmup</div><div class="item">cached</div><div class="item">decorator</div><div class="item">wrapper</div><div class="item">get_cache_helper</div></div><h4>Classes</h4><div class="items-list"><div class="item">CacheHelper</div></div></div><div class="file-section" id="utils_character_customization_py">
+            <div class="file-header">
+                <div class="file-title">utils/character_customization.py</div>
+                <div class="file-meta">
+                    4 functions, 
+                    0 classes, 
+                    301 lines
+                </div>
+            </div>
+            <div class="doc-content">Character customization module for personalizing the AI assistant.
+This module helps create a more engaging and personalized AI character
+based on user preferences.</div><h4>Functions</h4><div class="items-list"><div class="item">get_character_settings</div><div class="item">get_character_system_prompt</div><div class="item">apply_character_style</div><div class="item">has_emoji</div></div></div><div class="file-section" id="utils_command_parser_py">
+            <div class="file-header">
+                <div class="file-title">utils/command_parser.py</div>
+                <div class="file-meta">
+                    1 functions, 
+                    0 classes, 
+                    530 lines
+                </div>
+            </div>
+            <h4>Functions</h4><div class="items-list"><div class="item">parse_command</div></div></div><div class="file-section" id="utils_create_default_user_py">
+            <div class="file-header">
+                <div class="file-title">utils/create_default_user.py</div>
+                <div class="file-meta">
+                    1 functions, 
+                    0 classes, 
+                    79 lines
+                </div>
+            </div>
+            <div class="doc-content">Default User Creator
+
+This module creates a default admin user for the application
+when no users exist in the database.
+
+@module create_default_user
+@description Create default admin user for initial login</div><h4>Functions</h4><div class="items-list"><div class="item">create_default_admin</div></div></div><div class="file-section" id="utils_database_optimizer_py">
+            <div class="file-header">
+                <div class="file-title">utils/database_optimizer.py</div>
+                <div class="file-meta">
+                    17 functions, 
+                    1 classes, 
+                    417 lines
+                </div>
+            </div>
+            <div class="doc-content">Database Optimization and Query Analysis
+Automatically analyzes queries, suggests indexes, and optimizes performance</div><h4>Functions</h4><div class="items-list"><div class="item">__init__</div><div class="item">execute_with_timing</div><div class="item">analyze_query_performance</div><div class="item">suggest_indexes</div><div class="item">optimize_connection_pool</div><div class="item">create_performance_report</div><div class="item">_log_slow_query</div><div class="item">_record_query_metric</div><div class="item">_parse_explain_output</div><div class="item">_generate_optimization_suggestions</div><div class="item">_analyze_query_for_indexes</div><div class="item">_extract_table_names</div><div class="item">_get_query_type</div><div class="item">_get_database_health</div><div class="item">_get_query_performance_summary</div><div class="item">_get_slow_queries_summary</div><div class="item">_get_performance_recommendations</div></div><h4>Classes</h4><div class="items-list"><div class="item">DatabaseOptimizer</div></div></div><div class="file-section" id="utils_db_helpers_py">
+            <div class="file-header">
+                <div class="file-title">utils/db_helpers.py</div>
+                <div class="file-meta">
+                    1 functions, 
+                    0 classes, 
+                    24 lines
+                </div>
+            </div>
+            <div class="doc-content">Database Helper Utilities
+
+This module provides helper functions for database operations</div><h4>Functions</h4><div class="items-list"><div class="item">get_user_by_id</div></div></div><div class="file-section" id="utils_db_optimizations_py">
+            <div class="file-header">
+                <div class="file-title">utils/db_optimizations.py</div>
+                <div class="file-meta">
+                    17 functions, 
+                    0 classes, 
+                    271 lines
+                </div>
+            </div>
+            <div class="doc-content">Database Optimization Utilities
+
+This module provides utilities for optimizing database operations in the application.
+It includes query caching, query timing, and connection pooling enhancements.
+
+@module utils.db_optimizations
+@description Database performance optimization utilities</div><h4>Functions</h4><div class="items-list"><div class="item">optimize_query</div><div class="item">decorator</div><div class="item">wrapper</div><div class="item">get_db_stats</div><div class="item">clear_db_stats</div><div class="item">before_cursor_execute</div><div class="item">after_cursor_execute</div><div class="item">get_or_create</div><div class="item">paginate_query</div><div class="item">bulk_create</div><div class="item">bulk_update</div><div class="item">setup_db_optimizations</div><div class="item">setup_db_context</div><div class="item">log_db_stats</div><div class="item">reset_db_stats</div><div class="item">view_db_stats</div><div class="item">clear_db_stats_route</div></div></div><div class="file-section" id="utils_deployment_logger_py">
+            <div class="file-header">
+                <div class="file-title">utils/deployment_logger.py</div>
+                <div class="file-meta">
+                    3 functions, 
+                    0 classes, 
+                    103 lines
+                </div>
+            </div>
+            <div class="doc-content">Deployment Logging Module
+
+This module configures enhanced logging for deployment environments
+to ensure better visibility into application issues.</div><h4>Functions</h4><div class="items-list"><div class="item">configure_deployment_logging</div><div class="item">log_exception</div><div class="item">log_deployment_event</div></div></div><div class="file-section" id="utils_doctor_appointment_helper_py">
+            <div class="file-header">
+                <div class="file-title">utils/doctor_appointment_helper.py</div>
+                <div class="file-meta">
+                    13 functions, 
+                    0 classes, 
+                    209 lines
+                </div>
+            </div>
+            <h4>Functions</h4><div class="items-list"><div class="item">get_user_id_from_session</div><div class="item">get_doctors</div><div class="item">get_doctor_by_id</div><div class="item">get_doctor_by_name</div><div class="item">add_doctor</div><div class="item">update_doctor</div><div class="item">delete_doctor</div><div class="item">get_upcoming_appointments</div><div class="item">get_appointments_by_doctor</div><div class="item">add_appointment</div><div class="item">update_appointment_status</div><div class="item">set_appointment_reminder</div><div class="item">get_due_appointment_reminders</div></div></div><div class="file-section" id="utils_enhanced_memory_py">
+            <div class="file-header">
+                <div class="file-title">utils/enhanced_memory.py</div>
+                <div class="file-meta">
+                    12 functions, 
+                    1 classes, 
+                    372 lines
+                </div>
+            </div>
+            <div class="doc-content">Enhanced conversation memory management with personalization features.
+This module provides improved memory persistence and recall capabilities.</div><h4>Functions</h4><div class="items-list"><div class="item">init_db</div><div class="item">__init__</div><div class="item">_load_from_db</div><div class="item">add_message</div><div class="item">_analyze_message_for_entities_and_topics</div><div class="item">_update_topic_interest</div><div class="item">_update_entity_memory</div><div class="item">get_recent_messages</div><div class="item">get_topic_summary</div><div class="item">get_entity_summary</div><div class="item">get_memory_context</div><div class="item">get_user_memory</div></div><h4>Classes</h4><div class="items-list"><div class="item">UserMemory</div></div></div><div class="file-section" id="utils_enhanced_weather_helper_py">
+            <div class="file-header">
+                <div class="file-title">utils/enhanced_weather_helper.py</div>
+                <div class="file-meta">
+                    7 functions, 
+                    0 classes, 
+                    691 lines
+                </div>
+            </div>
+            <div class="doc-content">Enhanced weather helper module with advanced weather features:
+- Weather alerts and notifications
+- Weather-based health insights
+- Trip planning weather integration
+- Personalized activity recommendations</div><h4>Functions</h4><div class="items-list"><div class="item">get_extended_forecast</div><div class="item">get_personalized_activity_recommendations</div><div class="item">get_weather_alerts_for_location</div><div class="item">get_weather_health_insights</div><div class="item">get_trip_weather_overview</div><div class="item">set_user_weather_preferences</div><div class="item">enable_pain_flare_monitoring</div></div></div><div class="file-section" id="utils_error_handler_py">
+            <div class="file-header">
+                <div class="file-title">utils/error_handler.py</div>
+                <div class="file-meta">
+                    4 functions, 
+                    0 classes, 
+                    87 lines
+                </div>
+            </div>
+            <div class="doc-content">Error Handlers Module
+
+This module contains error handlers for the NOUS application.</div><h4>Functions</h4><div class="items-list"><div class="item">register_error_handlers</div><div class="item">page_not_found</div><div class="item">server_error</div><div class="item">handle_exception</div></div></div><div class="file-section" id="utils_forms_helper_py">
+            <div class="file-header">
+                <div class="file-title">utils/forms_helper.py</div>
+                <div class="file-meta">
+                    10 functions, 
+                    0 classes, 
+                    519 lines
+                </div>
+            </div>
+            <div class="doc-content">Google Forms Helper Module
+
+Provides utilities for working with Google Forms, including
+form creation, response handling, and analysis.</div><h4>Functions</h4><div class="items-list"><div class="item">get_forms_service</div><div class="item">create_form</div><div class="item">get_form</div><div class="item">add_text_item</div><div class="item">add_multiple_choice_item</div><div class="item">get_form_responses</div><div class="item">analyze_form_responses</div><div class="item">create_recovery_assessment_form</div><div class="item">create_anonymous_sharing_form</div><div class="item">create_daily_check_in_form</div></div></div><div class="file-section" id="utils_health_monitor_py">
+            <div class="file-header">
+                <div class="file-title">utils/health_monitor.py</div>
+                <div class="file-meta">
+                    18 functions, 
+                    1 classes, 
+                    335 lines
+                </div>
+            </div>
+            <div class="doc-content">Backend Stability - Health Monitoring System
+Implements comprehensive health checks, connection pooling, and error tracking</div><h4>Functions</h4><div class="items-list"><div class="item">__init__</div><div class="item">init_app</div><div class="item">health_check</div><div class="item">detailed_health</div><div class="item">get_metrics</div><div class="item">_check_database</div><div class="item">_check_memory</div><div class="item">_get_system_metrics</div><div class="item">_get_database_health</div><div class="item">_get_app_health</div><div class="item">_check_external_services</div><div class="item">_start_background_monitoring</div><div class="item">monitor</div><div class="item">_register_shutdown_handlers</div><div class="item">shutdown_handler</div><div class="item">_graceful_shutdown</div><div class="item">_get_percentile</div><div class="item">record_request</div></div><h4>Classes</h4><div class="items-list"><div class="item">HealthMonitor</div></div></div><div class="file-section" id="utils_image_helper_py">
+            <div class="file-header">
+                <div class="file-title">utils/image_helper.py</div>
+                <div class="file-meta">
+                    7 functions, 
+                    0 classes, 
+                    210 lines
+                </div>
+            </div>
+            <div class="doc-content">Image processing and analysis utilities for Nous
+Uses Hugging Face's free services for cost-effective image analysis</div><h4>Functions</h4><div class="items-list"><div class="item">describe_image</div><div class="item">detect_objects_in_image</div><div class="item">analyze_image_for_travel</div><div class="item">encode_image_to_base64</div><div class="item">segment_image</div><div class="item">organize_images_by_content</div><div class="item">get_uploaded_image_file</div></div></div><div class="file-section" id="utils_knowledge_download_py">
+            <div class="file-header">
+                <div class="file-title">utils/knowledge_download.py</div>
+                <div class="file-meta">
+                    20 functions, 
+                    0 classes, 
+                    789 lines
+                </div>
+            </div>
+            <div class="doc-content">Knowledge download utility to pre-fetch and store frequently accessed information.
+This reduces API calls and improves response time for common queries.</div><h4>Functions</h4><div class="items-list"><div class="item">_load_static_json</div><div class="item">_store_knowledge_entries</div><div class="item">_download_basic_facts</div><div class="item">_download_health_information</div><div class="item">_download_aa_principles</div><div class="item">_download_mindfulness_exercises</div><div class="item">_download_dbt_skills</div><div class="item">_download_grounding_exercises</div><div class="item">download_and_store_knowledge</div><div class="item">_add_from_json_file</div><div class="item">_download_basic_facts</div><div class="item">_download_health_information</div><div class="item">_download_common_procedures</div><div class="item">_download_medication_info</div><div class="item">_download_emergency_protocols</div><div class="item">_download_weather_patterns</div><div class="item">_download_travel_guidelines</div><div class="item">_download_shopping_tips</div><div class="item">download_all_knowledge</div><div class="item">search_knowledge_by_category</div></div></div><div class="file-section" id="utils_logger_py">
+            <div class="file-header">
+                <div class="file-title">utils/logger.py</div>
+                <div class="file-meta">
+                    5 functions, 
+                    0 classes, 
+                    116 lines
+                </div>
+            </div>
+            <h4>Functions</h4><div class="items-list"><div class="item">ensure_directory</div><div class="item">log_workout</div><div class="item">log_mood</div><div class="item">get_workout_entries</div><div class="item">get_mood_entries</div></div></div><div class="file-section" id="utils_login_security_py">
+            <div class="file-header">
+                <div class="file-title">utils/login_security.py</div>
+                <div class="file-meta">
+                    23 functions, 
+                    0 classes, 
+                    612 lines
+                </div>
+            </div>
+            <div class="doc-content">Login Security Module
+
+This module provides enhanced security features for login functionality.
+It includes brute force protection, account lockout, and IP-based security controls.
+
+@module utils.login_security
+@description Enhanced login security utilities</div><h4>Functions</h4><div class="items-list"><div class="item">track_login_attempt</div><div class="item">lock_account</div><div class="item">is_account_locked</div><div class="item">unlock_account</div><div class="item">throttle_ip</div><div class="item">flag_suspicious_ip</div><div class="item">block_ip</div><div class="item">is_ip_restricted</div><div class="item">get_client_security_info</div><div class="item">is_request_suspicious</div><div class="item">calculate_request_risk_score</div><div class="item">is_tor_exit_node</div><div class="item">is_known_proxy</div><div class="item">is_known_vpn</div><div class="item">get_country_from_ip</div><div class="item">require_secure_login</div><div class="item">decorated_function</div><div class="item">is_password_strong</div><div class="item">generate_csrf_token</div><div class="item">validate_csrf_token</div><div class="item">log_security_event</div><div class="item">is_secure_password</div><div class="item">cleanup_expired_sessions</div></div></div><div class="file-section" id="utils_maps_helper_py">
+            <div class="file-header">
+                <div class="file-title">utils/maps_helper.py</div>
+                <div class="file-meta">
+                    10 functions, 
+                    0 classes, 
+                    581 lines
+                </div>
+            </div>
+            <div class="doc-content">Helper module for Google Maps integration</div><h4>Functions</h4><div class="items-list"><div class="item">get_maps_api_key</div><div class="item">geocode_address</div><div class="item">reverse_geocode</div><div class="item">get_distance_matrix</div><div class="item">get_place_details</div><div class="item">search_nearby_places</div><div class="item">search_places</div><div class="item">get_directions</div><div class="item">get_static_map_url</div><div class="item">find_nearby_places_by_type</div></div></div><div class="file-section" id="utils_medication_helper_py">
+            <div class="file-header">
+                <div class="file-title">utils/medication_helper.py</div>
+                <div class="file-meta">
+                    8 functions, 
+                    0 classes, 
+                    139 lines
+                </div>
+            </div>
+            <h4>Functions</h4><div class="items-list"><div class="item">get_medications</div><div class="item">get_medication_by_id</div><div class="item">get_medication_by_name</div><div class="item">add_medication</div><div class="item">update_medication_quantity</div><div class="item">refill_medication</div><div class="item">get_medications_to_refill</div><div class="item">get_medications_by_doctor</div></div></div><div class="file-section" id="utils_meet_helper_py">
+            <div class="file-header">
+                <div class="file-title">utils/meet_helper.py</div>
+                <div class="file-meta">
+                    13 functions, 
+                    0 classes, 
+                    892 lines
+                </div>
+            </div>
+            <div class="doc-content">Google Meet Integration Helper Module
+====================================
+
+This module provides utilities for integrating with Google Meet and Google Calendar APIs.
+It enables creating, managing, and analyzing various types of meetings specifically tailored
+for recovery and support purposes.
+
+Key Features:
+- Creating standard Google Meet meetings with all necessary parameters
+- Specialized meeting creation for therapy sessions, recovery groups, sponsor meetings, and mindfulness sessions
+- Meeting management (viewing, updating, deleting)
+- AI-powered meeting agenda generation based on meeting type
+- Meeting notes analysis for extracting key points and action items
+- Utility functions for working with Google Calendar API
+
+Usage Examples:
+```python
+# Create a standard meeting
+result = create_meeting(
+    calendar_service,
+    "Weekly Check-in",
+    "Regular team check-in meeting",
+    start_datetime,
+    end_datetime,
+    ["participant@example.com"]
+)
+
+# Create a specialized therapy session
+result = create_therapy_session(
+    calendar_service,
+    "client@example.com",
+    session_type="cbt",
+    start_time=tomorrow_6pm,
+    duration_minutes=50
+)
+
+# Generate an AI-powered agenda
+agenda = generate_meeting_agenda(
+    calendar_service,
+    meeting_id="abc123",
+    meeting_type="recovery"
+)
+
+# Analyze meeting notes
+analysis = analyze_meeting_notes(
+    notes_text="Meeting notes content...",
+    meeting_type="sponsor"
+)
+```
+
+This module is part of the NOUS Assistant, supporting recovery and mental health
+through integrated technology solutions.
+
+@ai_prompt: "Create a function to integrate Google Meet with [therapy|recovery|mindfulness] sessions"</div><h4>Functions</h4><div class="items-list"><div class="item">get_meet_service</div><div class="item">create_meeting</div><div class="item">get_meeting</div><div class="item">update_meeting</div><div class="item">delete_meeting</div><div class="item">list_upcoming_meetings</div><div class="item">create_therapy_session</div><div class="item">create_recovery_group_meeting</div><div class="item">create_mindfulness_session</div><div class="item">create_sponsor_meeting</div><div class="item">generate_meeting_agenda</div><div class="item">analyze_meeting_notes</div><div class="item">calculate_duration_minutes</div></div></div><div class="file-section" id="utils_memory_initializer_py">
+            <div class="file-header">
+                <div class="file-title">utils/memory_initializer.py</div>
+                <div class="file-meta">
+                    2 functions, 
+                    0 classes, 
+                    42 lines
+                </div>
+            </div>
+            <div class="doc-content">Memory System Initializer
+
+This module handles the initialization of the memory system during application startup,
+ensuring that the database connection is properly set up for the memory service and
+that any required initial data is loaded.
+
+@module utils.memory_initializer
+@description Memory system initialization</div><h4>Functions</h4><div class="items-list"><div class="item">initialize_memory_system</div><div class="item">initialize_memory_for_users</div></div></div><div class="file-section" id="utils_multilingual_voice_py">
+            <div class="file-header">
+                <div class="file-title">utils/multilingual_voice.py</div>
+                <div class="file-meta">
+                    4 functions, 
+                    0 classes, 
+                    282 lines
+                </div>
+            </div>
+            <div class="doc-content">Multilingual Voice Interface Utilities
+
+This module provides text-to-speech and speech-to-text functions for multiple languages,
+optimized for language learning applications.</div><h4>Functions</h4><div class="items-list"><div class="item">generate_speech</div><div class="item">transcribe_speech</div><div class="item">get_pronunciation_feedback</div><div class="item">get_available_languages</div></div></div><div class="file-section" id="utils_nlp_helper_py">
+            <div class="file-header">
+                <div class="file-title">utils/nlp_helper.py</div>
+                <div class="file-meta">
+                    3 functions, 
+                    0 classes, 
+                    296 lines
+                </div>
+            </div>
+            <div class="doc-content">Natural Language Processing Helper Functions
+===========================================
+
+This module provides utility functions for extracting structured information
+from natural language inputs, specifically designed to support chat-based
+command interpretation.
+
+These functions help the assistant understand dates, times, durations, emails,
+and other structured data within user messages.</div><h4>Functions</h4><div class="items-list"><div class="item">extract_datetime</div><div class="item">extract_duration</div><div class="item">extract_emails</div></div></div><div class="file-section" id="utils_performance_middleware_py">
+            <div class="file-header">
+                <div class="file-title">utils/performance_middleware.py</div>
+                <div class="file-meta">
+                    6 functions, 
+                    0 classes, 
+                    176 lines
+                </div>
+            </div>
+            <div class="doc-content">Performance Middleware
+
+This module provides middleware for optimizing request processing and response time.
+It includes request timing, response compression, and caching headers.
+
+@module utils.performance_middleware
+@description Performance optimization middleware</div><h4>Functions</h4><div class="items-list"><div class="item">setup_performance_middleware</div><div class="item">start_timer</div><div class="item">optimize_response</div><div class="item">should_compress</div><div class="item">compress_response</div><div class="item">add_cache_headers</div></div></div><div class="file-section" id="utils_photos_helper_py">
+            <div class="file-header">
+                <div class="file-title">utils/photos_helper.py</div>
+                <div class="file-meta">
+                    10 functions, 
+                    0 classes, 
+                    463 lines
+                </div>
+            </div>
+            <div class="doc-content">Helper module for Google Photos integration</div><h4>Functions</h4><div class="items-list"><div class="item">get_photos_service</div><div class="item">list_albums</div><div class="item">get_album_contents</div><div class="item">search_media_items</div><div class="item">create_album</div><div class="item">get_recent_photos</div><div class="item">get_media_item</div><div class="item">download_photo</div><div class="item">analyze_photo_content</div><div class="item">search_photos_by_content</div></div></div><div class="file-section" id="utils_price_tracking_py">
+            <div class="file-header">
+                <div class="file-title">utils/price_tracking.py</div>
+                <div class="file-meta">
+                    20 functions, 
+                    0 classes, 
+                    956 lines
+                </div>
+            </div>
+            <div class="doc-content">Price tracking and management utilities
+Supports product price history tracking, price comparison, and alerts</div><h4>Functions</h4><div class="items-list"><div class="item">track_product</div><div class="item">get_user_tracked_products</div><div class="item">update_product_price</div><div class="item">get_price_history</div><div class="item">create_price_alert</div><div class="item">check_price_alerts</div><div class="item">get_highest_price_since_last_alert</div><div class="item">scrape_product_details</div><div class="item">scrape_product_price</div><div class="item">extract_source_from_url</div><div class="item">scrape_amazon_product</div><div class="item">scrape_amazon_price</div><div class="item">scrape_walmart_product</div><div class="item">scrape_walmart_price</div><div class="item">scrape_generic_product</div><div class="item">scrape_generic_price</div><div class="item">extract_price</div><div class="item">is_likely_deal</div><div class="item">analyze_best_time_to_buy</div><div class="item">find_seasonal_deals</div></div></div><div class="file-section" id="utils_product_helper_py">
+            <div class="file-header">
+                <div class="file-title">utils/product_helper.py</div>
+                <div class="file-meta">
+                    10 functions, 
+                    0 classes, 
+                    193 lines
+                </div>
+            </div>
+            <h4>Functions</h4><div class="items-list"><div class="item">get_products</div><div class="item">get_product_by_id</div><div class="item">get_product_by_name</div><div class="item">add_product</div><div class="item">extract_source_from_url</div><div class="item">fetch_product_details</div><div class="item">set_product_as_recurring</div><div class="item">mark_product_as_ordered</div><div class="item">get_due_product_orders</div><div class="item">update_product_price</div></div></div><div class="file-section" id="utils_route_diagnostics_py">
+            <div class="file-header">
+                <div class="file-title">utils/route_diagnostics.py</div>
+                <div class="file-meta">
+                    14 functions, 
+                    1 classes, 
+                    471 lines
+                </div>
+            </div>
+            <div class="doc-content">Route Diagnostics Tool
+
+This module provides tools to diagnose and report on route standardization
+and compliance across the application.</div><h4>Functions</h4><div class="items-list"><div class="item">__init__</div><div class="item">analyze_routes</div><div class="item">generate_report</div><div class="item">check_url_compliance</div><div class="item">check_endpoint_compliance</div><div class="item">_get_all_routes</div><div class="item">_determine_url_type</div><div class="item">_categorize_routes</div><div class="item">_check_compliance</div><div class="item">_analyze_blueprints</div><div class="item">_extract_blueprint_prefix</div><div class="item">_get_route_details</div><div class="item">_format_text_report</div><div class="item">analyze_routes</div></div><h4>Classes</h4><div class="items-list"><div class="item">RouteDiagnostics</div></div></div><div class="file-section" id="utils_route_standards_py">
+            <div class="file-header">
+                <div class="file-title">utils/route_standards.py</div>
+                <div class="file-meta">
+                    8 functions, 
+                    2 classes, 
+                    188 lines
+                </div>
+            </div>
+            <div class="doc-content">Route Standards Utility
+
+This module provides standards and validation for route definitions.
+It ensures consistent URL patterns and blueprint conventions across the application.</div><h4>Functions</h4><div class="items-list"><div class="item">validate_url_pattern</div><div class="item">get_standardized_blueprint_name</div><div class="item">standardize_url_prefix</div><div class="item">__init__</div><div class="item">register</div><div class="item">verify_all_routes</div><div class="item">register_blueprint</div><div class="item">verify_routes</div></div><h4>Classes</h4><div class="items-list"><div class="item">RouteValidator</div><div class="item">BlueprintRegistry</div></div></div><div class="file-section" id="utils_route_validator_py">
+            <div class="file-header">
+                <div class="file-title">utils/route_validator.py</div>
+                <div class="file-meta">
+                    11 functions, 
+                    1 classes, 
+                    229 lines
+                </div>
+            </div>
+            <div class="doc-content">Route Validator Module
+
+This module provides validation and standardization for application routes.
+It ensures proper URL formatting, path validation, and consistent naming conventions.</div><h4>Functions</h4><div class="items-list"><div class="item">__init__</div><div class="item">init_app</div><div class="item">_register_validation_middleware</div><div class="item">validate_request_route</div><div class="item">_determine_route_type</div><div class="item">_validate_api_route</div><div class="item">_validate_web_route</div><div class="item">_validate_auth_route</div><div class="item">analyze_routes</div><div class="item">init_app</div><div class="item">analyze_routes</div></div><h4>Classes</h4><div class="items-list"><div class="item">RouteValidator</div></div></div><div class="file-section" id="utils_scraper_py">
+            <div class="file-header">
+                <div class="file-title">utils/scraper.py</div>
+                <div class="file-meta">
+                    1 functions, 
+                    0 classes, 
+                    41 lines
+                </div>
+            </div>
+            <h4>Functions</h4><div class="items-list"><div class="item">scrape_aa_reflection</div></div></div><div class="file-section" id="utils_security_py">
+            <div class="file-header">
+                <div class="file-title">utils/security.py</div>
+                <div class="file-meta">
+                    12 functions, 
+                    0 classes, 
+                    362 lines
+                </div>
+            </div>
+            <div class="doc-content">Security Utilities Module
+
+This module provides utility functions for security features.
+
+@module utils.security
+@description Security utility functions</div><h4>Functions</h4><div class="items-list"><div class="item">generate_csrf_token</div><div class="item">validate_csrf_token</div><div class="item">require_csrf_token</div><div class="item">decorated_function</div><div class="item">log_security_event</div><div class="item">is_password_strong</div><div class="item">hash_password</div><div class="item">check_password</div><div class="item">is_ip_in_allowed_range</div><div class="item">rate_limit_exceeded</div><div class="item">get_client_info</div><div class="item">sanitize_input</div></div></div><div class="file-section" id="utils_security_headers_py">
+            <div class="file-header">
+                <div class="file-title">utils/security_headers.py</div>
+                <div class="file-meta">
+                    5 functions, 
+                    0 classes, 
+                    178 lines
+                </div>
+            </div>
+            <div class="doc-content">Security Headers Module
+
+This module provides middleware for adding security headers to HTTP responses
+to protect against various web vulnerabilities like XSS, clickjacking, etc.
+
+@module: security_headers
+@author: NOUS Development Team</div><h4>Functions</h4><div class="items-list"><div class="item">init_security_headers</div><div class="item">add_security_headers</div><div class="item">get_csp_header</div><div class="item">get_hsts_header</div><div class="item">get_permissions_policy_header</div></div></div><div class="file-section" id="utils_security_helper_py">
+            <div class="file-header">
+                <div class="file-title">utils/security_helper.py</div>
+                <div class="file-meta">
+                    8 functions, 
+                    0 classes, 
+                    162 lines
+                </div>
+            </div>
+            <div class="doc-content">Security Helper
+
+This module provides security-related functions including:
+- CSRF protection
+- Admin authorization
+- Access controls
+- Security event logging
+- Input sanitization
+
+@module security_helper
+@description Security-related helper functions</div><h4>Functions</h4><div class="items-list"><div class="item">csrf_protect</div><div class="item">decorated_function</div><div class="item">admin_required</div><div class="item">decorated_function</div><div class="item">sanitize_input</div><div class="item">log_security_event</div><div class="item">set_admin_status</div><div class="item">generate_csrf_token</div></div></div><div class="file-section" id="utils_security_middleware_py">
+            <div class="file-header">
+                <div class="file-title">utils/security_middleware.py</div>
+                <div class="file-meta">
+                    17 functions, 
+                    0 classes, 
+                    334 lines
+                </div>
+            </div>
+            <div class="doc-content">Security Middleware Module
+
+This module provides security-focused middleware for the Flask application.
+It includes protection against common web vulnerabilities like XSS, CSRF, and clickjacking.
+
+@module utils.security_middleware
+@description Security middleware functions</div><h4>Functions</h4><div class="items-list"><div class="item">apply_security_headers</div><div class="item">setup_security_middleware</div><div class="item">csrf_protect</div><div class="item">inject_csrf_token</div><div class="item">detect_suspicious_request</div><div class="item">log_request</div><div class="item">require_https</div><div class="item">decorated_function</div><div class="item">allowed_roles</div><div class="item">decorator</div><div class="item">decorated_function</div><div class="item">rate_limit</div><div class="item">decorator</div><div class="item">decorated_function</div><div class="item">secure_admin_required</div><div class="item">decorated_function</div><div class="item">xss_protect</div></div></div><div class="file-section" id="utils_service_health_checker_py">
+            <div class="file-header">
+                <div class="file-title">utils/service_health_checker.py</div>
+                <div class="file-meta">
+                    7 functions, 
+                    1 classes, 
+                    312 lines
+                </div>
+            </div>
+            <div class="doc-content">Service Health Checker
+
+This module provides health check functionality for all external service integrations
+to verify authentication status and service availability.
+
+@module utils.service_health_checker
+@description Comprehensive health checking for external API integrations</div><h4>Functions</h4><div class="items-list"><div class="item">__init__</div><div class="item">check_google_oauth</div><div class="item">check_openai_api</div><div class="item">check_openrouter_api</div><div class="item">check_huggingface_api</div><div class="item">check_database_connection</div><div class="item">run_full_health_check</div></div><h4>Classes</h4><div class="items-list"><div class="item">ServiceHealthChecker</div></div></div><div class="file-section" id="utils_settings_py">
+            <div class="file-header">
+                <div class="file-title">utils/settings.py</div>
+                <div class="file-meta">
+                    4 functions, 
+                    0 classes, 
+                    171 lines
+                </div>
+            </div>
+            <div class="doc-content">Settings Utility
+
+This module provides functions for retrieving and managing application settings.
+It handles retrieving settings from the database with fallback to defaults.
+
+@module utils.settings
+@description System settings utility functions</div><h4>Functions</h4><div class="items-list"><div class="item">get_setting</div><div class="item">get_all_settings</div><div class="item">set_setting</div><div class="item">_convert_value_type</div></div></div><div class="file-section" id="utils_settings_cache_py">
+            <div class="file-header">
+                <div class="file-title">utils/settings_cache.py</div>
+                <div class="file-meta">
+                    8 functions, 
+                    0 classes, 
+                    225 lines
+                </div>
+            </div>
+            <div class="doc-content">Settings Cache Utility
+
+This module provides caching functionality for system settings to reduce database load.
+It caches frequently accessed system settings in memory for better performance.
+
+@module utils.settings_cache
+@description Cache utility for system settings</div><h4>Functions</h4><div class="items-list"><div class="item">get_system_setting</div><div class="item">set_system_setting</div><div class="item">clear_settings_cache</div><div class="item">_get_from_cache</div><div class="item">_add_to_cache</div><div class="item">initialize_settings_cache</div><div class="item">_ensure_default_settings_exist</div><div class="item">_ensure_setting_exists</div></div></div><div class="file-section" id="utils_setup_wizard_py">
+            <div class="file-header">
+                <div class="file-title">utils/setup_wizard.py</div>
+                <div class="file-meta">
+                    8 functions, 
+                    0 classes, 
+                    412 lines
+                </div>
+            </div>
+            <div class="doc-content">Setup wizard module for NOUS assistant
+Handles customization and personalization of the assistant</div><h4>Functions</h4><div class="items-list"><div class="item">get_assistant_profile</div><div class="item">create_default_assistant_profile</div><div class="item">customize_assistant</div><div class="item">initialize_user_settings</div><div class="item">delete_customization</div><div class="item">get_personality_options</div><div class="item">get_setup_progress</div><div class="item">update_setup_progress</div></div></div><div class="file-section" id="utils_shopping_helper_py">
+            <div class="file-header">
+                <div class="file-title">utils/shopping_helper.py</div>
+                <div class="file-meta">
+                    11 functions, 
+                    0 classes, 
+                    186 lines
+                </div>
+            </div>
+            <h4>Functions</h4><div class="items-list"><div class="item">get_shopping_lists</div><div class="item">get_shopping_list_by_id</div><div class="item">get_shopping_list_by_name</div><div class="item">create_shopping_list</div><div class="item">add_item_to_list</div><div class="item">get_items_in_list</div><div class="item">toggle_item_checked</div><div class="item">remove_item_from_list</div><div class="item">set_list_as_recurring</div><div class="item">mark_list_as_ordered</div><div class="item">get_due_shopping_lists</div></div></div><div class="file-section" id="utils_smart_home_helper_py">
+            <div class="file-header">
+                <div class="file-title">utils/smart_home_helper.py</div>
+                <div class="file-meta">
+                    14 functions, 
+                    1 classes, 
+                    1100 lines
+                </div>
+            </div>
+            <div class="doc-content">Smart Home Integration module
+Features:
+- Smart device control integration
+- Weather-based automation suggestions
+- Spotify playback on home devices
+- Remote control of smart home devices</div><h4>Functions</h4><div class="items-list"><div class="item">__init__</div><div class="item">set_platform</div><div class="item">reset</div><div class="item">has_devices</div><div class="item">has_audio_devices</div><div class="item">configure_smart_home_integration</div><div class="item">discover_devices</div><div class="item">control_device</div><div class="item">control_room</div><div class="item">play_spotify_on_device</div><div class="item">get_weather_based_automation_suggestions</div><div class="item">create_voice_command</div><div class="item">create_routine</div><div class="item">get_device_status</div></div><h4>Classes</h4><div class="items-list"><div class="item">SmartHomeStatus</div></div></div><div class="file-section" id="utils_smart_shopping_py">
+            <div class="file-header">
+                <div class="file-title">utils/smart_shopping.py</div>
+                <div class="file-meta">
+                    5 functions, 
+                    0 classes, 
+                    419 lines
+                </div>
+            </div>
+            <div class="doc-content">Smart shopping list generation and management
+Uses AI to generate and organize shopping lists based on user's needs</div><h4>Functions</h4><div class="items-list"><div class="item">generate_smart_shopping_list</div><div class="item">save_smart_shopping_list</div><div class="item">generate_medication_shopping_list</div><div class="item">analyze_shopping_patterns</div><div class="item">suggest_list_improvements</div></div></div><div class="file-section" id="utils_spotify_ai_integration_py">
+            <div class="file-header">
+                <div class="file-title">utils/spotify_ai_integration.py</div>
+                <div class="file-meta">
+                    20 functions, 
+                    1 classes, 
+                    728 lines
+                </div>
+            </div>
+            <div class="doc-content">Spotify AI Integration
+
+This module provides integration between AI features and Spotify music services.
+It allows for intelligent music recommendations and playlist generation based on user preferences.
+
+@module utils.spotify_ai_integration
+@description AI-powered Spotify recommendation and assistant features</div><h4>Functions</h4><div class="items-list"><div class="item">__init__</div><div class="item">authenticate</div><div class="item">is_authenticated</div><div class="item">recommend_music_by_mood</div><div class="item">_apply_diversity</div><div class="item">_get_user_top_genres</div><div class="item">get_playlist_for_activity</div><div class="item">analyze_user_listening_history</div><div class="item">_calculate_average_features</div><div class="item">_analyze_listening_patterns</div><div class="item">_analyze_mood_distribution</div><div class="item">_get_recent_discoveries</div><div class="item">_get_similar_artists</div><div class="item">_suggest_new_genres</div><div class="item">_extract_top_genres</div><div class="item">generate_smart_playlist</div><div class="item">compare_music_taste</div><div class="item">get_concert_recommendations</div><div class="item">classify_track_mood</div><div class="item">get_spotify_ai</div></div><h4>Classes</h4><div class="items-list"><div class="item">SpotifyAIIntegration</div></div></div><div class="file-section" id="utils_spotify_client_py">
+            <div class="file-header">
+                <div class="file-title">utils/spotify_client.py</div>
+                <div class="file-meta">
+                    43 functions, 
+                    1 classes, 
+                    876 lines
+                </div>
+            </div>
+            <div class="doc-content">Spotify Client
+
+This module provides a custom Spotify API client implementation.
+It handles authentication and provides methods for interacting with the Spotify API.
+
+@module utils.spotify_client
+@description Custom Spotify API client implementation</div><h4>Functions</h4><div class="items-list"><div class="item">__init__</div><div class="item">is_authenticated</div><div class="item">set_access_token</div><div class="item">get_authorize_url</div><div class="item">exchange_code</div><div class="item">_make_api_request</div><div class="item">current_user</div><div class="item">current_user_playlists</div><div class="item">current_user_top_tracks</div><div class="item">current_user_top_artists</div><div class="item">current_user_recently_played</div><div class="item">current_user_saved_tracks</div><div class="item">current_user_saved_albums</div><div class="item">current_user_followed_artists</div><div class="item">search</div><div class="item">search_tracks</div><div class="item">search_artists</div><div class="item">search_albums</div><div class="item">search_playlists</div><div class="item">user_playlist_create</div><div class="item">user_playlist_add_tracks</div><div class="item">playlist_add_items</div><div class="item">track</div><div class="item">audio_features</div><div class="item">artist</div><div class="item">artist_top_tracks</div><div class="item">artist_related_artists</div><div class="item">get_available_genre_seeds</div><div class="item">get_recommendations</div><div class="item">current_playback</div><div class="item">devices</div><div class="item">start_playback</div><div class="item">pause_playback</div><div class="item">next_track</div><div class="item">previous_track</div><div class="item">volume</div><div class="item">shuffle</div><div class="item">repeat</div><div class="item">categories</div><div class="item">category_playlists</div><div class="item">featured_playlists</div><div class="item">new_releases</div><div class="item">recommendations</div></div><h4>Classes</h4><div class="items-list"><div class="item">SpotifyClient</div></div></div><div class="file-section" id="utils_spotify_health_integration_py">
+            <div class="file-header">
+                <div class="file-title">utils/spotify_health_integration.py</div>
+                <div class="file-meta">
+                    5 functions, 
+                    1 classes, 
+                    204 lines
+                </div>
+            </div>
+            <div class="doc-content">Spotify Health Integration
+
+This module integrates Spotify music services with health-related features.
+It provides functionality for mood-based music recommendations, pain management
+through music, and personalized playlists for health activities.
+
+@module utils.spotify_health_integration
+@description Health-related Spotify features and integrations</div><h4>Functions</h4><div class="items-list"><div class="item">__init__</div><div class="item">get_pain_management_playlist</div><div class="item">get_mood_improvement_tracks</div><div class="item">get_sleep_playlist</div><div class="item">get_spotify_health</div></div><h4>Classes</h4><div class="items-list"><div class="item">SpotifyHealthIntegration</div></div></div><div class="file-section" id="utils_spotify_helper_py">
+            <div class="file-header">
+                <div class="file-title">utils/spotify_helper.py</div>
+                <div class="file-meta">
+                    6 functions, 
+                    0 classes, 
+                    258 lines
+                </div>
+            </div>
+            <div class="doc-content">Spotify Helper
+
+This module provides helper functions for working with the Spotify API.
+It handles authentication, client creation, and basic API operations.
+
+@module utils.spotify_helper
+@description Helper functions for Spotify API integration</div><h4>Functions</h4><div class="items-list"><div class="item">get_spotify_client</div><div class="item">refresh_spotify_token</div><div class="item">get_auth_url</div><div class="item">handle_oauth_callback</div><div class="item">save_token_to_db</div><div class="item">load_token_from_db</div></div></div><div class="file-section" id="utils_spotify_visualizer_py">
+            <div class="file-header">
+                <div class="file-title">utils/spotify_visualizer.py</div>
+                <div class="file-meta">
+                    9 functions, 
+                    0 classes, 
+                    684 lines
+                </div>
+            </div>
+            <h4>Functions</h4><div class="items-list"><div class="item">generate_top_artists_chart</div><div class="item">generate_top_tracks_chart</div><div class="item">generate_genre_chart</div><div class="item">generate_listening_history_chart</div><div class="item">generate_audio_features_radar_chart</div><div class="item">generate_playlist_mood_analysis</div><div class="item">generate_spotify_listening_report</div><div class="item">generate_audio_feature_comparison</div><div class="item">io_to_base64</div></div></div><div class="file-section" id="utils_template_filters_py">
+            <div class="file-header">
+                <div class="file-title">utils/template_filters.py</div>
+                <div class="file-meta">
+                    7 functions, 
+                    0 classes, 
+                    150 lines
+                </div>
+            </div>
+            <div class="doc-content">Template Filters Module
+
+This module provides custom template filters for the application templates.
+
+@module utils.template_filters
+@description Custom template filters for Jinja templates</div><h4>Functions</h4><div class="items-list"><div class="item">register_template_filters</div><div class="item">format_date</div><div class="item">format_datetime</div><div class="item">time_ago</div><div class="item">truncate_text</div><div class="item">truncate_words</div><div class="item">markdown_filter</div></div></div><div class="file-section" id="utils_travel_ai_helper_py">
+            <div class="file-header">
+                <div class="file-title">utils/travel_ai_helper.py</div>
+                <div class="file-meta">
+                    7 functions, 
+                    0 classes, 
+                    655 lines
+                </div>
+            </div>
+            <div class="doc-content">AI Travel Assistant helper functions
+Features:
+- Trip recommendations based on preferences
+- Local event discovery
+- Smart packing recommendations based on weather
+- Personalized itinerary suggestions
+
+Uses a multi-tier approach to AI services:
+1. OpenAI (primary for complex tasks)
+2. OpenRouter (fallback for complex tasks)
+3. Hugging Face (for lighter AI tasks like phrase translation, summarization)
+4. Local fallbacks (when all services are unavailable)</div><h4>Functions</h4><div class="items-list"><div class="item">get_trip_recommendations</div><div class="item">discover_local_events</div><div class="item">generate_smart_packing_list</div><div class="item">suggest_personalized_itinerary</div><div class="item">estimate_trip_budget</div><div class="item">get_safety_information</div><div class="item">translate_common_phrases</div></div></div><div class="file-section" id="utils_travel_helper_py">
+            <div class="file-header">
+                <div class="file-title">utils/travel_helper.py</div>
+                <div class="file-meta">
+                    30 functions, 
+                    0 classes, 
+                    782 lines
+                </div>
+            </div>
+            <h4>Functions</h4><div class="items-list"><div class="item">get_trips</div><div class="item">get_trip_by_id</div><div class="item">get_trip_by_name</div><div class="item">create_trip</div><div class="item">update_trip</div><div class="item">delete_trip</div><div class="item">get_trip_cost</div><div class="item">get_upcoming_trips</div><div class="item">get_active_trip</div><div class="item">get_itinerary</div><div class="item">get_itinerary_by_day</div><div class="item">add_itinerary_item</div><div class="item">update_itinerary_item</div><div class="item">delete_itinerary_item</div><div class="item">get_accommodations</div><div class="item">add_accommodation</div><div class="item">update_accommodation</div><div class="item">delete_accommodation</div><div class="item">get_travel_documents</div><div class="item">add_travel_document</div><div class="item">update_travel_document</div><div class="item">delete_travel_document</div><div class="item">get_packing_list</div><div class="item">get_packing_items_by_category</div><div class="item">add_packing_item</div><div class="item">update_packing_item</div><div class="item">toggle_packed_status</div><div class="item">delete_packing_item</div><div class="item">generate_standard_packing_list</div><div class="item">get_packing_progress</div></div></div><div class="file-section" id="utils_two_factor_py">
+            <div class="file-header">
+                <div class="file-title">utils/two_factor.py</div>
+                <div class="file-meta">
+                    11 functions, 
+                    0 classes, 
+                    278 lines
+                </div>
+            </div>
+            <div class="doc-content">Two-Factor Authentication Module
+
+This module provides utilities for implementing two-factor authentication
+using the TOTP (Time-based One-Time Password) standard.
+
+@module two_factor
+@description Two-factor authentication utilities</div><h4>Functions</h4><div class="items-list"><div class="item">generate_totp_secret</div><div class="item">create_totp_uri</div><div class="item">generate_qr_code</div><div class="item">verify_totp</div><div class="item">generate_backup_codes</div><div class="item">verify_backup_code</div><div class="item">setup_2fa_session</div><div class="item">clear_2fa_session</div><div class="item">is_2fa_session_valid</div><div class="item">is_trusted_device</div><div class="item">add_trusted_device</div></div></div><div class="file-section" id="utils_two_factor_auth_py">
+            <div class="file-header">
+                <div class="file-title">utils/two_factor_auth.py</div>
+                <div class="file-meta">
+                    8 functions, 
+                    1 classes, 
+                    188 lines
+                </div>
+            </div>
+            <div class="doc-content">Two-Factor Authentication Utilities
+
+This module provides functions for setting up and verifying two-factor authentication.
+It uses the Time-based One-Time Password (TOTP) algorithm.
+
+@module utils.two_factor_auth
+@description Two-factor authentication utilities</div><h4>Functions</h4><div class="items-list"><div class="item">generate_totp_secret</div><div class="item">get_totp_uri</div><div class="item">generate_qr_code</div><div class="item">generate_backup_codes</div><div class="item">setup_2fa_session</div><div class="item">confirm_2fa_setup</div><div class="item">verify_totp</div><div class="item">verify_backup_code</div></div><h4>Classes</h4><div class="items-list"><div class="item">TOTPVerificationError</div></div></div><div class="file-section" id="utils_url_utils_py">
+            <div class="file-header">
+                <div class="file-title">utils/url_utils.py</div>
+                <div class="file-meta">
+                    9 functions, 
+                    1 classes, 
+                    243 lines
+                </div>
+            </div>
+            <div class="doc-content">URL Utilities
+
+This module provides utilities for standardized URL handling in the application.
+It ensures consistent URL generation and validation across features.</div><h4>Functions</h4><div class="items-list"><div class="item">get_absolute_url</div><div class="item">normalize_path</div><div class="item">validate_url_path</div><div class="item">append_query_params</div><div class="item">is_valid_blueprint_url_prefix</div><div class="item">get_absolute_url</div><div class="item">normalize_path</div><div class="item">validate_url_path</div><div class="item">append_query_params</div></div><h4>Classes</h4><div class="items-list"><div class="item">URLStandardizer</div></div></div><div class="file-section" id="utils_voice_interaction_py">
+            <div class="file-header">
+                <div class="file-title">utils/voice_interaction.py</div>
+                <div class="file-meta">
+                    6 functions, 
+                    0 classes, 
+                    284 lines
+                </div>
+            </div>
+            <div class="doc-content">Voice interaction module for processing speech input and providing voice responses.
+This module handles speech recognition, speech synthesis, and voice emotion detection.</div><h4>Functions</h4><div class="items-list"><div class="item">process_user_message</div><div class="item">analyze_voice_audio</div><div class="item">get_character_settings</div><div class="item">transcribe_audio</div><div class="item">text_to_speech</div><div class="item">process_voice_command</div></div></div><div class="file-section" id="utils_voice_interface_py">
+            <div class="file-header">
+                <div class="file-title">utils/voice_interface.py</div>
+                <div class="file-meta">
+                    4 functions, 
+                    1 classes, 
+                    169 lines
+                </div>
+            </div>
+            <div class="doc-content">Voice Interface Module
+
+This module provides the core functionality for the voice interface of NOUS.
+It integrates local speech-to-text (Whisper.cpp) and text-to-speech (Piper) capabilities
+without requiring external API calls.
+
+The module handles:
+1. Audio processing from browser/frontend
+2. Transcription of speech using Whisper.cpp
+3. Text-to-speech generation using Piper
+4. Audio format conversion and processing</div><h4>Functions</h4><div class="items-list"><div class="item">__init__</div><div class="item">transcribe_audio</div><div class="item">generate_speech</div><div class="item">get_voice_interface</div></div><h4>Classes</h4><div class="items-list"><div class="item">VoiceInterface</div></div></div><div class="file-section" id="utils_voice_mindfulness_py">
+            <div class="file-header">
+                <div class="file-title">utils/voice_mindfulness.py</div>
+                <div class="file-meta">
+                    6 functions, 
+                    0 classes, 
+                    175 lines
+                </div>
+            </div>
+            <div class="doc-content">Voice-guided mindfulness exercises utility
+
+This module provides functions for generating and delivering
+voice-guided mindfulness exercises using the system's text-to-speech capabilities.</div><h4>Functions</h4><div class="items-list"><div class="item">get_exercise_by_name</div><div class="item">get_random_exercise</div><div class="item">get_exercise_by_duration</div><div class="item">generate_personalized_exercise</div><div class="item">log_exercise_completion</div><div class="item">prepare_exercise_for_tts</div></div></div><div class="file-section" id="utils_voice_optimizer_py">
+            <div class="file-header">
+                <div class="file-title">utils/voice_optimizer.py</div>
+                <div class="file-meta">
+                    12 functions, 
+                    1 classes, 
+                    505 lines
+                </div>
+            </div>
+            <div class="doc-content">Voice Optimization Module
+
+This module provides optimizations for the voice interface to reduce costs
+while maintaining high quality. It implements:
+
+1. Audio compression before sending to cloud APIs
+2. Adaptive sampling rate based on speech detection
+3. Batch processing for non-real-time transcriptions
+4. Local voice processing when available
+5. Voice activity detection to avoid processing silence
+
+@module utils.voice_optimizer
+@description Voice processing optimizations for reduced API costs</div><h4>Functions</h4><div class="items-list"><div class="item">__init__</div><div class="item">optimize_audio_for_api</div><div class="item">_get_audio_info</div><div class="item">_detect_speech</div><div class="item">_get_pcm_samples</div><div class="item">_get_optimal_sample_rate</div><div class="item">_resample_audio</div><div class="item">_compress_audio</div><div class="item">_trim_silence</div><div class="item">add_to_batch</div><div class="item">process_batch</div><div class="item">get_voice_optimizer</div></div><h4>Classes</h4><div class="items-list"><div class="item">VoiceOptimizer</div></div></div><div class="file-section" id="utils_weather_helper_py">
+            <div class="file-header">
+                <div class="file-title">utils/weather_helper.py</div>
+                <div class="file-meta">
+                    13 functions, 
+                    0 classes, 
+                    623 lines
+                </div>
+            </div>
+            <div class="doc-content">Weather helper module for NOUS Assistant
+Uses OpenWeatherMap API to fetch weather data
+Includes pain flare prediction based on barometric pressure changes</div><h4>Functions</h4><div class="items-list"><div class="item">kelvin_to_fahrenheit</div><div class="item">kelvin_to_celsius</div><div class="item">get_location_coordinates</div><div class="item">get_current_weather</div><div class="item">get_weather_forecast</div><div class="item">get_weather_alerts</div><div class="item">get_pollution_data</div><div class="item">format_weather_output</div><div class="item">format_forecast_output</div><div class="item">get_pressure_trend</div><div class="item">calculate_pain_flare_risk</div><div class="item">get_storm_severity</div><div class="item">format_pain_forecast_output</div></div></div><div class="file-section" id="utils_youtube_helper_py">
+            <div class="file-header">
+                <div class="file-title">utils/youtube_helper.py</div>
+                <div class="file-meta">
+                    16 functions, 
+                    0 classes, 
+                    577 lines
+                </div>
+            </div>
+            <div class="doc-content">Helper module for YouTube API integration</div><h4>Functions</h4><div class="items-list"><div class="item">get_youtube_service</div><div class="item">search_videos</div><div class="item">get_video_details</div><div class="item">get_channel_info</div><div class="item">get_channel_videos</div><div class="item">get_recommended_videos</div><div class="item">get_playlists</div><div class="item">get_playlist_items</div><div class="item">create_playlist</div><div class="item">add_video_to_playlist</div><div class="item">search_recovery_videos</div><div class="item">create_recovery_playlist</div><div class="item">search_guided_meditations</div><div class="item">analyze_video_content</div><div class="item">get_video_comments</div><div class="item">create_topical_playlist</div></div></div>
+        </div>
+    </div>
+</body>
+</html>
