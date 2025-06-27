@@ -1,0 +1,140 @@
+{% extends "app.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header">
+            <h3>Analysis Results</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Original Image</h4>
+                    <div style="position: relative;">
+                        <img id="analysis-image" src="data:image/jpeg;base64,{{ image_base64 }}" class="img-fluid" alt="Analyzed Image">
+                        <canvas id="analysis-canvas" style="position: absolute; top: 0; left: 0;"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h4>Results for: {{ analysis_type | title }}</h4>
+                    
+                    {% if analysis_type == 'describe' %}
+                        <p><strong>Description:</strong> {{ result.description }}</p>
+                        <h5>Categories:</h5>
+                        <ul>
+                            {% for category in result.categories %}
+                                <li>{{ category }}</li>
+                            {% endfor %}
+                        </ul>
+                    
+                    {% elif analysis_type == 'detect' %}
+                        <h5>Detected Objects:</h5>
+                        <ul>
+                            {% for obj in result.objects %}
+                                <li>{{ obj.label }} (Confidence: {{ "%.2f"|format(obj.score) }})</li>
+                            {% endfor %}
+                        </ul>
+
+                    {% elif analysis_type == 'travel' %}
+                        <p><strong>Description:</strong> {{ result.description }}</p>
+                        <p><strong>Travel Details:</strong> {{ result.travel_details }}</p>
+                        <h5>Categories:</h5>
+                        <ul>
+                            {% for category in result.categories %}
+                                <li>{{ category }}</li>
+                            {% endfor %}
+                        </ul>
+
+                    {% elif analysis_type == 'segment' %}
+                        <h5>Image Segments:</h5>
+                        <p>Showing segmented regions below. Each color represents a different identified object or area.</p>
+                        <div id="segmentation-legend"></div>
+                        <ul>
+                            {% for segment in result.segments %}
+                                <li>{{ segment.label }} (Confidence: {{ "%.2f"|format(segment.score) }})</li>
+                            {% endfor %}
+                        </ul>
+
+                    {% endif %}
+                </div>
+            </div>
+            <a href="{{ url_for('image_routes.analyze_image') }}" class="btn btn-primary mt-3">Analyze Another Image</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const analysisType = "{{ analysis_type }}";
+    
+    if (analysisType === 'detect' || analysisType === 'segment') {
+        const image = document.getElementById('analysis-image');
+        const canvas = document.getElementById('analysis-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        if (analysisType === 'detect') {
+            const objects = {{ result.objects | tojson }};
+
+            image.onload = () => {
+                canvas.width = image.width;
+                canvas.height = image.height;
+                
+                objects.forEach(obj => {
+                    ctx.strokeStyle = '#FF0000';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.rect(obj.box.xmin, obj.box.ymin, obj.box.xmax - obj.box.xmin, obj.box.ymax - obj.box.ymin);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#FF0000';
+                    ctx.font = '16px sans-serif';
+                    ctx.fillText(obj.label, obj.box.xmin, obj.box.ymin > 10 ? obj.box.ymin - 5 : 15);
+                });
+            };
+        } else if (analysisType === 'segment') {
+            const segments = {{ result.segments | tojson }};
+            const legend = document.getElementById('segmentation-legend');
+
+            image.onload = () => {
+                canvas.width = image.width;
+                canvas.height = image.height;
+                ctx.drawImage(image, 0, 0, image.width, image.height);
+
+                segments.forEach(segment => {
+                    const maskImage = new Image();
+                    maskImage.crossOrigin = "anonymous";
+                    maskImage.src = segment.mask;
+                    
+                    maskImage.onload = () => {
+                        // Create a temporary canvas to draw the mask and get its color
+                        const tempCanvas = document.createElement('canvas');
+                        tempCanvas.width = image.width;
+                        tempCanvas.height = image.height;
+                        const tempCtx = tempCanvas.getContext('2d');
+                        tempCtx.drawImage(maskImage, 0, 0, image.width, image.height);
+                        
+                        // This is a simplified way to represent masks. A real implementation
+                        // would involve more complex blending and coloring.
+                        ctx.globalAlpha = 0.5; // Make masks semi-transparent
+                        ctx.drawImage(maskImage, 0, 0, image.width, image.height);
+                        ctx.globalAlpha = 1.0;
+
+                        // Add to legend
+                        const legendItem = document.createElement('div');
+                        legendItem.innerHTML = `<span style="display:inline-block;width:20px;height:10px;background-color:rgba(255,0,0,0.5);margin-right:5px;"></span> ${segment.label}`;
+                        legend.appendChild(legendItem);
+                    };
+                });
+            };
+        }
+
+        // If the image is already loaded (e.g., from cache), trigger onload manually
+        if (image.complete) {
+            image.onload();
+        }
+    }
+});
+</script>
+{% endblock %} 

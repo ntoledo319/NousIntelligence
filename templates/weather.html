@@ -1,0 +1,94 @@
+{% extends "app.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Weather Dashboard for {{ weather.location }}</h3>
+        <a href="{{ url_for('weather_routes.manage_locations') }}" class="btn btn-secondary">Manage Locations</a>
+    </div>
+
+    <!-- Current Weather -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Current Conditions</h4>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-2 text-center">
+                    <img src="http://openweathermap.org/img/wn/{{ weather.weather.icon }}@2x.png" alt="{{ weather.weather.description }}">
+                </div>
+                <div class="col-md-4">
+                    <h2>{{ weather.temperature.current }}°</h2>
+                    <p class="lead">{{ weather.weather.main }}</p>
+                    <p>Feels like: {{ weather.temperature.feels_like }}°</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Humidity:</strong> {{ weather.humidity }}%</p>
+                    <p><strong>Pressure:</strong> {{ weather.pressure }} hPa</p>
+                    <p><strong>Wind:</strong> {{ weather.wind.speed }} mph</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5-Day Forecast -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>5-Day Forecast</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for day in forecast.days %}
+                <div class="col text-center">
+                    <h5>{{ day.day_name }}</h5>
+                    <img src="http://openweathermap.org/img/wn/{{ day.weather.icon }}.png" alt="{{ day.weather.description }}">
+                    <p>{{ day.temperature.max }}° / {{ day.temperature.min }}°</p>
+                    <p>{{ day.weather.main }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts and Pollution -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Weather Alerts</h4>
+                </div>
+                <div class="card-body">
+                    {% if alerts %}
+                        {% for alert in alerts %}
+                            <div class="alert alert-warning">
+                                <strong>{{ alert.event }}:</strong> {{ alert.description }} (until {{ alert.end.strftime('%b %d, %I:%M %p') }})
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No active weather alerts.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Air Quality</h4>
+                </div>
+                <div class="card-body">
+                    {% if pollution %}
+                        <p><strong>Air Quality Index (AQI):</strong> {{ pollution.aqi.index }} ({{ pollution.aqi.label }})</p>
+                        <p><strong>Main Pollutants:</strong></p>
+                        <ul>
+                            <li>PM2.5: {{ pollution.components.pm2_5 }} µg/m³</li>
+                            <li>Ozone (O3): {{ pollution.components.o3 }} µg/m³</li>
+                        </ul>
+                    {% else %}
+                        <p>Air quality data not available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

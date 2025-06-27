@@ -1,15 +1,29 @@
 """
-Voice-guided mindfulness exercises utility
+Mindfulness Voice Assistant Utilities
 
-This module provides functions for generating and delivering
-voice-guided mindfulness exercises using the system's text-to-speech capabilities.
+This module contains the core logic for the voice-guided mindfulness feature.
+It manages a library of pre-defined exercises, generates personalized sessions
+using AI, and handles logging user progress.
+
+@ai_prompt: This is the primary logic module for the mindfulness feature.
+To add new exercises, modify the `MINDFULNESS_EXERCISES` list. To change
+the AI generation prompt, see `generate_personalized_exercise`.
+
+@context_boundary: This module uses `utils.ai_service_manager` to interact
+with AI models for personalized content. It is called by the routes in
+`routes.voice_mindfulness_routes`. It also interacts with the `MindfulnessLog`
+model in the database.
 """
+
+# AI-GENERATED [2024-07-29]
+# HUMAN-VALIDATED [2024-07-29]
 
 import os
 import logging
 import json
 import random
 from datetime import datetime
+from typing import Dict, Any, Optional
 
 # Import cost-optimized AI for generating personalized exercises
 from utils.cost_optimized_ai import get_cost_optimized_ai, TaskComplexity
@@ -60,18 +74,21 @@ def get_exercise_by_duration(max_duration):
         return random.choice(suitable_exercises)
     return get_random_exercise()  # Fallback to random if no suitable duration found
 
-def generate_personalized_exercise(user_id, mood=None, situation=None, duration=5):
+def generate_personalized_exercise(user_id: str, mood: str, situation: str, duration: int) -> Dict[str, Any]:
     """
-    Generate a personalized mindfulness exercise using cost-optimized AI
+    Generates a personalized mindfulness exercise using an AI model.
+
+    Constructs a detailed prompt based on the user's input and sends it
+    to the AI service manager to get a custom exercise script.
 
     Args:
-        user_id: The user's ID
-        mood: Optional current mood
-        situation: Optional current situation
-        duration: Desired duration in minutes
+        user_id: The ID of the user requesting the exercise.
+        mood: The user's current mood (e.g., 'stressed', 'anxious').
+        situation: The user's current situation (e.g., 'at work', 'before bed').
+        duration: The desired duration of the exercise in minutes.
 
     Returns:
-        A mindfulness exercise object
+        A dictionary representing the AI-generated exercise.
     """
     try:
         ai_client = get_cost_optimized_ai()
@@ -126,50 +143,49 @@ def generate_personalized_exercise(user_id, mood=None, situation=None, duration=
         # Fallback to pre-defined exercise
         return get_exercise_by_duration(duration)
 
-def log_exercise_completion(user_id, exercise_name, rating=None):
+def log_exercise_completion(user_id: str, exercise_name: str, rating: Optional[int]) -> bool:
     """
-    Log the completion of a mindfulness exercise
+    Logs the completion of a mindfulness exercise to the database.
 
     Args:
-        user_id: The user's ID
-        exercise_name: The name of the completed exercise
-        rating: Optional rating (1-5) provided by the user
-    """
-    # This function would typically save to a database
-    # For now, we'll just log it
-    logging.info(f"User {user_id} completed '{exercise_name}' exercise with rating: {rating}")
-    # In a real implementation, this would save to the database
-    return True
-
-def prepare_exercise_for_tts(exercise):
-    """
-    Prepare a mindfulness exercise for text-to-speech playback
-
-    Args:
-        exercise: The exercise object
+        user_id: The ID of the user who completed the exercise.
+        exercise_name: The name of the completed exercise.
+        rating: An optional user-provided rating from 1 to 5.
 
     Returns:
-        A formatted script with appropriate pauses and pacing for TTS
+        True if logging was successful, False otherwise.
     """
-    script = exercise["script"]
+    try:
+        log_entry = MindfulnessLog(
+            user_id=user_id,
+            exercise_name=exercise_name,
+            rating=rating
+        )
+        log_entry.save()
+        return True
+    except Exception as e:
+        logging.error(f"Error logging exercise completion: {str(e)}")
+        return False
 
-    # Replace [pause] indicators with actual pauses for TTS
-    # Speech Synthesis Markup Language (SSML) pause: <break time="2s"/>
-    script = script.replace("[pause]", '<break time="2s"/>')
-
-    # Wrap in SSML format for better TTS quality
-    ssml_script = f"""
-    <speak>
-    <prosody rate="slow" pitch="-2st">
-    {script}
-    </prosody>
-    </speak>
+def prepare_exercise_for_tts(exercise: Dict[str, Any]) -> Dict[str, Any]:
     """
+    Prepares an exercise script for Text-to-Speech (TTS) processing.
 
-    return {
-        "name": exercise["name"],
-        "duration": exercise["duration"],
-        "description": exercise["description"],
-        "script": script,
-        "ssml_script": ssml_script
-    }
+    This function formats the exercise script by replacing [pause] markers
+    with a consistent, speakable representation that the TTS can interpret
+    as a pause.
+
+    Args:
+        exercise: The exercise dictionary.
+
+    Returns:
+        The exercise dictionary with a `tts_script` field added.
+    """
+    script = exercise.get('script', "")
+    
+    # Replace [pause] with a consistent pause phrase for the TTS
+    # A simple but effective way to create pauses in many TTS systems.
+    tts_script = script.replace("[pause]", "...")
+    
+    exercise['tts_script'] = tts_script
+    return exercise

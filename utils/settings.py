@@ -30,7 +30,7 @@ DEFAULT_SETTINGS = {
     'email_from_address': 'noreply@mynous.app',
 
     # Feature flags
-    'enable_beta_features': False,
+    'enable_beta_features': True,
     'enable_social_login': True,
     'enable_registration': True,
 

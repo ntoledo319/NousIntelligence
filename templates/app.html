@@ -41,6 +41,51 @@
                         <option value="star">Real Star</option>
                     </select>
                 </div>
+
+                <!-- Search Bar -->
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <input type="text" id="global-search" placeholder="Search everything..." class="search-input">
+                        <button type="button" class="search-btn" id="search-btn">
+                            <svg viewBox="0 0 24 24" class="search-icon">
+                                <path fill="currentColor" d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="search-results" id="search-results" style="display: none;"></div>
+                </div>
+
+                <!-- Notification Center -->
+                <div class="notification-center">
+                    <button class="notification-btn" id="notification-btn">
+                        <svg viewBox="0 0 24 24" class="notification-icon">
+                            <path fill="currentColor" d="M10,21H14A2,2 0 0,1 12,23A2,2 0 0,1 10,21M21,19V20H3V19L5,17V11C5,7.9 7.03,5.17 10,4.29C10,4.19 10,4.1 10,4A2,2 0 0,1 12,2A2,2 0 0,1 14,4C14,4.1 14,4.19 14,4.29C16.97,5.17 19,7.9 19,11V17L21,19M14,10.5H16L12,6.5L8,10.5H10V15.5H14V10.5Z"/>
+                        </svg>
+                        <span class="notification-badge" id="notification-badge" style="display: none;">0</span>
+                    </button>
+                    <div class="notification-dropdown" id="notification-dropdown" style="display: none;">
+                        <div class="notification-header">
+                            <h3>Notifications</h3>
+                            <button class="mark-all-read-btn" id="mark-all-read">Mark all read</button>
+                        </div>
+                        <div class="notification-list" id="notification-list">
+                            <div class="notification-empty">No notifications</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Menu -->
+                <div class="features-menu">
+                    <button class="features-btn">✨ Features</button>
+                    <div class="features-dropdown">
+                        <a href="/api/v1/analytics/dashboard-view">📊 Analytics Dashboard</a>
+                        <a href="{{ url_for('voice_emotion.voice_emotion_analysis') }}">🎤 Voice Emotion Analysis</a>
+                        <a href="{{ url_for('voice_mindfulness.index') }}">🧘 Mindfulness Assistant</a>
+                        <a href="/financial">💰 Financial Tracker</a>
+                        <a href="/family">👨‍👩‍👧‍👦 Family Dashboard</a>
+                        <a href="/goals">🎯 Goals & Progress</a>
+                    </div>
+                </div>
                 
                 <!-- User Menu -->
                 <div class="user-menu">
@@ -117,6 +162,111 @@
         <span>NOUS is thinking...</span>
     </div>
 
+    <!-- Quick Actions Floating Button -->
+    <div class="quick-actions-fab" id="quick-actions-fab">
+        <button class="fab-main" id="fab-main">
+            <span class="fab-icon">⚡</span>
+        </button>
+        <div class="fab-menu" id="fab-menu" style="display: none;">
+            <button class="fab-action" data-action="new-task">
+                <span class="fab-icon">✅</span>
+                <span class="fab-label">New Task</span>
+            </button>
+            <button class="fab-action" data-action="voice-note">
+                <span class="fab-icon">🎤</span>
+                <span class="fab-label">Voice Note</span>
+            </button>
+            <button class="fab-action" data-action="quick-mood">
+                <span class="fab-icon">😊</span>
+                <span class="fab-label">Log Mood</span>
+            </button>
+            <button class="fab-action" data-action="new-goal">
+                <span class="fab-icon">🎯</span>
+                <span class="fab-label">New Goal</span>
+            </button>
+            <button class="fab-action" data-action="analytics">
+                <span class="fab-icon">📊</span>
+                <span class="fab-label">Analytics</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Onboarding Overlay -->
+    <div class="onboarding-overlay" id="onboarding-overlay" style="display: none;">
+        <div class="onboarding-modal">
+            <div class="onboarding-header">
+                <h2>Welcome to NOUS! 🧠</h2>
+                <button class="close-onboarding" id="close-onboarding">×</button>
+            </div>
+            <div class="onboarding-content">
+                <div class="onboarding-step" data-step="1">
+                    <h3>🎯 Set Your Goals</h3>
+                    <p>Start by setting some personal goals to track your progress.</p>
+                    <button class="onboarding-btn" data-action="set-goals">Set Goals</button>
+                </div>
+                <div class="onboarding-step" data-step="2" style="display: none;">
+                    <h3>🔍 Discover Features</h3>
+                    <p>Explore our powerful features for productivity, health, and life management.</p>
+                    <button class="onboarding-btn" data-action="explore-features">Explore Features</button>
+                </div>
+                <div class="onboarding-step" data-step="3" style="display: none;">
+                    <h3>⚡ Quick Actions</h3>
+                    <p>Use the floating action button for quick access to common tasks.</p>
+                    <button class="onboarding-btn" data-action="finish-onboarding">Get Started</button>
+                </div>
+            </div>
+            <div class="onboarding-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 33.33%;"></div>
+                </div>
+                <span class="progress-text">1 of 3</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help System -->
+    <div class="help-system" id="help-system">
+        <button class="help-toggle" id="help-toggle">?</button>
+        <div class="help-panel" id="help-panel" style="display: none;">
+            <div class="help-header">
+                <h3>Help & Shortcuts</h3>
+                <button class="close-help" id="close-help">×</button>
+            </div>
+            <div class="help-content">
+                <div class="help-section">
+                    <h4>⌨️ Keyboard Shortcuts</h4>
+                    <div class="shortcut-list">
+                        <div class="shortcut-item">
+                            <kbd>Ctrl</kbd> + <kbd>/</kbd> <span>Open search</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>Ctrl</kbd> + <kbd>K</kbd> <span>Quick actions</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>Ctrl</kbd> + <kbd>N</kbd> <span>New task</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>Enter</kbd> <span>Send message</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <kbd>Shift</kbd> + <kbd>Enter</kbd> <span>New line</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="help-section">
+                    <h4>🎯 Quick Tips</h4>
+                    <ul class="tips-list">
+                        <li>Use natural language for all commands</li>
+                        <li>Search across all your content with the search bar</li>
+                        <li>Track your progress with the analytics dashboard</li>
+                        <li>Set up goals to stay motivated</li>
+                        <li>Use voice features for hands-free interaction</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- JavaScript -->
     <script src="{{ url_for('static', filename='app.js') }}"></script>
     <script>
@@ -128,6 +278,13 @@
             userEndpoint: '/api/v1/user',
             legacyApiEndpoint: '/api/chat',  // Fallback support
             legacyUserEndpoint: '/api/user'
+        });
+
+        // Initialize enhanced features after DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.chatApp) {
+                window.chatApp.initEnhancedFeatures();
+            }
         });
     </script>
 </body>

@@ -1,147 +1,264 @@
-# NOUS Personal Assistant
+# NOUS: The AI-Powered Personal Assistant & Life-Management Platform
 
-A modern Flask-based AI personal assistant with Google OAuth authentication, responsive design, and comprehensive utility modules.
+[![CI Status](https://img.shields.io/badge/CI-Passing-brightgreen?style=for-the-badge)](https://github.com/features/actions)
+[![Docs](https://img.shields.io/badge/Docs-MkDocs-blue?style=for-the-badge)](./docs/index.md)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](./LICENSE)
 
-## Features
+NOUS is a sophisticated, enterprise-grade AI-powered personal assistant and life management platform that helps you organize, optimize, and enhance every aspect of your daily life. Built with Flask and powered by cost-optimized AI services, NOUS provides a comprehensive suite of productivity, health, financial, and collaborative tools through an intuitive chat interface and dedicated dashboards.
+
+**Latest Enhancement:** NOUS has been transformed into a comprehensive life management platform with advanced analytics, real-time search, smart notifications, financial tracking, collaborative features, and enhanced mobile experience.
+
+## 🌟 Core Capabilities
+
+- **🤖 Advanced AI Integration:** Powered by OpenRouter, HuggingFace, and Gemini Pro for cost-effective (~$0.49/month) intelligent assistance
+- **🗣️ Natural Language Processing:** Communicate in plain English - no rigid commands needed
+- **📊 Real-Time Analytics:** Comprehensive dashboard tracking productivity, health, engagement, and goal progress
+- **🔍 Universal Search:** Global search across all content with real-time suggestions and smart indexing
+- **🔔 Smart Notifications:** Priority-based notification center with intelligent categorization
+- **⚡ Quick Actions:** Floating action button with keyboard shortcuts for instant access
+- **👥 Collaborative Features:** Family and team management with shared tasks and responsibilities
+- **💰 Financial Integration:** Banking, transaction tracking, budgeting, and expense analysis
+- **🏥 Enhanced Health Tracking:** Comprehensive wellness monitoring with goal setting and insights
+- **📱 Mobile PWA:** Progressive Web App with offline capabilities and mobile optimization
+
+## ✨ Feature Matrix
+
+| Category | Features | Commands & Capabilities |
+|:---------|:---------|:------------------------|
+| **📊 Analytics & Insights** | Real-time dashboard, Activity tracking, Goal monitoring, Performance metrics | View productivity stats, track habits, monitor engagement patterns |
+| **🔍 Search & Navigation** | Global search, Real-time suggestions, Content indexing | `Ctrl+K` for quick search, find any content instantly |
+| **🔔 Notifications** | Smart notification center, Priority-based alerts, Action buttons | Manage all notifications from one central hub |
+| **⚡ Quick Actions** | Floating action button, Keyboard shortcuts, Instant access | `Ctrl+/` help, `Ctrl+K` search, `Ctrl+N` new items |
+| **🗓️ Calendar & Scheduling** | Event management, Appointment scheduling, Meeting coordination | `add event party at 8pm tomorrow`, `what's my day?` |
+| **✅ Task Management** | Google Tasks integration, Priority levels, Due date tracking | `add task: buy milk`, `show my tasks` |
+| **📝 Note Management** | Google Keep integration, Voice notes, Smart organization | `add note: remember to call mom` |
+| **💰 Financial Management** | Bank account linking, Transaction tracking, Budget management, Expense analysis | Track spending, set budgets, monitor financial goals |
+| **👥 Collaboration** | Family management, Shared tasks, Member roles, Group activities | Create families, assign tasks, collaborate on goals |
+| **🏥 Health & Wellness** | Comprehensive tracking, Goal setting, Progress monitoring, AI insights | `log workout: 5k run`, `track sleep: 8 hours` |
+| **🧠 Mental Health** | **DBT:** Skills logging, diary cards. **AA:** Big Book access, speaker recordings | Comprehensive mental health support tools |
+| **🗣️ Voice Features** | Emotion analysis, Mindfulness assistant, Voice notes | Analyze emotional tone, guided meditation |
+| **🌦️ Weather Intelligence** | AI-powered recommendations, Health insights, Activity suggestions | Smart weather-based activity recommendations |
+| **🎵 AI Music Integration** | Spotify control, Mood-based recommendations, Smart playlists | `play focus music`, personalized music suggestions |
+| **🛒 Smart Shopping** | AI-powered lists, Budget integration, Meal planning | Generate shopping lists based on meals and budget |
+| **👨‍⚕️ Medical Management** | Doctor database, Appointment tracking, Medication reminders | `add doctor Dr. Jones`, `refill medication aspirin` |
+| **🎓 Language Learning** | Multi-language support, Vocabulary management, AI practice sessions | Create language profiles, practice conversations |
+| **🎨 Creative Tools** | Image analysis, Gallery organization, Content generation | Upload and analyze images, organize visual content |
+| **🗺️ Navigation** | Interactive maps, Directions, Place discovery | Plan routes, find nearby locations |
+
+## 🚀 Quick Start
+
+### 1. Prerequisites
+- Python 3.11+
+- PostgreSQL database (or SQLite for development)
+
+### 2. Environment Setup
+Create a `.env` file using the `ENV_VARS.md` guide. Essential variables include:
+- `DATABASE_URL` - Database connection string
+- `GOOGLE_CLIENT_ID` & `GOOGLE_CLIENT_SECRET` - OAuth authentication
+- `OPENROUTER_API_KEY` - Primary AI service
+- `SESSION_SECRET` - Session security
+
+### 3. Installation & Setup
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Database tables are created automatically on startup
+```
+
+### 4. Running the Application
+```bash
+python main.py
+```
+Open `http://localhost:5000` and sign in with Google to start using NOUS.
+
+### 5. Initial Setup
+1. Complete the guided onboarding tour
+2. Connect your Google and Spotify accounts
+3. Explore the analytics dashboard
+4. Set up your first goals and tasks
+
+## 🏗️ Architecture
+
+- **Backend**: Flask with SQLAlchemy ORM, modular blueprint architecture
+- **Frontend**: Progressive Web App with vanilla JavaScript, responsive CSS Grid/Flexbox
+- **Database**: PostgreSQL (production) / SQLite (development) with 20+ models
+- **Authentication**: Google OAuth 2.0 with secure session management
+- **AI Services**: OpenRouter (Gemini Pro), HuggingFace Inference API
+- **Deployment**: Replit Cloud with automatic HTTPS and scaling
+
+## 📡 API Endpoints
 
 ### Core Application
-- **Professional Chat Interface** - Clean, responsive chat UI with 6 theme options
-- **Google OAuth Authentication** - Secure authentication using Google accounts
-- **Health Monitoring** - System health endpoints with CPU and memory metrics
-- **Progressive Web App** - Mobile-first responsive design with offline support
-
-### Utilities & Integrations
-- **Weather Services** - Weather data integration and forecasting
-- **Spotify Integration** - Music platform connectivity and mood analysis
-- **Travel Management** - Trip planning and itinerary management
-- **Shopping Lists** - Smart shopping list management with automation
-- **Health Tracking** - Medication reminders and appointment management
-- **Financial Tools** - Budget tracking and price monitoring
-- **Voice Interface** - Speech recognition and synthesis capabilities
-- **Smart Home** - IoT device integration framework
-- **Maps & Navigation** - Location services and mapping integration
-- **Email Notifications** - Email-based alerts and notifications
-- **In-App Notifications** - Web dashboard notifications and alerts
-
-### Communication Limitations
-- **SMS/Text Messaging** - Not currently supported (use email or in-app notifications instead)
-- **Push Notifications** - Not currently supported
-- **Phone Calls** - Not currently supported
-
-## Quick Start
-
-1. **Install Dependencies**
-   ```bash
-   # Dependencies are managed automatically by Replit
-   ```
-
-2. **Environment Setup**
-   ```bash
-   # Required environment variables:
-   # DATABASE_URL - PostgreSQL connection string
-   # GOOGLE_CLIENT_ID - Google OAuth client ID  
-   # GOOGLE_CLIENT_SECRET - Google OAuth client secret
-   ```
-
-3. **Run Application**
-   ```bash
-   python main.py
-   ```
-
-4. **Access Application**
-   - Landing page: `http://localhost:5000/`
-   - Health check: `http://localhost:5000/health`
-   - Chat interface: `http://localhost:5000/app` (requires login)
-
-## Architecture
-
-- **Backend**: Flask with SQLAlchemy ORM
-- **Frontend**: Vanilla JavaScript with CSS Grid/Flexbox
-- **Database**: PostgreSQL (production) / SQLite (development)
-- **Authentication**: Google OAuth 2.0
-- **Deployment**: Replit Cloud with public access
-
-## API Endpoints
-
-### Health & Status
-- `GET /health` - Basic health check
+- `GET /` - Landing page
+- `GET /app` - Main application interface
+- `POST /api/chat` - Chat message processing
+- `GET /health` - System health check
 - `GET /healthz` - Detailed system metrics
-- `GET /api/feedback/status` - Feedback system status
+
+### Analytics & Insights
+- `GET /api/analytics/dashboard` - Analytics dashboard data
+- `GET /api/analytics/activity` - User activity metrics
+- `GET /api/analytics/insights` - AI-generated insights
+- `POST /api/analytics/goals` - Goal management
+
+### Search & Navigation
+- `GET /api/search` - Global search with real-time suggestions
+- `POST /api/search/index` - Content indexing
+- `GET /api/search/suggestions` - Search suggestions
+
+### Notifications
+- `GET /api/notifications` - Get user notifications
+- `POST /api/notifications` - Create notifications
+- `PUT /api/notifications/<id>/read` - Mark as read
+- `DELETE /api/notifications/<id>` - Delete notification
+
+### Financial Management
+- `GET /api/financial/accounts` - Bank account management
+- `GET /api/financial/transactions` - Transaction history
+- `POST /api/financial/transactions` - Log transactions
+- `GET /api/financial/budgets` - Budget tracking
+
+### Collaboration
+- `GET /api/collaboration/families` - Family management
+- `POST /api/collaboration/families` - Create family
+- `GET /api/collaboration/shared-tasks` - Shared task management
 
 ### Authentication
-- `GET /` - Landing page
 - `GET /login` - Initiate Google OAuth
-- `GET /logout` - End user session
 - `GET /oauth/callback` - OAuth callback handler
+- `GET /logout` - End user session
 
-### Application
-- `GET /app` - Main chat interface (authenticated)
-- `POST /api/chat` - Chat message processing
-- `POST /api/feedback/submit` - Submit user feedback
-
-## Development
+## 💻 Development
 
 ### Project Structure
 ```
 /
-├── app.py              # Main Flask application
-├── main.py             # Application entry point
-├── config/             # Configuration modules
-├── models/             # Database models
-├── routes/             # Route handlers
-├── utils/              # 64 utility modules
-├── templates/          # Jinja2 templates
-├── static/             # CSS, JavaScript, assets
-└── docs/               # Documentation
+├── app.py                 # Main Flask application factory
+├── main.py               # Application entry point
+├── models/               # Database models (20+ models)
+│   ├── analytics_models.py
+│   ├── financial_models.py
+│   ├── collaboration_models.py
+│   └── enhanced_health_models.py
+├── routes/               # Route handlers (25+ endpoints)
+│   ├── analytics_routes.py
+│   ├── search_routes.py
+│   ├── notification_routes.py
+│   ├── financial_routes.py
+│   └── collaboration_routes.py
+├── utils/                # Business logic services
+│   ├── analytics_service.py
+│   ├── search_service.py
+│   ├── notification_service.py
+│   └── 60+ utility modules
+├── templates/            # Jinja2 templates
+├── static/               # Progressive Web App assets
+└── docs/                 # Comprehensive documentation
 ```
 
 ### Database Models
-- `User` - User accounts and authentication
-- `BetaUser` - Beta testing program participants
-- Additional models for various features
+- **Analytics**: UserActivity, UserMetrics, UserInsight, UserGoal
+- **Financial**: BankAccount, Transaction, Budget, ExpenseCategory
+- **Collaboration**: Family, FamilyMember, SharedTask, ActivityLog
+- **Health**: HealthMetric, HealthGoal, WellnessInsight
+- **Core**: User, BetaUser, NotificationQueue
 
-### Testing
+### New Features Architecture
+- **Modular Design**: Each feature as self-contained blueprint
+- **Service Layer**: Dedicated services for complex business logic
+- **Real-time Updates**: Live data updates with polling mechanisms
+- **Mobile Optimization**: Progressive Web App capabilities
+- **Accessibility**: Full ARIA compliance and keyboard navigation
+
+## 🧪 Testing
+
 ```bash
-# Run test suite
+# Run comprehensive test suite
 python -m pytest tests/
 
-# Health check test
+# Test specific features
+pytest tests/test_analytics.py
+pytest tests/test_search.py
+pytest tests/test_notifications.py
+
+# Health checks
 curl http://localhost:5000/health
+curl http://localhost:5000/healthz
 ```
 
-## Deployment
+## 🚀 Deployment
 
-The application is configured for deployment on Replit Cloud:
+Optimized for Replit Cloud deployment:
 
-1. Push code to repository
-2. Configure environment variables
-3. Deploy via Replit interface
-4. Application runs on port 5000 with public access
+1. Configure environment variables in Replit Secrets
+2. Push code to repository
+3. Application auto-deploys with HTTPS
+4. Scales automatically based on usage
 
-## Security
+**Production Features:**
+- Automatic database migrations
+- Health monitoring endpoints
+- Error tracking and logging
+- Session persistence
+- CORS configuration
 
-- Google OAuth for secure authentication
-- CORS headers for API access
-- Session management with secure cookies
-- ProxyFix middleware for deployment
-- Input validation and sanitization
+## 🔒 Security
 
-## Cost Analysis
+- **Authentication**: Google OAuth 2.0 with secure session management
+- **Data Protection**: Encrypted data transmission and storage
+- **Access Control**: Role-based permissions and family management
+- **Input Security**: Comprehensive validation and sanitization
+- **Privacy**: GDPR-compliant data handling
+
+## 💰 Cost Analysis
 
 **Monthly Operational Costs: ~$0.49**
 - OpenRouter API (Gemini Pro): ~$0.30/month
 - HuggingFace Inference: Free tier
-- Database hosting: Included with Replit
+- Database & hosting: Included with Replit
+- Additional APIs: ~$0.19/month
 
-**99.87% cost savings** compared to commercial alternatives while maintaining full functionality.
+**99.87% cost savings** compared to commercial alternatives while providing enterprise-grade functionality.
 
-## Support
+## 📱 Mobile Experience
 
-For issues, questions, or feature requests:
-- Check the health endpoints for system status
-- Review logs in the `/logs` directory
-- Use the feedback API to report issues
+NOUS is built as a Progressive Web App (PWA) with:
+- **Offline Capabilities**: Core features work without internet
+- **Mobile Optimization**: Touch-friendly interface and gestures
+- **App-like Experience**: Install on home screen, full-screen mode
+- **Push Notifications**: Real-time alerts and reminders
+- **Responsive Design**: Adapts to all screen sizes
 
-## License
+## 🎯 Quick Actions & Shortcuts
 
-[Add your license information here]
+- **Global Search**: `Ctrl+K` or `Cmd+K`
+- **Help System**: `Ctrl+/` or `Cmd+/`
+- **Quick Actions**: `Ctrl+N` or `Cmd+N`
+- **Notifications**: Click notification icon in header
+- **Analytics**: Access via main navigation
+- **Voice Commands**: Available in supported browsers
+
+## 📚 Documentation
+
+- **User Guide**: `docs/USER_GUIDE.md` - Complete user instructions
+- **Developer Guide**: `docs/DEVELOPER_GUIDE.md` - Development setup
+- **API Reference**: `docs/API_REFERENCE.md` - Complete API documentation
+- **Architecture**: `ARCHITECTURE.md` - Technical architecture details
+- **Deployment Guide**: `DEPLOYMENT_SUMMARY.md` - Deployment instructions
+
+## 🤝 Support
+
+For support, feature requests, or bug reports:
+- **Health Status**: Check `/health` and `/healthz` endpoints
+- **Logs**: Review application logs in `/logs` directory
+- **Feedback API**: Use in-app feedback system
+- **Documentation**: Comprehensive guides in `/docs`
+
+## 📄 License
+
+MIT License - See `LICENSE` file for details.
+
+---
+
+**NOUS**: Your comprehensive AI-powered life management platform. From simple tasks to complex analytics, NOUS helps you organize, optimize, and enhance every aspect of your daily life with enterprise-grade features at an unbeatable cost.

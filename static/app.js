@@ -15,6 +15,7 @@ class ChatApp {
         this.setupAutoResize();
         this.registerServiceWorker();
         this.setupIntersectionObserver();
+        this.initFeaturesMenu();
         
         console.log('NOUS Chat App initialized');
     }
@@ -405,6 +406,537 @@ class ChatApp {
             this.messageObserver.observe(messageElement);
         }
     }
+
+    initFeaturesMenu() {
+        const featuresBtn = document.querySelector('.features-btn');
+        const featuresDropdown = document.querySelector('.features-dropdown');
+
+        if (featuresBtn && featuresDropdown) {
+            featuresBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                featuresDropdown.style.display = featuresDropdown.style.display === 'block' ? 'none' : 'block';
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!featuresBtn.contains(e.target) && !featuresDropdown.contains(e.target)) {
+                    featuresDropdown.style.display = 'none';
+                }
+            });
+        }
+    }
+
+    initErrorHandling() {
+        // Global error handler for unhandled promises
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason);
+            event.preventDefault();
+        });
+    }
+
+    // Enhanced functionality for new features
+    initSearchSystem() {
+        const searchInput = document.getElementById('global-search');
+        const searchBtn = document.getElementById('search-btn');
+        const searchResults = document.getElementById('search-results');
+
+        if (!searchInput || !searchBtn || !searchResults) return;
+
+        let searchTimeout;
+
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            const query = e.target.value.trim();
+
+            if (query.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                this.performSearch(query);
+            }, 300);
+        });
+
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                searchResults.style.display = 'none';
+                searchInput.blur();
+            }
+        });
+
+        searchBtn.addEventListener('click', () => {
+            const query = searchInput.value.trim();
+            if (query) {
+                this.performSearch(query);
+            }
+        });
+
+        // Close search results when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
+    }
+
+    async performSearch(query) {
+        const searchResults = document.getElementById('search-results');
+        
+        try {
+            const response = await fetch(`/api/v1/search/?q=${encodeURIComponent(query)}`, {
+                credentials: 'same-origin'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.displaySearchResults(data.data);
+            } else {
+                this.displaySearchResults({ results: [], total_count: 0 });
+            }
+        } catch (error) {
+            console.error('Search error:', error);
+            this.displaySearchResults({ results: [], total_count: 0 });
+        }
+    }
+
+    displaySearchResults(searchData) {
+        const searchResults = document.getElementById('search-results');
+        
+        if (searchData.results.length === 0) {
+            searchResults.innerHTML = '<div class="notification-empty">No results found</div>';
+        } else {
+            searchResults.innerHTML = searchData.results.map(result => `
+                <div class="search-result-item" onclick="window.chatApp.openSearchResult('${result.content_type}', '${result.content_id}')">
+                    <div class="search-result-title">${result.title}</div>
+                    <div class="search-result-content">${result.content.substring(0, 100)}...</div>
+                    <span class="search-result-type">${result.content_type}</span>
+                </div>
+            `).join('');
+        }
+
+        searchResults.style.display = 'block';
+    }
+
+    openSearchResult(contentType, contentId) {
+        // Handle opening search results based on content type
+        const routes = {
+            'task': '/tasks',
+            'chat': '/app',
+            'note': '/notes',
+            'goal': '/goals',
+            'health': '/health'
+        };
+
+        const route = routes[contentType] || '/app';
+        window.location.href = `${route}#${contentId}`;
+    }
+
+    initNotificationCenter() {
+        const notificationBtn = document.getElementById('notification-btn');
+        const notificationDropdown = document.getElementById('notification-dropdown');
+        const notificationBadge = document.getElementById('notification-badge');
+        const markAllReadBtn = document.getElementById('mark-all-read');
+
+        if (!notificationBtn || !notificationDropdown) return;
+
+        notificationBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (notificationDropdown.style.display === 'block') {
+                notificationDropdown.style.display = 'none';
+            } else {
+                this.loadNotifications();
+                notificationDropdown.style.display = 'block';
+            }
+        });
+
+        if (markAllReadBtn) {
+            markAllReadBtn.addEventListener('click', () => {
+                this.markAllNotificationsRead();
+            });
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
+                notificationDropdown.style.display = 'none';
+            }
+        });
+
+        // Load notification summary on init
+        this.loadNotificationSummary();
+
+        // Poll for new notifications every minute
+        setInterval(() => {
+            this.loadNotificationSummary();
+        }, 60000);
+    }
+
+    async loadNotifications() {
+        try {
+            const response = await fetch('/api/v1/notifications/', {
+                credentials: 'same-origin'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.displayNotifications(data.data.notifications);
+            }
+        } catch (error) {
+            console.error('Error loading notifications:', error);
+        }
+    }
+
+    async loadNotificationSummary() {
+        try {
+            const response = await fetch('/api/v1/notifications/summary', {
+                credentials: 'same-origin'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.updateNotificationBadge(data.data.total_unread);
+            }
+        } catch (error) {
+            console.error('Error loading notification summary:', error);
+        }
+    }
+
+    updateNotificationBadge(count) {
+        const badge = document.getElementById('notification-badge');
+        if (badge) {
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count.toString();
+                badge.style.display = 'block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    }
+
+    displayNotifications(notifications) {
+        const notificationList = document.getElementById('notification-list');
+        
+        if (notifications.length === 0) {
+            notificationList.innerHTML = '<div class="notification-empty">No notifications</div>';
+        } else {
+            notificationList.innerHTML = notifications.map(notification => `
+                <div class="notification-item ${!notification.is_read ? 'unread' : ''}" 
+                     onclick="window.chatApp.handleNotificationClick(${notification.id})">
+                    <div class="notification-title">${notification.title}</div>
+                    <div class="notification-message">${notification.message}</div>
+                    <div class="notification-time">${this.formatTimeAgo(notification.created_at)}</div>
+                </div>
+            `).join('');
+        }
+    }
+
+    async handleNotificationClick(notificationId) {
+        try {
+            await fetch(`/api/v1/notifications/${notificationId}/read`, {
+                method: 'POST',
+                credentials: 'same-origin'
+            });
+            
+            this.loadNotifications();
+            this.loadNotificationSummary();
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+        }
+    }
+
+    async markAllNotificationsRead() {
+        try {
+            await fetch('/api/v1/notifications/mark-all-read', {
+                method: 'POST',
+                credentials: 'same-origin'
+            });
+            
+            this.loadNotifications();
+            this.loadNotificationSummary();
+        } catch (error) {
+            console.error('Error marking all notifications as read:', error);
+        }
+    }
+
+    initQuickActions() {
+        const fabMain = document.getElementById('fab-main');
+        const fabMenu = document.getElementById('fab-menu');
+
+        if (!fabMain || !fabMenu) return;
+
+        fabMain.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (fabMenu.style.display === 'block') {
+                fabMenu.style.display = 'none';
+            } else {
+                fabMenu.style.display = 'block';
+            }
+        });
+
+        // Handle fab action clicks
+        document.querySelectorAll('.fab-action').forEach(action => {
+            action.addEventListener('click', (e) => {
+                const actionType = e.currentTarget.dataset.action;
+                this.handleQuickAction(actionType);
+                fabMenu.style.display = 'none';
+            });
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!fabMain.contains(e.target) && !fabMenu.contains(e.target)) {
+                fabMenu.style.display = 'none';
+            }
+        });
+    }
+
+    handleQuickAction(actionType) {
+        switch (actionType) {
+            case 'new-task':
+                this.openTaskModal();
+                break;
+            case 'voice-note':
+                this.startVoiceNote();
+                break;
+            case 'quick-mood':
+                this.openMoodLogger();
+                break;
+            case 'new-goal':
+                this.openGoalModal();
+                break;
+            case 'analytics':
+                window.location.href = '/analytics';
+                break;
+        }
+    }
+
+    openTaskModal() {
+        const message = prompt('What task would you like to add?');
+        if (message) {
+            this.messageInput.value = `Add task: ${message}`;
+            this.sendMessage();
+        }
+    }
+
+    startVoiceNote() {
+        alert('Voice note feature coming soon!');
+    }
+
+    openMoodLogger() {
+        const mood = prompt('How are you feeling right now? (1-10)');
+        if (mood && !isNaN(mood) && mood >= 1 && mood <= 10) {
+            this.messageInput.value = `Log mood: ${mood}/10`;
+            this.sendMessage();
+        }
+    }
+
+    openGoalModal() {
+        window.location.href = '/goals';
+    }
+
+    initKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + / : Open search
+            if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+                e.preventDefault();
+                const searchInput = document.getElementById('global-search');
+                if (searchInput) {
+                    searchInput.focus();
+                }
+            }
+
+            // Ctrl/Cmd + K : Open quick actions
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                const fabMain = document.getElementById('fab-main');
+                if (fabMain) {
+                    fabMain.click();
+                }
+            }
+
+            // Ctrl/Cmd + N : New task
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                e.preventDefault();
+                this.openTaskModal();
+            }
+
+            // Escape : Close modals/dropdowns
+            if (e.key === 'Escape') {
+                this.closeAllModals();
+            }
+        });
+    }
+
+    closeAllModals() {
+        // Close search results
+        const searchResults = document.getElementById('search-results');
+        if (searchResults) searchResults.style.display = 'none';
+
+        // Close notification dropdown
+        const notificationDropdown = document.getElementById('notification-dropdown');
+        if (notificationDropdown) notificationDropdown.style.display = 'none';
+
+        // Close fab menu
+        const fabMenu = document.getElementById('fab-menu');
+        if (fabMenu) fabMenu.style.display = 'none';
+
+        // Close help panel
+        const helpPanel = document.getElementById('help-panel');
+        if (helpPanel) helpPanel.style.display = 'none';
+
+        // Close onboarding
+        const onboardingOverlay = document.getElementById('onboarding-overlay');
+        if (onboardingOverlay) onboardingOverlay.style.display = 'none';
+    }
+
+    initOnboardingSystem() {
+        const onboardingOverlay = document.getElementById('onboarding-overlay');
+        const closeOnboarding = document.getElementById('close-onboarding');
+
+        if (!onboardingOverlay) return;
+
+        // Check if user has completed onboarding
+        const hasCompletedOnboarding = localStorage.getItem('nous-onboarding-completed');
+        
+        if (!hasCompletedOnboarding) {
+            setTimeout(() => {
+                onboardingOverlay.style.display = 'flex';
+            }, 1000);
+        }
+
+        if (closeOnboarding) {
+            closeOnboarding.addEventListener('click', () => {
+                onboardingOverlay.style.display = 'none';
+                localStorage.setItem('nous-onboarding-completed', 'true');
+            });
+        }
+
+        // Handle onboarding step navigation
+        document.querySelectorAll('.onboarding-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const action = e.target.dataset.action;
+                this.handleOnboardingAction(action);
+            });
+        });
+    }
+
+    handleOnboardingAction(action) {
+        const progressFill = document.querySelector('.progress-fill');
+        const progressText = document.querySelector('.progress-text');
+
+        switch (action) {
+            case 'set-goals':
+                this.showOnboardingStep(2, '66.66%', '2 of 3');
+                break;
+            case 'explore-features':
+                this.showOnboardingStep(3, '100%', '3 of 3');
+                break;
+            case 'finish-onboarding':
+                document.getElementById('onboarding-overlay').style.display = 'none';
+                localStorage.setItem('nous-onboarding-completed', 'true');
+                this.addSystemMessage('Welcome to NOUS! 🎉 You\'re all set up and ready to go!');
+                break;
+        }
+
+        if (progressFill && progressText) {
+            if (action === 'set-goals') {
+                progressFill.style.width = '66.66%';
+                progressText.textContent = '2 of 3';
+            } else if (action === 'explore-features') {
+                progressFill.style.width = '100%';
+                progressText.textContent = '3 of 3';
+            }
+        }
+    }
+
+    showOnboardingStep(stepNumber, progressWidth, progressText) {
+        document.querySelectorAll('.onboarding-step').forEach((step, index) => {
+            step.style.display = (index + 1 === stepNumber) ? 'block' : 'none';
+        });
+
+        const progressFill = document.querySelector('.progress-fill');
+        const progressTextEl = document.querySelector('.progress-text');
+        
+        if (progressFill) progressFill.style.width = progressWidth;
+        if (progressTextEl) progressTextEl.textContent = progressText;
+    }
+
+    initHelpSystem() {
+        const helpToggle = document.getElementById('help-toggle');
+        const helpPanel = document.getElementById('help-panel');
+        const closeHelp = document.getElementById('close-help');
+
+        if (!helpToggle || !helpPanel) return;
+
+        helpToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (helpPanel.style.display === 'block') {
+                helpPanel.style.display = 'none';
+            } else {
+                helpPanel.style.display = 'block';
+            }
+        });
+
+        if (closeHelp) {
+            closeHelp.addEventListener('click', () => {
+                helpPanel.style.display = 'none';
+            });
+        }
+
+        // Close help when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!helpToggle.contains(e.target) && !helpPanel.contains(e.target)) {
+                helpPanel.style.display = 'none';
+            }
+        });
+    }
+
+    formatTimeAgo(timestamp) {
+        const now = new Date();
+        const time = new Date(timestamp);
+        const diffInSeconds = Math.floor((now - time) / 1000);
+
+        if (diffInSeconds < 60) return 'Just now';
+        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+        return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    }
+
+    // Activity tracking for analytics
+    trackActivity(activityType, activityCategory = null, activityData = {}, durationSeconds = 0) {
+        fetch('/api/v1/analytics/activity', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                activity_type: activityType,
+                activity_category: activityCategory,
+                activity_data: activityData,
+                duration_seconds: durationSeconds,
+                session_id: this.sessionId || 'default'
+            })
+        }).catch(error => {
+            console.warn('Activity tracking failed:', error);
+        });
+    }
+
+    // Enhanced initialization
+    initEnhancedFeatures() {
+        this.initSearchSystem();
+        this.initNotificationCenter();
+        this.initQuickActions();
+        this.initKeyboardShortcuts();
+        this.initOnboardingSystem();
+        this.initHelpSystem();
+        
+        // Track app initialization
+        this.trackActivity('app_init', 'engagement');
+        
+        // Generate session ID for activity tracking
+        this.sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
 }
 
 // Initialize when DOM is ready
@@ -431,6 +963,261 @@ window.addEventListener('unhandledrejection', (event) => {
     console.error('Unhandled promise rejection:', event.reason);
     event.preventDefault();
 });
+
+// Enhanced ChatApp methods for new features
+ChatApp.prototype.initEnhancedFeatures = function() {
+    this.initSearchSystem();
+    this.initNotificationCenter();
+    this.initQuickActions();
+    this.initKeyboardShortcuts();
+    this.initOnboardingSystem();
+    this.initHelpSystem();
+    
+    // Track app initialization
+    this.trackActivity('app_init', 'engagement');
+    
+    // Generate session ID for activity tracking
+    this.sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+};
+
+ChatApp.prototype.initSearchSystem = function() {
+    const searchInput = document.getElementById('global-search');
+    const searchBtn = document.getElementById('search-btn');
+    const searchResults = document.getElementById('search-results');
+
+    if (!searchInput || !searchBtn || !searchResults) return;
+
+    let searchTimeout;
+    const self = this;
+
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const query = e.target.value.trim();
+
+        if (query.length < 2) {
+            searchResults.style.display = 'none';
+            return;
+        }
+
+        searchTimeout = setTimeout(() => {
+            self.performSearch(query);
+        }, 300);
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            searchResults.style.display = 'none';
+            searchInput.blur();
+        }
+    });
+
+    searchBtn.addEventListener('click', () => {
+        const query = searchInput.value.trim();
+        if (query) {
+            self.performSearch(query);
+        }
+    });
+
+    // Close search results when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.style.display = 'none';
+        }
+    });
+};
+
+ChatApp.prototype.performSearch = async function(query) {
+    const searchResults = document.getElementById('search-results');
+    
+    try {
+        const response = await fetch(`/api/v1/search/?q=${encodeURIComponent(query)}`, {
+            credentials: 'same-origin'
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            this.displaySearchResults(data.data);
+        } else {
+            this.displaySearchResults({ results: [], total_count: 0 });
+        }
+    } catch (error) {
+        console.error('Search error:', error);
+        this.displaySearchResults({ results: [], total_count: 0 });
+    }
+};
+
+ChatApp.prototype.displaySearchResults = function(searchData) {
+    const searchResults = document.getElementById('search-results');
+    
+    if (searchData.results.length === 0) {
+        searchResults.innerHTML = '<div class="notification-empty">No results found</div>';
+    } else {
+        searchResults.innerHTML = searchData.results.map(result => `
+            <div class="search-result-item" onclick="window.chatApp.openSearchResult('${result.content_type}', '${result.content_id}')">
+                <div class="search-result-title">${result.title}</div>
+                <div class="search-result-content">${result.content.substring(0, 100)}...</div>
+                <span class="search-result-type">${result.content_type}</span>
+            </div>
+        `).join('');
+    }
+
+    searchResults.style.display = 'block';
+};
+
+ChatApp.prototype.initNotificationCenter = function() {
+    const notificationBtn = document.getElementById('notification-btn');
+    const notificationDropdown = document.getElementById('notification-dropdown');
+    const markAllReadBtn = document.getElementById('mark-all-read');
+    const self = this;
+
+    if (!notificationBtn || !notificationDropdown) return;
+
+    notificationBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (notificationDropdown.style.display === 'block') {
+            notificationDropdown.style.display = 'none';
+        } else {
+            self.loadNotifications();
+            notificationDropdown.style.display = 'block';
+        }
+    });
+
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', () => {
+            self.markAllNotificationsRead();
+        });
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
+            notificationDropdown.style.display = 'none';
+        }
+    });
+
+    // Load notification summary on init
+    this.loadNotificationSummary();
+
+    // Poll for new notifications every minute
+    setInterval(() => {
+        self.loadNotificationSummary();
+    }, 60000);
+};
+
+ChatApp.prototype.initQuickActions = function() {
+    const fabMain = document.getElementById('fab-main');
+    const fabMenu = document.getElementById('fab-menu');
+    const self = this;
+
+    if (!fabMain || !fabMenu) return;
+
+    fabMain.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (fabMenu.style.display === 'block') {
+            fabMenu.style.display = 'none';
+        } else {
+            fabMenu.style.display = 'block';
+        }
+    });
+
+    // Handle fab action clicks
+    document.querySelectorAll('.fab-action').forEach(action => {
+        action.addEventListener('click', (e) => {
+            const actionType = e.currentTarget.dataset.action;
+            self.handleQuickAction(actionType);
+            fabMenu.style.display = 'none';
+        });
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!fabMain.contains(e.target) && !fabMenu.contains(e.target)) {
+            fabMenu.style.display = 'none';
+        }
+    });
+};
+
+ChatApp.prototype.initKeyboardShortcuts = function() {
+    const self = this;
+    
+    document.addEventListener('keydown', (e) => {
+        // Ctrl/Cmd + / : Open search
+        if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+            e.preventDefault();
+            const searchInput = document.getElementById('global-search');
+            if (searchInput) {
+                searchInput.focus();
+            }
+        }
+
+        // Ctrl/Cmd + K : Open quick actions
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            const fabMain = document.getElementById('fab-main');
+            if (fabMain) {
+                fabMain.click();
+            }
+        }
+
+        // Ctrl/Cmd + N : New task
+        if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+            e.preventDefault();
+            self.openTaskModal();
+        }
+
+        // Escape : Close modals/dropdowns
+        if (e.key === 'Escape') {
+            self.closeAllModals();
+        }
+    });
+};
+
+ChatApp.prototype.handleQuickAction = function(actionType) {
+    switch (actionType) {
+        case 'new-task':
+            this.openTaskModal();
+            break;
+        case 'voice-note':
+            this.startVoiceNote();
+            break;
+        case 'quick-mood':
+            this.openMoodLogger();
+            break;
+        case 'new-goal':
+            this.openGoalModal();
+            break;
+        case 'analytics':
+            window.location.href = '/api/v1/analytics/dashboard-view';
+            break;
+    }
+};
+
+ChatApp.prototype.openTaskModal = function() {
+    const message = prompt('What task would you like to add?');
+    if (message) {
+        this.messageInput.value = `Add task: ${message}`;
+        this.sendMessage();
+    }
+};
+
+ChatApp.prototype.trackActivity = function(activityType, activityCategory = null, activityData = {}, durationSeconds = 0) {
+    fetch('/api/v1/analytics/activity', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+            activity_type: activityType,
+            activity_category: activityCategory,
+            activity_data: activityData,
+            duration_seconds: durationSeconds,
+            session_id: this.sessionId || 'default'
+        })
+    }).catch(error => {
+        console.warn('Activity tracking failed:', error);
+    });
+};
 
 // Service worker registration for PWA capabilities (future enhancement)
 if ('serviceWorker' in navigator) {

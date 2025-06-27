@@ -36,10 +36,6 @@ def describe_image(image_data: bytes) -> Dict[str, Any]:
         # Generate a caption using Hugging Face
         caption = hf_image_caption(temp_path)
 
-        # Check if there was an error
-        if isinstance(caption, dict) and "error" in caption:
-            return caption
-
         # Classify the image for additional context
         classification = hf_image_classification(temp_path)
 
@@ -51,9 +47,9 @@ def describe_image(image_data: bytes) -> Dict[str, Any]:
         }
 
         # Add classification data if available
-        if isinstance(classification, dict) and "categories" in classification:
-            result["categories"] = [c["category"] for c in classification["categories"][:3]]
-            if classification["top_category"]:
+        if classification and not classification.get("error"):
+            result["categories"] = [c["label"] for c in classification["categories"][:3]]
+            if classification.get("top_category"):
                 result["top_category"] = classification["top_category"]
                 result["confidence"] = classification["confidence"]
 
@@ -72,10 +68,6 @@ def detect_objects_in_image(image_data: bytes) -> Dict[str, Any]:
 
         # Detect objects using Hugging Face
         detection = hf_object_detection(temp_path)
-
-        # Check if there was an error
-        if isinstance(detection, dict) and "error" in detection:
-            return detection
 
         return detection
     except Exception as e:
@@ -102,17 +94,17 @@ def analyze_image_for_travel(image_data: bytes) -> Dict[str, Any]:
 
         # Format the results
         result = {
-            "description": caption if not isinstance(caption, dict) else "No description available",
+            "description": caption,
             "categories": [],
-            "travel_details": travel_analysis if not isinstance(travel_analysis, dict) else "No travel details available",
+            "travel_details": travel_analysis,
             "is_landmark": False,
             "is_nature": False,
             "is_food": False,
         }
 
         # Check for specific categories
-        if isinstance(classification, dict) and "categories" in classification:
-            result["categories"] = [c["category"] for c in classification["categories"][:5]]
+        if classification and not classification.get("error"):
+            result["categories"] = [c["label"] for c in classification["categories"][:5]]
 
             # Check for common travel photo types
             categories_lower = [c.lower() for c in result["categories"]]
@@ -149,22 +141,24 @@ def segment_image(image_data: bytes) -> Dict[str, Any]:
         # Perform segmentation
         segmentation = hf_image_segmentation(temp_path)
 
-        # Check if there was an error
-        if isinstance(segmentation, dict) and "error" in segmentation:
-            return segmentation
-
         return segmentation
     except Exception as e:
         logging.error(f"Error segmenting image: {str(e)}")
         return {"error": f"Image segmentation failed: {str(e)}"}
 
-def organize_images_by_content(image_files: List[bytes]) -> Dict[str, List[int]]:
+def organize_images_by_content(image_files: List[Dict[str, Union[bytes, str]]]) -> Dict[str, List[str]]:
     """Group multiple images by their content"""
     results = {}
 
     try:
         # Process each image
-        for i, image_data in enumerate(image_files):
+        for image_info in image_files:
+            image_data = image_info.get("data")
+            filename = image_info.get("filename")
+
+            if not image_data or not filename:
+                continue
+
             # Analyze the image
             temp_path = process_image_for_analysis(image_data)
             if not temp_path:
@@ -173,15 +167,15 @@ def organize_images_by_content(image_files: List[bytes]) -> Dict[str, List[int]]
             # Classify the image
             classification = hf_image_classification(temp_path)
 
-            if isinstance(classification, dict) and "top_category" in classification:
-                category = classification["top_category"]
+            if classification and not classification.get("error") and classification.get("top_category"):
+                category = classification["top_category"].replace("_", " ").title()
 
                 # Initialize category if it doesn't exist
                 if category not in results:
                     results[category] = []
 
-                # Add image index to the category
-                results[category].append(i)
+                # Add image filename to the category
+                results[category].append(filename)
 
         return results
     except Exception as e:

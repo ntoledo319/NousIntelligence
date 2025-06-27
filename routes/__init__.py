@@ -17,18 +17,36 @@ logger = logging.getLogger(__name__)
 # Core blueprint definitions - name, module, url_prefix
 CORE_BLUEPRINTS = [
     {'name': 'main', 'module': 'routes.main', 'attr': 'main_bp', 'url_prefix': None},
-    {'name': 'health_api', 'module': 'routes.api.health', 'attr': 'health_bp', 'url_prefix': '/api'},
-    {'name': 'auth', 'module': 'routes.auth', 'attr': 'auth_bp', 'url_prefix': None},  # Auth routes are essential
+    {'name': 'health_api', 'module': 'routes.health_api', 'attr': 'health_bp', 'url_prefix': '/api'},
+    {'name': 'auth_api', 'module': 'routes.auth_api', 'attr': 'auth_bp', 'url_prefix': None},
+    {'name': 'api', 'module': 'routes.api_routes', 'attr': 'api_bp', 'url_prefix': '/api/v1'},
+    {'name': 'analytics', 'module': 'routes.analytics_routes', 'attr': 'analytics_bp', 'url_prefix': '/api/v1/analytics'},
+    {'name': 'search', 'module': 'routes.search_routes', 'attr': 'search_bp', 'url_prefix': '/api/v1/search'},
+    {'name': 'notifications', 'module': 'routes.notification_routes', 'attr': 'notifications_bp', 'url_prefix': '/api/v1/notifications'}
 ]
 
 # Optional blueprint definitions
 OPTIONAL_BLUEPRINTS = [
-    {'name': 'analytics', 'module': 'routes.aa_routes', 'attr': 'aa_bp', 'url_prefix': '/aa'},
+    {'name': 'aa', 'module': 'routes.aa_routes', 'attr': 'aa_bp', 'url_prefix': '/aa'},
+    {'name': 'dbt', 'module': 'routes.dbt_routes', 'attr': 'dbt_bp', 'url_prefix': '/dbt'},
     {'name': 'user', 'module': 'routes.user_routes', 'attr': 'user_bp', 'url_prefix': '/user'},
     {'name': 'dashboard', 'module': 'routes.dashboard', 'attr': 'dashboard_bp', 'url_prefix': '/dashboard'},
     {'name': 'smart_shopping', 'module': 'routes.smart_shopping_routes', 'attr': 'smart_shopping_bp', 'url_prefix': '/smart-shopping'},
     {'name': 'price_tracking', 'module': 'routes.price_routes', 'attr': 'price_tracking_bp', 'url_prefix': '/price-tracking'},
     {'name': 'messaging_status', 'module': 'routes.messaging_status', 'attr': 'messaging_bp', 'url_prefix': '/api/messaging'},
+    {'name': 'language_learning', 'module': 'routes.language_learning_routes', 'attr': 'll_bp', 'url_prefix': '/learn'},
+    {'name': 'voice', 'module': 'routes.voice_routes', 'attr': 'voice_bp', 'url_prefix': '/voice'},
+    {'name': 'meetings', 'module': 'routes.meet_routes', 'attr': 'meet_bp', 'url_prefix': '/meet'},
+    {'name': 'forms', 'module': 'routes.forms_routes', 'attr': 'forms_bp', 'url_prefix': '/forms'},
+    {'name': 'spotify', 'module': 'routes.spotify_routes', 'attr': 'spotify_bp', 'url_prefix': '/spotify'},
+    {'name': 'amazon', 'module': 'routes.amazon_routes', 'attr': 'amazon_bp', 'url_prefix': '/amazon'},
+    {'name': 'memory', 'module': 'routes.memory_routes', 'attr': 'memory_bp', 'url_prefix': '/memory'},
+    {'name': 'crisis', 'module': 'routes.crisis_routes', 'attr': 'crisis_bp', 'url_prefix': '/crisis'},
+    {'name': 'voice_emotion', 'module': 'routes.voice_emotion_routes', 'attr': 'voice_emotion_bp', 'url_prefix': '/voice/emotion'},
+    {'name': 'voice_mindfulness', 'module': 'routes.voice_mindfulness_routes', 'attr': 'voice_mindfulness_bp', 'url_prefix': '/voice-mindfulness'},
+    {'name': 'financial', 'module': 'routes.financial_routes', 'attr': 'financial_bp', 'url_prefix': '/financial'},
+    {'name': 'collaboration', 'module': 'routes.collaboration_routes', 'attr': 'collaboration_bp', 'url_prefix': '/family'},
+    {'name': 'onboarding', 'module': 'routes.onboarding_routes', 'attr': 'onboarding_bp', 'url_prefix': '/onboarding'}
 ]
 
 def register_all_blueprints(app: Flask) -> Flask:

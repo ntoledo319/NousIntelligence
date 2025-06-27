@@ -20,6 +20,10 @@ db = SQLAlchemy()
 from utils.health_monitor import health_monitor
 from utils.database_optimizer import db_optimizer
 from routes.api.feedback import feedback_api
+from routes.maps_routes import maps_bp
+from routes.weather_routes import weather_bp
+from routes.tasks_routes import tasks_bp
+from routes.recovery_routes import recovery_bp
 
 # Configure comprehensive logging
 logging.basicConfig(
@@ -65,6 +69,11 @@ def create_app():
     
     # Initialize database with models
     from models.database import init_db
+    from models.analytics_models import UserActivity, UserMetrics, UserInsight, UserGoal, NotificationQueue, WorkflowAutomation, SearchIndex
+    from models.financial_models import BankAccount, Transaction, ExpenseCategory, Budget
+    from models.collaboration_models import Family, FamilyMember, SharedTask, SharedEvent, SharedShoppingList, SupportGroup
+    from models.enhanced_health_models import FitnessActivity, NutritionEntry, SleepRecord, Medication, HealthcareProvider, VitalSigns
+    
     init_db(app, db)
     
     # Initialize health monitoring
@@ -72,6 +81,10 @@ def create_app():
     
     # Register blueprints
     app.register_blueprint(feedback_api)
+    app.register_blueprint(maps_bp)
+    app.register_blueprint(weather_bp)
+    app.register_blueprint(tasks_bp)
+    app.register_blueprint(recovery_bp)
     
     # Create logs directory
     os.makedirs('logs', exist_ok=True)

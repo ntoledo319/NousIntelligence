@@ -1,0 +1,46 @@
+{% extends "app.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>My Image Gallery</h2>
+        <a href="{{ url_for('image_routes.analyze_image') }}" class="btn btn-primary">Upload New Image</a>
+    </div>
+
+    {% if albums %}
+        {% for album_name, images in albums.items() %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>{{ album_name }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for image in images %}
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('static', filename='uploads/' + user_dir + '/' + image) }}" data-toggle="lightbox" data-gallery="gallery-{{ loop.parent.loop.index }}">
+                                    <img src="{{ url_for('static', filename='uploads/' + user_dir + '/' + image) }}" class="img-fluid img-thumbnail" alt="{{ image }}">
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info">
+            Your gallery is empty. <a href="{{ url_for('image_routes.analyze_image') }}" class="alert-link">Upload some images</a> to get started.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ekko-lightbox/5.3.0/ekko-lightbox.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ekko-lightbox/5.3.0/ekko-lightbox.css">
+<script>
+    $(document).on('click', '[data-toggle="lightbox"]', function(event) {
+        event.preventDefault();
+        $(this).ekkoLightbox();
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,46 @@
+site_name: NOUS Personal Assistant
+site_url: https://your-replit-url.repl.co/
+theme:
+  name: material
+  palette:
+    # Palette toggle for light vs dark modes
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - toc.integrate
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+
+nav:
+  - 'Home': 'index.md'
+  - 'User Guide':
+    - 'Getting Started': 'user-guide/getting-started.md'
+    - 'Chat Interface': 'user-guide/chat-interface.md'
+  - 'API Reference':
+    - 'Authentication': 'api/authentication.md'
+    - 'Tasks': 'api/tasks.md'
+    - 'Health': 'api/health.md'
+  - 'Contributing': 'contributing.md'
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences 

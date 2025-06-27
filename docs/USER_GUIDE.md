@@ -2,161 +2,355 @@
 
 ## Introduction
 
-Welcome to NOUS, a powerful AI assistant platform designed to enhance your productivity and streamline your workflows. This guide will help you understand the system's capabilities and how to use them effectively.
+Welcome to NOUS, a sophisticated AI-powered personal assistant and life management platform. This comprehensive guide will help you understand and utilize all the advanced features available to optimize your productivity, health, finances, and collaboration.
 
 ## Quick Start
 
-1. **Login**: Use your credentials to log in via the authentication page.
-2. **Dashboard**: The dashboard provides an overview of your recent conversations and knowledge items.
-3. **Start a Conversation**: Click the "+ New" button to start a conversation with NOUS.
+1. **Login**: Sign in with your Google account for secure authentication
+2. **Onboarding**: Complete the guided 3-step tour to set up your account
+3. **Connect Services**: Link your Google Workspace and Spotify accounts
+4. **Explore**: Use the analytics dashboard and global search to discover features
 
-## Key Features
+## Core Interface
 
-### Conversations
+### Main Application Layout
+- **Header Navigation**: Access all major features and your profile
+- **Global Search**: Use `Ctrl+K` (or `Cmd+K` on Mac) to search anything instantly
+- **Notification Center**: Click the bell icon to view priority-based alerts
+- **Quick Actions**: Use the floating action button (bottom-right) for instant access
+- **Chat Interface**: Central AI assistant for natural language interactions
 
-NOUS allows you to have natural, context-aware conversations with the AI assistant.
+### Keyboard Shortcuts
+- `Ctrl+K` / `Cmd+K` - Global search
+- `Ctrl+/` / `Cmd+/` - Help system
+- `Ctrl+N` / `Cmd+N` - Quick actions menu
+- `Escape` - Close modals and overlays
 
-#### Starting a Conversation
+## 📊 Analytics Dashboard
 
-1. Navigate to the Conversations tab in the sidebar
-2. Click the "+ New" button 
-3. Type your message in the text box at the bottom of the screen
-4. Press "Enter" or click the send button
+Your personal insights and productivity center.
 
-#### Conversation Features
+### Accessing Analytics
+1. Click "Analytics" in the main navigation
+2. View comprehensive dashboard with real-time metrics
+3. Explore different sections: Productivity, Health, Engagement, Goals
 
-- **Context Awareness**: NOUS remembers the context of your conversation
-- **File Uploads**: Attach files to provide additional context
-- **Custom Instructions**: Set specific guidelines for how NOUS should respond
-- **Conversation History**: Access and search through previous conversations
-- **Sharing**: Share conversations with team members through secure links
+### Key Metrics
+- **Productivity Score**: AI-calculated efficiency rating
+- **Activity Patterns**: Peak performance hours and usage trends
+- **Goal Progress**: Visual progress tracking for all your goals
+- **Engagement Rate**: How actively you're using different features
 
-### Knowledge Base
+### AI-Generated Insights
+- Smart recommendations based on your patterns
+- Personalized tips for improvement
+- Trend analysis and predictions
+- Achievement celebrations and milestone tracking
 
-The Knowledge Base allows you to store and retrieve information that NOUS can use to provide more accurate responses.
+### Setting Goals
+1. Navigate to the Goals section in Analytics
+2. Click "Add Goal" and specify:
+   - Goal title and description
+   - Category (health, productivity, financial, etc.)
+   - Target type (daily, weekly, monthly)
+   - Target value and unit
+3. Track progress automatically through your activities
 
-#### Adding Knowledge
+## 🔍 Global Search
 
-1. Navigate to the Knowledge tab
-2. Click the "+ Add Knowledge" button
-3. Upload a document or enter text manually
-4. Add optional metadata such as tags and categories
-5. Click "Save"
+Find anything across all your NOUS content instantly.
 
-#### Knowledge Features
+### Using Search
+1. Press `Ctrl+K` or click the search bar
+2. Type your query - search works across:
+   - Tasks and notes
+   - Calendar events
+   - Financial transactions
+   - Health records
+   - Chat history
+   - Goals and insights
 
-- **Document Support**: Upload PDF, DOCX, TXT, and other document formats
-- **Auto-Categorization**: NOUS automatically categorizes and tags knowledge items
-- **Search**: Use natural language to search your knowledge base
-- **Versioning**: Track changes to knowledge items over time
+### Advanced Search Features
+- **Real-time Suggestions**: Get instant suggestions as you type
+- **Category Filtering**: Use filters to narrow results by content type
+- **Smart Ranking**: AI-powered relevance scoring for best results
+- **Recent Searches**: Quick access to your previous searches
 
-### Personalization
+### Search Tips
+- Use specific keywords for better results
+- Include dates or numbers when relevant
+- Try partial matches - the system is forgiving
+- Use categories like "tasks:", "health:", "money:" for targeted searches
 
-#### Personal Preferences
+## 🔔 Notification Center
 
-1. Click on your profile icon in the top-right corner
-2. Select "Preferences" from the dropdown menu
-3. Customize your experience:
-   - Theme (Light/Dark)
-   - Response Length (Concise/Detailed)
-   - Default Personality
+Stay informed with intelligent, priority-based notifications.
 
-#### Two-Factor Authentication
+### Accessing Notifications
+- Click the bell icon in the header
+- View unread count and priority indicators
+- Use action buttons for quick responses
 
-For enhanced security, enable two-factor authentication:
+### Notification Types
+- **Goal Reminders**: Progress updates and motivational messages
+- **Budget Alerts**: Financial spending and budget warnings
+- **Task Deadlines**: Upcoming due dates and overdue items
+- **Health Milestones**: Wellness achievements and recommendations
+- **Family Updates**: Shared task assignments and family activities
 
-1. Go to your profile settings
-2. Navigate to the "Security" tab
-3. Click "Enable 2FA"
-4. Follow the prompts to set up authentication using your preferred method
+### Managing Notifications
+- Mark individual notifications as read
+- Use "Mark All Read" for bulk actions
+- Customize notification preferences in settings
+- Set quiet hours and priority filtering
 
-## Advanced Features
+## 💰 Financial Management
 
-### API Access
+Comprehensive personal finance tracking and budgeting.
 
-NOUS provides a comprehensive API for integration with other tools and systems.
+### Setting Up Financial Tracking
+1. Navigate to "Financial" in the main menu
+2. Connect your bank accounts (secure OAuth integration)
+3. Set up expense categories and budgets
+4. Start tracking transactions automatically
 
-To get started with the API:
+### Account Management
+- **Multiple Accounts**: Link checking, savings, credit cards
+- **Real-time Balances**: View current account balances
+- **Transaction History**: Searchable and filterable transaction log
+- **Account Security**: Bank-level encryption and security
 
-1. Go to your profile settings
-2. Navigate to the "API" tab
-3. Generate an API key
-4. Use the API documentation to start making requests
+### Budget Creation and Tracking
+1. Create budgets by category (dining, transportation, entertainment)
+2. Set monthly spending limits
+3. Get alerts when approaching or exceeding limits
+4. View progress with visual indicators and charts
 
-### Batch Processing
+### Financial Insights
+- **Spending Patterns**: AI analysis of your spending habits
+- **Budget Optimization**: Recommendations for better financial health
+- **Trend Analysis**: Monthly and yearly spending comparisons
+- **Goal Integration**: Link financial goals to overall analytics
 
-For processing multiple requests efficiently:
+## 👥 Collaboration Features
 
-1. Navigate to the "Batch" tab
-2. Upload your batch file in CSV or JSON format
-3. Configure processing options
-4. Click "Start Processing"
-5. Download results when complete
+Family and team management for shared responsibilities.
 
-### Offline Mode
+### Creating a Family
+1. Go to "Collaboration" → "Families"
+2. Click "Create Family" and enter details
+3. Invite family members via email
+4. Assign roles (admin, member, child)
 
-NOUS offers limited functionality when offline:
+### Family Management
+- **Member Roles**: Different permission levels for family members
+- **Shared Tasks**: Assign and track household responsibilities
+- **Family Calendar**: Coordinate schedules and events
+- **Activity Tracking**: Monitor family member participation
 
-1. Access previously cached conversations
-2. Work with downloaded knowledge items
-3. Queue new requests for processing when connection is restored
+### Shared Task System
+- Create tasks visible to all family members
+- Assign specific members to tasks
+- Set due dates and priority levels
+- Track completion and provide feedback
+- View family activity dashboard
 
-## Security
+### Communication
+- **Family Chat**: Dedicated communication channel
+- **Announcements**: Important family notifications
+- **Achievement Sharing**: Celebrate family member accomplishments
 
-### Data Privacy
+## 🏥 Enhanced Health Tracking
 
-- All conversations are encrypted in transit and at rest
-- Personal data is handled according to our Privacy Policy
-- You control what data is stored and for how long
+Comprehensive wellness monitoring with AI insights.
 
-### Access Controls
+### Health Metrics
+Track various aspects of your wellness:
+- **Physical Activity**: Exercise duration, intensity, type
+- **Sleep Patterns**: Duration, quality, consistency
+- **Mood Tracking**: Daily emotional state and triggers
+- **Nutrition**: Meal logging and dietary analysis
+- **Vital Signs**: Blood pressure, weight, heart rate (manual entry)
 
-- Manage team access with role-based permissions
-- Control which knowledge items are shared with team members
-- Set expiration dates for shared content
+### Health Goals
+- Set SMART health goals (Specific, Measurable, Achievable, Relevant, Time-bound)
+- Track progress with visual charts and graphs
+- Get AI-powered recommendations for improvement
+- Celebrate milestones and achievements
 
-## Troubleshooting
+### Wellness Insights
+- **Pattern Recognition**: AI identifies trends in your health data
+- **Predictive Analytics**: Early warning signs and health predictions
+- **Personalized Recommendations**: Custom advice based on your patterns
+- **Integration**: Connect health data with productivity and mood tracking
+
+## 🎯 Quick Actions & Productivity
+
+Streamline your workflow with instant access features.
+
+### Quick Actions Menu
+Access via the floating action button or `Ctrl+N`:
+- **Add Task**: Quickly create new tasks
+- **Log Activity**: Record health or productivity activities
+- **Send Message**: Start a new chat conversation
+- **Create Note**: Capture quick thoughts or ideas
+- **Schedule Event**: Add calendar appointments
+
+### Productivity Features
+- **Time Tracking**: Monitor how you spend your time
+- **Focus Sessions**: Pomodoro-style work sessions
+- **Habit Tracking**: Build and maintain positive habits
+- **Energy Levels**: Track and optimize your energy throughout the day
+
+## 🎨 Customization & Themes
+
+Personalize your NOUS experience.
+
+### Theme System
+Choose from 6 carefully designed themes:
+- **Light**: Clean, professional daytime interface
+- **Dark**: Easy on the eyes for low-light environments
+- **Blue**: Calming, focus-oriented color scheme
+- **Green**: Nature-inspired, wellness-focused theme
+- **Purple**: Creative, energizing color palette
+- **High Contrast**: Accessibility-optimized for better visibility
+
+### Layout Customization
+- **Dashboard Layout**: Rearrange analytics widgets
+- **Navigation Preferences**: Customize menu order and visibility
+- **Notification Settings**: Control what alerts you receive
+- **Privacy Controls**: Manage data sharing and visibility
+
+## 📱 Mobile Experience
+
+NOUS is built as a Progressive Web App (PWA) for optimal mobile use.
+
+### Mobile Features
+- **Touch Optimization**: Gesture-friendly interface
+- **Offline Capability**: Core features work without internet
+- **Home Screen Install**: Add NOUS to your phone's home screen
+- **Push Notifications**: Receive alerts even when app is closed
+- **Mobile-First Design**: Responsive layout for all screen sizes
+
+### Mobile Tips
+- Use gestures for navigation (swipe, tap, long-press)
+- Enable notifications for important updates
+- Install as PWA for app-like experience
+- Use voice features for hands-free interaction
+
+## 🔧 Advanced Features
+
+### Voice Features
+- **Voice Emotion Analysis**: Upload audio to analyze emotional tone
+- **Mindfulness Assistant**: AI-generated guided meditation sessions
+- **Voice Notes**: Speak your thoughts instead of typing
+
+### Integration Features
+- **Google Workspace**: Full integration with Calendar, Tasks, Keep, Meet
+- **Spotify**: AI-powered music recommendations and playlist management
+- **Weather Intelligence**: Activity recommendations based on weather
+- **Maps & Navigation**: Integrated location services and directions
+
+### AI Capabilities
+- **Natural Language Processing**: Communicate naturally with the assistant
+- **Predictive Analytics**: AI learns your patterns and makes predictions
+- **Smart Recommendations**: Personalized suggestions for improvement
+- **Context Awareness**: AI understands your situation and preferences
+
+## 🛠️ Settings & Configuration
+
+### Account Settings
+- **Profile Information**: Update your personal details
+- **Privacy Controls**: Manage data sharing and visibility
+- **Security Settings**: Two-factor authentication and security preferences
+- **Export Data**: Download your NOUS data
+
+### Notification Preferences
+- **Priority Levels**: Choose which notifications are most important
+- **Quiet Hours**: Set times when notifications are silenced
+- **Delivery Methods**: Email, in-app, or push notifications
+- **Category Filters**: Enable/disable notifications by type
+
+### Integration Management
+- **Connected Accounts**: View and manage linked services
+- **API Access**: Generate API keys for third-party integrations
+- **Sync Settings**: Control how often data syncs between services
+- **Permissions**: Manage what data each integration can access
+
+## 🆘 Troubleshooting
 
 ### Common Issues
 
-#### Slow Responses
-
+#### Slow Performance
 - Check your internet connection
-- Reduce the complexity of your queries
-- Try breaking down complex questions into simpler ones
+- Clear browser cache and cookies
+- Disable browser extensions temporarily
+- Try using incognito/private browsing mode
 
-#### Incorrect Responses
+#### Sync Issues
+- Verify your connected accounts are still authorized
+- Check if services (Google, Spotify) are experiencing outages
+- Try disconnecting and reconnecting problematic integrations
+- Contact support if issues persist
 
-- Ensure your knowledge base is up to date
-- Provide more context in your question
-- Use the feedback button to help improve future responses
-
-#### Connection Issues
-
-- Verify your internet connection
-- Check system status at status.nous.ai
-- Try using offline mode until connection is restored
+#### Search Not Working
+- Ensure you're using relevant keywords
+- Check if content has been recently indexed
+- Try broader search terms
+- Use category filters to narrow results
 
 ### Getting Help
 
-If you encounter issues not covered in this guide:
+#### In-App Help
+- Press `Ctrl+/` for the help system
+- Use the chat interface to ask questions
+- Check the onboarding tour for feature introductions
 
-- Click the "Help" icon in the bottom-right corner
-- Visit our knowledge base at help.nous.ai
-- Contact support at support@nous.ai
+#### Support Resources
+- Visit our knowledge base for detailed guides
+- Check system status for service updates
+- Use the feedback system to report issues
+- Contact support for personalized assistance
 
-## Best Practices
+## 📈 Best Practices
 
-1. **Be Specific**: Clearly state what you're looking for
-2. **Provide Context**: Include relevant details that help NOUS understand your request
-3. **Use the Knowledge Base**: Keep your knowledge base updated with relevant information
-4. **Leverage History**: Reference previous conversations when relevant
-5. **Regular Feedback**: Use the feedback mechanisms to help improve NOUS
+### Maximizing Productivity
+1. **Set Clear Goals**: Use SMART goal-setting principles
+2. **Regular Check-ins**: Review analytics dashboard weekly
+3. **Use Shortcuts**: Learn keyboard shortcuts for efficiency
+4. **Batch Similar Tasks**: Group related activities together
+5. **Follow Insights**: Act on AI-generated recommendations
 
-## Updates and New Features
+### Financial Health
+1. **Regular Budget Reviews**: Check spending weekly
+2. **Set Realistic Budgets**: Base limits on actual spending patterns
+3. **Use Categories**: Properly categorize all transactions
+4. **Monitor Trends**: Watch for unusual spending patterns
+5. **Plan for Goals**: Align spending with financial objectives
 
-NOUS is continuously improving. Check the "What's New" section regularly to discover new features and improvements. You can also subscribe to our newsletter for updates.
+### Family Coordination
+1. **Clear Communication**: Use family chat for coordination
+2. **Fair Task Distribution**: Rotate responsibilities regularly
+3. **Celebrate Achievements**: Acknowledge family member successes
+4. **Regular Family Meetings**: Use NOUS data to guide discussions
+5. **Respect Privacy**: Maintain appropriate boundaries
+
+## 🔄 Regular Maintenance
+
+### Weekly Tasks
+- Review analytics dashboard for insights
+- Update goals based on progress
+- Clean up completed tasks and old notifications
+- Check budget progress and adjust if needed
+- Sync any manual health or activity data
+
+### Monthly Tasks
+- Analyze monthly trends in analytics
+- Review and adjust budgets based on spending patterns
+- Update family responsibilities and assignments
+- Export important data for backup
+- Review and update notification preferences
 
 ---
 
-Thank you for using NOUS! We hope this guide helps you make the most of your AI assistant. 
+Thank you for using NOUS! This comprehensive platform grows with you, learning your patterns and helping you optimize every aspect of your life. Explore, experiment, and don't hesitate to use the chat interface to ask questions or request help with any feature. 
