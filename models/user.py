@@ -7,26 +7,19 @@ including user account data, preferences, and authentication.
 
 from flask_login import UserMixin
 
-def create_user_model(db):
-    """Create User model with database instance"""
-    
-    class User(UserMixin, db.Model):
+# Simple User model for authentication
+class User(UserMixin):
     """User account model"""
-    __tablename__ = 'users'
-
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), unique=True, nullable=False, index=True)
-    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
-    password_hash = db.Column(db.String(256))
-    active = db.Column(db.Boolean, default=True)  # Don't use is_active as it conflicts with UserMixin
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime, server_default=db.func.now(),
-                           onupdate=db.func.now())
-
-    # Override UserMixin property with our database column
-    @property
-    def is_active(self):
-        return self.active
-
+    
+    def __init__(self, user_id, username, email):
+        self.id = user_id
+        self.username = username
+        self.email = email
+        self.active = True
+    
+    def get_id(self):
+        """Required for Flask-Login"""
+        return str(self.id)
+    
     def __repr__(self):
         return f'<User {self.username}>'

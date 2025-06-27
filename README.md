@@ -1,281 +1,140 @@
-# NOUS Personal Assistant - Scorched Earth UI Rebuild
+# NOUS Personal Assistant
 
-## 🚀 Overview
+A modern Flask-based AI personal assistant with Google OAuth authentication, responsive design, and comprehensive utility modules.
 
-NOUS is a professional-grade AI personal assistant with Google-only authentication and a modern chat interface. This version represents a complete "Scorched Earth" rebuild of the UI/UX, featuring:
+## Features
 
-- **Google-Only Authentication**: Streamlined sign-in process using Google OAuth
-- **Professional Chat Interface**: Modern, responsive chat UI with real-time messaging
-- **Multi-Theme Support**: 6 beautiful themes (Light, Dark, Ocean, Forest, Sunset, Purple)
-- **Mobile-First Design**: Fully responsive across all devices
-- **Zero Authentication Loops**: Bulletproof session management
+### Core Application
+- **Professional Chat Interface** - Clean, responsive chat UI with 6 theme options
+- **Google OAuth Authentication** - Secure authentication using Google accounts
+- **Health Monitoring** - System health endpoints with CPU and memory metrics
+- **Progressive Web App** - Mobile-first responsive design with offline support
 
-## ✨ Features
+### Utilities & Integrations
+- **Weather Services** - Weather data integration and forecasting
+- **Spotify Integration** - Music platform connectivity and mood analysis
+- **Travel Management** - Trip planning and itinerary management
+- **Shopping Lists** - Smart shopping list management with automation
+- **Health Tracking** - Medication reminders and appointment management
+- **Financial Tools** - Budget tracking and price monitoring
+- **Voice Interface** - Speech recognition and synthesis capabilities
+- **Smart Home** - IoT device integration framework
+- **Maps & Navigation** - Location services and mapping integration
 
-### Authentication
-- **Single Sign-On**: Google OAuth 2.0 integration
-- **Secure Sessions**: 24-hour persistent sessions with HTTP-only cookies
-- **Demo Mode**: Fallback demo login for development
+## Quick Start
 
-### Chat Interface
-- **Real-time Messaging**: Instant chat with AI assistant
-- **Timestamped Messages**: All messages include timestamps
-- **Auto-scroll**: Automatic scrolling to latest messages
-- **Character Counter**: Real-time character count with visual feedback
-- **Clear Chat**: Option to clear conversation history
-
-### Theme System
-- **10 Beautiful Themes**: Light, Dark, Ocean, Forest, Sunset, Purple, Pink, Peacock, Love, Real Star
-- **Persistent Preferences**: Theme selection saved to localStorage
-- **Smooth Transitions**: CSS animations for theme switching
-- **Special Effects**: Animated stars (Real Star), heartbeat logo (Love), rainbow text (Peacock)
-- **CSS Variables**: Modern variable-based theming system
-
-### Responsive Design
-- **Mobile-First**: Optimized for mobile devices
-- **Desktop Enhanced**: Rich experience on larger screens
-- **Touch-Friendly**: Large touch targets and gestures
-- **Accessible**: ARIA labels and keyboard navigation
-
-## 🛠️ Technical Architecture
-
-### Frontend
-- **Vanilla JavaScript**: No dependencies, pure ES6+
-- **Modern CSS**: CSS Grid, Flexbox, CSS Variables
-- **Progressive Enhancement**: Works without JavaScript
-- **Service Worker Ready**: PWA capabilities prepared
-
-### Backend
-- **Flask**: Python web framework
-- **Google OAuth**: Authentication via Google Identity Services
-- **ProxyFix**: Replit-compatible proxy handling
-- **Session Management**: Secure cookie-based sessions
-
-### Deployment
-- **Replit Cloud**: Optimized for Replit deployment
-- **Environment Variables**: Secure credential management
-- **Health Checks**: Monitoring endpoints
-- **CORS Headers**: Public API access
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Python 3.11+
-- Google OAuth credentials
-- Replit account (for deployment)
-
-### Installation
-
-1. **Clone the repository**
+1. **Install Dependencies**
    ```bash
-   git clone <repository-url>
-   cd nous-personal-assistant
+   # Dependencies are managed automatically by Replit
    ```
 
-2. **Install dependencies**
+2. **Environment Setup**
    ```bash
-   pip install -r requirements.txt
+   # Required environment variables:
+   # DATABASE_URL - PostgreSQL connection string
+   # GOOGLE_CLIENT_ID - Google OAuth client ID  
+   # GOOGLE_CLIENT_SECRET - Google OAuth client secret
    ```
 
-3. **Set up environment variables**
-   ```bash
-   export GOOGLE_CLIENT_ID="your-google-client-id"
-   export GOOGLE_CLIENT_SECRET="your-google-client-secret"
-   export SESSION_SECRET="your-session-secret"
-   ```
-
-4. **Run the application**
+3. **Run Application**
    ```bash
    python main.py
    ```
 
-5. **Access the application**
-   Open your browser to `http://localhost:8080`
+4. **Access Application**
+   - Landing page: `http://localhost:5000/`
+   - Health check: `http://localhost:5000/health`
+   - Chat interface: `http://localhost:5000/app` (requires login)
 
-### Google OAuth Setup
+## Architecture
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select existing
-3. Enable Google+ API and Google Identity API
-4. Create OAuth 2.0 credentials
-5. Add authorized redirect URIs:
-   - `http://localhost:8080/oauth2callback`
-   - `https://your-replit-domain/oauth2callback`
+- **Backend**: Flask with SQLAlchemy ORM
+- **Frontend**: Vanilla JavaScript with CSS Grid/Flexbox
+- **Database**: PostgreSQL (production) / SQLite (development)
+- **Authentication**: Google OAuth 2.0
+- **Deployment**: Replit Cloud with public access
 
-## 📁 Project Structure
+## API Endpoints
 
-```
-nous-personal-assistant/
-├── app.py                 # Main Flask application
-├── main.py               # Entry point
-├── templates/
-│   ├── landing.html      # Landing page
-│   └── app.html          # Chat interface
-├── static/
-│   ├── styles.css        # Theme system & styles
-│   ├── app.js           # Chat application logic
-│   └── favicon.ico      # Favicons
-├── backup-12-27-2024/   # Pre-rebuild backup
-├── replit.toml          # Replit configuration
-└── README.md            # This file
-```
+### Health & Status
+- `GET /health` - Basic health check
+- `GET /healthz` - Detailed system metrics
+- `GET /api/feedback/status` - Feedback system status
 
-## 🎨 Theme System
-
-The application includes 10 professionally designed themes:
-
-1. **Light** - Clean, minimal design with light backgrounds
-2. **Dark** - Modern dark mode with blue accents
-3. **Ocean** - Blue-themed with ocean-inspired colors
-4. **Forest** - Green-themed with nature colors
-5. **Sunset** - Warm orange/red gradient theme
-6. **Purple** - Rich purple theme with elegant feel
-7. **Pink** - Vibrant pink theme with enhanced message bubbles
-8. **Peacock** - Teal and purple with animated rainbow text effects
-9. **Love** - Romantic red theme with heartbeat logo animation
-10. **Real Star** - Dark space theme with animated twinkling stars
-
-Themes are implemented using CSS variables and persist across sessions. Special themes include visual effects and animations.
-
-## 🔒 Security Features
-
-- **Google OAuth 2.0**: Industry-standard authentication
-- **CSRF Protection**: Built-in Flask CSRF protection
-- **Secure Headers**: X-Frame-Options, Content-Type-Options
-- **Session Security**: HTTP-only cookies, secure configuration
-- **Input Validation**: Message length limits and sanitization
-
-## 📱 Mobile Experience
-
-The chat interface is fully optimized for mobile devices:
-- Touch-friendly buttons and inputs
-- Responsive layout that adapts to screen size
-- Optimized font sizes and spacing
-- Swipe gestures (future enhancement)
-
-## 🚀 Deployment
-
-### Replit Deployment
-
-1. **Upload to Replit**
-   - Create new Repl
-   - Upload project files
-   - Set environment variables in Secrets
-
-2. **Configure OAuth**
-   - Add Replit domain to Google OAuth settings
-   - Update redirect URIs
-
-3. **Deploy**
-   - Click "Deploy" in Replit
-   - Application will be available at `https://your-repl.replit.app`
-
-### Environment Variables
-
-Required environment variables:
-- `GOOGLE_CLIENT_ID`: Google OAuth client ID
-- `GOOGLE_CLIENT_SECRET`: Google OAuth client secret
-- `SESSION_SECRET`: Flask session secret
-- `PORT`: Application port (default: 8080)
-
-## 🧪 Testing
-
-The application includes comprehensive testing:
-
-### Manual Testing Checklist
-- [ ] Landing page loads correctly
-- [ ] Google sign-in redirects properly
-- [ ] Chat interface loads after authentication
-- [ ] Messages send and receive properly
-- [ ] Theme switching works
-- [ ] Mobile responsiveness
-- [ ] Logout functionality
-
-### Health Checks
-- `/health` - Application health status
-- `/api/user` - User authentication status
-
-## 🔧 API Endpoints
-
-### Public Endpoints
+### Authentication
 - `GET /` - Landing page
 - `GET /login` - Initiate Google OAuth
-- `GET /oauth2callback` - OAuth callback
-- `GET /health` - Health check
+- `GET /logout` - End user session
+- `GET /oauth/callback` - OAuth callback handler
 
-### Authenticated Endpoints
-- `GET /app` - Chat interface
-- `POST /api/chat` - Send chat message
-- `GET /api/user` - Get user info
-- `GET /logout` - User logout
+### Application
+- `GET /app` - Main chat interface (authenticated)
+- `POST /api/chat` - Chat message processing
+- `POST /api/feedback/submit` - Submit user feedback
 
-## 📈 Performance
+## Development
 
-### Optimization Features
-- **Minimal Dependencies**: Lightweight JavaScript
-- **CSS Optimization**: Efficient selectors and animations
-- **Async Loading**: Non-blocking resource loading
-- **Caching**: Static asset caching headers
+### Project Structure
+```
+/
+├── app.py              # Main Flask application
+├── main.py             # Application entry point
+├── config/             # Configuration modules
+├── models/             # Database models
+├── routes/             # Route handlers
+├── utils/              # 64 utility modules
+├── templates/          # Jinja2 templates
+├── static/             # CSS, JavaScript, assets
+└── docs/               # Documentation
+```
 
-### Load Times
-- **Landing Page**: < 1 second
-- **Chat Interface**: < 2 seconds
-- **Theme Switching**: Instant (CSS variables)
+### Database Models
+- `User` - User accounts and authentication
+- `BetaUser` - Beta testing program participants
+- Additional models for various features
 
-## 🛣️ Roadmap
+### Testing
+```bash
+# Run test suite
+python -m pytest tests/
 
-### Phase 1: Core Features ✅
-- Google OAuth authentication
-- Chat interface
-- Theme system
-- Mobile responsive design
+# Health check test
+curl http://localhost:5000/health
+```
 
-### Phase 2: Enhanced Features (Future)
-- AI integration with advanced models
-- Voice input/output
-- File sharing
-- Multi-language support
-- Offline capabilities (PWA)
+## Deployment
 
-### Phase 3: Advanced Features (Future)
-- Real-time collaboration
-- Custom themes
-- Plugin system
-- Analytics dashboard
+The application is configured for deployment on Replit Cloud:
 
-## 🤝 Contributing
+1. Push code to repository
+2. Configure environment variables
+3. Deploy via Replit interface
+4. Application runs on port 5000 with public access
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+## Security
 
-## 📄 License
+- Google OAuth for secure authentication
+- CORS headers for API access
+- Session management with secure cookies
+- ProxyFix middleware for deployment
+- Input validation and sanitization
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## Cost Analysis
 
-## 🆘 Support
+**Monthly Operational Costs: ~$0.49**
+- OpenRouter API (Gemini Pro): ~$0.30/month
+- HuggingFace Inference: Free tier
+- Database hosting: Included with Replit
 
-For support and questions:
-- Check the GitHub issues
-- Review the documentation
-- Contact the development team
+**99.87% cost savings** compared to commercial alternatives while maintaining full functionality.
 
-## 📊 Changelog
+## Support
 
-### v2.0.0 - Scorched Earth Rebuild (2024-12-27)
-- Complete UI/UX rebuild
-- Google-only authentication
-- Professional chat interface
-- Multi-theme system
-- Mobile-first responsive design
-- Eliminated authentication loops
-- Modern CSS architecture
+For issues, questions, or feature requests:
+- Check the health endpoints for system status
+- Review logs in the `/logs` directory
+- Use the feedback API to report issues
 
-### v1.x.x - Legacy Version
-- Previous implementation archived in `backup/` directory
+## License
 
----
-
-**NOUS Personal Assistant** - Intelligence meets elegance. Built with ❤️ for the modern web.
+[Add your license information here]
