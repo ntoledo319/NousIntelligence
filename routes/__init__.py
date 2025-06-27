@@ -28,6 +28,7 @@ OPTIONAL_BLUEPRINTS = [
     {'name': 'dashboard', 'module': 'routes.dashboard', 'attr': 'dashboard_bp', 'url_prefix': '/dashboard'},
     {'name': 'smart_shopping', 'module': 'routes.smart_shopping_routes', 'attr': 'smart_shopping_bp', 'url_prefix': '/smart-shopping'},
     {'name': 'price_tracking', 'module': 'routes.price_routes', 'attr': 'price_tracking_bp', 'url_prefix': '/price-tracking'},
+    {'name': 'messaging_status', 'module': 'routes.messaging_status', 'attr': 'messaging_bp', 'url_prefix': '/api/messaging'},
 ]
 
 def register_all_blueprints(app: Flask) -> Flask:
