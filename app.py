@@ -1,6 +1,6 @@
 """
-Scorched Earth UI Rebuild - Google-Only Authentication
-Professional-Grade Chat Interface with Modern Design
+Backend Stability + Beta Suite Overhaul
+Professional-Grade Chat Interface with Health Monitoring & Beta Management
 """
 import os
 import json
@@ -12,27 +12,60 @@ from flask import Flask, render_template, redirect, url_for, session, request, j
 from werkzeug.middleware.proxy_fix import ProxyFix
 from config import AppConfig, PORT, HOST, DEBUG
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG, format='[%(asctime)s] %(levelname)s: %(message)s')
+# Import new backend stability components
+from utils.health_monitor import health_monitor
+from utils.database_optimizer import db_optimizer
+from routes.beta_admin import beta_admin_bp
+from routes.api.feedback import feedback_api
+
+# Configure comprehensive logging
+logging.basicConfig(
+    level=logging.DEBUG, 
+    format='[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+    handlers=[
+        logging.FileHandler('logs/app.log'),
+        logging.StreamHandler()
+    ]
+)
 logger = logging.getLogger(__name__)
 
 def create_app():
-    """Create Flask application with Google-only authentication"""
+    """Create Flask application with comprehensive backend stability features"""
     app = Flask(__name__, static_url_path=AppConfig.STATIC_URL_PATH)
     
     # Essential configuration
     app.secret_key = AppConfig.SECRET_KEY
     
-    # ProxyFix for Replit deployment
+    # ProxyFix for Replit deployment with enhanced settings
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
     
-    # Session configuration
+    # Session configuration with enhanced security
     app.config.update(
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE='Lax',
         SESSION_COOKIE_SECURE=False,  # HTTP for Replit
-        PERMANENT_SESSION_LIFETIME=86400  # 24 hours
+        PERMANENT_SESSION_LIFETIME=86400,  # 24 hours
+        # Database optimization settings
+        SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL'),
+        SQLALCHEMY_ENGINE_OPTIONS={
+            'pool_size': 2,
+            'max_overflow': 10,
+            'pool_timeout': 30,
+            'pool_recycle': 3600,
+            'pool_pre_ping': True
+        },
+        SQLALCHEMY_TRACK_MODIFICATIONS=False
     )
+    
+    # Initialize health monitoring
+    health_monitor.init_app(app)
+    
+    # Register blueprints for beta management
+    app.register_blueprint(beta_admin_bp)
+    app.register_blueprint(feedback_api)
+    
+    # Create logs directory
+    os.makedirs('logs', exist_ok=True)
     
     # Google OAuth configuration
     GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '1015094007473-337qm1ofr5htlodjmsf2p6r3fcht6pg2.apps.googleusercontent.com')
