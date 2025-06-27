@@ -1,0 +1,54 @@
+TITLE: “Backend Stability + Beta Suite Overhaul (Admin = toledonick98@gmail.com)”
+
+OBJECTIVE  
+1. **Audit & harden system stability**  
+   • Scan for unhandled promise rejections, memory leaks, and missing `try/catch`.  
+   • Add connection-pooling to every Postgres layer via `pg.Pool` (min=2, max=10).  
+   • Insert health-check at `/healthz` and graceful shutdown (SIGTERM) handlers.  
+   • Standardize port logic: `const PORT = process.env.PORT || 3000` (or framework equiv).  
+   • Wire Sentry (dsn from `SENTRY_DSN` secret) for trace + error capture.  
+   • Add load-test script (`npm run loadtest`) using **Artillery** hitting auth, chat, and DB endpoints.
+
+2. **Database optimisation**  
+   • Auto-generate and run EXPLAIN on all queries >100 ms; suggest indexes.  
+   • Enforce pooled connections; close pools on shutdown.  
+   • Migrate to `UUID` PKs where still auto-increment.  
+   • Add nightly backup script to `/scripts/backup.sql` called by cron.
+
+3. **Beta-program suite**  
+   • Create `beta_users` table (`id`, `email`, `invite_code`, `flag_set`, `joined_at`).  
+   • Integrate **Unleash** (self-hosted) for feature flags; configure SDK on server & client.  
+   • Make **toledonick98@gmail.com** super-admin (`role=OWNER`).  
+   • Auto-create `/admin/beta` console (server-side rendered) protected by:  
+       – Google OAuth login  
+       – Email check = `toledonick98@gmail.com`  
+   • Console abilities:  
+       - Generate / revoke invite links  
+       - Toggle feature flags globally or per user  
+       - Stage rollout % sliders  
+       - View live Sentry errors + performance graphs  
+       - Download CSV of tester feedback  
+       - Kick testers, reset flags  
+   • Add `/api/feedback` POST endpoint storing JSON feedback → `beta_feedback` table.
+
+4. **Documentation refresh**  
+   • Run JSDoc over all `.js`/`.ts` back-end files → markdown docs via `jsdoc-to-markdown`; inject into existing docs without renaming them.  
+   • Append architecture diagram (mermaid) showing auth, DB, beta suite, monitoring.  
+   • Update README sections: **Stability**, **Performance**, **Beta Program**, **Admin Console**.
+
+TASK LIST  
+A. **Pre-flight backup** repo → `/backup-$(date)`  
+B. **Static analysis**: eslint-strict, sql-lint, dep check.  
+C. **Implement objectives 1-4** above.  
+D. **CI**: add GitHub Action running unit tests + Lighthouse + Artillery; fail <90% tests.  
+E. **Commit** message: `feat(core): stability overhaul + beta suite + docs`.
+
+ACCEPTANCE CRITERIA  
+✓ All servers pass `/healthz`.  
+✓ Sentry captures uncaught errors.  
+✓ DB queries avg <50 ms (95th pct).  
+✓ Admin console visible only to toledonick98@gmail.com.  
+✓ Feature flags toggle without redeploy.  
+✓ Docs regenerated, no file names changed.  
+
+END OF PROMPT
