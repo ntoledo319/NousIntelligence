@@ -13,7 +13,9 @@ class TestSmokeSuite:
     @classmethod
     def setup_class(cls):
         """Setup test environment"""
-        cls.base_url = "http://localhost:5000"
+        # Use unified configuration for base URL
+        from config import PORT, HOST
+        cls.base_url = f"http://{HOST}:{PORT}"
         cls.session = requests.Session()
     
     def test_01_root_endpoint_public_access(self):

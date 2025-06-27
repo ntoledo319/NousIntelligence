@@ -2177,4 +2177,5 @@ def health_check():
 
 # Main entry point
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', debug=True)
+    from config import PORT, HOST, DEBUG
+    app.run(host=HOST, port=PORT, debug=DEBUG)

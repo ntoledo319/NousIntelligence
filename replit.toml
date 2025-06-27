@@ -9,20 +9,22 @@ deploymentTarget = "cloudrun"
 
 # Environment variables
 [env]
-PORT = "8080"
+PORT = "5000"
 FLASK_APP = "app.py"
 FLASK_ENV = "production"
 PYTHONUNBUFFERED = "1"
 PUBLIC_MODE = "true"
+BASE_URL = ""
+API_BASE_PATH = "/api/v1"
 
 # Server settings
 [server]
 host = "0.0.0.0"
-port = 8080
+port = 5000
 
 # Define port mappings
 [[ports]]
-localPort = 8080
+localPort = 5000
 externalPort = 80
 
 # Disable Replit authentication but keep app authentication
