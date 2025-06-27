@@ -1,0 +1,50 @@
+TITLE: “Doc Rebuild v2-PY — Flask, Sphinx, Swagger, Standard-File Enforcer”
+
+# ——— 0. PREP ———
+• Install tooling:  
+  replit.nix += { pkgs.python311Full pkgs.graphviz pkgs.nodejs pkgs.git };  
+  pip install sphinx sphinx-autobuild sphinx-autodoc-typehints sphinxcontrib-mermaid autoapi pdoc bandit flake8 flask-smorest apispec[marshmallow] sphinx_rtd_theme;  # 🔍 Sphinx & pals [oai_citation:0‡sphinx-doc.org](https://www.sphinx-doc.org/en/master/tutorial/automatic-doc-generation.html?utm_source=chatgpt.com) [oai_citation:1‡sphinx-doc.org](https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html?utm_source=chatgpt.com) [oai_citation:2‡github.com](https://github.com/mgaitan/sphinxcontrib-mermaid?utm_source=chatgpt.com) [oai_citation:3‡pypi.org](https://pypi.org/project/sphinxcontrib-mermaid/?utm_source=chatgpt.com)  
+  npm i -g markdown-link-check lighthouse-ci;  # link & perf audits [oai_citation:4‡github.com](https://github.com/tcort/markdown-link-check?utm_source=chatgpt.com) [oai_citation:5‡npmjs.com](https://www.npmjs.com/package/markdown-link-check/v/3.7.3?utm_source=chatgpt.com)  
+• checkpoint “deps-installed”.
+
+# ——— 1. SOURCE SCAN ———
+• **Sphinx + AutoAPI** → build HTML docs from every `.py` (docstrings + type hints). [oai_citation:6‡sphinx-doc.org](https://www.sphinx-doc.org/en/master/tutorial/automatic-doc-generation.html?utm_source=chatgpt.com) [oai_citation:7‡sphinx-doc.org](https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html?utm_source=chatgpt.com)  
+• **pdoc** fallback for any module AutoAPI skips (keeps coverage 100 %). [oai_citation:8‡pdoc.dev](https://pdoc.dev/?utm_source=chatgpt.com) [oai_citation:9‡pdoc3.github.io](https://pdoc3.github.io/pdoc/?utm_source=chatgpt.com)  
+• **Flask-Smorest / apispec** → spit OpenAPI 3.1 → `docs/api/openapi.yaml`, serve Swagger UI at `/docs/api`. [oai_citation:10‡obikastanya.medium.com](https://obikastanya.medium.com/generate-automated-restfulapi-documentation-using-swagger-and-flask-de647559dd50?utm_source=chatgpt.com) [oai_citation:11‡stackoverflow.com](https://stackoverflow.com/questions/75840827/how-to-properly-generate-a-documentation-with-swagger-for-flask?utm_source=chatgpt.com)  
+• **Bandit & Flake8** → security + style HTML reports → `docs/reports/`. [oai_citation:12‡github.com](https://github.com/PyCQA/bandit?utm_source=chatgpt.com) [oai_citation:13‡bandit.readthedocs.io](https://bandit.readthedocs.io/?utm_source=chatgpt.com) [oai_citation:14‡flake8.pycqa.org](https://flake8.pycqa.org/?utm_source=chatgpt.com) [oai_citation:15‡medium.com](https://medium.com/python-pandemonium/what-is-flake8-and-why-we-should-use-it-b89bd78073f2?utm_source=chatgpt.com)  
+• **Mermaid diagrams**:  
+  – ER (SQLAlchemy inspect) → `schema.mmd`.  
+  – Sequence diagram for login → DB flow → `flow.mmd`.  
+  – Use `sphinxcontrib-mermaid` to render in docs. [oai_citation:16‡github.com](https://github.com/mgaitan/sphinxcontrib-mermaid?utm_source=chatgpt.com) [oai_citation:17‡pypi.org](https://pypi.org/project/sphinxcontrib-mermaid/?utm_source=chatgpt.com)  
+• `git ls-files '*.*' | egrep -i '(doc|guide|notes|spec|howto).(md|rst|adoc)'` → enqueue ALL weird docs for rewrite.  
+• checkpoint “raw-docs”.
+
+# ——— 2. STANDARD FILE ENFORCER ———
+For each file below, create if missing **or** patch body, keep filename/front-matter intact:  
+  README.md · LICENSE · CONTRIBUTING.md · CODE_OF_CONDUCT.md (Contributor Covenant 2.1) · SECURITY.md · CHANGELOG.md (Keep-a-Changelog) · ARCHITECTURE.md.  
+Checkpoint “std-files-ok”.
+
+# ——— 3. QUALITY GATES ———
+• `markdown-link-check` every markdown; fail on 4xx/5xx. [oai_citation:18‡github.com](https://github.com/tcort/markdown-link-check?utm_source=chatgpt.com) [oai_citation:19‡npmjs.com](https://www.npmjs.com/package/markdown-link-check/v/3.7.3?utm_source=chatgpt.com)  
+• `lhci autorun` on built docs; enforce perf & a11y ≥ 90.  
+Checkpoint “quality-green”.
+
+# ——— 4. CI / CD ———
+• `.github/workflows/docs.yml` runs steps 1-3 on push to main, caches pip + node + sphinx.  
+• Deploy `docs/_build/html` to `gh-pages` with **peaceiris/actions-gh-pages**. [oai_citation:20‡github.com](https://github.com/peaceiris/actions-gh-pages?utm_source=chatgpt.com) [oai_citation:21‡github.com](https://github.com/marketplace/actions/github-pages-action?utm_source=chatgpt.com)  
+Checkpoint “ci-ready”.
+
+# ——— 5. MERGE & RELEASE ———
+• Overwrite bodies of all docs (including funky names).  
+• Append CHANGELOG: “Rebuilt docs from live code – $(date +%Y-%m-%d)”.  
+• Commit: `docs(rebuild): flask-sphinx-swagger regen + std files`.
+
+ACCEPTANCE CRITERIA
+✓ Sphinx HTML renders (search works, Mermaid diagrams visible).  
+✓ Swagger UI live at `/docs/api`.  
+✓ Bandit & Flake8 reports show **0 high-severity** issues.  
+✓ README, CONTRIBUTING, LICENSE, CODE_OF_CONDUCT, SECURITY, CHANGELOG, ARCHITECTURE present and current.  
+✓ markdown-link-check & Lighthouse CI pass.  
+✓ GitHub Action pushes docs to `gh-pages`.
+
+END OF PROMPT
