@@ -1,0 +1,105 @@
+💣  OPERATION ZERO-REDIRECT  💣
+Purpose: eradicate the “You must be logged in” loop on Replit by wiping the codebase (except `.replit` and Git history) and rebuilding a minimal, proxy-aware, cookie-secure stack with ONE backend, ONE UI, ONE workflow, and a smoke-test gate that blocks any future redirect regressions.
+NOTE: The Agent **cannot edit `.replit`**; everything is done in new code files that obey its current `run` command.
+
+================================================================================
+GLOBAL RULES
+--------------------------------------------------------------------------------
+1. Keep only `.replit`, `.git`, and `.gitignore`; everything else is recreated.
+2. Never hard-code secrets—read them from Replit **Secrets**.
+3. Comment every non-obvious choice.
+4. Abort commit if smoke tests fail.
+
+================================================================================
+PHASE 1 — BACK-UP & PURGE
+--------------------------------------------------------------------------------
+1. `git tag pre-nuke-$(date +%Y%m%d)`
+2. `git ls-files | grep -vE '^(\\.replit|\\.git|\\.gitignore)$' | xargs git rm -rf`
+3. `git commit -m "nuke: delete legacy stack"`
+
+================================================================================
+PHASE 2 — REBUILD BACKEND
+--------------------------------------------------------------------------------
+A. **Choose stack** by inspecting the `.replit` run line  
+   • `node`  → scaffold **Express** (`server/index.js`)  
+   • `python`→ scaffold **Flask** (`app.py`) wrapped with `ProxyFix(x_for=1,x_proto=1)`  
+   • else    → default to Node/Express.
+
+B. **Common backend requirements**  
+   • `app.set('trust proxy', 1);`  // cookies survive Replit proxy  
+   • Session cookies: `{ httpOnly:true, sameSite:'lax', secure:process.env.NODE_ENV==='production' }`  
+   • Routes:  
+       - `POST /api/login`   → create session  
+       - `POST /api/logout`  → destroy session  
+       - `GET  /api/me`      → return user JSON (401 if none)  
+   • Read secrets: `SESSION_SECRET`, any `OAUTH_*`, `JWT_SECRET`.
+
+================================================================================
+PHASE 3 — REBUILD FRONTEND / UI
+--------------------------------------------------------------------------------
+1. `public/index.html` – login form posting to `/api/login`.
+2. `public/app.html`    – protected page: on load `fetch("/api/me",{credentials:"include"})`; if 401 → `window.location="/"`.
+3. `_redirects` file (Netlify style) placed in `public/` or project root:  
+       /*    /index.html   200
+   (avoids SPA refresh 404s → auth loops).
+4. Minimal JS/CSS either via **Vite** (matching Node) or plain script tags (matching Flask).
+
+================================================================================
+PHASE 4 — ONE WORKFLOW
+--------------------------------------------------------------------------------
+Create `replit.workflows` with ID **build-and-run**:
+
+name = "build-and-run"
+[[stages]]
+  name = "Install & Test"
+  run  = "npm ci && npm run test:smoke"        # or `pip install -r requirements.txt && pytest`
+[[stages]]
+  name = "Start"
+  run  = "npm start"                           # or `python app.py`
+
+================================================================================
+PHASE 5 — SMOKE TEST SUITE
+--------------------------------------------------------------------------------
+Add `tests/authLoop.spec.js` (or `.py`):
+
+1. `GET /`                         → expect **200**
+2. `GET /app.html` unauth          → expect **401** or **302 → /**  
+3. `POST /api/login` (fixture)     → expect **200** **+ Set-Cookie**
+4. `GET /app.html` with cookie     → expect **200**
+5. `POST /api/logout`              → expect **204**
+6. `GET /app.html` after logout    → expect **401/302**
+
+Script:
+- Node  → `npm set-script test:smoke "node tests/authLoop.spec.js"`
+- Python→ `pytest -q tests/authLoop.spec.py`
+
+Commit fails if any test fails.
+
+================================================================================
+PHASE 6 — DEPLOY
+--------------------------------------------------------------------------------
+1. `git add . && git commit -m "revive: fresh proxy-safe stack"`
+2. Trigger **Deployment** in Replit.
+3. Echo to console:  
+   • ✔️ files created  
+   • ✔️ secrets required  
+   • ✔️ preview URL  
+   • 🚨 smoke-test summary
+
+================================================================================
+FAIL-SAFE & ROLLBACK
+--------------------------------------------------------------------------------
+`git reset --hard pre-nuke-*` instantly restores the old repo if build or tests blow up.
+
+================================================================================
+POST-DEPLOY CHECKLIST
+--------------------------------------------------------------------------------
+☐ Add all secrets in the Replit sidebar (build will fail without them).  
+☐ Verify only ONE running workflow (avoid port wars).  
+☐ In DevTools, confirm session cookie: **Secure** + **SameSite=Lax**.  
+☐ OAuth redirects point to `https://<your-app>.replit.app`.  
+☐ Keep the `_redirects` catch-all when adding routing later.  
+☐ Re-run smoke tests after every dependency bump.
+
+================================================================================
+🚀  EXECUTE.  The redirect loop is now a myth told to scare junior devs.  🚀
