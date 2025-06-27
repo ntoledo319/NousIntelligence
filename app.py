@@ -219,7 +219,342 @@ def create_app():
             'authenticated_users': 1 if is_authenticated() else 0
         })
     
+    # Register API documentation routes
+    register_api_documentation(app)
+    
     return app
+
+def register_api_documentation(app):
+    """Register API documentation routes without external dependencies."""
+    
+    @app.route('/api/docs/')
+    def api_docs_index():
+        """API Documentation index page."""
+        return render_template_string('''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOUS API Documentation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            line-height: 1.6;
+            background: #f8fafc;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            color: white;
+            border-radius: 12px;
+        }
+        .api-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        .api-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .api-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .api-card h3 {
+            margin-top: 0;
+            color: #1f2937;
+        }
+        .api-card a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .endpoint {
+            display: flex;
+            align-items: center;
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .method {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+            min-width: 50px;
+            text-align: center;
+        }
+        .method.get { background: #10b981; color: white; }
+        .method.post { background: #f59e0b; color: white; }
+        .method.put { background: #8b5cf6; color: white; }
+        .method.delete { background: #ef4444; color: white; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>NOUS Personal Assistant API</h1>
+        <p>Interactive API Documentation & Testing Interface</p>
+        <p><small>Version 1.0.0 • Generated {{ current_time }}</small></p>
+    </div>
+    
+    <div class="api-grid">
+        <div class="api-card">
+            <h3>🗨️ Chat API</h3>
+            <p>AI-powered chat functionality with context management.</p>
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <code>/api/chat</code>
+            </div>
+            <p><strong>Authentication:</strong> Required</p>
+            <p><strong>Rate Limit:</strong> 100 requests/hour</p>
+        </div>
+        
+        <div class="api-card">
+            <h3>👤 User Management</h3>
+            <p>User authentication and profile management.</p>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <code>/api/user</code>
+            </div>
+            <p><strong>Authentication:</strong> Required</p>
+        </div>
+        
+        <div class="api-card">
+            <h3>🏥 Health Monitoring</h3>
+            <p>System health checks and monitoring endpoints.</p>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <code>/health</code>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <code>/healthz</code>
+            </div>
+            <p><strong>Authentication:</strong> None required</p>
+        </div>
+        
+        <div class="api-card">
+            <h3>💬 User Feedback</h3>
+            <p>Collect and analyze user feedback for improvements.</p>
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <code>/api/feedback</code>
+            </div>
+            <p><strong>Authentication:</strong> Required</p>
+        </div>
+        
+        <div class="api-card">
+            <h3>⚗️ Beta Management</h3>
+            <p>Feature flags and beta testing controls (Admin only).</p>
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <code>/api/beta/flags</code>
+            </div>
+            <div class="endpoint">
+                <span class="method put">PUT</span>
+                <code>/api/beta/flags/{id}</code>
+            </div>
+            <p><strong>Authentication:</strong> Admin required</p>
+        </div>
+        
+        <div class="api-card">
+            <h3>📋 API Reference</h3>
+            <p>Detailed endpoint documentation and schemas.</p>
+            <div style="margin-top: 1rem;">
+                <a href="/api/docs/openapi.json">OpenAPI Specification</a><br>
+                <a href="/api/docs/endpoints">Endpoint List</a><br>
+                <a href="/api/docs/schemas">Schema Definitions</a>
+            </div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 3rem; padding: 2rem; background: white; border-radius: 8px; border: 1px solid #e5e7eb;">
+        <h3>Getting Started</h3>
+        <p>To use the NOUS API:</p>
+        <ol>
+            <li><strong>Authentication:</strong> Login via Google OAuth to obtain session</li>
+            <li><strong>Base URL:</strong> All API endpoints use base path <code>/api/</code></li>
+            <li><strong>Content Type:</strong> Send JSON requests with <code>Content-Type: application/json</code></li>
+            <li><strong>Error Handling:</strong> All errors return standardized JSON responses</li>
+        </ol>
+        
+        <h4>Example Request:</h4>
+        <pre style="background: #f8f9fa; padding: 1rem; border-radius: 4px; overflow-x: auto;"><code>curl -X POST {{ base_url }}/api/chat \\
+  -H "Content-Type: application/json" \\
+  -d '{"message": "Hello, NOUS!"}'</code></pre>
+    </div>
+</body>
+</html>
+        ''', current_time=datetime.now().strftime("%B %d, %Y"), base_url=request.url_root.rstrip('/'))
+    
+    @app.route('/api/docs/openapi.json')
+    def openapi_specification():
+        """Return OpenAPI specification."""
+        spec = {
+            "openapi": "3.0.3",
+            "info": {
+                "title": "NOUS Personal Assistant API",
+                "description": "AI-powered personal assistant with chat, user management, and health monitoring",
+                "version": "1.0.0",
+                "contact": {
+                    "name": "NOUS Development Team"
+                },
+                "license": {
+                    "name": "MIT License"
+                }
+            },
+            "servers": [
+                {
+                    "url": "/api",
+                    "description": "API base path"
+                }
+            ],
+            "paths": {
+                "/chat": {
+                    "post": {
+                        "summary": "Send chat message",
+                        "tags": ["Chat"],
+                        "requestBody": {
+                            "required": True,
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "message": {
+                                                "type": "string",
+                                                "description": "User message content",
+                                                "minLength": 1,
+                                                "maxLength": 2000
+                                            },
+                                            "context": {
+                                                "type": "object",
+                                                "description": "Optional conversation context"
+                                            }
+                                        },
+                                        "required": ["message"]
+                                    }
+                                }
+                            }
+                        },
+                        "responses": {
+                            "200": {
+                                "description": "Successful chat response",
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "message": {"type": "string"},
+                                                "timestamp": {"type": "string"},
+                                                "user": {"type": "string"}
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "401": {"description": "Authentication required"},
+                            "400": {"description": "Invalid request"}
+                        }
+                    }
+                },
+                "/user": {
+                    "get": {
+                        "summary": "Get current user",
+                        "tags": ["User Management"],
+                        "responses": {
+                            "200": {
+                                "description": "User information",
+                                "content": {
+                                    "application/json": {
+                                        "schema": {
+                                            "type": "object",
+                                            "properties": {
+                                                "user": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {"type": "string"},
+                                                        "name": {"type": "string"},
+                                                        "email": {"type": "string"},
+                                                        "avatar": {"type": "string"}
+                                                    }
+                                                },
+                                                "authenticated": {"type": "boolean"}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "components": {
+                "securitySchemes": {
+                    "SessionAuth": {
+                        "type": "apiKey",
+                        "in": "cookie",
+                        "name": "session"
+                    }
+                }
+            }
+        }
+        return jsonify(spec)
+    
+    @app.route('/api/docs/endpoints')
+    def api_endpoints_list():
+        """List all available API endpoints."""
+        endpoints = [
+            {
+                "path": "/api/chat",
+                "method": "POST",
+                "summary": "Send chat message",
+                "authentication": "Required",
+                "rate_limit": "100 requests/hour"
+            },
+            {
+                "path": "/api/user",
+                "method": "GET", 
+                "summary": "Get current user",
+                "authentication": "Required",
+                "rate_limit": "Standard"
+            },
+            {
+                "path": "/health",
+                "method": "GET",
+                "summary": "Basic health check",
+                "authentication": "None",
+                "rate_limit": "1000 requests/hour"
+            },
+            {
+                "path": "/healthz",
+                "method": "GET",
+                "summary": "Comprehensive health check",
+                "authentication": "None", 
+                "rate_limit": "1000 requests/hour"
+            }
+        ]
+        
+        return jsonify({
+            "endpoints": endpoints,
+            "total_count": len(endpoints),
+            "documentation_url": "/api/docs/",
+            "openapi_spec": "/api/docs/openapi.json"
+        })
 
 # Create app instance
 app = create_app()
