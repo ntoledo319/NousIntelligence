@@ -10,6 +10,7 @@ import urllib.request
 from datetime import datetime
 from flask import Flask, render_template, redirect, url_for, session, request, jsonify, flash
 from werkzeug.middleware.proxy_fix import ProxyFix
+from config import AppConfig, PORT, HOST, DEBUG
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format='[%(asctime)s] %(levelname)s: %(message)s')
@@ -17,10 +18,10 @@ logger = logging.getLogger(__name__)
 
 def create_app():
     """Create Flask application with Google-only authentication"""
-    app = Flask(__name__)
+    app = Flask(__name__, static_url_path=AppConfig.STATIC_URL_PATH)
     
     # Essential configuration
-    app.secret_key = os.environ.get('SESSION_SECRET', 'scorched-earth-rebuild-2025')
+    app.secret_key = AppConfig.SECRET_KEY
     
     # ProxyFix for Replit deployment
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
@@ -36,7 +37,7 @@ def create_app():
     # Google OAuth configuration
     GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '1015094007473-337qm1ofr5htlodjmsf2p6r3fcht6pg2.apps.googleusercontent.com')
     GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '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')
-    GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid_connect_configuration"
+    GOOGLE_DISCOVERY_URL = f"{AppConfig.GOOGLE_OAUTH_BASE_URL}/.well-known/openid_connect_configuration"
     
     @app.after_request
     def add_security_headers(response):
@@ -145,7 +146,8 @@ def create_app():
         
         return render_template('app.html', user=session['user'])
     
-    @app.route('/api/chat', methods=['POST'])
+    @app.route(f'{AppConfig.API_BASE_PATH}/chat', methods=['POST'])
+    @app.route(f'{AppConfig.API_LEGACY_PATH}/chat', methods=['POST'])  # Legacy support
     def api_chat():
         """Chat API endpoint"""
         if not is_authenticated():
@@ -166,7 +168,8 @@ def create_app():
         
         return jsonify(response)
     
-    @app.route('/api/user')
+    @app.route(f'{AppConfig.API_BASE_PATH}/user')
+    @app.route(f'{AppConfig.API_LEGACY_PATH}/user')  # Legacy support
     def api_user():
         """Get current user info"""
         if not is_authenticated():
@@ -189,5 +192,4 @@ def create_app():
 app = create_app()
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8080))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host=HOST, port=PORT, debug=DEBUG)

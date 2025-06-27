@@ -160,17 +160,38 @@ class ChatApp {
     }
     
     async callChatAPI(message) {
-        const response = await fetch(this.config.apiEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            credentials: 'same-origin',
-            body: JSON.stringify({ message })
-        });
+        // Try primary API endpoint first, then fallback to legacy
+        const endpoints = [
+            this.config.apiEndpoint,
+            this.config.legacyApiEndpoint
+        ].filter(Boolean);
         
-        return response;
+        for (const endpoint of endpoints) {
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ message })
+                });
+                
+                if (response.ok) {
+                    return response;
+                } else if (response.status !== 404) {
+                    // If it's not a 404, return the response (auth error, etc.)
+                    return response;
+                }
+            } catch (error) {
+                console.warn(`API endpoint ${endpoint} failed:`, error);
+                continue;
+            }
+        }
+        
+        // If all endpoints fail, throw error
+        throw new Error('All API endpoints failed');
     }
     
     addMessage(messageData) {
