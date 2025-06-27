@@ -44,7 +44,7 @@ Chat API
 ~~~~~~~~
 
 **Main Chat Endpoint**
-  ``POST /api/chat``
+  ``POST /api/v1/chat``
   
   Primary chat interface for AI interactions.
   
@@ -75,7 +75,7 @@ Chat API
       }
 
 **Chat Handler Registration**
-  ``GET /api/chat/handlers``
+  ``GET /api/v1/chat/handlers``
   
   Lists all available chat handlers and their intent patterns.
 
@@ -83,7 +83,7 @@ User Management API
 ~~~~~~~~~~~~~~~~~~~
 
 **Get Current User**
-  ``GET /api/user``
+  ``GET /api/v1/user``
   
   Returns current authenticated user information.
   
@@ -134,7 +134,7 @@ Health Monitoring API
       }
 
 **Chat API Health**
-  ``GET /api/health/chat``
+  ``GET /api/v1/health/chat``
   
   Chat system specific health checks.
 

@@ -45,7 +45,7 @@ GOOGLE_CLIENT_SECRET=your-google-client-secret
 python -c "from test_oauth_integration import test_google_oauth_credentials; test_google_oauth_credentials()"
 
 # Test via health API
-curl https://your-app.replit.app/api/health/google-oauth
+curl https://your-app.replit.app/api/v1/health/google-oauth
 ```
 
 ### Available Services
@@ -78,7 +78,7 @@ OPENAI_API_KEY=sk-your-openai-api-key
 curl -H "Authorization: Bearer $OPENAI_API_KEY" https://api.openai.com/v1/models
 
 # Test via health API
-curl https://your-app.replit.app/api/health/ai-services
+curl https://your-app.replit.app/api/v1/health/ai-services
 ```
 
 ### OpenRouter API
@@ -100,7 +100,7 @@ OPENROUTER_API_KEY=sk-or-v1-your-openrouter-key
 curl -H "Authorization: Bearer $OPENROUTER_API_KEY" https://openrouter.ai/api/v1/models
 
 # Test via health API
-curl https://your-app.replit.app/api/health/ai-services
+curl https://your-app.replit.app/api/v1/health/ai-services
 ```
 
 ### Hugging Face API (Optional)
@@ -141,23 +141,23 @@ DATABASE_URL=postgresql://username:password@host:port/database
 python -c "from test_oauth_integration import test_database_config; test_database_config()"
 
 # Test via health API
-curl https://your-app.replit.app/api/health/database
+curl https://your-app.replit.app/api/v1/health/database
 ```
 
 ## Health Check Endpoints
 
 ### Comprehensive Health Check
 ```bash
-GET /api/health/
+GET /api/v1/health/
 ```
 
 Returns overall system health with status of all services.
 
 ### Individual Service Checks
 ```bash
-GET /api/health/google-oauth     # Google OAuth status
-GET /api/health/ai-services      # All AI services status
-GET /api/health/database         # Database connectivity
+GET /api/v1/health/google-oauth     # Google OAuth status
+GET /api/v1/health/ai-services      # All AI services status
+GET /api/v1/health/database         # Database connectivity
 ```
 
 ### Response Format
@@ -274,7 +274,7 @@ send_email(
 ## Monitoring and Maintenance
 
 ### Regular Health Checks
-- Monitor `/api/health/` endpoint
+- Monitor `/api/v1/health/` endpoint
 - Set up alerts for service degradation
 - Review API usage and rate limits
 

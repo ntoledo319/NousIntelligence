@@ -1,3 +1,15 @@
+
+---
+**MIGRATION NOTICE**: This file contains legacy information and may be outdated.
+
+**Current Documentation**: 
+- Complete documentation: `make docs && make serve-docs`
+- API documentation: `/api/docs/` (when app is running)
+- Architecture guide: `docs/architecture.rst`
+
+**Last Updated**: June 27, 2025
+---
+
 # NOUS Personal Assistant - Comprehensive Function Analysis
 
 ## Executive Summary

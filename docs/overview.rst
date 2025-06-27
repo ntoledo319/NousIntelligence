@@ -189,7 +189,7 @@ Monitoring & Health Checks
 System Health Monitoring
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* **Health Endpoints**: ``/healthz`` and ``/api/health`` for monitoring
+* **Health Endpoints**: ``/healthz`` and ``/api/v1/health`` for monitoring
 * **Database Health**: Connection status and query performance tracking
 * **Service Dependencies**: External API status monitoring
 
