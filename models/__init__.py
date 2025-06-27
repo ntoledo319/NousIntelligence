@@ -21,6 +21,14 @@ class SystemSetting:
     """Placeholder SystemSetting model"""
     pass
 
+class WeatherLocation:
+    """Placeholder WeatherLocation model"""
+    pass
+
+class UserSettings:
+    """Placeholder UserSettings model"""
+    pass
+
 # Create a simple db placeholder for routes that expect it
 class MockDB:
     """Mock database interface for backwards compatibility"""
@@ -32,6 +40,6 @@ db = MockDB()
 
 # Export models at the package level
 __all__ = [
-    'User', 'Task', 'UserPreference', 'SystemSetting', 'db',
+    'User', 'Task', 'UserPreference', 'SystemSetting', 'WeatherLocation', 'UserSettings', 'db',
     'init_db', 'get_db_health'
 ]

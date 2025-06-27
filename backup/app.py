@@ -96,6 +96,17 @@ try:
         'pool_size': 20,        # Increase maximum connections in pool (was 10)
         'max_overflow': 10,     # Increase overflow connections (was 5)
         'pool_timeout': 30,     # Timeout for getting a connection from pool (seconds)
+    }
+except ValueError as e:
+    print(f"Database configuration error: {e}")
+    # Fallback to SQLite for development
+    from pathlib import Path
+    db_path = Path(__file__).resolve().parent / 'instance' / 'nous.db'
+    app.config["SQLALCHEMY_DATABASE_URI"] = f'sqlite:///{db_path}'
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
         'echo_pool': False,     # Don't log all pool checkouts/checkins
         'pool_use_lifo': True,  # Use last-in-first-out to reduce number of open connections
     }
