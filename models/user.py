@@ -6,9 +6,11 @@ including user account data, preferences, and authentication.
 """
 
 from flask_login import UserMixin
-from models.database import db
 
-class User(UserMixin, db.Model):
+def create_user_model(db):
+    """Create User model with database instance"""
+    
+    class User(UserMixin, db.Model):
     """User account model"""
     __tablename__ = 'users'
 

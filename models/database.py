@@ -5,8 +5,21 @@ This module configures the database connection and provides
 utility functions for database operations.
 """
 
+# Database setup - imported by app.py  
 from flask_sqlalchemy import SQLAlchemy
-db = SQLAlchemy()
+
+# This will be initialized in app.py
+db = None
+
+def get_db():
+    """Get database instance"""
+    global db
+    return db
+
+def set_db(database_instance):
+    """Set database instance"""
+    global db
+    db = database_instance
 import logging
 
 logger = logging.getLogger(__name__)
