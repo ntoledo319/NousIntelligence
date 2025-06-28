@@ -1,0 +1,190 @@
+Below is your complete, enhanced Integration Agent prompt, now including the full ai_system_brain.py AI brain module at the end, alongside previous templates. This single plain-text prompt contains everything the agent needs—crawl, optimize, integrate modules, run CI, adapt to your project, and wire it all—no markdown or code blocks, just plain chat text:
+
+You are the MTM‑CE Integration Agent.
+Your mission:
+	1.	Crawl and analyze the entire Flask codebase (all .py, .html, .js, config, script files) to map imports, dependencies, unused code, CPU/I‑O hotspots, security issues, hardcoded secrets, unsanitized inputs, and style violations.
+	2.	Generate an “Opportunities” list with file paths, lines, and suggested improvements: remove unused imports, convert loops to comprehensions, move heavy work to async/Celery, add input validation, apply structured logging, sanitize inputs.
+	3.	Apply safe automated refactors: run autoflake to remove dead code, black and isort for formatting, bandit for security, add @lru_cache on pure helper functions. Replace blocking I/O or CPU-heavy logic in handlers with Celery tasks. Add marshmallow schemas for validation. Ensure secrets are from config and structured logging is enabled.
+	4.	Integrate all MTM‑CE modules below (adapt imports, function names, structure to fit project).
+	5.	Wire everything into app.py: ensure init_parallel (Celery) runs first, then plugin_registry.init_all(app), then plugin_registry.wire_blueprints(app). Add monitoring hooks before_request and after_request if missing.
+	6.	Run CI via scripts/deploy_and_audit.py audit (autoflake, black, isort, bandit, pytest). Auto‑fix failures, rerun; if issues remain, annotate TODOs in code.
+	7.	Commit with message “mtmce: integrate/refactor <features…> + codebase optimizations + monitoring + security hardening + ai_brain module”.
+	8.	Output a Markdown summary: ✅ Implemented; ⚙️ Refactored; 🔒 Hardened; 📈 Monitored; 🤖 AI Brain integrated; ⚠️ Skipped; ❌ Errors. Ignore deprecated or external PoC modules.
+
+Code templates:
+
+a) Plugin Loader & Registry (mtmce/plugins/init.py)
+import importlib
+from functools import wraps
+class PluginRegistry:
+def init(self):
+self._plugins = {}
+def register(self, name, module_path, blueprint=None, init_fn=None):
+if name in self._plugins: return
+module = importlib.import_module(module_path)
+self._plugins[name] = {‘module’: module, ‘blueprint’: blueprint, ‘init_fn’: init_fn}
+def init_all(self, app):
+for cfg in self._plugins.values():
+if cfg[‘init_fn’]: getattr(cfg[‘module’], cfg[‘init_fn’])(app)
+def wire_blueprints(self, app):
+for cfg in self._plugins.values():
+if cfg[‘blueprint’]: app.register_blueprint(cfg[‘blueprint’])
+def get(self, name):
+return self._plugins.get(name, {}).get(‘module’)
+def list_plugins(self):
+return list(self._plugins.keys())
+
+b) High‑Performance Celery Parallel Engine (mtmce/features/parallel.py)
+from celery import Celery, shared_task
+def init_parallel(app):
+celery = Celery(app.import_name, broker=app.config.get(‘CELERY_BROKER_URL’,‘redis://localhost:6379/0’), backend=app.config.get(‘CELERY_RESULT_BACKEND’,‘redis://localhost:6379/1’))
+celery.conf.update(app.config.get(‘CELERY’, {}))
+class ContextTask(celery.Task):
+def call(self, *args, **kwargs):
+with app.app_context(): return self.run(*args, **kwargs)
+celery.Task = ContextTask
+app.extensions[‘celery’] = celery
+app.celery = celery
+@shared_task(bind=True, ignore_result=False)
+def heavy_compute(self, payload):
+self.update_state(meta={‘step’:‘start’})
+return do_intensive_job(payload)
+
+c) Dynamic Compression (mtmce/features/compress.py)
+import zstandard as zstd
+from flask import current_app
+def init_compression(app):
+app.compressor = zstd.ZstdCompressor(level=3)
+app.decompressor = zstd.ZstdDecompressor()
+def compress_data(data): return current_app.compressor.compress(data)
+def decompress_data(blob): return current_app.decompressor.decompress(blob)
+
+d) Neural Net Brain Loader (mtmce/features/brain.py)
+import torch
+from flask import current_app
+def init_brain(app):
+model = torch.jit.load(app.config.get(‘BRAIN_MODEL_PATH’,’/models/brain.pt’)).eval()
+current_app.brain = model
+def plan_and_reason(prompt, context):
+inputs = current_app.brain.tokenize(prompt, context)
+outputs = current_app.brain.generate(**inputs)
+return outputs.text()
+
+e) Self‑Learning (mtmce/features/selflearn.py)
+import sqlite3, datetime
+from flask import current_app
+def init_selflearn(app):
+conn = sqlite3.connect(app.config.get(‘SELFLEARN_DB’,‘selflearn.db’))
+conn.execute(‘CREATE TABLE IF NOT EXISTS feedback(ts TEXT,user TEXT,input TEXT,response TEXT,rating INTEGER)’)
+conn.commit(); conn.close()
+def log_interaction(user, inp, resp, rating=None):
+conn = sqlite3.connect(current_app.config[‘SELFLEARN_DB’])
+conn.execute(‘INSERT INTO feedback VALUES(?,?,?,?,?)’, (datetime.datetime.utcnow().isoformat(), user, inp, resp, rating))
+conn.commit(); conn.close()
+def retrain_if_needed(threshold=100):
+conn = sqlite3.connect(current_app.config[‘SELFLEARN_DB’])
+count = conn.execute(‘SELECT COUNT(*) FROM feedback’).fetchone()[0]; conn.close()
+if count >= threshold: trigger_retraining_pipeline()
+
+f) Universal Data Extractor (mtmce/features/dataextract.py)
+import requests, pandas as pd
+from io import BytesIO
+def fetch_api_json(url, **kwargs): r=requests.get(url,params=kwargs); r.raise_for_status(); return r.json()
+def extract_from_csv_url(url): r=requests.get(url); return pd.read_csv(BytesIO(r.content))
+
+g) Cross‑Reference Engine (mtmce/features/xref.py)
+import whoosh.index, whoosh.qparser
+from flask import current_app
+def init_xref(app): current_app.xref = whoosh.index.open_dir(app.config.get(‘XREF_INDEX_DIR’,‘xref_index’))
+def search_xref(query_str): qp = whoosh.qparser.QueryParser(“content”,schema=current_app.xref.schema); with current_app.xref.searcher() as s: return [hit[‘path’] for hit in s.search(qp.parse(query_str),limit=10)]
+
+h) Scheduling Blueprint (mtmce/features/schedule.py)
+from flask import Blueprint, request, jsonify
+from icalendar import Calendar,Event
+import uuid, datetime
+sch_bp = Blueprint(‘scheduler’,name,url_prefix=’/schedule’)
+@sch_bp.route(’/add’,methods=[‘POST’])
+def add_event(): d=request.json; cal=Calendar(); ev=Event(); ev.add(‘uid’,d.get(‘uid’,str(uuid.uuid4()))); ev.add(‘dtstart’,datetime.datetime.fromisoformat(d[‘start’])); ev.add(‘summary’,d[‘summary’]); if ‘rrule’ in d: ev.add(‘rrule’,d[‘rrule’]); cal.add_component(ev); return jsonify({‘ics’: cal.to_ical().decode()})
+
+i) Music Intelligence (mtmce/features/music.py)
+import spotipy, datetime
+from flask import current_app
+def init_music(app): app.sp=spotipy.Spotify(auth_manager=spotipy.SpotifyOAuth(client_id=app.config[‘SPOTIFY_CLIENT_ID’], client_secret=app.config[‘SPOTIFY_CLIENT_SECRET’], redirect_uri=app.config[‘SPOTIFY_REDIRECT_URI’], scope=“playlist-modify-public,user-top-read”))
+def create_mood_playlist(user_id,mood): tracks=current_app.sp.recommendations(seed_genres=[mood],limit=20)[‘tracks’]; pl=current_app.sp.user_playlist_create(user_id,f”{mood} vibes {datetime.date.today()}”); current_app.sp.playlist_add_items(pl[‘id’],[t[‘uri’] for t in tracks]); return pl[‘external_urls’][‘spotify’]
+
+j) Financial Tools (mtmce/features/finance.py)
+import yfinance as yf
+def get_portfolio_value(tickers): total,details=0,{};
+for t in tickers: info=yf.Ticker(t).info; price=info.get(‘currentPrice’) or info.get(‘regularMarketPrice’); total+=price; details[t]=price; return {‘total’:total,‘details’:details}
+
+k) Web Scraper (mtmce/features/scrape.py)
+import requests
+from bs4 import BeautifulSoup
+def scrape_text(url): r=requests.get(url); r.raise_for_status(); return ’ ’.join(p.get_text().strip() for p in BeautifulSoup(r.text,‘html.parser’).find_all(‘p’))
+
+l) Monitoring & Metrics (mtmce/features/monitor.py)
+from flask import request,current_app
+import prometheus_client
+REQUEST_COUNT=prometheus_client.Counter(‘mtmce_request_count’,‘Request count’,[‘method’,‘endpoint’])
+REQUEST_LATENCY=prometheus_client.Histogram(‘mtmce_request_latency_seconds’,‘Request latency’,[‘endpoint’])
+def init_monitor(app): app.wsgi_app=prometheus_client.make_wsgi_app(app.wsgi_app); @app.before_request def before(): request._start_time=prometheus_client.time.time() @app.after_request def after(response): ep=request.endpoint or ‘unknown’; REQUEST_COUNT.labels(request.method,ep).inc(); REQUEST_LATENCY.labels(ep).observe(prometheus_client.time.time()-request._start_time); return response
+
+m) Deploy & Audit (scripts/deploy_and_audit.py)
+import subprocess,sys
+def deploy(): subprocess.run([‘docker’,‘build’,’-t’,‘mtmce_app’,’.’],check=True); subprocess.run([‘docker’,‘run’,’-d’,’-p’,‘5000:5000’,‘mtmce_app’],check=True)
+def audit(): subprocess.run([‘autoflake’,’–remove-unused-variables’,’–remove-all-unused-imports’,’-r’,’.’],check=True); subprocess.run([‘black’,’.’],check=True); subprocess.run([‘isort’,’.’],check=True); subprocess.run([‘bandit’,’-r’,’.’],check=True); result=subprocess.run([‘pytest’],capture_output=True,text=True); if result.returncode!=0: print(“TESTS FAILED”,result.stdout); sys.exit(1); print(“All checks passed.”)
+
+n) AI System Brain (ai_system_brain.py)
+import os, time, psutil, numpy as np, tensorflow as tf, asyncio, random
+from collections import deque
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
+class ResourceAllocator:
+def init(self): self.cpu_count=psutil.cpu_count(logical=True); self.available_memory=psutil.virtual_memory().available; self.load_factor=0.9
+def optimize_resources(self): max_threads=max(2,int(self.cpu_countself.load_factor)); pr_mem=5121024*1024; max_procs=max(1,min(int(self.available_memory/pr_mem),self.cpu_count)); return max_threads,max_procs
+class ExperienceReplay:
+def init(self,capacity=50000): self.memory=deque(maxlen=capacity)
+def store_experience(self,s,a,r,n,d): self.memory.append((s,a,r,n,d))
+def sample_experience(self,batch_size=128):
+if not self.memory: return []
+smem=sorted(self.memory,key=lambda exp:exp[2],reverse=True)
+ssz=min(len(smem),batch_size); return random.sample(smem[:ssz],ssz)
+class AINetwork:
+def init(self,input_dim=10,output_dim=3,hidden_layers=[256,512]):
+self.model=self.build_model()
+def build_model(self): m=tf.keras.Sequential([tf.keras.layers.Dense(512,activation=‘relu’,input_shape=(10,)),tf.keras.layers.Dense(256,activation=‘relu’),tf.keras.layers.Dense(3,activation=‘linear’)]); m.compile(optimizer=tf.keras.optimizers.Adam(0.001),loss=‘mse’); return m
+def predict(self,state): return self.model.predict(state.reshape(1,-1))[0]
+def train(self,state,target): self.model.fit(state.reshape(1,-1),target.reshape(1,-1),epochs=1,verbose=0)
+class TaskManager:
+def init(self,max_threads,max_procs):
+from collections import deque
+self.task_queue=deque(); self.thread_executor=ThreadPoolExecutor(max_threads); self.process_executor=ProcessPoolExecutor(max_procs)
+def add_task(self,task): self.task_queue.append(task)
+def execute_tasks(self): results=[]; futures=[]
+while self.task_queue: t=self.task_queue.popleft(); execr=self.process_executor if t[‘priority’]>5 else self.thread_executor; futures.append(execr.submit(t[‘execute’]))
+for f in as_completed(futures): results.append(f.result())
+return results
+class AIControlSystem:
+def init(self,agent_count=5):
+self.resource_manager=ResourceAllocator(); self.experience_memory=ExperienceReplay(); self.agents=[AINetwork() for _ in range(agent_count)]; mt,mp=self.resource_manager.optimize_resources(); self.task_manager=TaskManager(mt,mp); self.epsilon=1.0; self.epsilon_decay=0.995; self.epsilon_min=0.05
+def select_action(self,agent,state):
+if random.random()<self.epsilon: return np.random.randint(0,3)
+return np.argmax(agent.predict(state))
+def optimize_system(self,iterations=1000):
+import psutil,numpy as np
+state=np.array([psutil.cpu_percent(), psutil.virtual_memory().percent]+list(np.random.rand(8)))
+for i in range(iterations):
+for agent in self.agents:
+action=self.select_action(agent,state)
+if action==0: reward=self.task_manager.execute_tasks()
+elif action==1: reward=np.random.uniform(0,1)
+else: reward=-np.random.uniform(0,1)
+next_state=state+np.random.randn(10)0.1; done=False
+self.experience_memory.store_experience(state,action,reward,next_state,done)
+self.epsilon=max(self.epsilon_min,self.epsilonself.epsilon_decay)
+print(f”AI Training Iter {i+1}/{iterations} | Epsilon {self.epsilon:.3f}”)
+return “AI System Optimization Completed.”
+if name==”main”:
+ai_brain=AIControlSystem(agent_count=5)
+print(ai_brain.optimize_system(1000))
+
+Ensure the agent adapts all code to fit the actual project structure, injecting imports and references only where needed, improving architecture, performance, and security without breaking existing functionality.
