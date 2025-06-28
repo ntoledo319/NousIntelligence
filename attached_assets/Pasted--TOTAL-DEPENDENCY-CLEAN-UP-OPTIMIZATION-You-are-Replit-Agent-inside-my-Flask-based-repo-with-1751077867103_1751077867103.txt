@@ -1,0 +1,63 @@
+# 🧹 TOTAL DEPENDENCY CLEAN-UP & OPTIMIZATION
+
+You are Replit Agent inside my Flask-based repo (with the occasional JS script).  
+Mission: audit, repair, and optimize **all** dependencies without breaking prod.
+
+## 0. Safeguards
+- **Read-only pass first**, patch second.  
+- NEVER touch `.replit`.  
+- Create `/tmp/backups/dep-<timestamp>/` for every file you edit.  
+- Use `@codebase` to ingest full context, weird filenames included.
+
+## 1. Full Inventory
+1. Detect package managers:
+   - `requirements*.txt`, `pyproject.toml`, `Pipfile*`
+   - `package.json`, `package-lock.json`
+2. List every dependency + version in a markdown table.
+
+## 2. Python Conflict & Orphan Hunt
+- Run `pipdeptree --warn conflict`; log clashes.
+- Run `deptry . --skip-transitive`; mark unused & missing pins.
+- Output combined report (`DEPENDENCY_AUDIT.md`).
+
+## 3. Security Sweep
+- `pip-audit -f json > audit.json`
+- `safety check --json >> audit.json`
+- For Node: `npm audit --json >> audit.json`
+- Summarize critical/high vulns in the report.
+
+## 4. Automated Fix Phase
+### 4.1 Version Resolution
+- For each conflict choose the **newest non-breaking** version unless notes say otherwise.
+- Generate fresh `requirements.in` (top-level) then `pip-compile --upgrade --resolver=backtracking`.
+
+### 4.2 Remove Zombies
+- Drop unused packages from lock files & source imports.
+- If a removal breaks tests, revert and flag.
+
+### 4.3 Security Patching
+- Apply `pip install "<package>==<safe_ver>"` where patches exist.
+- Run `npm audit fix --force` for JS parts (skip if no `package.json`).
+
+## 5. Performance Polish
+- Enable `pip install --use-pep517 --no-cache-dir` for bulky wheels.
+- If project uses Poetry, run `poetry lock --no-update` after edits.
+- Cache dirs in `.replit.nix` for faster builds.
+
+## 6. Validation
+- Run project test suite (`pytest -q` if present) and launch dev server on `$PORT` to ensure it still boots.
+- Re-run `pipdeptree --warn conflict` and `pip-audit` expecting **zero** errors.
+
+## 7. Commit & Diff
+- Stage only updated dep files + any code tweaks.
+- Single commit: `"dep-autofix by Replit Agent: <date>"`.
+- Display color diff; await manual OK before pushing.
+
+## 8. Exit Report
+- Append `DEPENDENCY_AUDIT.md` with:
+  - Resolved conflicts
+  - Updated versions
+  - Patched CVEs
+  - Remaining warnings & next-step suggestions.
+
+**Execute now.** Be ruthless, be reversible, be loud.
