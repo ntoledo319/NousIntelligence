@@ -14,12 +14,14 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 try:
-    from core.chat import ChatDispatcher, HandlerRegistry
+    from core.chat.dispatcher import ChatDispatcher
+    from core.chat.handler_registry import HandlerRegistry
 except ImportError:
     # Fallback if core chat system not available
     class ChatDispatcher:
         def __init__(self):
             self.handlers = {}
+            self.registry = None
         
         async def dispatch(self, message: str, context: Dict[str, Any]) -> Dict[str, Any]:
             return {
@@ -27,6 +29,14 @@ except ImportError:
                 'response': f"Echo: {message}",
                 'handler': 'fallback',
                 'type': 'echo'
+            }
+        
+        def get_stats(self) -> Dict[str, Any]:
+            return {
+                'total_handlers': 0,
+                'loaded_handlers': 0,
+                'middleware_count': 0,
+                'has_fallback': True
             }
     
     class HandlerRegistry:

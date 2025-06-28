@@ -23,7 +23,7 @@ except ImportError as e:
 def detailed_health():
     """Detailed health check endpoint"""
     try:
-        from utils.health_monitor import check_system_health
+        from routes.health_api import check_system_health
         return jsonify(check_system_health())
     except ImportError:
         return jsonify({"status": "healthy", "basic": True})

@@ -72,7 +72,10 @@ except ImportError:
 
 
 
-# Configure comprehensive logging
+# Configure comprehensive logging with safe directory creation
+import os
+os.makedirs('logs', exist_ok=True)
+
 logging.basicConfig(
     level=logging.DEBUG, 
     format='[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
