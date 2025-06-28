@@ -84,6 +84,130 @@ class GoogleAPIManager:
         except Exception as e:
             logger.error(f"Failed to create {service_name} service: {e}")
             return None
+    
+    def get_oauth_client(self):
+        """Get the OAuth client for authentication"""
+        return getattr(self, 'google', None)
+    
+    def get_user_info(self, token):
+        """Get user profile information"""
+        try:
+            headers = {'Authorization': f'Bearer {token}'}
+            response = requests.get(
+                'https://www.googleapis.com/oauth2/v2/userinfo',
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                logger.error(f"Failed to get user info: {response.status_code}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error getting user info: {str(e)}")
+            return None
+    
+    def get_calendar_events(self, token, calendar_id='primary', time_min=None, time_max=None, max_results=10):
+        """Get calendar events"""
+        try:
+            headers = {'Authorization': f'Bearer {token}'}
+            params = {
+                'maxResults': max_results,
+                'singleEvents': True,
+                'orderBy': 'startTime'
+            }
+            
+            if time_min:
+                params['timeMin'] = time_min
+            if time_max:
+                params['timeMax'] = time_max
+                
+            response = requests.get(
+                f'https://www.googleapis.com/calendar/v3/calendars/{calendar_id}/events',
+                headers=headers,
+                params=params
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                logger.error(f"Failed to get calendar events: {response.status_code}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error getting calendar events: {str(e)}")
+            return None
+    
+    def create_calendar_event(self, token, event_data, calendar_id='primary'):
+        """Create a calendar event"""
+        try:
+            headers = {
+                'Authorization': f'Bearer {token}',
+                'Content-Type': 'application/json'
+            }
+            
+            response = requests.post(
+                f'https://www.googleapis.com/calendar/v3/calendars/{calendar_id}/events',
+                headers=headers,
+                json=event_data
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                logger.error(f"Failed to create calendar event: {response.status_code}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error creating calendar event: {str(e)}")
+            return None
+    
+    def get_tasks(self, token, tasklist_id='@default', max_results=10):
+        """Get tasks from Google Tasks"""
+        try:
+            headers = {'Authorization': f'Bearer {token}'}
+            params = {'maxResults': max_results}
+            
+            response = requests.get(
+                f'https://www.googleapis.com/tasks/v1/lists/{tasklist_id}/tasks',
+                headers=headers,
+                params=params
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                logger.error(f"Failed to get tasks: {response.status_code}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error getting tasks: {str(e)}")
+            return None
+    
+    def create_task(self, token, task_data, tasklist_id='@default'):
+        """Create a task in Google Tasks"""
+        try:
+            headers = {
+                'Authorization': f'Bearer {token}',
+                'Content-Type': 'application/json'
+            }
+            
+            response = requests.post(
+                f'https://www.googleapis.com/tasks/v1/lists/{tasklist_id}/tasks',
+                headers=headers,
+                json=task_data
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                logger.error(f"Failed to create task: {response.status_code}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error creating task: {str(e)}")
+            return None
 
 
 # Global instance for backward compatibility

@@ -12,6 +12,7 @@ from sqlalchemy.orm import relationship
 class AAContentCategory(db.Model):
     """Categories for organizing AA content"""
     __tablename__ = 'aa_content_categories'
+    __table_args__ = {'extend_existing': True}
     
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False, unique=True)
@@ -25,6 +26,7 @@ class AAContentCategory(db.Model):
 class AAContentItem(db.Model):
     """Individual AA content items (readings, prayers, stories, etc.)"""
     __tablename__ = 'aa_content_items'
+    __table_args__ = {'extend_existing': True}
     
     id = Column(Integer, primary_key=True)
     title = Column(String(255), nullable=False)
@@ -47,6 +49,7 @@ class AAContentItem(db.Model):
 class AAUserProgress(db.Model):
     """Track user progress through AA content"""
     __tablename__ = 'aa_user_progress'
+    __table_args__ = {'extend_existing': True}
     
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, nullable=False)
