@@ -47,6 +47,9 @@ dependencies = [
     # System Monitoring - Lightweight
     "psutil>=5.9.8",
     
+    # Real-time Communication - For Chat Features
+    "flask-socketio>=5.3.6",
+    
     # Machine Learning & Data Processing - For Adaptive AI
     "numpy>=1.24.0",
 ]

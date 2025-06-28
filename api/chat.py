@@ -28,6 +28,10 @@ except ImportError:
                 'handler': 'fallback',
                 'type': 'echo'
             }
+    
+    class HandlerRegistry:
+        def __init__(self):
+            self.handlers = {}
 
 # Create API blueprint
 api_chat_bp = Blueprint('api_chat', __name__, url_prefix='/api')
