@@ -198,8 +198,18 @@ def create_app():
         return response
     
     def is_authenticated():
-        """Check if user is authenticated"""
-        return 'user' in session
+        """Check if user is authenticated via session or JWT"""
+        # Check session authentication (existing method)
+        if 'user' in session and session['user']:
+            return True
+        
+        # Check JWT authentication (new method)
+        try:
+            from utils.jwt_auth import is_authenticated_via_jwt
+            return is_authenticated_via_jwt()
+        except ImportError:
+            # JWT not available, fall back to session only
+            return False
     
     @app.route('/')
     def landing():

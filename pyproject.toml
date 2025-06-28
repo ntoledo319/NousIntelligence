@@ -52,6 +52,9 @@ dependencies = [
     
     # Machine Learning & Data Processing - For Adaptive AI
     "numpy>=1.24.0",
+    
+    # JWT Authentication
+    "PyJWT>=2.8.0",
 ]
 
 [project.urls]
