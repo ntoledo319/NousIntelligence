@@ -8,7 +8,7 @@ supporting shared features, family dashboards, and collaborative workspaces.
 from datetime import datetime, timedelta
 from sqlalchemy import func
 from sqlalchemy.ext.hybrid import hybrid_property
-from app import db
+from database import db
 import json
 
 class Family(db.Model):
