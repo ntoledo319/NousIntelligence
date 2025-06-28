@@ -9,5 +9,5 @@ mypy==1.5.1
 isort==5.12.0
 bandit==1.7.5
 coverage==7.3.0
-werkzeug==2.3.7
+# werkzeug version handled by pyproject.toml
 Flask-Testing==0.8.1 
