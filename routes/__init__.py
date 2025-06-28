@@ -25,7 +25,7 @@ CORE_BLUEPRINTS = [
     {'name': 'notifications', 'module': 'routes.notification_routes', 'attr': 'notifications_bp', 'url_prefix': '/api/v1/notifications'}
 ]
 
-# Optional blueprint definitions
+# Optional blueprint definitions - Updated for consolidated routes
 OPTIONAL_BLUEPRINTS = [
     {'name': 'aa', 'module': 'routes.aa_routes', 'attr': 'aa_bp', 'url_prefix': '/aa'},
     {'name': 'dbt', 'module': 'routes.dbt_routes', 'attr': 'dbt_bp', 'url_prefix': '/dbt'},
@@ -33,20 +33,19 @@ OPTIONAL_BLUEPRINTS = [
     {'name': 'dashboard', 'module': 'routes.dashboard', 'attr': 'dashboard_bp', 'url_prefix': '/dashboard'},
     {'name': 'smart_shopping', 'module': 'routes.smart_shopping_routes', 'attr': 'smart_shopping_bp', 'url_prefix': '/smart-shopping'},
     {'name': 'price_tracking', 'module': 'routes.price_routes', 'attr': 'price_tracking_bp', 'url_prefix': '/price-tracking'},
-    {'name': 'messaging_status', 'module': 'routes.messaging_status', 'attr': 'messaging_bp', 'url_prefix': '/api/messaging'},
     {'name': 'language_learning', 'module': 'routes.language_learning_routes', 'attr': 'll_bp', 'url_prefix': '/learn'},
-    {'name': 'voice', 'module': 'routes.voice_routes', 'attr': 'voice_bp', 'url_prefix': '/voice'},
     {'name': 'meetings', 'module': 'routes.meet_routes', 'attr': 'meet_bp', 'url_prefix': '/meet'},
     {'name': 'forms', 'module': 'routes.forms_routes', 'attr': 'forms_bp', 'url_prefix': '/forms'},
-    {'name': 'spotify', 'module': 'routes.spotify_routes', 'attr': 'spotify_bp', 'url_prefix': '/spotify'},
     {'name': 'amazon', 'module': 'routes.amazon_routes', 'attr': 'amazon_bp', 'url_prefix': '/amazon'},
     {'name': 'memory', 'module': 'routes.memory_routes', 'attr': 'memory_bp', 'url_prefix': '/memory'},
     {'name': 'crisis', 'module': 'routes.crisis_routes', 'attr': 'crisis_bp', 'url_prefix': '/crisis'},
-    {'name': 'voice_emotion', 'module': 'routes.voice_emotion_routes', 'attr': 'voice_emotion_bp', 'url_prefix': '/voice/emotion'},
-    {'name': 'voice_mindfulness', 'module': 'routes.voice_mindfulness_routes', 'attr': 'voice_mindfulness_bp', 'url_prefix': '/voice-mindfulness'},
     {'name': 'financial', 'module': 'routes.financial_routes', 'attr': 'financial_bp', 'url_prefix': '/financial'},
     {'name': 'collaboration', 'module': 'routes.collaboration_routes', 'attr': 'collaboration_bp', 'url_prefix': '/family'},
-    {'name': 'onboarding', 'module': 'routes.onboarding_routes', 'attr': 'onboarding_bp', 'url_prefix': '/onboarding'}
+    {'name': 'onboarding', 'module': 'routes.onboarding_routes', 'attr': 'onboarding_bp', 'url_prefix': '/onboarding'},
+    # Consolidated route modules
+    {'name': 'consolidated_api', 'module': 'routes.consolidated_api_routes', 'attr': 'consolidated_api_bp', 'url_prefix': '/api'},
+    {'name': 'consolidated_voice', 'module': 'routes.consolidated_voice_routes', 'attr': 'consolidated_voice_bp', 'url_prefix': '/voice'},
+    {'name': 'consolidated_spotify', 'module': 'routes.consolidated_spotify_routes', 'attr': 'consolidated_spotify_bp', 'url_prefix': '/spotify'}
 ]
 
 def register_all_blueprints(app: Flask) -> Flask:

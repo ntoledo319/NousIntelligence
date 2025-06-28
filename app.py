@@ -13,15 +13,46 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from config import AppConfig, PORT, HOST, DEBUG
 from database import db, init_database
 
-# Import new backend stability components
-from utils.health_monitor import health_monitor
-from utils.database_optimizer import db_optimizer
-from routes.api.feedback import feedback_api
-from routes.health_check import health_bp
-from routes.maps_routes import maps_bp
-from routes.weather_routes import weather_bp
-from routes.tasks_routes import tasks_bp
-from routes.recovery_routes import recovery_bp
+# Import new backend stability components - with error handling
+try:
+    from utils.health_monitor import health_monitor
+except ImportError:
+    health_monitor = None
+
+try:
+    from utils.database_optimizer import db_optimizer
+except ImportError:
+    db_optimizer = None
+
+try:
+    from routes.api.feedback import feedback_api
+except ImportError:
+    feedback_api = None
+
+try:
+    from routes.health_check import health_bp
+except ImportError:
+    health_bp = None
+
+try:
+    from routes.maps_routes import maps_bp
+except ImportError:
+    maps_bp = None
+
+try:
+    from routes.weather_routes import weather_bp
+except ImportError:
+    weather_bp = None
+
+try:
+    from routes.tasks_routes import tasks_bp
+except ImportError:
+    tasks_bp = None
+
+try:
+    from routes.recovery_routes import recovery_bp
+except ImportError:
+    recovery_bp = None
 
 # Configure comprehensive logging
 logging.basicConfig(
