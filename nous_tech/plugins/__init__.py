@@ -1,5 +1,5 @@
 """
-MTM-CE Plugin Registry System
+NOUS Tech Plugin Registry System
 Dynamic plugin management with hot-swappable features
 """
 

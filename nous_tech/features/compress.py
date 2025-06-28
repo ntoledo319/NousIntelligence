@@ -1,5 +1,5 @@
 """
-MTM-CE Compression Module
+NOUS Tech Compression Module
 High-performance data compression using zstandard for optimized data transfer
 """
 
