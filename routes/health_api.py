@@ -68,8 +68,9 @@ def database_health():
     try:
         from database import db
         
-        # Simple database check
-        db.engine.execute('SELECT 1')
+        # Simple database check - SQLAlchemy 2.0 syntax
+        with db.engine.connect() as conn:
+            conn.execute(db.text('SELECT 1'))
         
         return jsonify({
             'status': 'healthy',
