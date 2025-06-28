@@ -16,14 +16,17 @@ def init_database(app):
     db.init_app(app)
     
     with app.app_context():
-        # Import all models here to register them
-        from models.user import User
-        from models.beta_models import BetaUser, BetaFeedback
-        from models.health_models import (
-            DBTSkillRecommendation, DBTSkillLog, DBTDiaryCard,
-            DBTSkillChallenge, DBTCrisisResource, DBTEmotionTrack,
-            AAAchievement
-        )
+        # Import essential models here to register them
+        try:
+            from models.user import User
+            from models.beta_models import BetaUser, BetaFeedback
+            from models.health_models import (
+                DBTSkillRecommendation, DBTSkillLog, DBTDiaryCard,
+                DBTSkillChallenge, DBTCrisisResource, DBTEmotionTrack,
+                AAAchievement
+            )
+        except ImportError as e:
+            print(f"Warning: Could not import some models: {e}")
         
         # Create all tables
         db.create_all()
