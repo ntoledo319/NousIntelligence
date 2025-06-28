@@ -52,7 +52,7 @@ class FormValidator:
         return True
     
     @staticmethod
-    def validate_length(value: str, min_length: int = 0, max_length: int = None) -> bool:
+    def validate_length(value: str, min_length: int = 0, max_length: Optional[int] = None) -> bool:
         """Validate string length"""
         if not isinstance(value, str):
             return False
@@ -62,6 +62,68 @@ class FormValidator:
         if max_length and length > max_length:
             return False
         return True
+    
+    @staticmethod
+    def validate_password_strength(password: str) -> Dict[str, Any]:
+        """Validate password strength"""
+        if not password or not isinstance(password, str):
+            return {'valid': False, 'score': 0, 'issues': ['Password is required']}
+        
+        issues = []
+        score = 0
+        
+        if len(password) < 8:
+            issues.append('Password must be at least 8 characters long')
+        else:
+            score += 1
+        
+        if not any(c.isupper() for c in password):
+            issues.append('Password must contain at least one uppercase letter')
+        else:
+            score += 1
+        
+        if not any(c.islower() for c in password):
+            issues.append('Password must contain at least one lowercase letter')
+        else:
+            score += 1
+        
+        if not any(c.isdigit() for c in password):
+            issues.append('Password must contain at least one number')
+        else:
+            score += 1
+        
+        special_chars = "!@#$%^&*()_+-=[]{}|;:,.<>?"
+        if not any(c in special_chars for c in password):
+            issues.append('Password must contain at least one special character')
+        else:
+            score += 1
+        
+        return {'valid': len(issues) == 0, 'score': score, 'max_score': 5, 'issues': issues}
+    
+    @staticmethod
+    def validate_date(date_str: str, date_format: str = '%Y-%m-%d') -> bool:
+        """Validate date format"""
+        if not date_str or not isinstance(date_str, str):
+            return False
+        try:
+            from datetime import datetime
+            datetime.strptime(date_str, date_format)
+            return True
+        except ValueError:
+            return False
+    
+    @staticmethod
+    def validate_numeric(value: Union[str, int, float], min_val: Optional[float] = None, max_val: Optional[float] = None) -> bool:
+        """Validate numeric value"""
+        try:
+            num_val = float(value)
+            if min_val is not None and num_val < min_val:
+                return False
+            if max_val is not None and num_val > max_val:
+                return False
+            return True
+        except (ValueError, TypeError):
+            return False
 
 
 class FormService:
@@ -120,7 +182,7 @@ class FormService:
             if ('min_length' in rules or 'max_length' in rules) and value:
                 min_len = rules.get('min_length', 0)
                 max_len = rules.get('max_length')
-                if not self.validator.validate_length(str(value), min_len, max_len):
+                if not self.validator.validate_length(str(value), min_len, max_len or 999999):
                     if max_len:
                         field_errors.append(f'Must be between {min_len} and {max_len} characters')
                     else:
