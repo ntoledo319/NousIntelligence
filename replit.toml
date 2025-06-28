@@ -1,35 +1,19 @@
-# NOUS Personal Assistant - Unified Configuration
-
+# NOUS Personal Assistant - Streamlined Configuration
 run = ["python3", "main.py"]
 
-# Deployment configuration
 [deployment]
 run = ["python3", "main.py"]
 deploymentTarget = "cloudrun"
 
-# Environment variables
 [env]
 PORT = "5000"
-FLASK_APP = "app.py"
 FLASK_ENV = "production"
 PYTHONUNBUFFERED = "1"
-PUBLIC_MODE = "true"
-BASE_URL = ""
-API_BASE_PATH = "/api/v1"
-GOOGLE_CLIENT_ID = "1015094007473-337qm1ofr5htlodjmsf2p6r3fcht6pg2.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET = "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"
 
-# Server settings
-[server]
-host = "0.0.0.0"
-port = 5000
-
-# Define port mappings
 [[ports]]
 localPort = 5000
 externalPort = 80
 
-# Disable Replit authentication but keep app authentication
 [auth]
 pageEnabled = false
 buttonEnabled = false
