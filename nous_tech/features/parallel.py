@@ -1,5 +1,5 @@
 """
-MTM-CE Parallel Processing Engine
+NOUS Tech Parallel Processing Engine
 Celery-based async task processing for heavy computational workloads
 """
 
