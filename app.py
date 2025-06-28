@@ -105,6 +105,41 @@ def create_app():
     # Initialize NOUS Extensions
     logger.info("Initializing NOUS Extensions...")
     
+    # Initialize NOUS Tech System
+    try:
+        from nous_tech import (
+            init_parallel, init_compression as nous_compression, 
+            init_brain, init_selflearn, init_security_monitor
+        )
+        from nous_tech.features.ai_system_brain import create_ai_system_brain
+        
+        # Initialize NOUS Tech components
+        init_parallel(app)
+        logger.info("NOUS Tech parallel processing initialized")
+        
+        nous_compression(app)
+        logger.info("NOUS Tech compression initialized")
+        
+        init_brain(app)
+        logger.info("NOUS Tech AI brain initialized")
+        
+        init_selflearn(app)
+        logger.info("NOUS Tech self-learning initialized")
+        
+        init_security_monitor(app)
+        logger.info("NOUS Tech security monitor initialized")
+        
+        # Initialize advanced AI System Brain
+        app.ai_system_brain = create_ai_system_brain({
+            'learning_enabled': True,
+            'security_level': 'high',
+            'performance_monitoring': True
+        })
+        logger.info("NOUS Tech AI System Brain initialized")
+        
+    except ImportError as e:
+        logger.warning(f"NOUS Tech not available: {e}")
+    
     # Initialize async processing (Celery)
     if init_async_processing:
         init_async_processing(app)
@@ -131,6 +166,14 @@ def create_app():
         plugin_registry.init_all(app)
         plugin_registry.wire_blueprints(app)
         logger.info("Plugin registry initialized")
+    
+    # Register NOUS Tech routes
+    try:
+        from routes.nous_tech_routes import nous_tech_bp
+        app.register_blueprint(nous_tech_bp)
+        logger.info("NOUS Tech routes registered successfully")
+    except ImportError as e:
+        logger.warning(f"NOUS Tech routes not available: {e}")
     
     # Register all application blueprints using centralized system
     try:
