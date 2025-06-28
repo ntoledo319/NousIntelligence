@@ -6,16 +6,21 @@ including user account data, preferences, and authentication.
 """
 
 from flask_login import UserMixin
+from database import db
+from datetime import datetime
 
-# Simple User model for authentication
-class User(UserMixin):
+class User(UserMixin, db.Model):
     """User account model"""
     
-    def __init__(self, user_id, username, email):
-        self.id = user_id
-        self.username = username
-        self.email = email
-        self.active = True
+    __tablename__ = 'users'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    google_id = db.Column(db.String(100), unique=True, nullable=True)
+    active = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_login = db.Column(db.DateTime, nullable=True)
     
     def get_id(self):
         """Required for Flask-Login"""
