@@ -19,12 +19,12 @@ except ImportError:
     logging.warning("AI Integration not available")
 
 # Create blueprint
-api = Blueprint('api', __name__, url_prefix='/api')
+api_bp = Blueprint('api', __name__, url_prefix='/api')
 
 # Set up logging
 logger = logging.getLogger(__name__)
 
-@api.route('/ai/ask', methods=['POST'])
+@api_bp.route('/ai/ask', methods=['POST'])
 def ai_ask():
     """
     AI Question-Answer endpoint with context-aware responses
@@ -188,7 +188,7 @@ def ai_ask():
             'error': 'An unexpected error occurred'
         }), 500
 
-@api.route('/ai/analyze', methods=['POST'])
+@api_bp.route('/ai/analyze', methods=['POST'])
 @login_required
 def ai_analyze():
     """
@@ -244,7 +244,7 @@ def ai_analyze():
             'error': 'An unexpected error occurred'
         }), 500
 
-@api.route('/ai/stats', methods=['GET'])
+@api_bp.route('/ai/stats', methods=['GET'])
 @login_required
 def ai_stats():
     """
