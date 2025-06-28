@@ -6,7 +6,7 @@ costs, and optimizing service selection.
 """
 
 from datetime import datetime
-from app import db
+from database import db
 
 class UserAIUsage(db.Model):
     """Track user AI service usage for cost optimization"""
