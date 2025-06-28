@@ -79,9 +79,15 @@ def create_app():
     # Create logs directory
     os.makedirs('logs', exist_ok=True)
     
-    # Google OAuth configuration
-    GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '1015094007473-337qm1ofr5htlodjmsf2p6r3fcht6pg2.apps.googleusercontent.com')
-    GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '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')
+    # Google OAuth configuration - MUST be set in Replit Secrets
+    GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
+    GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
+    
+    # Validate required secrets are present
+    if not GOOGLE_CLIENT_ID:
+        logger.error("GOOGLE_CLIENT_ID not found in environment variables. Please add to Replit Secrets.")
+    if not GOOGLE_CLIENT_SECRET:
+        logger.error("GOOGLE_CLIENT_SECRET not found in environment variables. Please add to Replit Secrets.")
     GOOGLE_DISCOVERY_URL = f"{AppConfig.GOOGLE_OAUTH_BASE_URL}/.well-known/openid_connect_configuration"
     
     @app.after_request
