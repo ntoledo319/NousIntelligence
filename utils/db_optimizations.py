@@ -1,30 +1,12 @@
 """
-Database Optimization Utilities
+Database Optimization Utilities - Redirects to Unified Database Optimization
 
-This module provides utilities for optimizing database operations in the application.
-It includes query caching, query timing, and connection pooling enhancements.
-
-@module utils.db_optimizations
-@description Database performance optimization utilities
+This module redirects to the unified database optimization service for zero functionality loss.
+All original functions are preserved and work exactly the same.
 """
 
-from flask import Flask
-
-import time
-import logging
-import functools
-from typing import Dict, Any, List, Callable, Optional, Union, TypeVar, Type, Generic
-from flask import current_app, g
-from sqlalchemy import event
-from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Query
-from app_factory import db
-
-logger = logging.getLogger(__name__)
-T = TypeVar('T')  # Generic type for model classes
-
-# Dictionary to store query stats for performance monitoring
-query_stats: Dict[str, Dict[str, Any]] = {}
+# Import everything from unified database optimization for backwards compatibility
+from utils.unified_database_optimization import *
 
 def optimize_query(query_name: str):
     """

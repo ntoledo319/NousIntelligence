@@ -1,13 +1,12 @@
 """
-Database Optimizer Module
-Provides database performance monitoring and optimization
+Database Optimizer Module - Redirects to Unified Database Optimization
+
+This module redirects to the unified database optimization service for zero functionality loss.
+All original functions are preserved and work exactly the same.
 """
 
-import logging
-import time
-from contextlib import contextmanager
-
-logger = logging.getLogger(__name__)
+# Import everything from unified database optimization for backwards compatibility
+from utils.unified_database_optimization import *
 
 class DatabaseOptimizer:
     """Database optimization and monitoring system"""
