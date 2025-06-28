@@ -57,3 +57,43 @@ dev = [
 [build-system]
 requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+# Explicitly configure package discovery to prevent flat-layout errors
+py-modules = ["main", "app", "database"]
+
+[tool.setuptools.packages.find]
+# Explicit package inclusion - prevents automatic discovery issues
+include = [
+    "models*", 
+    "routes*", 
+    "utils*", 
+    "config*", 
+    "api*", 
+    "services*", 
+    "handlers*", 
+    "core*", 
+    "voice_interface*"
+]
+
+# Exclude all problematic directories that caused the 17-package error
+exclude = [
+    "backup*", 
+    "logs*", 
+    "uploads*", 
+    "instance*", 
+    "flask_session*", 
+    "static*", 
+    "templates*",
+    "tests*",
+    "scripts*",
+    "docs*",
+    "build_assets*",
+    "project_files*",
+    "__pycache__*",
+    "*.tests*",
+    "*.egg-info*"
+]
+
+[tool.setuptools.package-data]
+"*" = ["*.html", "*.css", "*.js", "*.json", "*.txt", "*.md"]

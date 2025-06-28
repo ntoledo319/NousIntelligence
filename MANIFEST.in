@@ -1,0 +1,62 @@
+# MANIFEST.in - Controls which files are included in the build
+# This fixes setuptools package discovery issues
+
+# Include essential Python files
+include main.py
+include app.py 
+include database.py
+include replit.toml
+include replit.nix
+include pytest.ini
+
+# Include configuration files
+recursive-include config *.py
+
+# Include application packages
+recursive-include models *.py
+recursive-include routes *.py  
+recursive-include utils *.py
+recursive-include api *.py
+recursive-include services *.py
+recursive-include handlers *.py
+recursive-include core *.py
+recursive-include voice_interface *.py
+
+# Include web assets
+recursive-include templates *.html *.css *.js
+recursive-include static *.css *.js *.json *.ico *.png *.jpg *.jpeg *.svg *.woff *.woff2 *.ttf
+
+# Include documentation
+include README.md
+include LICENSE
+include replit.md
+recursive-include docs *.md *.txt
+
+# Exclude problematic directories that cause setuptools issues
+prune backup
+prune logs  
+prune uploads
+prune cleanup
+prune instance
+prune flask_session
+prune attached_assets
+prune scripts
+prune tests
+prune __pycache__
+
+# Exclude development files
+exclude *.log
+exclude audit.log
+exclude server_test.log
+exclude deployment_*.py
+exclude quick_deploy_check.py
+exclude validate_dependencies.py
+exclude test_deployment.py
+exclude *.legacy
+exclude uv.lock
+
+# Exclude sensitive files
+exclude client_secret*.json
+exclude .env*
+exclude *.key
+exclude *.pem
