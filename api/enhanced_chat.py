@@ -131,8 +131,8 @@ def enhanced_chat():
                         {"role": "system", "content": _build_system_prompt(context, adaptive_result)},
                         {"role": "user", "content": enhanced_message}
                     ], user_id=user_id, context=context)
-        except Exception as e:
-            logger.warning(f"AI response generation failed: {str(e)}")
+            except Exception as e:
+                logger.warning(f"AI response generation failed: {str(e)}")
         
         # Step 4: Combine and format response
         response = _combine_responses(command_result, adaptive_result, ai_response, context)

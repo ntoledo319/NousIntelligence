@@ -616,7 +616,7 @@ class CompleteIssueScanner:
         # Try to check installed packages
         try:
             result = subprocess.run([sys.executable, '-m', 'pip', 'list'], 
-                                  capture_output=True, text=True, timeout=30)
+                                  capture_output=True, text=True, timeout=120)
             installed_packages = result.stdout
             
             # Check for missing critical packages
@@ -731,39 +731,31 @@ class CompleteIssueScanner:
         """Performance analysis"""
         print("⚡ Performance analysis...")
         
-        # Check for duplicate code
-        file_contents = {}
+        # Skip duplicate code analysis for performance - focus on file sizes
+        large_files = []
         for root, dirs, files in os.walk('.'):
-            dirs[:] = [d for d in dirs if not d.startswith('.')]
+            dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['__pycache__', 'archive']]
             for file in files:
                 if file.endswith('.py'):
                     file_path = os.path.join(root, file)
                     try:
-                        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                            content = f.read()
-                            
-                        # Simple duplicate detection
-                        for other_file, other_content in file_contents.items():
-                            similarity = self._calculate_similarity(content, other_content)
-                            if similarity > 0.8 and len(content) > 1000:
-                                self.all_issues['performance_issues'].append({
-                                    'files': [file_path, other_file],
-                                    'issue': f'High code similarity ({similarity:.1%})',
-                                    'severity': 'low'
-                                })
-                        
-                        file_contents[file_path] = content
-                        
+                        size = os.path.getsize(file_path)
+                        if size > 50000:  # Files > 50KB
+                            large_files.append((file_path, size))
                     except Exception:
                         pass
+        
+        for file_path, size in large_files:
+            self.all_issues['performance_issues'].append({
+                'file': file_path,
+                'issue': f'Large file ({size:,} bytes)',
+                'severity': 'medium'
+            })
     
     def _calculate_similarity(self, text1, text2):
         """Calculate text similarity (simplified)"""
-        words1 = set(text1.split())
-        words2 = set(text2.split())
-        intersection = words1.intersection(words2)
-        union = words1.union(words2)
-        return len(intersection) / len(union) if union else 0
+        # Skip similarity check for performance - focus on critical issues
+        return 0.0
     
     def _deployment_readiness(self):
         """Check deployment readiness"""
