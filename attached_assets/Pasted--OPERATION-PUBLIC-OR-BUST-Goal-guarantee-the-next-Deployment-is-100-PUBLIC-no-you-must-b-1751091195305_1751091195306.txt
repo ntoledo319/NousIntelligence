@@ -1,0 +1,89 @@
+💀  OPERATION PUBLIC-OR-BUST  💀
+Goal: guarantee the next Deployment is 100 % PUBLIC (no “you must be logged in” loop) no matter what you broke.
+
+████ RULES OF ENGAGEMENT ████
+• Absolutely NO edits to `.replit` (platform won’t allow).  
+• Create new files only when consolidation is impossible; delete dupes.  
+• Every secret must come from Replit Secrets, never hard-coded.  
+• If smoke tests fail, abort the commit and roll back automatically.  
+
+────────────────────────────────────────────────────────────────
+STEP 0 — INVENTORY & RED FLAG SCAN
+────────────────────────────────────────────────────────────────
+1. List every file: duplicate `.replit`, `Procfile`, `Dockerfile`, `replit.workflows`, multiple `index.*`, rogue `_redirects`, etc.  
+2. Grep for `process.env`, `os.getenv`, `NEXTAUTH_URL`, `SESSION_SECRET`, `SameSite`, `secure:`, `trust proxy`, `ProxyFix`, etc.  
+3. Build a markdown **Audit Report** of everything suspicious.
+
+────────────────────────────────────────────────────────────────
+STEP 1 — PROXY & COOKIE HARDENING (NO .replit CHANGE NEEDED)
+────────────────────────────────────────────────────────────────
+• **Node/Express/Fastify** → inject `app.set('trust proxy', 1);` before sessions.  
+• **Flask** → wrap app w/ `ProxyFix(x_for=1, x_proto=1)`.  
+• **Django** → add `SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")`.  
+• Force session cookies `{ httpOnly:true, sameSite:'lax', secure:prod }`.  
+• Cross-site OAuth? → use `SameSite:'None'; secure:true`.  
+
+────────────────────────────────────────────────────────────────
+STEP 2 — SECRETS SANITY
+────────────────────────────────────────────────────────────────
+• Enumerate every env var; for any that aren’t in Secrets, output a TODO list and insert placeholder reads in code (`throw if !process.env.X`).  
+• Delete stray `.env` files; add a clean `.env.example`.
+
+────────────────────────────────────────────────────────────────
+STEP 3 — DEPENDENCY & CVE PATCH
+────────────────────────────────────────────────────────────────
+• Run `npm audit fix --force` **or** `pip-audit --fix`.  
+• Upgrade patch/minor versions automatically; pin majors for review.  
+
+────────────────────────────────────────────────────────────────
+STEP 4 — REACT/VITE/SVELTE SPA SAFETY
+────────────────────────────────────────────────────────────────
+• If using SPA router and no `_redirects`, create one:  
+      /*   /index.html   200  
+• Add a server catch-all route that serves `index.html` for hard refreshes.
+
+────────────────────────────────────────────────────────────────
+STEP 5 — WORKFLOW MONOGAMY
+────────────────────────────────────────────────────────────────
+• Keep ONE `replit.workflows` named `build-and-run` with stages:  
+    1. Install deps  
+    2. Run lint + smoke tests  
+    3. `npm start`  **or** `python app.py`  
+• Delete every other workflow or launch file.
+
+────────────────────────────────────────────────────────────────
+STEP 6 — SMOKE TEST GRID (AUTO-BLOCK BAD DEPLOYS)
+────────────────────────────────────────────────────────────────
+Create `tests/loop.spec.(js|py)` to check:  
+  1. `GET /` → 200  
+  2. `GET /protected` unauth → 302→/login OR 401  
+  3. `POST /api/login` (fixture) → 200 + Set-Cookie  
+  4. Auth `GET /protected` → 200  
+  5. `POST /api/logout` → 204  
+  6. Cookie cleared ⇒ `GET /protected` → 401/302  
+Add script: `npm set-script test:smoke "node tests/loop.spec.js"` (or pytest).  
+Fail commit if any check fails.
+
+────────────────────────────────────────────────────────────────
+STEP 7 — COMMIT, TAG, DEPLOY
+────────────────────────────────────────────────────────────────
+• Commit in logical chunks (`fix(proxy)`, `chore(secrets)`, etc.).  
+• Tag `public-deploy-stable-$(date +%Y%m%d)`.  
+• Trigger a fresh Deployment; stream logs 60 s.  
+
+────────────────────────────────────────────────────────────────
+ROLLBACK PLAN
+────────────────────────────────────────────────────────────────
+If Deployment or smoke tests fail, run:  
+    git reset --hard public-deploy-stable-*  
+and exit non-zero.
+
+────────────────────────────────────────────────────────────────
+OUTPUT AT END
+────────────────────────────────────────────────────────────────
+✅ Diff summary (files added/changed/removed)  
+✅ Secrets still needed (copy/paste list)  
+✅ Smoke-test results table  
+✅ Production URL to test public access  
+
+🔫  Execute.  If we ever see “you must be logged in” again, fire me into the sun.  🔫
