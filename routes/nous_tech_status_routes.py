@@ -1,6 +1,6 @@
 """
-MTM-CE Systems Status and Integration Routes
-Provides comprehensive overview of how MTM-CE systems are being utilized
+NOUS Technology Status and Integration Routes
+Provides comprehensive overview of how NOUS enhanced systems are being utilized
 """
 
 import logging
@@ -11,7 +11,7 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-mtmce_status_bp = Blueprint('mtmce_status', __name__, url_prefix='/mtmce')
+nous_tech_status_bp = Blueprint('nous_tech_status', __name__, url_prefix='/nous-tech')
 
 @mtmce_status_bp.route('/status', methods=['GET'])
 def mtmce_system_status():
