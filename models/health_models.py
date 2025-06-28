@@ -328,3 +328,28 @@ class AASpeakerRecording(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
+
+class AAFavorite(db.Model):
+    """User favorites for AA content"""
+    __tablename__ = 'aa_favorites'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    content_type = db.Column(db.String(50))  # 'big_book', 'audio', 'speaker_recording'
+    content_id = db.Column(db.Integer)  # ID of the favorited content
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationships
+    user = db.relationship('User', backref=db.backref('aa_favorites', lazy=True))
+
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'content_type': self.content_type,
+            'content_id': self.content_id,
+            'notes': self.notes,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
