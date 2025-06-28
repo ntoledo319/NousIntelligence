@@ -17,9 +17,17 @@ class UserPreference:
     """Placeholder UserPreference model"""
     pass
 
-class SystemSetting:
-    """Placeholder SystemSetting model"""
-    pass
+class SystemSettings:
+    """Placeholder SystemSettings model"""
+    @classmethod
+    def get_setting(cls, key, default=None):
+        """Get a setting value by key - placeholder implementation"""
+        return default
+    
+    @classmethod
+    def set_setting(cls, key, value, description=None):
+        """Set a setting value by key - placeholder implementation"""
+        pass
 
 class WeatherLocation:
     """Placeholder WeatherLocation model"""
@@ -40,6 +48,6 @@ db = MockDB()
 
 # Export models at the package level
 __all__ = [
-    'User', 'Task', 'UserPreference', 'SystemSetting', 'WeatherLocation', 'UserSettings', 'db',
+    'User', 'Task', 'UserPreference', 'SystemSettings', 'WeatherLocation', 'UserSettings', 'db',
     'init_db', 'get_db_health'
 ]

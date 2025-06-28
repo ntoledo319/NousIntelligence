@@ -8,7 +8,7 @@ supporting expense tracking, budgeting, and financial insights.
 from datetime import datetime, timedelta
 from sqlalchemy import func
 from sqlalchemy.ext.hybrid import hybrid_property
-from app_factory import db
+from app import db
 import json
 
 class BankAccount(db.Model):
