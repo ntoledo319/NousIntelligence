@@ -5,6 +5,8 @@ This package contains all database models for the NOUS application.
 """
 
 # Core models - always available
+from datetime import datetime
+from database import db
 from models.user import User
 from models.database import init_db, get_db_health
 
@@ -179,8 +181,8 @@ class MockDB:
     def __init__(self):
         self.session = None
 
-# Mock database instance
-db = MockDB()
+# Mock database instance (only used as fallback)
+# db is imported from database.py above
 
 # Export models at the package level
 __all__ = [

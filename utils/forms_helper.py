@@ -104,23 +104,23 @@ class FormService:
                 continue
             
             # Type-specific validations
-            if rules.get('type') == 'email':
-                if not self.validator.validate_email(value):
+            if rules.get('type') == 'email' and value:
+                if not self.validator.validate_email(str(value)):
                     field_errors.append('Invalid email format')
             
-            elif rules.get('type') == 'phone':
-                if not self.validator.validate_phone(value):
+            elif rules.get('type') == 'phone' and value:
+                if not self.validator.validate_phone(str(value)):
                     field_errors.append('Invalid phone number format')
             
-            elif rules.get('type') == 'url':
-                if not self.validator.validate_url(value):
+            elif rules.get('type') == 'url' and value:
+                if not self.validator.validate_url(str(value)):
                     field_errors.append('Invalid URL format')
             
             # Length validation
-            if 'min_length' in rules or 'max_length' in rules:
+            if ('min_length' in rules or 'max_length' in rules) and value:
                 min_len = rules.get('min_length', 0)
                 max_len = rules.get('max_length')
-                if not self.validator.validate_length(value, min_len, max_len):
+                if not self.validator.validate_length(str(value), min_len, max_len):
                     if max_len:
                         field_errors.append(f'Must be between {min_len} and {max_len} characters')
                     else:
@@ -188,11 +188,9 @@ def validate_form_field(value, field_type, **kwargs):
     elif field_type == 'required':
         return validator.validate_required(value)
     elif field_type == 'length':
-        return validator.validate_length(value, kwargs.get('min_length', 0), kwargs.get('max_length'))
+        return validator.validate_length(value, kwargs.get('min_length', 0), kwargs.get('max_length') or 999999)
     
     return True
-            return bool(value.strip())
-        return bool(value)
     
     @staticmethod
     def validate_length(value: str, min_length: int = 0, max_length: int = None) -> bool:
