@@ -21,6 +21,24 @@ from functools import lru_cache
 # Set up logging
 logger = logging.getLogger(__name__)
 
+# MTM-CE Enhanced Imports - Adaptive AI Integration
+try:
+    from utils.adaptive_ai_system import process_adaptive_request, provide_user_feedback, get_ai_insights
+    ADAPTIVE_AI_AVAILABLE = True
+    logger.info("Adaptive AI system integrated successfully")
+except ImportError:
+    ADAPTIVE_AI_AVAILABLE = False
+    logger.warning("Adaptive AI system not available - running in basic mode")
+
+# Plugin Registry Integration
+try:
+    from utils.plugin_registry import get_plugin_registry
+    PLUGIN_REGISTRY_AVAILABLE = True
+    logger.info("Plugin registry integrated successfully")
+except ImportError:
+    PLUGIN_REGISTRY_AVAILABLE = False
+    logger.warning("Plugin registry not available - running in static mode")
+
 class TaskComplexity(Enum):
     BASIC = 1    # Simple responses, classification
     STANDARD = 2 # Regular chat, summarization
@@ -65,19 +83,52 @@ class UnifiedAIService:
     # === COST OPTIMIZED AI FUNCTIONS (from cost_optimized_ai.py) ===
     
     def chat_completion(self, messages: List[Dict[str, str]], max_tokens: int = 1000, 
-                       temperature: float = 0.7, complexity: TaskComplexity = TaskComplexity.STANDARD) -> Dict[str, Any]:
-        """Cost-optimized chat completion with provider selection"""
+                       temperature: float = 0.7, complexity: TaskComplexity = TaskComplexity.STANDARD,
+                       user_id: str = None, context: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Enhanced chat completion with adaptive AI learning integration"""
         try:
-            if 'openrouter' in self.available_providers:
-                return self._openrouter_chat(messages, max_tokens, temperature)
-            elif 'gemini' in self.available_providers:
-                return self._gemini_chat(messages, max_tokens, temperature)
-            elif 'openai' in self.available_providers:
-                return self._openai_chat(messages, max_tokens, temperature)
+            # MTM-CE Enhancement: Integrate with adaptive AI system
+            if ADAPTIVE_AI_AVAILABLE and user_id and context:
+                # Get adaptive insights for better provider selection and response optimization
+                last_message = messages[-1]['content'] if messages else ""
+                adaptive_result = process_adaptive_request(user_id, last_message, context)
+                
+                # Use adaptive insights to optimize provider selection
+                optimal_provider = self._select_provider_with_adaptation(adaptive_result, complexity)
+                logger.info(f"Adaptive AI selected provider: {optimal_provider}")
             else:
-                return self._fallback_response(messages[-1]['content'] if messages else "Hello")
+                optimal_provider = self._select_best_provider(complexity)
+            
+            # Generate response with selected provider
+            if optimal_provider == 'openrouter' and 'openrouter' in self.available_providers:
+                response = self._openrouter_chat(messages, max_tokens, temperature)
+            elif optimal_provider == 'gemini' and 'gemini' in self.available_providers:
+                response = self._gemini_chat(messages, max_tokens, temperature)
+            elif optimal_provider == 'openai' and 'openai' in self.available_providers:
+                response = self._openai_chat(messages, max_tokens, temperature)
+            else:
+                response = self._fallback_response(messages[-1]['content'] if messages else "Hello")
+            
+            # MTM-CE Enhancement: Provide feedback to adaptive AI system
+            if ADAPTIVE_AI_AVAILABLE and user_id and context:
+                # Calculate quality score based on response characteristics
+                quality_score = self._calculate_response_quality(response, messages)
+                provide_user_feedback(user_id, quality_score, {
+                    **context,
+                    'provider_used': optimal_provider,
+                    'response_length': len(response.get('text', '')),
+                    'processing_time': response.get('processing_time', 0)
+                })
+            
+            # Add MTM-CE metadata to response
+            response['mtmce_enhanced'] = True
+            response['adaptive_ai_used'] = ADAPTIVE_AI_AVAILABLE
+            response['provider_optimized'] = optimal_provider if ADAPTIVE_AI_AVAILABLE else 'standard'
+            
+            return response
+            
         except Exception as e:
-            logger.error(f"Chat completion error: {e}")
+            logger.error(f"Enhanced chat completion error: {e}")
             return self._fallback_response(messages[-1]['content'] if messages else "Hello")
 
     def text_to_speech(self, text: str, voice: str = "en-US-AriaRUS") -> bytes:
@@ -179,6 +230,94 @@ class UnifiedAIService:
     def count_tokens(self, text: str) -> int:
         """Estimate token count"""
         return int(len(text.split()) * 1.3)  # Rough estimation
+    
+    # === MTM-CE ENHANCED METHODS ===
+    
+    def _select_provider_with_adaptation(self, adaptive_result: Dict[str, Any], complexity: TaskComplexity) -> str:
+        """Select optimal provider based on adaptive AI insights"""
+        try:
+            # Extract insights from adaptive result
+            confidence = adaptive_result.get('reward', 0.5)
+            processing_time = adaptive_result.get('processing_time', 0)
+            
+            # Use adaptive insights to make smarter provider selection
+            if confidence > 0.8 and complexity == TaskComplexity.COMPLEX:
+                # High confidence complex task - use best provider
+                return 'openrouter' if 'openrouter' in self.available_providers else 'gemini'
+            elif processing_time < 1.0 and complexity == TaskComplexity.BASIC:
+                # Fast response needed - use fastest provider
+                return 'gemini' if 'gemini' in self.available_providers else 'openrouter'
+            else:
+                # Standard selection
+                return self._select_best_provider(complexity)
+                
+        except Exception as e:
+            logger.error(f"Error in adaptive provider selection: {e}")
+            return self._select_best_provider(complexity)
+    
+    def _select_best_provider(self, complexity: TaskComplexity) -> str:
+        """Standard provider selection based on complexity"""
+        if complexity == TaskComplexity.COMPLEX:
+            # Complex tasks - prefer OpenRouter for variety
+            if 'openrouter' in self.available_providers:
+                return 'openrouter'
+            elif 'gemini' in self.available_providers:
+                return 'gemini'
+        elif complexity == TaskComplexity.BASIC:
+            # Basic tasks - prefer Gemini for speed
+            if 'gemini' in self.available_providers:
+                return 'gemini'
+            elif 'openrouter' in self.available_providers:
+                return 'openrouter'
+        
+        # Standard tasks or fallback
+        return 'openrouter' if 'openrouter' in self.available_providers else 'gemini'
+    
+    def _calculate_response_quality(self, response: Dict[str, Any], messages: List[Dict[str, str]]) -> float:
+        """Calculate response quality score for adaptive AI feedback"""
+        try:
+            quality_score = 0.5  # Base score
+            
+            # Check response length appropriateness
+            response_text = response.get('text', '')
+            if len(response_text) > 10:  # Not too short
+                quality_score += 0.2
+            if len(response_text) < 1000:  # Not too long
+                quality_score += 0.1
+            
+            # Check if response contains useful information
+            if any(word in response_text.lower() for word in ['help', 'assist', 'suggest', 'recommend']):
+                quality_score += 0.1
+                
+            # Check response time
+            processing_time = response.get('processing_time', 0)
+            if processing_time < 3.0:  # Fast response
+                quality_score += 0.1
+                
+            return min(1.0, max(0.0, quality_score))
+            
+        except Exception as e:
+            logger.error(f"Error calculating response quality: {e}")
+            return 0.5
+    
+    def get_plugin_integration_status(self) -> Dict[str, Any]:
+        """Get status of plugin integration capabilities"""
+        status = {
+            'adaptive_ai_available': ADAPTIVE_AI_AVAILABLE,
+            'plugin_registry_available': PLUGIN_REGISTRY_AVAILABLE,
+            'enhanced_features': []
+        }
+        
+        if ADAPTIVE_AI_AVAILABLE:
+            status['enhanced_features'].append('adaptive_learning')
+            status['enhanced_features'].append('intelligent_provider_selection')
+            status['enhanced_features'].append('quality_feedback_loop')
+        
+        if PLUGIN_REGISTRY_AVAILABLE:
+            status['enhanced_features'].append('dynamic_plugin_loading')
+            status['enhanced_features'].append('cross_service_communication')
+        
+        return status
 
     # === PROVIDER IMPLEMENTATIONS ===
     

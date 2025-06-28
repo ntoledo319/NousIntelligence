@@ -29,6 +29,15 @@ except (ImportError, TypeError):
 from utils.unified_ai_service import UnifiedAIService
 from utils.adaptive_ai_system import process_adaptive_request, provide_user_feedback, get_adaptive_ai
 
+# MTM-CE Integration Hub
+try:
+    from utils.mtmce_integration_hub import get_mtmce_integration_hub, process_unified_request
+    MTMCE_HUB_AVAILABLE = True
+    logger.info("MTM-CE Integration Hub connected to Enhanced Chat API")
+except ImportError:
+    MTMCE_HUB_AVAILABLE = False
+    logger.warning("MTM-CE Integration Hub not available - using standard enhanced chat")
+
 logger = logging.getLogger(__name__)
 
 # Create enhanced chat blueprint
