@@ -24,6 +24,22 @@ try:
 except ImportError:
     db_optimizer = None
 
+# Import NOUS Extensions
+try:
+    from extensions import (
+        plugin_registry, 
+        init_async_processing, 
+        init_monitoring, 
+        init_learning_system, 
+        init_compression
+    )
+except ImportError:
+    plugin_registry = None
+    init_async_processing = None
+    init_monitoring = None
+    init_learning_system = None
+    init_compression = None
+
 try:
     from routes.api.feedback import feedback_api
 except ImportError:
@@ -99,6 +115,36 @@ def create_app():
     # Initialize health monitoring
     if health_monitor:
         health_monitor.init_app(app)
+    
+    # Initialize NOUS Extensions
+    logger.info("Initializing NOUS Extensions...")
+    
+    # Initialize async processing (Celery)
+    if init_async_processing:
+        init_async_processing(app)
+        logger.info("Async processing initialized")
+    
+    # Initialize monitoring and metrics
+    if init_monitoring:
+        init_monitoring(app)
+        logger.info("Monitoring system initialized")
+    
+    # Initialize learning system
+    if init_learning_system:
+        init_learning_system(app)
+        logger.info("Learning system initialized")
+    
+    # Initialize compression
+    if init_compression:
+        init_compression(app)
+        logger.info("Compression system initialized")
+    
+    # Initialize and wire plugin registry
+    if plugin_registry:
+        # Register any existing plugins
+        plugin_registry.init_all(app)
+        plugin_registry.wire_blueprints(app)
+        logger.info("Plugin registry initialized")
     
     # Register blueprints with None checks
     if feedback_api:
@@ -276,13 +322,51 @@ def create_app():
             user_name = session['user']['name']
             response_prefix = "Echo: "
         
-        # Simple echo response for now - can be enhanced with actual AI
+        # Enhanced response with AI integration and learning
+        try:
+            # Try to get AI response using unified AI service
+            from utils.unified_ai_service import get_unified_ai_service
+            
+            ai_service = get_unified_ai_service()
+            ai_response = ai_service.chat_completion([{"role": "user", "content": message}])
+            
+            if ai_response.get('success'):
+                ai_message = ai_response.get('response', f"{response_prefix}{message}")
+                ai_provider = ai_response.get('metadata', {}).get('provider', 'unified_ai')
+            else:
+                ai_message = f"{response_prefix}{message}"
+                ai_provider = 'fallback'
+                
+        except Exception as e:
+            logger.warning(f"AI service unavailable: {e}")
+            ai_message = f"{response_prefix}{message}"
+            ai_provider = 'fallback'
+        
         response = {
-            'message': f"{response_prefix}{message}",
+            'message': ai_message,
             'timestamp': datetime.now().isoformat(),
             'user': user_name,
-            'demo_mode': demo_mode
+            'demo_mode': demo_mode,
+            'provider': ai_provider
         }
+        
+        # Log interaction for learning system (only for authenticated users)
+        if not demo_mode and is_authenticated():
+            try:
+                from extensions.learning import log_interaction
+                user_id = session['user']['id']
+                session_id = session.get('session_id', 'unknown')
+                
+                log_interaction(
+                    user_id=user_id,
+                    input_text=message,
+                    response_text=ai_message,
+                    ai_provider=ai_provider,
+                    session_id=session_id,
+                    context={'demo_mode': demo_mode, 'endpoint': 'api_chat'}
+                )
+            except Exception as e:
+                logger.warning(f"Learning system logging failed: {e}")
         
         return jsonify(response)
     
@@ -330,7 +414,7 @@ def create_app():
     @app.route('/health')
     @app.route('/healthz')
     def health():
-        """Health check endpoint for deployment monitoring"""
+        """Enhanced health check endpoint with extension monitoring"""
         try:
             # Test database connection
             from database import db
@@ -340,11 +424,22 @@ def create_app():
             health_status = {
                 'status': 'healthy',
                 'timestamp': datetime.now().isoformat(),
-                'version': '0.2.0',
+                'version': '0.3.0',
                 'database': 'connected',
                 'port': PORT,
-                'environment': os.environ.get('FLASK_ENV', 'production')
+                'environment': os.environ.get('FLASK_ENV', 'production'),
+                'extensions': {}
             }
+            
+            # Check extension health
+            try:
+                from extensions.monitoring import health_check
+                extension_health = health_check()
+                health_status['extensions'] = extension_health['checks']
+                if extension_health['status'] != 'healthy':
+                    health_status['status'] = 'degraded'
+            except Exception as e:
+                health_status['extensions']['monitoring'] = f'check_failed: {str(e)}'
             
             return jsonify(health_status), 200
             
@@ -355,6 +450,94 @@ def create_app():
                 'timestamp': datetime.now().isoformat(),
                 'error': str(e)
             }), 503
+    
+    @app.route(f'{AppConfig.API_BASE_PATH}/feedback', methods=['POST'])
+    def api_feedback():
+        """Endpoint for collecting user feedback on AI responses"""
+        if not is_authenticated():
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        try:
+            from extensions.learning import log_interaction
+            
+            user_id = session['user']['id']
+            input_text = data.get('input_text', '')
+            response_text = data.get('response_text', '')
+            rating = data.get('rating')  # 1-5 scale
+            feedback_text = data.get('feedback_text')
+            ai_provider = data.get('ai_provider', 'unknown')
+            
+            if not input_text or not response_text:
+                return jsonify({'error': 'input_text and response_text are required'}), 400
+            
+            if rating is not None and (not isinstance(rating, int) or rating < 1 or rating > 5):
+                return jsonify({'error': 'rating must be an integer between 1 and 5'}), 400
+            
+            log_interaction(
+                user_id=user_id,
+                input_text=input_text,
+                response_text=response_text,
+                rating=rating,
+                feedback_text=feedback_text,
+                ai_provider=ai_provider,
+                session_id=session.get('session_id', 'unknown'),
+                context={'endpoint': 'api_feedback', 'timestamp': datetime.now().isoformat()}
+            )
+            
+            return jsonify({
+                'success': True,
+                'message': 'Feedback recorded successfully'
+            })
+            
+        except Exception as e:
+            logger.error(f"Feedback recording failed: {e}")
+            return jsonify({'error': 'Failed to record feedback'}), 500
+    
+    @app.route(f'{AppConfig.API_BASE_PATH}/analytics')
+    def api_analytics():
+        """Endpoint for retrieving learning analytics"""
+        if not is_authenticated():
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        try:
+            from extensions.learning import get_feedback_analytics, suggest_improvements
+            
+            analytics = get_feedback_analytics()
+            improvements = suggest_improvements()
+            
+            return jsonify({
+                'analytics': analytics,
+                'improvements': improvements[:5],  # Top 5 improvements
+                'timestamp': datetime.now().isoformat()
+            })
+            
+        except Exception as e:
+            logger.error(f"Analytics retrieval failed: {e}")
+            return jsonify({'error': 'Failed to retrieve analytics'}), 500
+    
+    @app.route(f'{AppConfig.API_BASE_PATH}/metrics')
+    def api_metrics():
+        """Endpoint for Prometheus metrics"""
+        try:
+            from extensions.monitoring import export_metrics
+            metrics_data = export_metrics()
+            
+            return Response(
+                metrics_data,
+                mimetype='text/plain',
+                headers={'Content-Type': 'text/plain; charset=utf-8'}
+            )
+            
+        except Exception as e:
+            logger.error(f"Metrics export failed: {e}")
+            return Response(
+                f"# Error exporting metrics: {e}\n",
+                mimetype='text/plain'
+            ), 500
     
     return app
 
