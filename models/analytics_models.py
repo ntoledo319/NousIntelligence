@@ -8,8 +8,16 @@ supporting comprehensive user analytics, activity tracking, and AI-powered insig
 from datetime import datetime, timedelta
 from sqlalchemy import func, text
 from sqlalchemy.ext.hybrid import hybrid_property
-from app import db
+from flask_sqlalchemy import SQLAlchemy
 import json
+
+# Create a lazy database reference that will be set by the app
+db = None
+
+def set_db(database):
+    """Set the database instance for this module"""
+    global db
+    db = database
 
 class UserActivity(db.Model):
     """Track user activities and interactions"""

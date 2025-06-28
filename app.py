@@ -69,11 +69,7 @@ def create_app():
     
     # Initialize database with models
     from models.database import init_db
-    from models.analytics_models import UserActivity, UserMetrics, UserInsight, UserGoal, NotificationQueue, WorkflowAutomation, SearchIndex
-    from models.financial_models import BankAccount, Transaction, ExpenseCategory, Budget
-    from models.collaboration_models import Family, FamilyMember, SharedTask, SharedEvent, SharedShoppingList, SupportGroup
-    # Skip enhanced_health_models as they are not yet implemented
-    
+    # Import models after db is initialized to avoid circular imports
     init_db(app, db)
     
     # Initialize health monitoring
