@@ -72,7 +72,7 @@ def create_app():
     from models.analytics_models import UserActivity, UserMetrics, UserInsight, UserGoal, NotificationQueue, WorkflowAutomation, SearchIndex
     from models.financial_models import BankAccount, Transaction, ExpenseCategory, Budget
     from models.collaboration_models import Family, FamilyMember, SharedTask, SharedEvent, SharedShoppingList, SupportGroup
-    from models.enhanced_health_models import FitnessActivity, NutritionEntry, SleepRecord, Medication, HealthcareProvider, VitalSigns
+    # Skip enhanced_health_models as they are not yet implemented
     
     init_db(app, db)
     
