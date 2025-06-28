@@ -203,13 +203,18 @@ def create_app():
         if 'user' in session and session['user']:
             return True
         
-        # Check JWT authentication (new method)
+        # Check API token authentication (new method)
         try:
-            from utils.jwt_auth import is_authenticated_via_jwt
-            return is_authenticated_via_jwt()
+            from routes.simple_auth_api import validate_api_token
+            auth_header = request.headers.get('Authorization')
+            if auth_header and auth_header.startswith('Bearer '):
+                token = auth_header.split(' ')[1]
+                token_data = validate_api_token(token)
+                return token_data is not None
         except ImportError:
-            # JWT not available, fall back to session only
-            return False
+            pass
+        
+        return False
     
     @app.route('/')
     def landing():
@@ -327,7 +332,7 @@ def create_app():
         """Chat API endpoint - supports both authenticated and demo mode"""
         data = request.get_json()
         message = data.get('message', '').strip()
-        demo_mode = data.get('demo_mode', False)
+        demo_mode = data.get('demo_mode', False) or data.get('demo', False)
         
         if not message:
             return jsonify({'error': 'Message cannot be empty'}), 400
@@ -336,13 +341,18 @@ def create_app():
         if not demo_mode and not is_authenticated():
             return jsonify({'error': 'Authentication required'}), 401
         
-        # Get user info based on mode
+        # Get user info based on authentication method
         if demo_mode:
             user_name = 'Guest User'
             response_prefix = "Demo response: "
-        else:
+        elif 'user' in session and session['user']:
+            # Session authentication
             user_name = session['user']['name']
             response_prefix = "Echo: "
+        else:
+            # API token authentication or fallback
+            user_name = 'API User'
+            response_prefix = "Response: "
         
         # Enhanced response with AI integration and learning
         try:
@@ -376,8 +386,14 @@ def create_app():
         if not demo_mode and is_authenticated():
             try:
                 from extensions.learning import log_interaction
-                user_id = session['user']['id']
-                session_id = session.get('session_id', 'unknown')
+                # Get user ID from session or API token
+                if 'user' in session and session['user']:
+                    user_id = session['user']['id']
+                    session_id = session.get('session_id', 'unknown')
+                else:
+                    # For API token users, use a default user_id
+                    user_id = 'api_user'
+                    session_id = 'api_session'
                 
                 log_interaction(
                     user_id=user_id,

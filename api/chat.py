@@ -5,7 +5,7 @@ Auto-registers handlers and routes messages by intent pattern
 
 import json
 import asyncio
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 from typing import Dict, Any, Optional
 import sys
 import os
@@ -53,6 +53,42 @@ dispatcher = ChatDispatcher()
 def api_chat():
     """Main chat API endpoint with auto-routing"""
     try:
+        # Check authentication (allow demo mode)
+        auth_required = True
+        user_id = None
+        
+        # Check session authentication
+        if 'user' in session and session['user']:
+            user_id = session['user']['id']
+            auth_required = False
+        
+        # Check API token authentication
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header.startswith('Bearer '):
+            try:
+                from routes.simple_auth_api import validate_api_token
+                token = auth_header.split(' ')[1]
+                token_data = validate_api_token(token)
+                if token_data:
+                    user_id = token_data['user_id']
+                    auth_required = False
+            except ImportError:
+                pass
+        
+        # Check demo mode
+        demo_mode = request.args.get('demo') == 'true' or request.get_json().get('demo') == True
+        if demo_mode:
+            user_id = 'demo_user'
+            auth_required = False
+        
+        # Return 401 only if no authentication method worked
+        if auth_required:
+            return jsonify({
+                'error': 'Authentication required',
+                'demo_available': True,
+                'demo_hint': 'Add ?demo=true to URL or {"demo": true} to request body'
+            }), 401
+        
         # Get request data
         data = request.get_json() or {}
         message = data.get('message', '').strip()
