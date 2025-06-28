@@ -1,9 +1,10 @@
-# NOUS Personal Assistant - Streamlined Configuration
+# NOUS Personal Assistant - Deployment Optimized Configuration
 run = ["python3", "main.py"]
 
 [deployment]
 run = ["python3", "main.py"]
 deploymentTarget = "cloudrun"
+ignorePorts = false
 
 [env]
 PORT = "5000"
@@ -17,3 +18,9 @@ externalPort = 80
 [auth]
 pageEnabled = false
 buttonEnabled = false
+
+[nix]
+channel = "stable-22_11"
+
+[gitHubImport]
+requiredFiles = [".replit", "replit.nix", "pyproject.toml"]

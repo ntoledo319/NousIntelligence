@@ -17,6 +17,7 @@ from database import db, init_database
 from utils.health_monitor import health_monitor
 from utils.database_optimizer import db_optimizer
 from routes.api.feedback import feedback_api
+from routes.health_check import health_bp
 from routes.maps_routes import maps_bp
 from routes.weather_routes import weather_bp
 from routes.tasks_routes import tasks_bp
@@ -69,6 +70,7 @@ def create_app():
     
     # Register blueprints
     app.register_blueprint(feedback_api)
+    app.register_blueprint(health_bp)
     app.register_blueprint(maps_bp)
     app.register_blueprint(weather_bp)
     app.register_blueprint(tasks_bp)
