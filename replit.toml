@@ -27,3 +27,6 @@ buttonEnabled = false
 
 [workflows.server]
 command = "python3 main.py"
+
+[workflows.main]
+command = "python3 main.py"
