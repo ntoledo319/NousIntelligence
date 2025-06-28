@@ -32,9 +32,9 @@ class LanguageLearningSession(db.Model):
     __tablename__ = 'language_learning_sessions'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    target_language_id = Column(Integer, ForeignKey('languages.id'), nullable=False)
-    native_language_id = Column(Integer, ForeignKey('languages.id'), nullable=False)
+    user_id = Column(Integer, nullable=False)
+    target_language_id = Column(Integer, nullable=False)
+    native_language_id = Column(Integer, nullable=False)
     session_type = Column(String(50), nullable=False)  # vocabulary, grammar, conversation, reading
     lesson_topic = Column(String(255))
     duration_minutes = Column(Integer, default=0)
@@ -58,8 +58,8 @@ class LanguageProgress(db.Model):
     __tablename__ = 'language_progress'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    language_id = Column(Integer, ForeignKey('languages.id'), nullable=False)
+    user_id = Column(Integer, nullable=False)
+    language_id = Column(Integer, nullable=False)
     proficiency_level = Column(String(20), default='beginner')  # beginner, elementary, intermediate, advanced, fluent
     total_xp = Column(Integer, default=0)
     current_streak = Column(Integer, default=0)
@@ -80,7 +80,7 @@ class Vocabulary(db.Model):
     __tablename__ = 'vocabulary'
     
     id = Column(Integer, primary_key=True)
-    language_id = Column(Integer, ForeignKey('languages.id'), nullable=False)
+    language_id = Column(Integer, nullable=False)
     word = Column(String(255), nullable=False)
     translation = Column(String(255), nullable=False)
     pronunciation = Column(String(255))
@@ -102,9 +102,9 @@ class VocabularyProgress(db.Model):
     __tablename__ = 'vocabulary_progress'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    vocabulary_id = Column(Integer, ForeignKey('vocabulary.id'), nullable=False)
-    session_id = Column(Integer, ForeignKey('language_learning_sessions.id'))
+    user_id = Column(Integer, nullable=False)
+    vocabulary_id = Column(Integer, nullable=False)
+    session_id = Column(Integer)
     mastery_level = Column(Integer, default=0)  # 0-5 scale (0=new, 5=mastered)
     correct_attempts = Column(Integer, default=0)
     total_attempts = Column(Integer, default=0)
@@ -123,8 +123,8 @@ class LanguageGoal(db.Model):
     __tablename__ = 'language_goals'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    language_id = Column(Integer, ForeignKey('languages.id'), nullable=False)
+    user_id = Column(Integer, nullable=False)
+    language_id = Column(Integer, nullable=False)
     goal_type = Column(String(50), nullable=False)  # daily_minutes, words_per_week, streak_days
     target_value = Column(Float, nullable=False)
     current_value = Column(Float, default=0.0)
@@ -142,8 +142,8 @@ class LanguageAchievement(db.Model):
     __tablename__ = 'language_achievements'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    language_id = Column(Integer, ForeignKey('languages.id'))
+    user_id = Column(Integer, nullable=False)
+    language_id = Column(Integer)
     achievement_type = Column(String(100), nullable=False)  # first_lesson, streak_7_days, 100_words, etc.
     title = Column(String(255), nullable=False)
     description = Column(Text)

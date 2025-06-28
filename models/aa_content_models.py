@@ -30,7 +30,7 @@ class AAContentItem(db.Model):
     title = Column(String(255), nullable=False)
     content = Column(Text, nullable=False)
     content_type = Column(String(50), nullable=False)  # reading, prayer, story, meditation
-    category_id = Column(Integer, ForeignKey('aa_content_categories.id'))
+    category_id = Column(Integer)
     day_of_year = Column(Integer)  # For daily content (1-366)
     step_number = Column(Integer)  # For 12-step content (1-12)
     tradition_number = Column(Integer)  # For traditions (1-12)
@@ -49,8 +49,8 @@ class AAUserProgress(db.Model):
     __tablename__ = 'aa_user_progress'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    content_item_id = Column(Integer, ForeignKey('aa_content_items.id'), nullable=False)
+    user_id = Column(Integer, nullable=False)
+    content_item_id = Column(Integer, nullable=False)
     completed_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     notes = Column(Text)  # User's personal notes
     rating = Column(Integer)  # 1-5 star rating
@@ -64,7 +64,7 @@ class AAMilestone(db.Model):
     __tablename__ = 'aa_milestones'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    user_id = Column(Integer, nullable=False)
     milestone_type = Column(String(50), nullable=False)  # sobriety_date, chip, anniversary
     milestone_date = Column(DateTime, nullable=False)
     title = Column(String(255), nullable=False)
@@ -97,8 +97,8 @@ class AAMeetingAttendance(db.Model):
     __tablename__ = 'aa_meeting_attendance'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    meeting_id = Column(Integer, ForeignKey('aa_meetings.id'), nullable=False)
+    user_id = Column(Integer, nullable=False)
+    meeting_id = Column(Integer, nullable=False)
     attended_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     notes = Column(Text)
     
@@ -111,8 +111,8 @@ class AASponsorRelationship(db.Model):
     __tablename__ = 'aa_sponsor_relationships'
     
     id = Column(Integer, primary_key=True)
-    sponsor_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    sponsee_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    sponsor_id = Column(Integer, nullable=False)
+    sponsee_id = Column(Integer, nullable=False)
     relationship_type = Column(String(50), default='sponsor')  # sponsor, temporary_sponsor
     started_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     ended_at = Column(DateTime)

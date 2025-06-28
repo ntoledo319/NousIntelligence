@@ -35,8 +35,8 @@ class UserMemory(db.Model):
     __tablename__ = 'user_memories'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    memory_type_id = Column(Integer, ForeignKey('memory_types.id'), nullable=False)
+    user_id = Column(Integer, nullable=False)
+    memory_type_id = Column(Integer, nullable=False)
     title = Column(String(255), nullable=False)
     content = Column(Text, nullable=False)
     context_data = Column(Text)  # JSON context information
@@ -59,8 +59,8 @@ class MemoryAssociation(db.Model):
     __tablename__ = 'memory_associations'
     
     id = Column(Integer, primary_key=True)
-    memory_id = Column(Integer, ForeignKey('user_memories.id'), nullable=False)
-    related_memory_id = Column(Integer, ForeignKey('user_memories.id'), nullable=False)
+    memory_id = Column(Integer, nullable=False)
+    related_memory_id = Column(Integer, nullable=False)
     association_type = Column(String(50), nullable=False)  # related, caused_by, led_to, similar
     strength = Column(Float, default=0.5)  # 0.0-1.0 association strength
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
@@ -71,7 +71,7 @@ class ConversationMemory(db.Model):
     __tablename__ = 'conversation_memories'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    user_id = Column(Integer, nullable=False)
     session_id = Column(String(255))  # Track conversation sessions
     conversation_type = Column(String(50), default='chat')  # chat, voice, email, etc.
     summary = Column(Text)
@@ -89,7 +89,7 @@ class UserPreference(db.Model):
     __tablename__ = 'user_preferences'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    user_id = Column(Integer, nullable=False)
     category = Column(String(100), nullable=False)  # communication, scheduling, interests
     preference_key = Column(String(255), nullable=False)
     preference_value = Column(Text, nullable=False)
