@@ -114,7 +114,7 @@ class VocabularyProgress(db.Model):
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Relationships
-    vocabulary = relationship("Vocabulary", back_populates="progress_records")
+    vocabulary_item = relationship("VocabularyItem", back_populates="progress_records")
     session = relationship("LanguageLearningSession", back_populates="vocabulary_progress")
 
 
@@ -245,3 +245,82 @@ class LanguageProfile(db.Model):
     proficiency_level = Column(String(20), default='beginner')
     goals = Column(Text)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class VocabularyItem(db.Model):
+    """Individual vocabulary items for learning"""
+    __tablename__ = 'vocabulary_items'
+    
+    id = Column(Integer, primary_key=True)
+    language_id = Column(Integer, ForeignKey('languages.id'), nullable=False)
+    word = Column(String(255), nullable=False)
+    translation = Column(String(255), nullable=False)
+    pronunciation = Column(String(255))
+    part_of_speech = Column(String(50))
+    difficulty_level = Column(Integer, default=1)
+    usage_example = Column(Text)
+    audio_url = Column(String(500))
+    image_url = Column(String(500))
+    category = Column(String(100))
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    # Relationships
+    language = relationship("Language")
+    progress_records = relationship("VocabularyProgress", back_populates="vocabulary_item")
+
+
+class LearningSession(db.Model):
+    """Language learning session tracking"""
+    __tablename__ = 'learning_sessions'
+    
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, nullable=False)
+    language_id = Column(Integer, ForeignKey('languages.id'), nullable=False)
+    session_type = Column(String(50), nullable=False)
+    duration_minutes = Column(Integer, default=0)
+    words_learned = Column(Integer, default=0)
+    accuracy_percentage = Column(Float, default=0.0)
+    xp_earned = Column(Integer, default=0)
+    started_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    completed_at = Column(DateTime)
+    is_completed = Column(Boolean, default=False)
+    
+    # Relationships
+    language = relationship("Language")
+
+
+class ConversationTemplate(db.Model):
+    """Pre-built conversation templates for practice"""
+    __tablename__ = 'conversation_templates'
+    
+    id = Column(Integer, primary_key=True)
+    language_id = Column(Integer, ForeignKey('languages.id'), nullable=False)
+    title = Column(String(255), nullable=False)
+    description = Column(Text)
+    difficulty_level = Column(Integer, default=1)
+    category = Column(String(100))
+    template_data = Column(Text)  # JSON conversation flow
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    # Relationships
+    language = relationship("Language")
+    prompts = relationship("ConversationPrompt", back_populates="template")
+
+
+class ConversationPrompt(db.Model):
+    """Individual prompts within conversation templates"""
+    __tablename__ = 'conversation_prompts'
+    
+    id = Column(Integer, primary_key=True)
+    template_id = Column(Integer, ForeignKey('conversation_templates.id'), nullable=False)
+    prompt_text = Column(Text, nullable=False)
+    expected_response = Column(Text)
+    response_type = Column(String(50), default='text')  # text, voice, choice
+    order_index = Column(Integer, default=0)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    # Relationships
+    template = relationship("ConversationTemplate", back_populates="prompts")

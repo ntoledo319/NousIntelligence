@@ -50,6 +50,50 @@ class GoogleAPIManager:
                 'prompt': 'consent'
             }
         }
+    
+    def get_user_connection(self, user_id):
+        """Get authenticated Google API connection for user"""
+        try:
+            # This would normally retrieve stored OAuth tokens for the user
+            # For now, return a mock connection that can be extended
+            return {
+                'user_id': user_id,
+                'access_token': None,
+                'refresh_token': None,
+                'expires_at': None,
+                'scopes': self.scopes
+            }
+        except Exception as e:
+            logger.error(f"Failed to get user connection: {e}")
+            return None
+    
+    def create_service(self, service_name, version='v1', user_connection=None):
+        """Create a Google API service client"""
+        try:
+            if not user_connection or not user_connection.get('access_token'):
+                logger.warning(f"No valid user connection for {service_name}")
+                return None
+                
+            # This would create the actual service client
+            # For now, return a mock service
+            return {
+                'service_name': service_name,
+                'version': version,
+                'authenticated': True
+            }
+        except Exception as e:
+            logger.error(f"Failed to create {service_name} service: {e}")
+            return None
+
+
+# Global instance for backward compatibility
+google_api_manager = GoogleAPIManager()
+
+def get_user_connection(user_id):
+    """Get user's Google API connection - backward compatibility function"""
+    return google_api_manager.get_user_connection(user_id)
+            }
+        }
         
         if self.client_config['client_id'] and self.client_config['client_secret']:
             self.google = self.oauth.register(
