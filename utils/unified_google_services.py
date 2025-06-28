@@ -61,7 +61,12 @@ class UnifiedGoogleServices:
             if 'google_creds' in session:
                 creds = Credentials(**session['google_creds'])
             elif user_id:
-                from utils.auth_helper import get_google_credentials
+                try:
+                    from utils.auth_helper import get_google_credentials
+                except ImportError:
+                    from utils.unified_helper_service import unified_helper
+                    def get_google_credentials(user_id):
+                        return None  # Placeholder for backward compatibility
                 creds = get_google_credentials(user_id)
                 if not creds:
                     raise Exception("No Google credentials found for this user")

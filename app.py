@@ -97,15 +97,22 @@ def create_app():
     init_database(app)
     
     # Initialize health monitoring
-    health_monitor.init_app(app)
+    if health_monitor:
+        health_monitor.init_app(app)
     
-    # Register blueprints
-    app.register_blueprint(feedback_api)
-    app.register_blueprint(health_bp)
-    app.register_blueprint(maps_bp)
-    app.register_blueprint(weather_bp)
-    app.register_blueprint(tasks_bp)
-    app.register_blueprint(recovery_bp)
+    # Register blueprints with None checks
+    if feedback_api:
+        app.register_blueprint(feedback_api)
+    if health_bp:
+        app.register_blueprint(health_bp)
+    if maps_bp:
+        app.register_blueprint(maps_bp)
+    if weather_bp:
+        app.register_blueprint(weather_bp)
+    if tasks_bp:
+        app.register_blueprint(tasks_bp)
+    if recovery_bp:
+        app.register_blueprint(recovery_bp)
     
     # Create logs directory
     os.makedirs('logs', exist_ok=True)
