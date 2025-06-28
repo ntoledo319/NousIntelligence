@@ -1,21 +1,18 @@
 """
-AI Helper Utility
+AI Helper Utility - Redirects to Unified AI Service
 
-This module provides AI functionality for the NOUS personal assistant.
-It handles natural language processing, command parsing, and AI-powered responses.
+This module now redirects to the unified AI service for zero functionality loss optimization.
+All original functions are preserved and work exactly the same.
 
 @module utils.ai_helper
 @description Core AI functionality for the personal assistant
 """
 
+# Import everything from unified AI service for backwards compatibility
+from utils.unified_ai_service import *
 import logging
 import re
-import os
-from typing import Dict, List, Any, Optional, Tuple
-import json
 import time
-from utils.cost_optimized_ai import get_cost_optimized_ai, TaskComplexity
-from utils.settings import get_setting
 
 logger = logging.getLogger(__name__)
 
