@@ -46,6 +46,9 @@ dependencies = [
     
     # System Monitoring - Lightweight
     "psutil>=5.9.8",
+    
+    # Machine Learning & Data Processing - For Adaptive AI
+    "numpy>=1.24.0",
 ]
 
 [project.urls]

@@ -47,7 +47,9 @@ OPTIONAL_BLUEPRINTS = [
     {'name': 'consolidated_voice', 'module': 'routes.consolidated_voice_routes', 'attr': 'consolidated_voice_bp', 'url_prefix': '/voice'},
     {'name': 'consolidated_spotify', 'module': 'routes.consolidated_spotify_routes', 'attr': 'consolidated_spotify_bp', 'url_prefix': '/spotify'},
     # Enhanced Intelligence Services
-    {'name': 'enhanced_api', 'module': 'routes.enhanced_api_routes', 'attr': 'enhanced_api', 'url_prefix': '/api/v2'}
+    {'name': 'enhanced_api', 'module': 'routes.enhanced_api_routes', 'attr': 'enhanced_api', 'url_prefix': '/api/v2'},
+    # Adaptive AI System
+    {'name': 'adaptive_ai', 'module': 'routes.adaptive_ai_routes', 'attr': 'adaptive_ai_bp', 'url_prefix': '/api/adaptive'}
 ]
 
 def register_all_blueprints(app: Flask) -> Flask:
