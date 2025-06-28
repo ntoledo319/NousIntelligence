@@ -1,0 +1,116 @@
+Here’s the complete, single-chat prompt for your Replit AI agent. It includes all code, context, goals, and instructions—plain text only, no boxes or markdown formatting:
+
+You are the MTM‑CE Integration Agent.
+Purpose & Goals:
+We are building an ultra-secure, AI-driven therapeutic assistant with next-gen protections. This prompt will:
+• Crawl and analyze the Flask codebase for unused code, structure, blocking patterns, hardcoded secrets, and security vulnerabilities
+• Inject MTM‑CE modules for performance, memory, learning, monitoring, AI, and security
+• Integrate private, permissioned blockchain logging, TEE-secured inference, and AI threat monitoring
+• Refactor endpoints for offload, validation, structured logging, secrets management
+• Ensure HIPAA compliance and beyond—fault-tolerant, encrypted, auditable
+• Run CI, auto-fix, annotate issues, and produce a final summary
+
+Instructions:
+	1.	Crawl entire Flask repo: index all .py, .html, .js, config and script files
+	2.	Identify and log “Opportunities” with filepath, line numbers, suggestions
+	3.	Apply safe automated refactoring: autoflake for dead code; black, isort; bandit fixes; add @lru_cache; swap blocking logic in routes with Celery tasks; add marshmallow schemas; ensure secrets via app.config; structured logging
+	4.	Include the following modules, adapting imports and paths:
+
+Plugin Registry (mtmce/plugins/init.py):
+import importlib
+class PluginRegistry:
+def init(self): self._plugins={}
+def register(self,name,module_path,blueprint=None,init_fn=None):
+if name in self._plugins: return
+self._plugins[name]={‘module’:importlib.import_module(module_path),‘blueprint’:blueprint,‘init_fn’:init_fn}
+def init_all(self,app):
+for cfg in self._plugins.values():
+if cfg[‘init_fn’]: getattr(cfg[‘module’],cfg[‘init_fn’])(app)
+def wire_blueprints(self,app):
+for cfg in self._plugins.values():
+if cfg[‘blueprint’]: app.register_blueprint(cfg[‘blueprint’])
+def get(self,name): return self._plugins.get(name,{}).get(‘module’)
+def list_plugins(self): return list(self._plugins.keys())
+
+mtmce/features/parallel.py (Celery engine):
+from celery import Celery, shared_task
+def init_parallel(app):
+celery=Celery(app.import_name,broker=app.config.get(‘CELERY_BROKER_URL’,‘redis://localhost:6379/0’),backend=app.config.get(‘CELERY_RESULT_BACKEND’,‘redis://localhost:6379/1’))
+celery.conf.update(app.config.get(‘CELERY’,{}))
+class ContextTask(celery.Task):
+def call(self,*args,**kwargs):
+with app.app_context(): return self.run(*args,**kwargs)
+celery.Task=ContextTask
+app.extensions[‘celery’]=celery
+app.celery=celery
+@shared_task(bind=True,ignore_result=False)
+def heavy_compute(self,payload):
+self.update_state(meta={‘step’:‘start’})
+return do_intensive_job(payload)
+
+mtmce/features/compress.py:
+import zstandard as zstd
+from flask import current_app
+def init_compression(app): app.compressor=zstd.ZstdCompressor(level=3); app.decompressor=zstd.ZstdDecompressor()
+def compress_data(data): return current_app.compressor.compress(data)
+def decompress_data(blob): return current_app.decompressor.decompress(blob)
+
+mtmce/features/brain.py:
+import torch
+from flask import current_app
+def init_brain(app): current_app.brain=torch.jit.load(app.config.get(‘BRAIN_MODEL_PATH’,’/models/brain.pt’)).eval()
+def plan_and_reason(prompt,context): ins=current_app.brain.tokenize(prompt,context); out=current_app.brain.generate(**ins); return out.text()
+
+mtmce/features/selflearn.py:
+import sqlite3,datetime
+from flask import current_app
+def init_selflearn(app): conn=sqlite3.connect(app.config.get(‘SELFLEARN_DB’,‘selflearn.db’)); conn.execute(‘CREATE TABLE IF NOT EXISTS feedback(ts TEXT,user TEXT,input TEXT,response TEXT,rating INTEGER)’); conn.commit(); conn.close()
+def log_interaction(user,inp,resp,rating=None): conn=sqlite3.connect(current_app.config[‘SELFLEARN_DB’]); conn.execute(‘INSERT INTO feedback VALUES(?,?,?,?,?)’,(datetime.datetime.utcnow().isoformat(),user,inp,resp,rating)); conn.commit(); conn.close()
+def retrain_if_needed(threshold=100): conn=sqlite3.connect(current_app.config[‘SELFLEARN_DB’]); count=conn.execute(‘SELECT COUNT(*) FROM feedback’).fetchone()[0]; conn.close();
+if count>=threshold: trigger_retraining_pipeline()
+
+mtmce/features/dataextract.py, xref.py, schedule.py, music.py, finance.py, scrape.py, monitor.py, deploy_and_audit.py same as previous versions
+
+mtmce/features/security/blockchain.py:
+import hashlib,time
+from web3 import Web3
+class BlockchainAudit:
+def init(self,provider_url,contract_abi,contract_address):
+w3=Web3(Web3.HTTPProvider(provider_url))
+self.contract=w3.eth.contract(address=contract_address,abi=contract_abi)
+def log_access(self,user_id,record_id,action):
+tx=self.contract.functions.logAudit(user_id,record_id,action,int(time.time())).transact()
+return tx
+
+mtmce/features/security/tee.py:
+import subprocess,os
+def init_tee(app):
+app.config.setdefault(‘TEE_CMD’,[‘scone’,‘run’,’–sgx’,’–’])
+def tee_run_inference(model_path,input_data):
+cmd=app.config[‘TEE_CMD’]+[‘python3’,‘inference_script.py’,model_path]
+proc=subprocess.Popen(cmd,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
+out,err=proc.communicate(input_data)
+return out
+
+mtmce/features/security/monitor.py:
+from mtmce.features.security.blockchain import BlockchainAudit
+from mtmce.features.security.tee import tee_run_inference
+def init_security_monitor(app):
+app.security_audit=BlockchainAudit(app.config[‘BLOCKCHAIN_URL’],app.config[‘BLOCKCHAIN_ABI’],app.config[‘BLOCKCHAIN_ADDR’])
+app.tee_run=tee_run_inference
+def monitor_access(user,record,action):
+app.security_audit.log_access(user,record,action)
+risk=app.celery.send_task(‘mtmce.security.eval_risk’,args=[user,record,action])
+return risk
+
+mtmce/features/ai_system_brain.py include full code as provided earlier
+
+Also include ai_security_monitor integration, TEE usage wrappers for inference routes, blockchain audit calls on ePHI access
+	5.	Wire all in app.py factory:
+init_parallel(app); init_security_monitor(app); plugin_registry.init_all(app); plugin_registry.wire_blueprints(app); register before_request/after_request for monitoring
+	6.	Replace direct inference endpoints to use tee_run_inference for sensitive calls; log via monitor_access
+	7.	Run CI via deploy_and_audit.py audit; fix; annotate
+	8.	Commit changes: mtmce: full module + security augmentation + blockchain + tee + ai_brain
+	9.	Output summary: Implemented modules, Security Hardened, Blockchain, TEE, AI Brain, Refactored, Monitored, Skipped, Errors
+
+Ensure all code is adapted to project structure and imports resolved.
