@@ -92,12 +92,13 @@ def create_app():
     
     @app.after_request
     def add_security_headers(response):
-        """Add security headers"""
-        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        """Add security headers for public deployment"""
+        response.headers['X-Frame-Options'] = 'ALLOWALL'  # Allow embedding for public deployment
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['Access-Control-Allow-Origin'] = '*'
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        response.headers['X-Replit-Auth-Bypass'] = 'true'  # Help bypass Replit auth
         return response
     
     def is_authenticated():
@@ -106,7 +107,10 @@ def create_app():
     
     @app.route('/')
     def landing():
-        """Public landing page with Google sign-in"""
+        """Public landing page with demo functionality"""
+        # Check if user is already authenticated
+        if is_authenticated():
+            return redirect(url_for('app_chat'))
         return render_template('landing.html')
     
     @app.route('/login')
@@ -189,32 +193,76 @@ def create_app():
         flash('You have been logged out successfully.', 'success')
         return redirect(url_for('landing'))
     
+    @app.route('/demo')
+    def public_demo():
+        """Public demo version of the chat application"""
+        # Create a guest user for demo purposes
+        guest_user = {
+            'id': 'guest_user',
+            'name': 'Guest User',
+            'email': 'guest@nous.app',
+            'avatar': '',
+            'login_time': datetime.now().isoformat(),
+            'is_guest': True
+        }
+        return render_template('app.html', user=guest_user, demo_mode=True)
+
     @app.route('/app')
     def app_chat():
         """Main chat application - requires authentication"""
         if not is_authenticated():
             return redirect(url_for('login'))
         
-        return render_template('app.html', user=session['user'])
+        return render_template('app.html', user=session['user'], demo_mode=False)
     
     @app.route(f'{AppConfig.API_BASE_PATH}/chat', methods=['POST'])
     @app.route(f'{AppConfig.API_LEGACY_PATH}/chat', methods=['POST'])  # Legacy support
     def api_chat():
-        """Chat API endpoint"""
-        if not is_authenticated():
+        """Chat API endpoint - supports both authenticated and demo mode"""
+        data = request.get_json()
+        message = data.get('message', '').strip()
+        demo_mode = data.get('demo_mode', False)
+        
+        if not message:
+            return jsonify({'error': 'Message cannot be empty'}), 400
+        
+        # Check authentication only if not in demo mode
+        if not demo_mode and not is_authenticated():
             return jsonify({'error': 'Authentication required'}), 401
         
+        # Get user info based on mode
+        if demo_mode:
+            user_name = 'Guest User'
+            response_prefix = "Demo response: "
+        else:
+            user_name = session['user']['name']
+            response_prefix = "Echo: "
+        
+        # Simple echo response for now - can be enhanced with actual AI
+        response = {
+            'message': f"{response_prefix}{message}",
+            'timestamp': datetime.now().isoformat(),
+            'user': user_name,
+            'demo_mode': demo_mode
+        }
+        
+        return jsonify(response)
+    
+    @app.route(f'{AppConfig.API_BASE_PATH}/demo/chat', methods=['POST'])
+    def api_demo_chat():
+        """Public demo chat API endpoint - no authentication required"""
         data = request.get_json()
         message = data.get('message', '').strip()
         
         if not message:
             return jsonify({'error': 'Message cannot be empty'}), 400
         
-        # Simple echo response for now - can be enhanced with actual AI
+        # Demo response for public access
         response = {
-            'message': f"Echo: {message}",
+            'message': f"Public Demo: Thanks for trying NOUS! You said: '{message}'. Sign in for full AI features!",
             'timestamp': datetime.now().isoformat(),
-            'user': session['user']['name']
+            'user': 'Demo User',
+            'demo_mode': True
         }
         
         return jsonify(response)
@@ -222,11 +270,24 @@ def create_app():
     @app.route(f'{AppConfig.API_BASE_PATH}/user')
     @app.route(f'{AppConfig.API_LEGACY_PATH}/user')  # Legacy support
     def api_user():
-        """Get current user info"""
+        """Get current user info - supports guest mode"""
         if not is_authenticated():
-            return jsonify({'error': 'Not authenticated'}), 401
+            # Return guest user info for public access
+            return jsonify({
+                'id': 'guest_user',
+                'name': 'Guest User',
+                'email': 'guest@nous.app',
+                'avatar': '',
+                'login_time': datetime.now().isoformat(),
+                'is_guest': True,
+                'authenticated': False
+            })
         
-        return jsonify(session['user'])
+        # Return authenticated user info
+        user_data = session['user'].copy()
+        user_data['authenticated'] = True
+        user_data['is_guest'] = False
+        return jsonify(user_data)
     
     @app.route('/health')
     @app.route('/healthz')

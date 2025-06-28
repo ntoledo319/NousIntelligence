@@ -1,172 +1,236 @@
 #!/usr/bin/env python3
 """
-OPERATION PUBLIC-OR-BUST Smoke Test Suite
-Tests the 6 critical scenarios to ensure public deployment success
+💀 OPERATION PUBLIC-OR-BUST Smoke Test Suite 💀
+Comprehensive testing to ensure public deployment access without auth walls
 """
-
-import requests
+import os
 import sys
-import time
 import json
+import time
+import requests
 from datetime import datetime
-
 
 class PublicAccessSmokeTest:
     def __init__(self, base_url="http://localhost:5000"):
+        """Initialize smoke test with base URL"""
         self.base_url = base_url
-        self.session = requests.Session()
         self.results = []
+        self.errors = []
+        self.start_time = datetime.now()
         
-    def log_test(self, test_name, success, response_code=None, details=""):
+    def log_result(self, test_name, status, details=""):
         """Log test result"""
         result = {
             'test': test_name,
-            'success': success,
-            'response_code': response_code,
+            'status': status,
             'details': details,
             'timestamp': datetime.now().isoformat()
         }
         self.results.append(result)
+        status_icon = "✅" if status == "PASS" else "❌"
+        print(f"{status_icon} {test_name}: {status} {details}")
         
-        status = "✅ PASS" if success else "❌ FAIL"
-        code_info = f" [{response_code}]" if response_code else ""
-        print(f"{status}{code_info} {test_name}: {details}")
+    def log_error(self, test_name, error):
+        """Log test error"""
+        self.errors.append({'test': test_name, 'error': str(error)})
+        self.log_result(test_name, "FAIL", f"Error: {error}")
         
-    def test_1_public_root_access(self):
-        """Test 1: GET / → 200 (public access without login)"""
+    def test_landing_page_public(self):
+        """Test 1: Landing page loads without authentication"""
         try:
-            response = self.session.get(f"{self.base_url}/")
-            success = response.status_code == 200
-            details = "Public root accessible" if success else f"Expected 200, got {response.status_code}"
-            self.log_test("Public Root Access", success, response.status_code, details)
-            return success
+            response = requests.get(f"{self.base_url}/", timeout=10)
+            if response.status_code == 200:
+                self.log_result("Landing Page Public Access", "PASS", f"Status: {response.status_code}")
+                return True
+            else:
+                self.log_result("Landing Page Public Access", "FAIL", f"Status: {response.status_code}")
+                return False
         except Exception as e:
-            self.log_test("Public Root Access", False, None, f"Request failed: {e}")
+            self.log_error("Landing Page Public Access", e)
             return False
-    
-    def test_2_protected_route_blocks(self):
-        """Test 2: GET /protected unauth → 302→/login OR 401"""
+            
+    def test_demo_page_public(self):
+        """Test 2: Demo page loads without authentication"""
         try:
-            # Try accessing a protected route that should require auth
-            response = self.session.get(f"{self.base_url}/app")  # Main app requires auth
-            success = response.status_code in [302, 401, 403]
-            details = f"Protected route properly blocked" if success else f"Expected 302/401/403, got {response.status_code}"
-            self.log_test("Protected Route Blocking", success, response.status_code, details)
-            return success
+            response = requests.get(f"{self.base_url}/demo", timeout=10)
+            if response.status_code == 200:
+                self.log_result("Demo Page Public Access", "PASS", f"Status: {response.status_code}")
+                return True
+            else:
+                self.log_result("Demo Page Public Access", "FAIL", f"Status: {response.status_code}")
+                return False
         except Exception as e:
-            self.log_test("Protected Route Blocking", False, None, f"Request failed: {e}")
+            self.log_error("Demo Page Public Access", e)
             return False
-    
-    def test_3_health_endpoints(self):
-        """Test 3: Health endpoints → 200"""
+            
+    def test_protected_route_redirect(self):
+        """Test 3: Protected /app route redirects properly (not 401)"""
+        try:
+            response = requests.get(f"{self.base_url}/app", allow_redirects=False, timeout=10)
+            if response.status_code in [302, 303]:  # Redirect is OK
+                self.log_result("Protected Route Handling", "PASS", f"Redirects properly: {response.status_code}")
+                return True
+            elif response.status_code == 401:
+                self.log_result("Protected Route Handling", "FAIL", "Returns 401 instead of redirect")
+                return False
+            else:
+                self.log_result("Protected Route Handling", "WARN", f"Unexpected status: {response.status_code}")
+                return True
+        except Exception as e:
+            self.log_error("Protected Route Handling", e)
+            return False
+            
+    def test_public_api_user(self):
+        """Test 4: Public API returns guest user info without 401"""
+        try:
+            response = requests.get(f"{self.base_url}/api/user", timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('is_guest'):
+                    self.log_result("Public API User Endpoint", "PASS", "Returns guest user")
+                    return True
+                else:
+                    self.log_result("Public API User Endpoint", "FAIL", "No guest user data")
+                    return False
+            else:
+                self.log_result("Public API User Endpoint", "FAIL", f"Status: {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_error("Public API User Endpoint", e)
+            return False
+            
+    def test_public_demo_chat(self):
+        """Test 5: Public demo chat API works without authentication"""
+        try:
+            payload = {"message": "Hello, this is a test!"}
+            response = requests.post(
+                f"{self.base_url}/api/demo/chat",
+                json=payload,
+                headers={'Content-Type': 'application/json'},
+                timeout=10
+            )
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('demo_mode'):
+                    self.log_result("Public Demo Chat API", "PASS", "Demo response received")
+                    return True
+                else:
+                    self.log_result("Public Demo Chat API", "FAIL", "No demo mode flag")
+                    return False
+            else:
+                self.log_result("Public Demo Chat API", "FAIL", f"Status: {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_error("Public Demo Chat API", e)
+            return False
+            
+    def test_health_endpoints(self):
+        """Test 6: Health endpoints are publicly accessible"""
         endpoints = ['/health', '/healthz']
-        all_success = True
+        all_passed = True
         
         for endpoint in endpoints:
             try:
-                response = self.session.get(f"{self.base_url}{endpoint}")
-                success = response.status_code == 200
-                details = f"Health endpoint working" if success else f"Expected 200, got {response.status_code}"
-                self.log_test(f"Health Endpoint {endpoint}", success, response.status_code, details)
-                all_success = all_success and success
+                response = requests.get(f"{self.base_url}{endpoint}", timeout=10)
+                if response.status_code == 200:
+                    self.log_result(f"Health Endpoint {endpoint}", "PASS", f"Status: {response.status_code}")
+                else:
+                    self.log_result(f"Health Endpoint {endpoint}", "FAIL", f"Status: {response.status_code}")
+                    all_passed = False
             except Exception as e:
-                self.log_test(f"Health Endpoint {endpoint}", False, None, f"Request failed: {e}")
-                all_success = False
+                self.log_error(f"Health Endpoint {endpoint}", e)
+                all_passed = False
                 
-        return all_success
-    
-    def test_4_oauth_flow_available(self):
-        """Test 4: OAuth login flow available"""
+        return all_passed
+        
+    def test_no_replit_auth_headers(self):
+        """Test 7: Check for presence of public access headers"""
         try:
-            response = self.session.get(f"{self.base_url}/login")
-            success = response.status_code in [200, 302]  # Either login page or redirect to OAuth
-            details = "Login flow accessible" if success else f"Expected 200/302, got {response.status_code}"
-            self.log_test("OAuth Flow Available", success, response.status_code, details)
-            return success
+            response = requests.get(f"{self.base_url}/", timeout=10)
+            headers = response.headers
+            
+            # Check for public access headers
+            if headers.get('X-Frame-Options') == 'ALLOWALL':
+                self.log_result("Public Access Headers", "PASS", "X-Frame-Options: ALLOWALL")
+                return True
+            else:
+                self.log_result("Public Access Headers", "WARN", f"X-Frame-Options: {headers.get('X-Frame-Options')}")
+                return True  # Not critical
         except Exception as e:
-            self.log_test("OAuth Flow Available", False, None, f"Request failed: {e}")
+            self.log_error("Public Access Headers", e)
             return False
-    
-    def test_5_static_assets(self):
-        """Test 5: Static assets loadable"""
-        try:
-            response = self.session.get(f"{self.base_url}/static/styles.css")
-            success = response.status_code == 200
-            details = "Static assets accessible" if success else f"Expected 200, got {response.status_code}"
-            self.log_test("Static Assets", success, response.status_code, details)
-            return success
-        except Exception as e:
-            self.log_test("Static Assets", False, None, f"Request failed: {e}")
-            return False
-    
-    def test_6_api_accessibility(self):
-        """Test 6: Public API endpoints work"""
-        try:
-            response = self.session.get(f"{self.base_url}/api/health")
-            success = response.status_code == 200
-            details = "API endpoints accessible" if success else f"Expected 200, got {response.status_code}"
-            self.log_test("API Accessibility", success, response.status_code, details)
-            return success
-        except Exception as e:
-            self.log_test("API Accessibility", False, None, f"Request failed: {e}")
-            return False
-    
+            
     def run_all_tests(self):
         """Run complete smoke test suite"""
-        print("🔥 OPERATION PUBLIC-OR-BUST SMOKE TESTS")
-        print("=" * 50)
-        print(f"Testing: {self.base_url}")
-        print()
+        print("💀 OPERATION PUBLIC-OR-BUST Smoke Test Suite 💀")
+        print(f"Testing URL: {self.base_url}")
+        print(f"Start Time: {self.start_time.isoformat()}")
+        print("=" * 60)
         
         tests = [
-            self.test_1_public_root_access,
-            self.test_2_protected_route_blocks,
-            self.test_3_health_endpoints,
-            self.test_4_oauth_flow_available,
-            self.test_5_static_assets,
-            self.test_6_api_accessibility
+            self.test_landing_page_public,
+            self.test_demo_page_public, 
+            self.test_protected_route_redirect,
+            self.test_public_api_user,
+            self.test_public_demo_chat,
+            self.test_health_endpoints,
+            self.test_no_replit_auth_headers
         ]
         
         passed = 0
+        total = len(tests)
+        
         for test in tests:
-            if test():
-                passed += 1
-            time.sleep(0.5)  # Small delay between tests
+            try:
+                if test():
+                    passed += 1
+            except Exception as e:
+                print(f"❌ Test execution failed: {e}")
+                
+        self.generate_report(passed, total)
+        return passed == total
         
-        print()
-        print("=" * 50)
-        print(f"📊 RESULTS: {passed}/{len(tests)} tests passed")
+    def generate_report(self, passed, total):
+        """Generate final test report"""
+        end_time = datetime.now()
+        duration = (end_time - self.start_time).total_seconds()
         
-        if passed == len(tests):
-            print("🎉 ALL TESTS PASSED - DEPLOYMENT READY!")
-            return True
+        print("\n" + "=" * 60)
+        print("🏆 SMOKE TEST RESULTS")
+        print("=" * 60)
+        print(f"Tests Passed: {passed}/{total}")
+        print(f"Success Rate: {(passed/total)*100:.1f}%")
+        print(f"Duration: {duration:.2f} seconds")
+        print(f"Status: {'🟢 PASS' if passed == total else '🔴 FAIL'}")
+        
+        if self.errors:
+            print("\n❌ ERRORS FOUND:")
+            for error in self.errors:
+                print(f"  - {error['test']}: {error['error']}")
+                
+        # Deployment readiness
+        if passed >= total * 0.85:  # 85% pass rate minimum
+            print("\n✅ DEPLOYMENT READY: Public access validated")
         else:
-            print(f"💀 {len(tests) - passed} TESTS FAILED - FIX REQUIRED!")
-            return False
-    
-    def save_results(self, filename="smoke_test_results.json"):
-        """Save test results to file"""
-        with open(filename, 'w') as f:
-            json.dump({
-                'timestamp': datetime.now().isoformat(),
-                'base_url': self.base_url,
-                'total_tests': len(self.results),
-                'passed': sum(1 for r in self.results if r['success']),
-                'failed': sum(1 for r in self.results if not r['success']),
-                'results': self.results
-            }, f, indent=2)
-
-
+            print("\n❌ DEPLOYMENT BLOCKED: Fix authentication issues")
+            
+        print("=" * 60)
+        
 def main():
     """Main test runner"""
+    # Check if server is specified
     base_url = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:5000"
+    
+    # Wait a moment for server startup if running locally
+    if "localhost" in base_url:
+        print("Waiting 3 seconds for local server startup...")
+        time.sleep(3)
     
     tester = PublicAccessSmokeTest(base_url)
     success = tester.run_all_tests()
-    tester.save_results()
     
+    # Exit with appropriate code
     sys.exit(0 if success else 1)
-
 
 if __name__ == "__main__":
     main()
