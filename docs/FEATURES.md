@@ -1,6 +1,56 @@
 # NOUS Features Documentation
 
-This document provides comprehensive information about all NOUS features, including recent enhancements and new capabilities.
+This document provides comprehensive information about all NOUS features, including recent enhancements and new intelligence capabilities.
+
+## 🧠 Advanced Intelligence Services (NEW)
+
+### Predictive Analytics Engine
+- **Behavior Pattern Analysis**: Learns from user activities to predict future needs
+- **Routine Detection**: Automatically identifies and suggests routine optimizations  
+- **Proactive Task Creation**: Creates tasks before you realize you need them
+- **Smart Scheduling**: Predicts optimal times for different activities
+- **Confidence Scoring**: All predictions include accuracy confidence levels
+- **API**: `/api/v2/predictions/*` - Full predictive analytics suite
+
+### Enhanced Voice Interface with Emotion Recognition
+- **Emotion-Aware Responses**: Adapts communication style based on detected emotional state
+- **Context-Aware Speech**: Remembers conversation history for natural dialogue
+- **Multi-Modal Analysis**: Combines text and audio features for emotion detection
+- **Hands-Free Task Management**: Complete voice control with emotional intelligence
+- **Adaptive Tone**: Response style changes based on user mood and preferences
+- **API**: `/api/v2/voice/*` - Enhanced voice processing with emotion analysis
+
+### Intelligent Automation Workflows
+- **Smart Triggers**: Time, weather, emotion, and activity-based automation
+- **Template Library**: Pre-built automation rules for common scenarios
+- **Custom Rule Creation**: Build complex if-this-then-that workflows
+- **Cross-Feature Integration**: Automates actions across all NOUS capabilities
+- **Learning Rules**: Automation improves based on user feedback and patterns
+- **API**: `/api/v2/automation/*` - Complete automation management
+
+### Visual Intelligence & Document Processing
+- **Advanced OCR**: Extract text from images, receipts, and documents
+- **Document Type Detection**: Automatically identifies receipts, invoices, business cards
+- **Smart Task Creation**: Generates relevant tasks from visual content
+- **Expense Auto-Entry**: Automatically logs expenses from receipt photos
+- **Contact Management**: Extracts contact info from business cards
+- **Form Processing**: Digitizes handwritten and printed forms
+- **API**: `/api/v2/visual/*` - Complete visual intelligence suite
+
+### Context-Aware AI Assistant
+- **Persistent Memory**: Remembers conversations across sessions
+- **Personality Modeling**: Learns and adapts to individual communication preferences
+- **Conversation Patterns**: Identifies topics and interaction styles
+- **Predictive Responses**: Anticipates needs based on conversation context
+- **Multi-Session Context**: Maintains coherent long-term relationships
+- **API**: `/api/v2/ai/*` - Context-aware AI with persistent memory
+
+### Intelligence Dashboard
+- **Unified Interface**: Single dashboard for all intelligence services
+- **Real-Time Metrics**: Live updates from all AI systems
+- **Performance Analytics**: Track accuracy and efficiency of all services
+- **Interactive Controls**: Manage and configure all intelligence features
+- **Template**: `/intelligence-dashboard` - Complete intelligence management interface
 
 ## 📊 Analytics & Insights System
 
