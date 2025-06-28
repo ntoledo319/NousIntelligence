@@ -25,7 +25,7 @@ class ProductionBuildOptimizer:
         )
         self.logger = logging.getLogger(__name__)
     
-    def log_optimization(self, name: str, description: str, gain: str = None):
+    def log_optimization(self, name: str, description: str, gain: str = ""):
         """Log an optimization that was applied"""
         self.optimizations_applied.append({
             'name': name,
