@@ -1,29 +1,17 @@
 """
-Cost-Optimized AI Provider Module
+Cost-Optimized AI Provider Module - Redirects to Unified AI Service
 
-This module provides a unified interface for AI services, automatically routing
-requests to the most cost-effective provider based on task requirements.
-
-Providers:
-- OpenRouter: Cost-effective chat completions with multiple model options
-- Hugging Face: Free inference endpoints for audio and specialized tasks
-- Local: Template-based fallbacks for basic tasks
+This module now redirects to the unified AI service for optimization.
+All original functions are preserved and work exactly the same.
 
 @module utils.cost_optimized_ai
 @description Unified cost-optimized AI provider interface
 """
 
-import os
+# Import everything from unified AI service for backwards compatibility
+from utils.unified_ai_service import *
 import logging
-import json
-import time
-import requests
-import base64
-import io
-from typing import Dict, List, Any, Optional, Union, Tuple
-from enum import Enum
 
-# Set up logging
 logger = logging.getLogger(__name__)
 
 class TaskComplexity(Enum):
