@@ -22,12 +22,6 @@ classifiers = [
     "Topic :: Office/Business :: Scheduling",
 ]
 
-[project.urls]
-"Homepage" = "https://github.com/yourusername/nous-personal-assistant"
-"Bug Reports" = "https://github.com/yourusername/nous-personal-assistant/issues"
-"Source" = "https://github.com/yourusername/nous-personal-assistant"
-"Documentation" = "https://nous-docs.example.com"
-
 dependencies = [
     # Core Web Framework - VERIFIED WORKING
     "flask>=3.1.1",
@@ -57,6 +51,12 @@ dependencies = [
     "soundfile>=0.12.1",
     "librosa>=0.10.1",
 ]
+
+[project.urls]
+"Homepage" = "https://github.com/yourusername/nous-personal-assistant"
+"Bug Reports" = "https://github.com/yourusername/nous-personal-assistant/issues"
+"Source" = "https://github.com/yourusername/nous-personal-assistant"
+"Documentation" = "https://nous-docs.example.com"
 
 [project.scripts]
 nous = "main:main"
