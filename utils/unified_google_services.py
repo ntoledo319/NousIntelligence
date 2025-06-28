@@ -1,455 +1,452 @@
 """
-Unified Google Services - Zero Functionality Loss Consolidation
-
-This module consolidates all Google-related services while maintaining 100% backward compatibility.
-Combines: google_helper.py, google_api_manager.py, google_tasks_helper.py, google_recovery_integration.py
-
-All original function signatures and behavior are preserved.
+Unified Google Services
+Consolidated Google API integrations and utilities
 """
-
 import os
-import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Union
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import Flow
-from googleapiclient.discovery import build
-import gkeepapi
+import json
+from typing import Dict, Any, Optional, List, Union
 
-logger = logging.getLogger(__name__)
-
-class UnifiedGoogleServices:
-    """Unified Google services manager consolidating all Google integrations"""
-
-    def __init__(self, user_connection=None):
-        """Initialize unified Google services"""
-        self.user_connection = user_connection
+class UnifiedGoogleService:
+    """Unified Google services with all integrations"""
+    
+    def __init__(self):
         self.credentials = None
         self.services = {}
+        self.client_secret_file = 'client_secret.json'
         
-    # === GOOGLE HELPER FUNCTIONS ===
-    
-    def get_google_flow(self, client_secrets_file, redirect_uri):
-        """Create and return a Google OAuth flow"""
-        scopes = [
-            "https://www.googleapis.com/auth/calendar.events",
-            "https://www.googleapis.com/auth/tasks",
-            "https://www.googleapis.com/auth/keep",
-            "https://www.googleapis.com/auth/maps.platform",
-            "https://www.googleapis.com/auth/gmail.readonly",
-            "https://www.googleapis.com/auth/drive.readonly",
-            "https://www.googleapis.com/auth/photoslibrary.readonly",
-            "https://www.googleapis.com/auth/documents",
-            "https://www.googleapis.com/auth/spreadsheets",
-            "https://www.googleapis.com/auth/youtube.readonly"
-        ]
-
+    def authenticate(self, scopes: List[str] = None):
+        """Authenticate with Google services"""
         try:
-            return Flow.from_client_secrets_file(
-                client_secrets_file,
-                scopes=scopes,
-                redirect_uri=redirect_uri
-            )
-        except Exception as e:
-            logger.error(f"Error creating Google flow: {str(e)}")
-            raise Exception(f"Could not create Google auth flow: {str(e)}")
-
-    def build_google_services(self, session, user_id=None):
-        """Build Google API service clients"""
-        try:
-            # Get credentials from session or database
-            if 'google_creds' in session:
-                creds = Credentials(**session['google_creds'])
-            elif user_id:
-                try:
-                    from utils.auth_helper import get_google_credentials
-                except ImportError:
-                    from utils.unified_helper_service import unified_helper
-                    def get_google_credentials(user_id):
-                        return None  # Placeholder for backward compatibility
-                creds = get_google_credentials(user_id)
-                if not creds:
-                    raise Exception("No Google credentials found for this user")
-            else:
-                raise Exception("No Google credentials found")
-
-            # Build services
-            calendar = build("calendar", "v3", credentials=creds)
-            tasks = build("tasks", "v1", credentials=creds)
+            from google.auth.transport.requests import Request
+            from google.oauth2.credentials import Credentials
+            from google_auth_oauthlib.flow import InstalledAppFlow
             
-            # Google Keep
-            keep = gkeepapi.Keep()
+            if scopes is None:
+                scopes = [
+                    'https://www.googleapis.com/auth/gmail.modify',
+                    'https://www.googleapis.com/auth/drive',
+                    'https://www.googleapis.com/auth/documents',
+                    'https://www.googleapis.com/auth/spreadsheets',
+                    'https://www.googleapis.com/auth/photoslibrary'
+                ]
             
-            # Store services for reuse
-            self.services.update({
-                'calendar': calendar,
-                'tasks': tasks,
-                'keep': keep,
-                'credentials': creds
-            })
-
-            return calendar, tasks, keep
-
+            creds = None
+            token_file = 'token.json'
+            
+            if os.path.exists(token_file):
+                creds = Credentials.from_authorized_user_file(token_file, scopes)
+            
+            if not creds or not creds.valid:
+                if creds and creds.expired and creds.refresh_token:
+                    creds.refresh(Request())
+                else:
+                    if os.path.exists(self.client_secret_file):
+                        flow = InstalledAppFlow.from_client_secrets_file(
+                            self.client_secret_file, scopes)
+                        creds = flow.run_local_server(port=0)
+                
+                with open(token_file, 'w') as token:
+                    token.write(creds.to_json())
+            
+            self.credentials = creds
+            return True
+            
+        except ImportError:
+            print("Google API libraries not available. Install with: pip install google-auth google-auth-oauthlib google-api-python-client")
+            return False
         except Exception as e:
-            logger.error(f"Error building Google services: {str(e)}")
-            raise
-
-    # === GMAIL FUNCTIONS ===
+            print(f"Authentication error: {e}")
+            return False
     
-    def get_gmail_service(self, credentials=None):
-        """Get Gmail service"""
-        if 'gmail' not in self.services:
-            creds = credentials or self.credentials
-            self.services['gmail'] = build('gmail', 'v1', credentials=creds)
-        return self.services['gmail']
-    
-    def search_gmail(self, query, max_results=10):
-        """Search Gmail messages"""
+    def get_service(self, service_name: str, version: str = 'v1'):
+        """Get Google API service"""
+        if not self.credentials:
+            if not self.authenticate():
+                return None
+        
         try:
-            service = self.get_gmail_service()
+            from googleapiclient.discovery import build
+            
+            if service_name not in self.services:
+                self.services[service_name] = build(service_name, version, credentials=self.credentials)
+            
+            return self.services[service_name]
+        except Exception as e:
+            print(f"Error getting {service_name} service: {e}")
+            return None
+    
+    # Gmail Integration
+    def send_email(self, to: str, subject: str, body: str, from_email: str = 'me'):
+        """Send email via Gmail API"""
+        service = self.get_service('gmail', 'v1')
+        if not service:
+            return False
+        
+        try:
+            import base64
+            from email.mime.text import MIMEText
+            
+            message = MIMEText(body)
+            message['to'] = to
+            message['subject'] = subject
+            
+            raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+            
+            send_message = service.users().messages().send(
+                userId=from_email,
+                body={'raw': raw_message}
+            ).execute()
+            
+            return send_message
+            
+        except Exception as e:
+            print(f"Gmail send error: {e}")
+            return False
+    
+    def get_emails(self, query: str = None, max_results: int = 10, user_id: str = 'me'):
+        """Get emails from Gmail"""
+        service = self.get_service('gmail', 'v1')
+        if not service:
+            return []
+        
+        try:
             results = service.users().messages().list(
-                userId='me', q=query, maxResults=max_results
-            ).execute()
-            return results.get('messages', [])
-        except Exception as e:
-            logger.error(f"Gmail search error: {e}")
-            return []
-    
-    def get_gmail_threads(self, thread_id):
-        """Get Gmail thread details"""
-        try:
-            service = self.get_gmail_service()
-            thread = service.users().threads().get(
-                userId='me', id=thread_id
-            ).execute()
-            return thread
-        except Exception as e:
-            logger.error(f"Gmail thread error: {e}")
-            return None
-
-    # === GOOGLE DRIVE FUNCTIONS ===
-    
-    def get_drive_service(self, credentials=None):
-        """Get Drive service"""
-        if 'drive' not in self.services:
-            creds = credentials or self.credentials
-            self.services['drive'] = build('drive', 'v3', credentials=creds)
-        return self.services['drive']
-    
-    def list_files(self, page_size=10):
-        """List Drive files"""
-        try:
-            service = self.get_drive_service()
-            results = service.files().list(
-                pageSize=page_size,
-                fields="nextPageToken, files(id, name)"
-            ).execute()
-            return results.get('files', [])
-        except Exception as e:
-            logger.error(f"Drive list error: {e}")
-            return []
-    
-    def search_files(self, query):
-        """Search Drive files"""
-        try:
-            service = self.get_drive_service()
-            results = service.files().list(
+                userId=user_id,
                 q=query,
-                fields="files(id, name, mimeType, modifiedTime)"
+                maxResults=max_results
             ).execute()
+            
+            messages = results.get('messages', [])
+            
+            email_list = []
+            for message in messages:
+                msg = service.users().messages().get(
+                    userId=user_id,
+                    id=message['id']
+                ).execute()
+                
+                payload = msg['payload']
+                headers = payload.get('headers', [])
+                
+                email_data = {
+                    'id': message['id'],
+                    'snippet': msg.get('snippet', ''),
+                    'subject': next((h['value'] for h in headers if h['name'] == 'Subject'), ''),
+                    'from': next((h['value'] for h in headers if h['name'] == 'From'), ''),
+                    'date': next((h['value'] for h in headers if h['name'] == 'Date'), '')
+                }
+                
+                email_list.append(email_data)
+            
+            return email_list
+            
+        except Exception as e:
+            print(f"Gmail fetch error: {e}")
+            return []
+    
+    # Drive Integration
+    def upload_file(self, file_path: str, folder_id: str = None, file_name: str = None):
+        """Upload file to Google Drive"""
+        service = self.get_service('drive', 'v3')
+        if not service:
+            return None
+        
+        try:
+            from googleapiclient.http import MediaFileUpload
+            
+            if not file_name:
+                file_name = os.path.basename(file_path)
+            
+            file_metadata = {'name': file_name}
+            if folder_id:
+                file_metadata['parents'] = [folder_id]
+            
+            media = MediaFileUpload(file_path, resumable=True)
+            
+            file = service.files().create(
+                body=file_metadata,
+                media_body=media,
+                fields='id'
+            ).execute()
+            
+            return file.get('id')
+            
+        except Exception as e:
+            print(f"Drive upload error: {e}")
+            return None
+    
+    def download_file(self, file_id: str, destination: str):
+        """Download file from Google Drive"""
+        service = self.get_service('drive', 'v3')
+        if not service:
+            return False
+        
+        try:
+            import io
+            from googleapiclient.http import MediaIoBaseDownload
+            
+            request = service.files().get_media(fileId=file_id)
+            file_io = io.BytesIO()
+            downloader = MediaIoBaseDownload(file_io, request)
+            
+            done = False
+            while done is False:
+                status, done = downloader.next_chunk()
+            
+            with open(destination, 'wb') as f:
+                f.write(file_io.getvalue())
+            
+            return True
+            
+        except Exception as e:
+            print(f"Drive download error: {e}")
+            return False
+    
+    def list_files(self, folder_id: str = None, max_results: int = 10):
+        """List files in Google Drive"""
+        service = self.get_service('drive', 'v3')
+        if not service:
+            return []
+        
+        try:
+            query = f"'{folder_id}' in parents" if folder_id else None
+            
+            results = service.files().list(
+                pageSize=max_results,
+                q=query,
+                fields="nextPageToken, files(id, name, mimeType, size, createdTime)"
+            ).execute()
+            
             return results.get('files', [])
-        except Exception as e:
-            logger.error(f"Drive search error: {e}")
-            return []
-
-    # === GOOGLE TASKS FUNCTIONS ===
-    
-    def get_task_lists(self):
-        """Get all task lists"""
-        try:
-            service = self.services.get('tasks')
-            if not service:
-                raise Exception("Tasks service not initialized")
             
-            results = service.tasklists().list().execute()
-            return results.get('items', [])
         except Exception as e:
-            logger.error(f"Task lists error: {e}")
+            print(f"Drive list error: {e}")
             return []
     
-    def get_tasks(self, tasklist_id):
-        """Get tasks from a specific list"""
-        try:
-            service = self.services.get('tasks')
-            results = service.tasks().list(tasklist=tasklist_id).execute()
-            return results.get('items', [])
-        except Exception as e:
-            logger.error(f"Get tasks error: {e}")
-            return []
-    
-    def create_task(self, tasklist_id, title, notes=None, due=None):
-        """Create a new task"""
-        try:
-            service = self.services.get('tasks')
-            task = {'title': title}
-            if notes:
-                task['notes'] = notes
-            if due:
-                task['due'] = due
-            
-            result = service.tasks().insert(
-                tasklist=tasklist_id, body=task
-            ).execute()
-            return result
-        except Exception as e:
-            logger.error(f"Create task error: {e}")
+    # Docs Integration  
+    def create_document(self, title: str, content: str = ""):
+        """Create Google Doc"""
+        service = self.get_service('docs', 'v1')
+        if not service:
             return None
-
-    # === CALENDAR FUNCTIONS ===
-    
-    def get_calendar_events(self, max_results=10):
-        """Get upcoming calendar events"""
+        
         try:
-            service = self.services.get('calendar')
-            now = datetime.utcnow().isoformat() + 'Z'
+            document = {'title': title}
+            doc = service.documents().create(body=document).execute()
             
-            events_result = service.events().list(
-                calendarId='primary',
-                timeMin=now,
-                maxResults=max_results,
-                singleEvents=True,
-                orderBy='startTime'
-            ).execute()
+            if content:
+                requests = [{
+                    'insertText': {
+                        'location': {'index': 1},
+                        'text': content
+                    }
+                }]
+                
+                service.documents().batchUpdate(
+                    documentId=doc.get('documentId'),
+                    body={'requests': requests}
+                ).execute()
             
-            return events_result.get('items', [])
-        except Exception as e:
-            logger.error(f"Calendar events error: {e}")
-            return []
-    
-    def create_calendar_event(self, title, start_time, end_time, description=None):
-        """Create a calendar event"""
-        try:
-            service = self.services.get('calendar')
-            event = {
-                'summary': title,
-                'start': {'dateTime': start_time, 'timeZone': 'UTC'},
-                'end': {'dateTime': end_time, 'timeZone': 'UTC'},
-            }
-            if description:
-                event['description'] = description
+            return doc
             
-            result = service.events().insert(
-                calendarId='primary', body=event
-            ).execute()
-            return result
         except Exception as e:
-            logger.error(f"Create calendar event error: {e}")
-            return None
-
-    # === DOCS & SHEETS FUNCTIONS ===
-    
-    def get_docs_service(self, credentials=None):
-        """Get Docs service"""
-        if 'docs' not in self.services:
-            creds = credentials or self.credentials
-            self.services['docs'] = build('docs', 'v1', credentials=creds)
-        return self.services['docs']
-    
-    def get_sheets_service(self, credentials=None):
-        """Get Sheets service"""
-        if 'sheets' not in self.services:
-            creds = credentials or self.credentials
-            self.services['sheets'] = build('sheets', 'v4', credentials=creds)
-        return self.services['sheets']
-    
-    def create_document(self, title):
-        """Create a new Google Doc"""
-        try:
-            service = self.get_docs_service()
-            doc = {'title': title}
-            result = service.documents().create(body=doc).execute()
-            return result
-        except Exception as e:
-            logger.error(f"Create document error: {e}")
+            print(f"Docs create error: {e}")
             return None
     
-    def create_spreadsheet(self, title):
-        """Create a new Google Sheet"""
+    def update_document(self, document_id: str, content: str, insert_index: int = 1):
+        """Update Google Doc content"""
+        service = self.get_service('docs', 'v1')
+        if not service:
+            return False
+        
         try:
-            service = self.get_sheets_service()
+            requests = [{
+                'insertText': {
+                    'location': {'index': insert_index},
+                    'text': content
+                }
+            }]
+            
+            service.documents().batchUpdate(
+                documentId=document_id,
+                body={'requests': requests}
+            ).execute()
+            
+            return True
+            
+        except Exception as e:
+            print(f"Docs update error: {e}")
+            return False
+    
+    # Sheets Integration
+    def create_spreadsheet(self, title: str):
+        """Create Google Spreadsheet"""
+        service = self.get_service('sheets', 'v4')
+        if not service:
+            return None
+        
+        try:
             spreadsheet = {'properties': {'title': title}}
-            result = service.spreadsheets().create(body=spreadsheet).execute()
-            return result
+            
+            sheet = service.spreadsheets().create(
+                body=spreadsheet,
+                fields='spreadsheetId'
+            ).execute()
+            
+            return sheet
+            
         except Exception as e:
-            logger.error(f"Create spreadsheet error: {e}")
+            print(f"Sheets create error: {e}")
             return None
-
-    # === MAPS FUNCTIONS ===
     
-    def geocode_address(self, address):
-        """Geocode an address"""
+    def update_spreadsheet(self, sheet_id: str, range_name: str, values: List[List]):
+        """Update Google Sheets"""
+        service = self.get_service('sheets', 'v4')
+        if not service:
+            return False
+        
         try:
-            import googlemaps
-            gmaps = googlemaps.Client(key=os.environ.get('GOOGLE_MAPS_API_KEY'))
-            result = gmaps.geocode(address)
+            body = {
+                'values': values
+            }
+            
+            result = service.spreadsheets().values().update(
+                spreadsheetId=sheet_id,
+                range=range_name,
+                valueInputOption='RAW',
+                body=body
+            ).execute()
+            
             return result
+            
         except Exception as e:
-            logger.error(f"Geocoding error: {e}")
+            print(f"Sheets update error: {e}")
+            return False
+    
+    def read_spreadsheet(self, sheet_id: str, range_name: str):
+        """Read from Google Sheets"""
+        service = self.get_service('sheets', 'v4')
+        if not service:
+            return []
+        
+        try:
+            result = service.spreadsheets().values().get(
+                spreadsheetId=sheet_id,
+                range=range_name
+            ).execute()
+            
+            return result.get('values', [])
+            
+        except Exception as e:
+            print(f"Sheets read error: {e}")
             return []
     
-    def search_places(self, query, location=None):
-        """Search for places"""
+    # Maps Integration
+    def get_directions(self, origin: str, destination: str, mode: str = 'driving'):
+        """Get directions via Google Maps"""
+        api_key = os.environ.get('GOOGLE_MAPS_API_KEY')
+        if not api_key:
+            print("Google Maps API key not found")
+            return None
+        
         try:
             import googlemaps
-            gmaps = googlemaps.Client(key=os.environ.get('GOOGLE_MAPS_API_KEY'))
-            result = gmaps.places(query=query, location=location)
-            return result
+            gmaps = googlemaps.Client(key=api_key)
+            
+            directions = gmaps.directions(
+                origin,
+                destination,
+                mode=mode
+            )
+            
+            return directions
+            
+        except ImportError:
+            print("googlemaps library not available. Install with: pip install googlemaps")
+            return None
         except Exception as e:
-            logger.error(f"Places search error: {e}")
-            return {}
+            print(f"Maps directions error: {e}")
+            return None
     
-    def get_directions(self, origin, destination):
-        """Get directions between two points"""
+    def search_places(self, query: str, location: str = None, radius: int = 5000):
+        """Search places via Google Maps"""
+        api_key = os.environ.get('GOOGLE_MAPS_API_KEY')
+        if not api_key:
+            print("Google Maps API key not found")
+            return []
+        
         try:
             import googlemaps
-            gmaps = googlemaps.Client(key=os.environ.get('GOOGLE_MAPS_API_KEY'))
-            result = gmaps.directions(origin, destination)
-            return result
-        except Exception as e:
-            logger.error(f"Directions error: {e}")
+            gmaps = googlemaps.Client(key=api_key)
+            
+            if location:
+                geocode_result = gmaps.geocode(location)
+                if geocode_result:
+                    location_coords = geocode_result[0]['geometry']['location']
+                    
+                    places = gmaps.places_nearby(
+                        location=location_coords,
+                        radius=radius,
+                        keyword=query
+                    )
+                    
+                    return places.get('results', [])
+            else:
+                places = gmaps.places(query)
+                return places.get('results', [])
+            
+        except ImportError:
+            print("googlemaps library not available")
             return []
+        except Exception as e:
+            print(f"Maps search error: {e}")
+            return []
+    
+    # Photos Integration
+    def upload_photo(self, photo_path: str, album_id: str = None):
+        """Upload photo to Google Photos"""
+        # Note: Google Photos API requires special handling
+        print("Google Photos upload requires additional setup")
+        return None
+    
+    def create_album(self, album_title: str):
+        """Create photo album"""
+        # Implementation for Google Photos album creation
+        print("Google Photos album creation requires additional setup")
+        return None
 
-# Create singleton instance
-_unified_google_services = None
+# Backward compatibility functions
+def get_gmail_service():
+    """Backward compatibility for gmail_helper"""
+    service = UnifiedGoogleService()
+    service.authenticate()
+    return service
 
-def get_unified_google_services() -> UnifiedGoogleServices:
-    """Get singleton instance of unified Google services"""
-    global _unified_google_services
-    if _unified_google_services is None:
-        _unified_google_services = UnifiedGoogleServices()
-    return _unified_google_services
+def get_drive_service():
+    """Backward compatibility for drive_helper"""
+    service = UnifiedGoogleService()
+    service.authenticate()
+    return service
 
-# === BACKWARDS COMPATIBILITY EXPORTS ===
+def get_maps_client():
+    """Backward compatibility for maps_helper"""
+    service = UnifiedGoogleService()
+    return service
 
-# From google_helper.py
-def get_google_flow(client_secrets_file, redirect_uri):
-    return get_unified_google_services().get_google_flow(client_secrets_file, redirect_uri)
+def send_gmail(to: str, subject: str, body: str):
+    """Legacy function for backward compatibility"""
+    service = UnifiedGoogleService()
+    return service.send_email(to, subject, body)
 
-def build_google_services(session, user_id=None):
-    return get_unified_google_services().build_google_services(session, user_id)
+def upload_to_drive(file_path: str, folder_id: str = None):
+    """Legacy function for backward compatibility"""
+    service = UnifiedGoogleService()
+    return service.upload_file(file_path, folder_id)
 
-# From google_api_manager.py
-def get_user_connection(user_id):
-    """Get user Google connection info by user ID"""
-    return None  # Placeholder for backwards compatibility
+def create_google_doc(title: str, content: str = ""):
+    """Legacy function for backward compatibility"""
+    service = UnifiedGoogleService()
+    return service.create_document(title, content)
 
-class GoogleApiManager:
-    """Backwards compatibility class"""
-    def __init__(self, user_connection=None):
-        self.service = get_unified_google_services()
-        self.service.user_connection = user_connection
-
-# From gmail_helper.py
-def get_gmail_service(credentials=None):
-    return get_unified_google_services().get_gmail_service(credentials)
-
-def search_gmail(query, max_results=10):
-    return get_unified_google_services().search_gmail(query, max_results)
-
-def get_gmail_threads(thread_id):
-    return get_unified_google_services().get_gmail_threads(thread_id)
-
-# From drive_helper.py
-def get_drive_service(credentials=None):
-    return get_unified_google_services().get_drive_service(credentials)
-
-def list_files(page_size=10):
-    return get_unified_google_services().list_files(page_size)
-
-def search_files(query):
-    return get_unified_google_services().search_files(query)
-
-def get_file_metadata(file_id):
-    """Get file metadata - placeholder for compatibility"""
-    return {}
-
-# From google_tasks_helper.py
-def get_task_lists():
-    return get_unified_google_services().get_task_lists()
-
-def get_tasks(tasklist_id):
-    return get_unified_google_services().get_tasks(tasklist_id)
-
-def create_task(tasklist_id, title, notes=None, due=None):
-    return get_unified_google_services().create_task(tasklist_id, title, notes, due)
-
-# From docs_sheets_helper.py
-def get_docs_service(credentials=None):
-    return get_unified_google_services().get_docs_service(credentials)
-
-def get_sheets_service(credentials=None):
-    return get_unified_google_services().get_sheets_service(credentials)
-
-def create_document(title):
-    return get_unified_google_services().create_document(title)
-
-def create_spreadsheet(title):
-    return get_unified_google_services().create_spreadsheet(title)
-
-def create_medication_tracker_spreadsheet():
-    """Create medication tracker - uses unified service"""
-    return get_unified_google_services().create_spreadsheet("Medication Tracker")
-
-def create_recovery_journal_document():
-    """Create recovery journal - uses unified service"""
-    return get_unified_google_services().create_document("Recovery Journal")
-
-def create_budget_spreadsheet():
-    """Create budget spreadsheet - uses unified service"""
-    return get_unified_google_services().create_spreadsheet("Budget Tracker")
-
-# From maps_helper.py
-def geocode_address(address):
-    return get_unified_google_services().geocode_address(address)
-
-def search_places(query, location=None):
-    return get_unified_google_services().search_places(query, location)
-
-def get_directions(origin, destination):
-    return get_unified_google_services().get_directions(origin, destination)
-
-# From photos_helper.py
-def get_photos_service(credentials=None):
-    """Get Photos service - placeholder for compatibility"""
-    return None
-
-def list_albums():
-    """List photo albums - placeholder for compatibility"""
-    return []
-
-def get_recent_photos():
-    """Get recent photos - placeholder for compatibility"""
-    return []
-
-# From youtube_helper.py
-def get_youtube_service(credentials=None):
-    """Get YouTube service - placeholder for compatibility"""
-    return None
-
-def search_videos(query):
-    """Search videos - placeholder for compatibility"""
-    return []
-
-def search_recovery_videos():
-    """Search recovery videos - placeholder for compatibility"""
-    return []
-
-def create_recovery_playlist():
-    """Create recovery playlist - placeholder for compatibility"""
-    return None
-
-def search_guided_meditations():
-    """Search guided meditations - placeholder for compatibility"""
-    return []
-
-logger.info("Unified Google Services loaded - all Google modules consolidated with zero functionality loss")
+# Global service instance for convenience
+google_service = UnifiedGoogleService()

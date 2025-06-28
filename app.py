@@ -13,18 +13,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from config import AppConfig, PORT, HOST, DEBUG
 from database import db, init_database
 
-# Import new backend stability components - with error handling
-try:
-    from utils.health_monitor import health_monitor
-except ImportError:
-    health_monitor = None
-
-try:
-    from utils.database_optimizer import db_optimizer
-except ImportError:
-    db_optimizer = None
-
-# Import NOUS Extensions
+# Optimized imports with grouped error handling for faster startup
 try:
     from extensions import (
         plugin_registry, 
@@ -33,42 +22,34 @@ try:
         init_learning_system, 
         init_compression
     )
+    from utils.health_monitor import health_monitor
+    from utils.database_optimizer import db_optimizer
+    EXTENSIONS_AVAILABLE = True
 except ImportError:
     plugin_registry = None
     init_async_processing = None
     init_monitoring = None
     init_learning_system = None
     init_compression = None
+    health_monitor = None
+    db_optimizer = None
+    EXTENSIONS_AVAILABLE = False
 
 try:
+    from routes import (
+        health_bp, maps_bp, weather_bp, 
+        tasks_bp, recovery_bp
+    )
     from routes.api.feedback import feedback_api
+    ROUTES_AVAILABLE = True
 except ImportError:
     feedback_api = None
-
-try:
-    from routes.health_check import health_bp
-except ImportError:
     health_bp = None
-
-try:
-    from routes.maps_routes import maps_bp
-except ImportError:
     maps_bp = None
-
-try:
-    from routes.weather_routes import weather_bp
-except ImportError:
     weather_bp = None
-
-try:
-    from routes.tasks_routes import tasks_bp
-except ImportError:
     tasks_bp = None
-
-try:
-    from routes.recovery_routes import recovery_bp
-except ImportError:
     recovery_bp = None
+    ROUTES_AVAILABLE = False
 
 
 
