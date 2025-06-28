@@ -92,41 +92,6 @@ google_api_manager = GoogleAPIManager()
 def get_user_connection(user_id):
     """Get user's Google API connection - backward compatibility function"""
     return google_api_manager.get_user_connection(user_id)
-            }
-        }
-        
-        if self.client_config['client_id'] and self.client_config['client_secret']:
-            self.google = self.oauth.register(
-                name='google',
-                **self.client_config
-            )
-            logger.info("Google API Manager initialized successfully")
-        else:
-            logger.warning("Google OAuth credentials not found in environment")
-            self.google = None
-    
-    def get_oauth_client(self):
-        """Get the OAuth client for authentication"""
-        return self.google
-    
-    def get_user_info(self, token):
-        """Get user profile information"""
-        try:
-            headers = {'Authorization': f'Bearer {token}'}
-            response = requests.get(
-                'https://www.googleapis.com/oauth2/v2/userinfo',
-                headers=headers
-            )
-            
-            if response.status_code == 200:
-                return response.json()
-            else:
-                logger.error(f"Failed to get user info: {response.status_code}")
-                return None
-                
-        except Exception as e:
-            logger.error(f"Error getting user info: {str(e)}")
-            return None
     
     def get_calendar_events(self, token, calendar_id='primary', time_min=None, time_max=None, max_results=10):
         """Get calendar events"""
