@@ -1,6 +1,6 @@
 """
-MTM-CE Integration Hub - Comprehensive Cross-Service Intelligence
-Orchestrates all MTM-CE enhanced systems for maximum synergy and performance
+NOUS Intelligence Hub - Comprehensive Cross-Service Intelligence
+Orchestrates all NOUS enhanced systems for maximum synergy and performance
 """
 
 import logging
@@ -21,8 +21,8 @@ class IntegrationContext:
     learning_data: Dict[str, Any] = field(default_factory=dict)
     performance_metrics: Dict[str, float] = field(default_factory=dict)
 
-class MTMCEIntegrationHub:
-    """Central hub for coordinating all MTM-CE enhanced systems"""
+class NOUSIntelligenceHub:
+    """Central hub for coordinating all NOUS enhanced systems"""
     
     def __init__(self):
         """Initialize integration hub with all available services"""
@@ -78,7 +78,7 @@ class MTMCEIntegrationHub:
         except ImportError as e:
             logger.warning(f"Some intelligence services not available: {e}")
         
-        logger.info(f"MTM-CE Integration Hub initialized with {len(self.services)} services")
+        logger.info(f"NOUS Intelligence Hub initialized with {len(self.services)} services")
     
     def process_unified_request(self, user_id: str, request: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Process request through all integrated MTM-CE systems for optimal response"""
@@ -339,20 +339,20 @@ class MTMCEIntegrationHub:
             logger.error(f"Error optimizing performance: {e}")
             return {'error': str(e)}
 
-# Global integration hub instance
-integration_hub = None
+# Global intelligence hub instance
+intelligence_hub = None
 
-def get_mtmce_integration_hub() -> MTMCEIntegrationHub:
-    """Get or create the global MTM-CE integration hub"""
-    global integration_hub
-    if integration_hub is None:
-        integration_hub = MTMCEIntegrationHub()
-    return integration_hub
+def get_nous_intelligence_hub() -> NOUSIntelligenceHub:
+    """Get or create the global NOUS intelligence hub"""
+    global intelligence_hub
+    if intelligence_hub is None:
+        intelligence_hub = NOUSIntelligenceHub()
+    return intelligence_hub
 
 def process_unified_request(user_id: str, request: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
-    """Process request through unified MTM-CE system"""
-    return get_mtmce_integration_hub().process_unified_request(user_id, request, context)
+    """Process request through unified NOUS system"""
+    return get_nous_intelligence_hub().process_unified_request(user_id, request, context)
 
 def get_integration_status() -> Dict[str, Any]:
-    """Get MTM-CE integration status"""
-    return get_mtmce_integration_hub().get_integration_status()
+    """Get NOUS integration status"""
+    return get_nous_intelligence_hub().get_integration_status()

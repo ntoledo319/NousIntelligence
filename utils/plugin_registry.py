@@ -1,6 +1,6 @@
 """
-Dynamic Plugin Registry System - MTM-CE Enhanced
-Enables hot-swappable features and modular component management
+NOUS Dynamic Plugin Registry System
+Enables hot-swappable features and modular component management for NOUS Personal Assistant
 """
 
 import logging
