@@ -16,7 +16,8 @@ import models.analytics_models
 from models.health_models import (
     DBTSkillRecommendation, DBTSkillLog, DBTDiaryCard,
     DBTSkillChallenge, DBTCrisisResource, DBTEmotionTrack,
-    DBTSkillCategory, AAAchievement
+    DBTSkillCategory, AAAchievement, AABigBook, AABigBookAudio, 
+    AASpeakerRecording, AAFavorite
 )
 
 from models.analytics_models import UserActivity, Goal, Insight
@@ -24,16 +25,16 @@ from models.analytics_models import UserActivity, Goal, Insight
 # Language learning models with fallback
 try:
     from models.language_learning_models import (
-        LanguageLearningSession, Vocabulary, Grammar, 
-        LearningProgress, LanguageGoal
+        LanguageProfile, VocabularyItem, LearningSession, 
+        ConversationTemplate, ConversationPrompt
     )
 except ImportError:
     # Simple fallback classes
-    LanguageLearningSession = type('LanguageLearningSession', (), {})
-    Vocabulary = type('Vocabulary', (), {})
-    Grammar = type('Grammar', (), {})
-    LearningProgress = type('LearningProgress', (), {})
-    LanguageGoal = type('LanguageGoal', (), {})
+    LanguageProfile = type('LanguageProfile', (), {})
+    VocabularyItem = type('VocabularyItem', (), {})
+    LearningSession = type('LearningSession', (), {})
+    ConversationTemplate = type('ConversationTemplate', (), {})
+    ConversationPrompt = type('ConversationPrompt', (), {})
 
 # Simple placeholder classes for models referenced in routes
 class Task:
@@ -79,9 +80,10 @@ __all__ = [
     'init_db', 'get_db_health',
     # Health models
     'DBTSkillRecommendation', 'DBTSkillLog', 'DBTDiaryCard', 'DBTSkillChallenge', 
-    'DBTCrisisResource', 'DBTEmotionTrack', 'DBTSkillCategory', 'AAAchievement', 'AABigBook', 'AABigBookAudio',
+    'DBTCrisisResource', 'DBTEmotionTrack', 'DBTSkillCategory', 'AAAchievement', 
+    'AABigBook', 'AABigBookAudio', 'AASpeakerRecording', 'AAFavorite',
     # Analytics models
     'UserActivity', 'Goal', 'Insight',
     # Language learning models
-    'LanguageLearningSession', 'Vocabulary', 'Grammar', 'LearningProgress', 'LanguageGoal'
+    'LanguageProfile', 'VocabularyItem', 'LearningSession', 'ConversationTemplate', 'ConversationPrompt'
 ]
