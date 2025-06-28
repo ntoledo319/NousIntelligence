@@ -49,7 +49,9 @@ OPTIONAL_BLUEPRINTS = [
     # Enhanced Intelligence Services
     {'name': 'enhanced_api', 'module': 'routes.enhanced_api_routes', 'attr': 'enhanced_api', 'url_prefix': '/api/v2'},
     # Adaptive AI System
-    {'name': 'adaptive_ai', 'module': 'routes.adaptive_ai_routes', 'attr': 'adaptive_ai_bp', 'url_prefix': '/api/adaptive'}
+    {'name': 'adaptive_ai', 'module': 'routes.adaptive_ai_routes', 'attr': 'adaptive_ai_bp', 'url_prefix': '/api/adaptive'},
+    # Enhanced Chat API
+    {'name': 'enhanced_chat_api', 'module': 'api.enhanced_chat', 'attr': 'enhanced_chat_bp', 'url_prefix': '/api/enhanced'}
 ]
 
 def register_all_blueprints(app: Flask) -> Flask:
