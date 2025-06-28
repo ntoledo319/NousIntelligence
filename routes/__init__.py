@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 # Core blueprint definitions - name, module, url_prefix
 CORE_BLUEPRINTS = [
     {'name': 'main', 'module': 'routes.main', 'attr': 'main_bp', 'url_prefix': None},
-    {'name': 'health_api', 'module': 'routes.health_api', 'attr': 'health_bp', 'url_prefix': '/api'},
+    {'name': 'health_api', 'module': 'routes.health_api', 'attr': 'health_api_bp', 'url_prefix': '/api'},
     {'name': 'auth_api', 'module': 'routes.auth_api', 'attr': 'auth_bp', 'url_prefix': None},
     {'name': 'api', 'module': 'routes.api_routes', 'attr': 'api_bp', 'url_prefix': '/api/v1'},
     {'name': 'analytics', 'module': 'routes.analytics_routes', 'attr': 'analytics_bp', 'url_prefix': '/api/v1/analytics'},
@@ -50,6 +50,8 @@ OPTIONAL_BLUEPRINTS = [
     {'name': 'enhanced_api', 'module': 'routes.enhanced_api_routes', 'attr': 'enhanced_api', 'url_prefix': '/api/v2'},
     # Adaptive AI System
     {'name': 'adaptive_ai', 'module': 'routes.adaptive_ai_routes', 'attr': 'adaptive_ai_bp', 'url_prefix': '/api/adaptive'},
+    # Chat API System
+    {'name': 'api_chat', 'module': 'api.chat', 'attr': 'api_chat_bp', 'url_prefix': None},
     # Enhanced Chat API
     {'name': 'enhanced_chat_api', 'module': 'api.enhanced_chat', 'attr': 'enhanced_chat_bp', 'url_prefix': '/api/enhanced'}
 ]

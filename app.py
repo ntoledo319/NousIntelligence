@@ -151,19 +151,26 @@ def create_app():
         plugin_registry.wire_blueprints(app)
         logger.info("Plugin registry initialized")
     
-    # Register blueprints with None checks
-    if feedback_api:
-        app.register_blueprint(feedback_api)
-    if health_bp:
-        app.register_blueprint(health_bp)
-    if maps_bp:
-        app.register_blueprint(maps_bp)
-    if weather_bp:
-        app.register_blueprint(weather_bp)
-    if tasks_bp:
-        app.register_blueprint(tasks_bp)
-    if recovery_bp:
-        app.register_blueprint(recovery_bp)
+    # Register all application blueprints using centralized system
+    try:
+        from routes import register_all_blueprints
+        register_all_blueprints(app)
+        logger.info("All blueprints registered successfully")
+    except Exception as e:
+        logger.error(f"Blueprint registration failed: {e}")
+        # Fallback: Register blueprints manually with None checks
+        if feedback_api:
+            app.register_blueprint(feedback_api)
+        if health_bp:
+            app.register_blueprint(health_bp)
+        if maps_bp:
+            app.register_blueprint(maps_bp)
+        if weather_bp:
+            app.register_blueprint(weather_bp)
+        if tasks_bp:
+            app.register_blueprint(tasks_bp)
+        if recovery_bp:
+            app.register_blueprint(recovery_bp)
     
     # Create logs directory
     os.makedirs('logs', exist_ok=True)
