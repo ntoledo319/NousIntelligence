@@ -95,3 +95,6 @@ def register_legacy_blueprints(app):
         app.register_blueprint(health_api_bp, url_prefix='/api/health')
     except (ImportError, AttributeError):
         pass
+
+# Export the blueprint for external imports
+api_bp = consolidated_api_bp
