@@ -49,6 +49,9 @@ dev = [
     "isort>=5.13.0",
     "bandit>=1.7.6",
     "coverage>=7.4.0",
+    "pipdeptree>=2.13.0",
+    "pip-audit>=2.6.1",
+    "deptry>=0.16.1",
 ]
 
 [build-system]
