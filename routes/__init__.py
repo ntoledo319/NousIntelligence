@@ -53,7 +53,9 @@ OPTIONAL_BLUEPRINTS = [
     # Chat API System
     {'name': 'api_chat', 'module': 'api.chat', 'attr': 'api_chat_bp', 'url_prefix': None},
     # Enhanced Chat API
-    {'name': 'enhanced_chat_api', 'module': 'api.enhanced_chat', 'attr': 'enhanced_chat_bp', 'url_prefix': '/api/enhanced'}
+    {'name': 'enhanced_chat_api', 'module': 'api.enhanced_chat', 'attr': 'enhanced_chat_bp', 'url_prefix': '/api/enhanced'},
+    # MTM-CE Status and Monitoring
+    {'name': 'mtmce_status', 'module': 'routes.mtmce_status_routes', 'attr': 'mtmce_status_bp', 'url_prefix': '/mtmce'}
 ]
 
 def register_all_blueprints(app: Flask) -> Flask:

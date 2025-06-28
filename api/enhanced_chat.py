@@ -29,14 +29,14 @@ except (ImportError, TypeError):
 from utils.unified_ai_service import UnifiedAIService
 from utils.adaptive_ai_system import process_adaptive_request, provide_user_feedback, get_adaptive_ai
 
-# MTM-CE Integration Hub
+# NOUS Intelligence Hub
 try:
-    from utils.mtmce_integration_hub import get_mtmce_integration_hub, process_unified_request
-    MTMCE_HUB_AVAILABLE = True
-    logger.info("MTM-CE Integration Hub connected to Enhanced Chat API")
+    from utils.nous_intelligence_hub import get_nous_intelligence_hub, process_unified_request
+    NOUS_HUB_AVAILABLE = True
+    logger.info("NOUS Intelligence Hub connected to Enhanced Chat API")
 except ImportError:
-    MTMCE_HUB_AVAILABLE = False
-    logger.warning("MTM-CE Integration Hub not available - using standard enhanced chat")
+    NOUS_HUB_AVAILABLE = False
+    logger.warning("NOUS Intelligence Hub not available - using standard enhanced chat")
 
 logger = logging.getLogger(__name__)
 
@@ -102,22 +102,35 @@ def enhanced_chat():
         except Exception as e:
             logger.debug(f"Command routing failed: {str(e)}")
         
-        # Step 2: Process through adaptive AI system
-        adaptive_result = process_adaptive_request(user_id, message, context)
-        
-        # Step 3: Generate AI response using unified service
-        ai_response = None
-        try:
-            if not command_result or not command_result.get('success'):
-                # Use adaptive AI insights to improve response
-                enhanced_message = message
-                if adaptive_result['result'].get('context_update'):
-                    enhanced_message += f" [Context: {adaptive_result['result']['context_update']}]"
-                
-                ai_response = ai_service.chat_completion([
-                    {"role": "system", "content": _build_system_prompt(context, adaptive_result)},
-                    {"role": "user", "content": enhanced_message}
-                ])
+        # MTM-CE Enhancement: Use Integration Hub for comprehensive processing
+        if MTMCE_HUB_AVAILABLE:
+            # Process through MTM-CE Integration Hub for maximum intelligence
+            integrated_result = process_unified_request(user_id, message, context)
+            
+            # Extract components from integrated result
+            adaptive_result = integrated_result.get('primary_response', {})
+            ai_response = integrated_result.get('enhanced_features', {}).get('ai_response', {})
+            intelligence_insights = integrated_result.get('intelligence_insights', {})
+            
+            logger.info(f"MTM-CE Integration Hub processed request with {len(intelligence_insights)} intelligence services")
+        else:
+            # Fallback to standard enhanced processing
+            # Step 2: Process through adaptive AI system
+            adaptive_result = process_adaptive_request(user_id, message, context)
+            
+            # Step 3: Generate AI response using unified service
+            ai_response = None
+            try:
+                if not command_result or not command_result.get('success'):
+                    # Use adaptive AI insights to improve response
+                    enhanced_message = message
+                    if adaptive_result['result'].get('context_update'):
+                        enhanced_message += f" [Context: {adaptive_result['result']['context_update']}]"
+                    
+                    ai_response = ai_service.chat_completion([
+                        {"role": "system", "content": _build_system_prompt(context, adaptive_result)},
+                        {"role": "user", "content": enhanced_message}
+                    ], user_id=user_id, context=context)
         except Exception as e:
             logger.warning(f"AI response generation failed: {str(e)}")
         
