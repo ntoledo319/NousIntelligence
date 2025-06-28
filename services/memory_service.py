@@ -50,6 +50,175 @@ class UserMemory(db.Model):
     
     # Relationships
     memory_type = relationship("MemoryType", back_populates="memories")
+
+
+class MemoryService:
+    """Comprehensive memory management service"""
+    
+    def __init__(self, db_session=None):
+        self.db = db_session or db
+        self.logger = logging.getLogger(__name__)
+    
+    def store_memory(self, user_id: int, memory_type: str, title: str, content: str, 
+                    context_data: Dict = None, importance_score: float = 0.5) -> UserMemory:
+        """Store a new memory for a user"""
+        try:
+            # Get or create memory type
+            mem_type = MemoryType.query.filter_by(name=memory_type).first()
+            if not mem_type:
+                mem_type = MemoryType(name=memory_type, description=f"Auto-created for {memory_type}")
+                self.db.session.add(mem_type)
+                self.db.session.flush()
+            
+            # Create memory
+            memory = UserMemory(
+                user_id=user_id,
+                memory_type_id=mem_type.id,
+                title=title,
+                content=content,
+                context_data=json.dumps(context_data) if context_data else None,
+                importance_score=max(0.0, min(1.0, importance_score))
+            )
+            
+            self.db.session.add(memory)
+            self.db.session.commit()
+            
+            self.logger.info(f"Stored memory '{title}' for user {user_id}")
+            return memory
+            
+        except Exception as e:
+            self.logger.error(f"Failed to store memory: {e}")
+            self.db.session.rollback()
+            return None
+    
+    def retrieve_memories(self, user_id: int, memory_type: str = None, 
+                         limit: int = 10, active_only: bool = True) -> List[UserMemory]:
+        """Retrieve memories for a user"""
+        try:
+            query = UserMemory.query.filter_by(user_id=user_id)
+            
+            if active_only:
+                query = query.filter_by(is_active=True)
+            
+            if memory_type:
+                mem_type = MemoryType.query.filter_by(name=memory_type).first()
+                if mem_type:
+                    query = query.filter_by(memory_type_id=mem_type.id)
+            
+            memories = query.order_by(UserMemory.importance_score.desc(), 
+                                    UserMemory.created_at.desc()).limit(limit).all()
+            
+            # Update access counts
+            for memory in memories:
+                memory.access_count += 1
+                memory.last_accessed = datetime.now(timezone.utc)
+            
+            self.db.session.commit()
+            return memories
+            
+        except Exception as e:
+            self.logger.error(f"Failed to retrieve memories: {e}")
+            return []
+    
+    def search_memories(self, user_id: int, search_term: str, limit: int = 10) -> List[UserMemory]:
+        """Search memories by content"""
+        try:
+            memories = UserMemory.query.filter(
+                UserMemory.user_id == user_id,
+                UserMemory.is_active == True,
+                (UserMemory.title.contains(search_term) | 
+                 UserMemory.content.contains(search_term))
+            ).order_by(UserMemory.importance_score.desc()).limit(limit).all()
+            
+            return memories
+            
+        except Exception as e:
+            self.logger.error(f"Failed to search memories: {e}")
+            return []
+    
+    def update_memory_importance(self, memory_id: int, importance_score: float) -> bool:
+        """Update memory importance score"""
+        try:
+            memory = UserMemory.query.get(memory_id)
+            if memory:
+                memory.importance_score = max(0.0, min(1.0, importance_score))
+                memory.updated_at = datetime.now(timezone.utc)
+                self.db.session.commit()
+                return True
+            return False
+            
+        except Exception as e:
+            self.logger.error(f"Failed to update memory importance: {e}")
+            return False
+    
+    def cleanup_expired_memories(self) -> int:
+        """Clean up expired memories"""
+        try:
+            current_time = datetime.now(timezone.utc)
+            
+            # Find expired memories
+            expired = UserMemory.query.filter(
+                UserMemory.expires_at.isnot(None),
+                UserMemory.expires_at < current_time
+            ).all()
+            
+            count = len(expired)
+            
+            for memory in expired:
+                memory.is_active = False
+            
+            self.db.session.commit()
+            self.logger.info(f"Cleaned up {count} expired memories")
+            return count
+            
+        except Exception as e:
+            self.logger.error(f"Failed to cleanup memories: {e}")
+            return 0
+    
+    def get_user_memory_stats(self, user_id: int) -> Dict[str, Any]:
+        """Get memory statistics for a user"""
+        try:
+            total_memories = UserMemory.query.filter_by(user_id=user_id, is_active=True).count()
+            
+            # Count by type
+            type_counts = self.db.session.query(
+                MemoryType.name, 
+                self.db.func.count(UserMemory.id)
+            ).join(UserMemory).filter(
+                UserMemory.user_id == user_id,
+                UserMemory.is_active == True
+            ).group_by(MemoryType.name).all()
+            
+            return {
+                'total_memories': total_memories,
+                'memory_types': dict(type_counts),
+                'last_updated': datetime.now(timezone.utc).isoformat()
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Failed to get memory stats: {e}")
+            return {'total_memories': 0, 'memory_types': {}}
+
+
+# Global memory service instance
+_memory_service = None
+
+def get_memory_service(db_session=None):
+    """Get the global memory service instance"""
+    global _memory_service
+    if _memory_service is None:
+        _memory_service = MemoryService(db_session)
+    return _memory_service
+
+def store_user_memory(user_id, memory_type, title, content, context_data=None, importance_score=0.5):
+    """Store memory - convenience function"""
+    service = get_memory_service()
+    return service.store_memory(user_id, memory_type, title, content, context_data, importance_score)
+
+def retrieve_user_memories(user_id, memory_type=None, limit=10):
+    """Retrieve memories - convenience function"""
+    service = get_memory_service()
+    return service.retrieve_memories(user_id, memory_type, limit)
     associations = relationship("MemoryAssociation", foreign_keys="[MemoryAssociation.memory_id]")
     related_memories = relationship("MemoryAssociation", foreign_keys="[MemoryAssociation.related_memory_id]")
 

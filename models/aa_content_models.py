@@ -179,3 +179,21 @@ class AABigBook(db.Model):
     chapter_title = Column(String(255), nullable=False)
     content = Column(Text)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class AABigBookAudio(db.Model):
+    """AA Big Book audio recordings"""
+    __tablename__ = 'aa_big_book_audio'
+    
+    id = Column(Integer, primary_key=True)
+    chapter_id = Column(Integer, ForeignKey('aa_big_book.id'), nullable=False)
+    audio_url = Column(String(500), nullable=False)
+    narrator = Column(String(255))
+    duration_seconds = Column(Integer)
+    file_size_mb = Column(Float)
+    quality = Column(String(50), default='standard')  # standard, high, premium
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    # Relationships
+    chapter = relationship("AABigBook", backref="audio_recordings")

@@ -48,6 +48,149 @@ class FormValidator:
         if value is None:
             return False
         if isinstance(value, str):
+            return len(value.strip()) > 0
+        return True
+    
+    @staticmethod
+    def validate_length(value: str, min_length: int = 0, max_length: int = None) -> bool:
+        """Validate string length"""
+        if not isinstance(value, str):
+            return False
+        length = len(value.strip())
+        if length < min_length:
+            return False
+        if max_length and length > max_length:
+            return False
+        return True
+
+
+class FormService:
+    """Comprehensive form processing service"""
+    
+    def __init__(self):
+        self.validator = FormValidator()
+        self.sanitizer = self._create_sanitizer()
+    
+    def _create_sanitizer(self):
+        """Create HTML sanitizer"""
+        return bleach.Cleaner(
+            tags=['p', 'b', 'i', 'u', 'em', 'strong', 'br'],
+            attributes={},
+            strip=True
+        )
+    
+    def process_form(self, form_data: Dict[str, Any], validation_rules: Dict[str, Dict]) -> Dict[str, Any]:
+        """Process and validate form data"""
+        result = {
+            'valid': True,
+            'errors': {},
+            'data': {},
+            'sanitized_data': {}
+        }
+        
+        for field, rules in validation_rules.items():
+            value = form_data.get(field)
+            field_errors = []
+            
+            # Required validation
+            if rules.get('required', False):
+                if not self.validator.validate_required(value):
+                    field_errors.append('This field is required')
+            
+            # Skip other validations if field is empty and not required
+            if not value and not rules.get('required', False):
+                result['data'][field] = value
+                result['sanitized_data'][field] = value
+                continue
+            
+            # Type-specific validations
+            if rules.get('type') == 'email':
+                if not self.validator.validate_email(value):
+                    field_errors.append('Invalid email format')
+            
+            elif rules.get('type') == 'phone':
+                if not self.validator.validate_phone(value):
+                    field_errors.append('Invalid phone number format')
+            
+            elif rules.get('type') == 'url':
+                if not self.validator.validate_url(value):
+                    field_errors.append('Invalid URL format')
+            
+            # Length validation
+            if 'min_length' in rules or 'max_length' in rules:
+                min_len = rules.get('min_length', 0)
+                max_len = rules.get('max_length')
+                if not self.validator.validate_length(value, min_len, max_len):
+                    if max_len:
+                        field_errors.append(f'Must be between {min_len} and {max_len} characters')
+                    else:
+                        field_errors.append(f'Must be at least {min_len} characters')
+            
+            # Store results
+            result['data'][field] = value
+            if isinstance(value, str):
+                result['sanitized_data'][field] = self.sanitizer.clean(value)
+            else:
+                result['sanitized_data'][field] = value
+            
+            if field_errors:
+                result['errors'][field] = field_errors
+                result['valid'] = False
+        
+        return result
+    
+    def create_form_config(self, form_type: str) -> Dict[str, Any]:
+        """Create form configuration for common form types"""
+        configs = {
+            'contact': {
+                'name': {'required': True, 'min_length': 2, 'max_length': 100},
+                'email': {'required': True, 'type': 'email'},
+                'phone': {'required': False, 'type': 'phone'},
+                'message': {'required': True, 'min_length': 10, 'max_length': 1000}
+            },
+            'registration': {
+                'username': {'required': True, 'min_length': 3, 'max_length': 50},
+                'email': {'required': True, 'type': 'email'},
+                'password': {'required': True, 'min_length': 8, 'max_length': 128},
+                'confirm_password': {'required': True}
+            },
+            'profile': {
+                'first_name': {'required': True, 'min_length': 1, 'max_length': 50},
+                'last_name': {'required': True, 'min_length': 1, 'max_length': 50},
+                'bio': {'required': False, 'max_length': 500},
+                'website': {'required': False, 'type': 'url'}
+            }
+        }
+        return configs.get(form_type, {})
+
+
+# Global form service instance
+_form_service = FormService()
+
+def get_forms_service():
+    """Get the global forms service instance"""
+    return _form_service
+
+def process_form(form_data, validation_rules):
+    """Process form data with validation - convenience function"""
+    return _form_service.process_form(form_data, validation_rules)
+
+def validate_form_field(value, field_type, **kwargs):
+    """Validate a single form field - convenience function"""
+    validator = FormValidator()
+    
+    if field_type == 'email':
+        return validator.validate_email(value)
+    elif field_type == 'phone':
+        return validator.validate_phone(value)
+    elif field_type == 'url':
+        return validator.validate_url(value)
+    elif field_type == 'required':
+        return validator.validate_required(value)
+    elif field_type == 'length':
+        return validator.validate_length(value, kwargs.get('min_length', 0), kwargs.get('max_length'))
+    
+    return True
             return bool(value.strip())
         return bool(value)
     
