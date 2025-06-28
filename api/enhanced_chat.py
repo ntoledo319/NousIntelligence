@@ -102,9 +102,9 @@ def enhanced_chat():
         except Exception as e:
             logger.debug(f"Command routing failed: {str(e)}")
         
-        # MTM-CE Enhancement: Use Integration Hub for comprehensive processing
-        if MTMCE_HUB_AVAILABLE:
-            # Process through MTM-CE Integration Hub for maximum intelligence
+        # NOUS Enhancement: Use Intelligence Hub for comprehensive processing
+        if NOUS_HUB_AVAILABLE:
+            # Process through NOUS Intelligence Hub for maximum intelligence
             integrated_result = process_unified_request(user_id, message, context)
             
             # Extract components from integrated result
@@ -112,7 +112,7 @@ def enhanced_chat():
             ai_response = integrated_result.get('enhanced_features', {}).get('ai_response', {})
             intelligence_insights = integrated_result.get('intelligence_insights', {})
             
-            logger.info(f"MTM-CE Integration Hub processed request with {len(intelligence_insights)} intelligence services")
+            logger.info(f"NOUS Intelligence Hub processed request with {len(intelligence_insights)} intelligence services")
         else:
             # Fallback to standard enhanced processing
             # Step 2: Process through adaptive AI system

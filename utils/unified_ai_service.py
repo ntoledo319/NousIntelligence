@@ -21,11 +21,11 @@ from functools import lru_cache
 # Set up logging
 logger = logging.getLogger(__name__)
 
-# MTM-CE Enhanced Imports - Adaptive AI Integration
+# NOUS Enhanced Imports - Adaptive AI Integration
 try:
     from utils.adaptive_ai_system import process_adaptive_request, provide_user_feedback, get_ai_insights
     ADAPTIVE_AI_AVAILABLE = True
-    logger.info("Adaptive AI system integrated successfully")
+    logger.info("NOUS Adaptive AI system integrated successfully")
 except ImportError:
     ADAPTIVE_AI_AVAILABLE = False
     logger.warning("Adaptive AI system not available - running in basic mode")
@@ -34,7 +34,7 @@ except ImportError:
 try:
     from utils.plugin_registry import get_plugin_registry
     PLUGIN_REGISTRY_AVAILABLE = True
-    logger.info("Plugin registry integrated successfully")
+    logger.info("NOUS Plugin registry integrated successfully")
 except ImportError:
     PLUGIN_REGISTRY_AVAILABLE = False
     logger.warning("Plugin registry not available - running in static mode")
