@@ -178,7 +178,7 @@ class SharedShoppingList(db.Model):
     created_by = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
     store_location = db.Column(db.String(255))
-    budget_limit = db.Column(db.Decimal(10, 2))
+    budget_limit = db.Column(db.Numeric(10, 2))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -211,8 +211,8 @@ class SharedShoppingItem(db.Model):
     quantity = db.Column(db.Integer, default=1)
     unit = db.Column(db.String(20))  # lbs, oz, etc.
     category = db.Column(db.String(50))
-    estimated_price = db.Column(db.Decimal(8, 2))
-    actual_price = db.Column(db.Decimal(8, 2))
+    estimated_price = db.Column(db.Numeric(8, 2))
+    actual_price = db.Column(db.Numeric(8, 2))
     notes = db.Column(db.Text)
     is_purchased = db.Column(db.Boolean, default=False)
     purchased_by = db.Column(db.String(36), db.ForeignKey('users.id'))
