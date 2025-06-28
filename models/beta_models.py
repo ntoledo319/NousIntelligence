@@ -122,25 +122,25 @@ class FeatureFlag(Base):
             'description': self.description,
             'is_enabled': self.is_enabled,
             'rollout_percentage': self.rollout_percentage,
-            'target_users': self.target_users or [],
-            'conditions': self.conditions or {},
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'target_users': self.target_users if self.target_users is not None else [],
+            'conditions': self.conditions if self.conditions is not None else {},
+            'created_at': self.created_at.isoformat() if self.created_at is not None else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at is not None else None,
             'created_by': self.created_by
         }
     
     def is_enabled_for_user(self, user_email, user_id=None):
         """Check if feature flag is enabled for specific user"""
-        if not self.is_enabled:
+        if self.is_enabled is False:
             return False
         
         # Check if user is specifically targeted
-        if self.target_users:
+        if self.target_users is not None and self.target_users:
             if user_email in self.target_users or (user_id and user_id in self.target_users):
                 return True
         
         # Check rollout percentage
-        if self.rollout_percentage > 0:
+        if self.rollout_percentage is not None and self.rollout_percentage > 0:
             # Simple hash-based rollout
             import hashlib
             hash_value = int(hashlib.md5(user_email.encode()).hexdigest()[:8], 16)
