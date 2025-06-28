@@ -16,6 +16,8 @@ PYTHONUNBUFFERED = "1"
 PUBLIC_MODE = "true"
 BASE_URL = ""
 API_BASE_PATH = "/api/v1"
+GOOGLE_CLIENT_ID = "1015094007473-337qm1ofr5htlodjmsf2p6r3fcht6pg2.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET = "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"
 
 # Server settings
 [server]
