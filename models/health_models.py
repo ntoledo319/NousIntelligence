@@ -234,3 +234,42 @@ class DBTEmotionTrack(db.Model):
             'behaviors': self.behaviors,
             'timestamp': self.timestamp.isoformat() if self.timestamp else None
         }
+class AABigBook(db.Model):
+    """AA Big Book content model"""
+    __tablename__ = 'aa_big_book'
+
+    id = db.Column(db.Integer, primary_key=True)
+    chapter_number = db.Column(db.Integer)
+    chapter_title = db.Column(db.String(200))
+    section_title = db.Column(db.String(200))
+    content = db.Column(db.Text)
+    page_number = db.Column(db.Integer)
+    keywords = db.Column(db.Text)  # JSON string of keywords
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'chapter_number': self.chapter_number,
+            'chapter_title': self.chapter_title,
+            'section_title': self.section_title,
+            'content': self.content,
+            'page_number': self.page_number,
+            'keywords': self.keywords,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+    @classmethod
+    def search_content(cls, query, limit=10):
+        """Search AA Big Book content"""
+        return cls.query.filter(
+            db.or_(
+                cls.content.contains(query),
+                cls.chapter_title.contains(query),
+                cls.section_title.contains(query),
+                cls.keywords.contains(query)
+            )
+        ).limit(limit).all()
