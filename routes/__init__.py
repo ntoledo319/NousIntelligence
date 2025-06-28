@@ -40,8 +40,9 @@ OPTIONAL_BLUEPRINTS = [
     {'name': 'memory', 'module': 'routes.memory_routes', 'attr': 'memory_bp', 'url_prefix': '/memory'},
     {'name': 'crisis', 'module': 'routes.crisis_routes', 'attr': 'crisis_bp', 'url_prefix': '/crisis'},
     {'name': 'financial', 'module': 'routes.financial_routes', 'attr': 'financial_bp', 'url_prefix': '/financial'},
-    {'name': 'collaboration', 'module': 'routes.collaboration_routes', 'attr': 'collaboration_bp', 'url_prefix': '/family'},
+    {'name': 'collaboration', 'module': 'routes.collaboration_routes', 'attr': 'collaboration_bp', 'url_prefix': '/collaboration'},
     {'name': 'onboarding', 'module': 'routes.onboarding_routes', 'attr': 'onboarding_bp', 'url_prefix': '/onboarding'},
+    {'name': 'nous_tech_status', 'module': 'routes.nous_tech_status_routes', 'attr': 'nous_tech_bp', 'url_prefix': '/nous-tech'},
     # Consolidated route modules
     {'name': 'consolidated_api', 'module': 'routes.consolidated_api_routes', 'attr': 'consolidated_api_bp', 'url_prefix': '/api'},
     {'name': 'consolidated_voice', 'module': 'routes.consolidated_voice_routes', 'attr': 'consolidated_voice_bp', 'url_prefix': '/voice'},

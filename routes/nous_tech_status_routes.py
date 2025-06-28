@@ -11,9 +11,9 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-nous_tech_status_bp = Blueprint('nous_tech_status', __name__, url_prefix='/nous-tech')
+nous_tech_bp = Blueprint('nous_tech_status', __name__, url_prefix='/nous-tech')
 
-@mtmce_status_bp.route('/status', methods=['GET'])
+@nous_tech_bp.route('/status', methods=['GET'])
 def mtmce_system_status():
     """Comprehensive MTM-CE systems status overview"""
     try:
@@ -32,7 +32,7 @@ def mtmce_system_status():
         logger.error(f"Error generating MTM-CE status: {e}")
         return jsonify({'error': str(e)}), 500
 
-@mtmce_status_bp.route('/integration-map', methods=['GET'])
+@nous_tech_bp.route('/integration-map', methods=['GET'])
 def integration_map():
     """Visual map of how MTM-CE systems integrate with existing NOUS features"""
     try:
@@ -82,7 +82,7 @@ def integration_map():
         logger.error(f"Error generating integration map: {e}")
         return jsonify({'error': str(e)}), 500
 
-@mtmce_status_bp.route('/performance-dashboard', methods=['GET'])
+@nous_tech_bp.route('/performance-dashboard', methods=['GET'])
 def performance_dashboard():
     """Real-time performance dashboard for MTM-CE enhancements"""
     try:
@@ -107,7 +107,7 @@ def performance_dashboard():
         logger.error(f"Error generating performance dashboard: {e}")
         return jsonify({'error': str(e)}), 500
 
-@mtmce_status_bp.route('/enhancement-report', methods=['GET'])
+@nous_tech_bp.route('/enhancement-report', methods=['GET'])
 def enhancement_report():
     """Detailed report on how MTM-CE systems enhance existing NOUS capabilities"""
     try:
@@ -148,7 +148,7 @@ def enhancement_report():
         logger.error(f"Error generating enhancement report: {e}")
         return jsonify({'error': str(e)}), 500
 
-@mtmce_status_bp.route('/dashboard', methods=['GET'])
+@nous_tech_bp.route('/dashboard', methods=['GET'])
 def mtmce_dashboard():
     """Web interface for MTM-CE systems overview"""
     try:
@@ -407,10 +407,10 @@ def _get_enhanced_capabilities() -> List[Dict[str, Any]]:
     ]
 
 # Register error handlers
-@mtmce_status_bp.errorhandler(404)
+@nous_tech_bp.errorhandler(404)
 def not_found(error):
     return jsonify({'error': 'MTM-CE status endpoint not found'}), 404
 
-@mtmce_status_bp.errorhandler(500)
+@nous_tech_bp.errorhandler(500)
 def internal_error(error):
     return jsonify({'error': 'Internal error in MTM-CE status system'}), 500
