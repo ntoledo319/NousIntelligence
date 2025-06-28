@@ -2,7 +2,25 @@
 name = "nous-personal-assistant"
 version = "0.2.0"
 description = "AI-powered personal assistant with comprehensive life management"
+readme = "README.md"
 requires-python = ">=3.11"
+license = {file = "LICENSE"}
+authors = [
+    {name = "NOUS Development Team"}
+]
+keywords = ["ai", "personal-assistant", "flask", "web-application", "productivity"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: Flask",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Office/Business :: Scheduling",
+]
 dependencies = [
     # Core Web Framework - VERIFIED WORKING
     "flask>=3.1.1",
@@ -59,40 +77,36 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-# Explicitly configure package discovery to prevent flat-layout errors
 py-modules = ["main", "app", "database"]
+include-package-data = true
 
 [tool.setuptools.packages.find]
-# Explicit package inclusion - prevents automatic discovery issues
 include = [
-    "models*", 
+    "models*",
     "routes*", 
-    "utils*", 
-    "config*", 
-    "api*", 
+    "utils*",
+    "config*",
+    "api*",
     "services*", 
-    "handlers*", 
-    "core*", 
+    "handlers*",
+    "core*",
     "voice_interface*"
 ]
-
-# Exclude all problematic directories that caused the 17-package error
 exclude = [
-    "backup*", 
+    "backup*",
     "logs*", 
-    "uploads*", 
-    "instance*", 
-    "flask_session*", 
-    "static*", 
+    "uploads*",
+    "cleanup*",
+    "instance*",
+    "flask_session*",
+    "build_assets*",
+    "static*",
     "templates*",
     "tests*",
     "scripts*",
-    "docs*",
-    "build_assets*",
-    "project_files*",
     "__pycache__*",
     "*.tests*",
-    "*.egg-info*"
+    "docs*"
 ]
 
 [tool.setuptools.package-data]
