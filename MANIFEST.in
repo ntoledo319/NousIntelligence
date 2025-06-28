@@ -55,6 +55,15 @@ exclude test_deployment.py
 exclude *.legacy
 exclude uv.lock
 
+# Exclude build artifacts that can cause setuptools issues
+exclude *.egg-info/*
+exclude build/*
+exclude dist/*
+exclude .eggs/*
+exclude *.pyc
+exclude *.pyo
+exclude __pycache__/*
+
 # Exclude sensitive files
 exclude client_secret*.json
 exclude .env*
