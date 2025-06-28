@@ -21,3 +21,5 @@ buttonEnabled = false
 
 [workflows.server]
 command = "python3 main.py"
+onRestart = "manual"
+description = "NOUS Personal Assistant Server"
