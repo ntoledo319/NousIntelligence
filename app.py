@@ -70,6 +70,11 @@ try:
 except ImportError:
     recovery_bp = None
 
+try:
+    from routes.enhancement_admin import enhancement_admin_bp
+except ImportError:
+    enhancement_admin_bp = None
+
 # Configure comprehensive logging
 logging.basicConfig(
     level=logging.DEBUG, 
@@ -159,6 +164,8 @@ def create_app():
         app.register_blueprint(tasks_bp)
     if recovery_bp:
         app.register_blueprint(recovery_bp)
+    if enhancement_admin_bp:
+        app.register_blueprint(enhancement_admin_bp)
     
     # Create logs directory
     os.makedirs('logs', exist_ok=True)
