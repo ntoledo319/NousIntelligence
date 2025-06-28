@@ -11,10 +11,7 @@ from datetime import datetime
 from flask import Flask, render_template, redirect, url_for, session, request, jsonify, flash
 from werkzeug.middleware.proxy_fix import ProxyFix
 from config import AppConfig, PORT, HOST, DEBUG
-from flask_sqlalchemy import SQLAlchemy
-
-# Initialize database
-db = SQLAlchemy()
+from database import db, init_database
 
 # Import new backend stability components
 from utils.health_monitor import health_monitor
@@ -65,12 +62,7 @@ def create_app():
     )
     
     # Initialize database
-    db.init_app(app)
-    
-    # Initialize database with models
-    from models.database import init_db
-    # Import models after db is initialized to avoid circular imports
-    init_db(app, db)
+    init_database(app)
     
     # Initialize health monitoring
     health_monitor.init_app(app)

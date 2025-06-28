@@ -34,8 +34,8 @@ class BetaUser(Base):
             'id': self.id,
             'email': self.email,
             'invite_code': self.invite_code,
-            'flag_set': self.flag_set or {},
-            'joined_at': self.joined_at.isoformat() if self.joined_at else None,
+            'flag_set': self.flag_set if self.flag_set is not None else {},
+            'joined_at': self.joined_at.isoformat() if self.joined_at is not None else None,
             'is_active': self.is_active,
             'role': self.role,
             'notes': self.notes
@@ -43,11 +43,11 @@ class BetaUser(Base):
     
     def has_flag(self, flag_name):
         """Check if user has specific feature flag enabled"""
-        return self.flag_set.get(flag_name, False) if self.flag_set else False
+        return self.flag_set.get(flag_name, False) if self.flag_set is not None else False
     
     def set_flag(self, flag_name, enabled=True):
         """Set feature flag for user"""
-        if not self.flag_set:
+        if self.flag_set is None:
             self.flag_set = {}
         self.flag_set[flag_name] = enabled
     
@@ -92,7 +92,7 @@ class BetaFeedback(Base):
             'feedback_data': self.feedback_data,
             'page_url': self.page_url,
             'user_agent': self.user_agent,
-            'submitted_at': self.submitted_at.isoformat() if self.submitted_at else None,
+            'submitted_at': self.submitted_at.isoformat() if self.submitted_at is not None else None,
             'status': self.status,
             'admin_notes': self.admin_notes
         }
