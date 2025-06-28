@@ -60,7 +60,7 @@ class MemoryService:
         self.logger = logging.getLogger(__name__)
     
     def store_memory(self, user_id: int, memory_type: str, title: str, content: str, 
-                    context_data: Dict = None, importance_score: float = 0.5) -> UserMemory:
+                    context_data: Optional[Dict] = None, importance_score: float = 0.5) -> Optional[UserMemory]:
         """Store a new memory for a user"""
         try:
             # Get or create memory type
@@ -91,7 +91,7 @@ class MemoryService:
             self.db.session.rollback()
             return None
     
-    def retrieve_memories(self, user_id: int, memory_type: str = None, 
+    def retrieve_memories(self, user_id: int, memory_type: Optional[str] = None, 
                          limit: int = 10, active_only: bool = True) -> List[UserMemory]:
         """Retrieve memories for a user"""
         try:
@@ -219,8 +219,6 @@ def retrieve_user_memories(user_id, memory_type=None, limit=10):
     """Retrieve memories - convenience function"""
     service = get_memory_service()
     return service.retrieve_memories(user_id, memory_type, limit)
-    associations = relationship("MemoryAssociation", foreign_keys="[MemoryAssociation.memory_id]")
-    related_memories = relationship("MemoryAssociation", foreign_keys="[MemoryAssociation.related_memory_id]")
 
 
 class MemoryAssociation(db.Model):

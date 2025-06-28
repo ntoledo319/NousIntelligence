@@ -197,7 +197,8 @@ def update_language_progress(user_id, language_id, session_data):
     # Update streak
     if session_data.get('completed'):
         # Check if this continues a streak
-        yesterday = datetime.now(timezone.utc).date() - datetime.timedelta(days=1)
+        from datetime import timedelta
+        yesterday = datetime.now(timezone.utc).date() - timedelta(days=1)
         if progress.last_session_at and progress.last_session_at.date() >= yesterday:
             progress.current_streak += 1
         else:
