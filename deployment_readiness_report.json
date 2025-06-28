@@ -1,0 +1,11 @@
+{
+  "timestamp": "2025-06-28T03:43:55.213297",
+  "duration_seconds": 8.171185,
+  "checks_passed": 9,
+  "checks_failed": 3,
+  "success_rate": 75.0,
+  "deployment_ready": false,
+  "recommendations": [
+    "Fix failed checks before deploying"
+  ]
+}
