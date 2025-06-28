@@ -8,7 +8,7 @@ supporting comprehensive user analytics, activity tracking, and AI-powered insig
 from datetime import datetime, timedelta
 from sqlalchemy import func, text
 from sqlalchemy.ext.hybrid import hybrid_property
-from app_factory import db
+from app import db
 import json
 
 class UserActivity(db.Model):

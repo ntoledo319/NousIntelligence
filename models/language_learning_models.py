@@ -8,7 +8,7 @@ vocabulary, phrases, grammar rules, and user progress tracking.
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, Float
 from sqlalchemy.orm import relationship
-from app_factory import db
+from app import db
 
 
 class LanguageProfile(db.Model):

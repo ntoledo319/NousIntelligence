@@ -8,7 +8,7 @@ import uuid
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-from app_factory import db
+from app import db
 
 class User(UserMixin, db.Model):
     """User model for authentication and profile information"""
