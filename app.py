@@ -221,13 +221,32 @@ def create_app():
         return jsonify(session['user'])
     
     @app.route('/health')
+    @app.route('/healthz')
     def health():
-        """Health check endpoint"""
-        return jsonify({
-            'status': 'healthy',
-            'timestamp': datetime.now().isoformat(),
-            'authenticated_users': 1 if is_authenticated() else 0
-        })
+        """Health check endpoint for deployment monitoring"""
+        try:
+            # Test database connection
+            from database import db
+            db.session.execute('SELECT 1').scalar()
+            
+            health_status = {
+                'status': 'healthy',
+                'timestamp': datetime.now().isoformat(),
+                'version': '0.2.0',
+                'database': 'connected',
+                'port': PORT,
+                'environment': os.environ.get('FLASK_ENV', 'production')
+            }
+            
+            return jsonify(health_status), 200
+            
+        except Exception as e:
+            logger.error(f"Health check failed: {str(e)}")
+            return jsonify({
+                'status': 'unhealthy',
+                'timestamp': datetime.now().isoformat(),
+                'error': str(e)
+            }), 503
     
     return app
 
