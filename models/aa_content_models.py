@@ -168,3 +168,14 @@ def create_daily_content_schedule():
     
     db.session.commit()
     return "Daily content schedule framework created successfully"
+
+class AABigBook(db.Model):
+    __table_args__ = {"extend_existing": True}
+    """AA Big Book content and chapters"""
+    __tablename__ = 'aa_big_book'
+    
+    id = Column(Integer, primary_key=True)
+    chapter_number = Column(Integer, nullable=False)
+    chapter_title = Column(String(255), nullable=False)
+    content = Column(Text)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
