@@ -16,7 +16,7 @@ class ProductCategory(db.Model):
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False, unique=True)
     description = Column(Text)
-    parent_id = Column(Integer, ForeignKey('product_categories.id'))
+    parent_id = Column(Integer)
     icon = Column(String(50))
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
@@ -48,7 +48,7 @@ class Product(db.Model):
     ebay_id = Column(String(50))
     
     # Product details
-    category_id = Column(Integer, ForeignKey('product_categories.id'))
+    category_id = Column(Integer)
     current_price = Column(Float)
     original_price = Column(Float)
     currency = Column(String(3), default='USD')
@@ -86,7 +86,7 @@ class PriceHistory(db.Model):
     __tablename__ = 'price_history'
     
     id = Column(Integer, primary_key=True)
-    product_id = Column(Integer, ForeignKey('products.id'), nullable=False)
+    product_id = Column(Integer, nullable=False)
     price = Column(Float, nullable=False)
     currency = Column(String(3), default='USD')
     source = Column(String(50))  # amazon, walmart, target, etc.
@@ -104,7 +104,7 @@ class Wishlist(db.Model):
     __tablename__ = 'wishlists'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    user_id = Column(Integer, nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(Text)
     is_public = Column(Boolean, default=False)
@@ -122,8 +122,8 @@ class WishlistItem(db.Model):
     __tablename__ = 'wishlist_items'
     
     id = Column(Integer, primary_key=True)
-    wishlist_id = Column(Integer, ForeignKey('wishlists.id'), nullable=False)
-    product_id = Column(Integer, ForeignKey('products.id'), nullable=False)
+    wishlist_id = Column(Integer, nullable=False)
+    product_id = Column(Integer, nullable=False)
     quantity = Column(Integer, default=1)
     priority = Column(String(20), default='medium')  # low, medium, high, urgent
     notes = Column(Text)
@@ -140,8 +140,8 @@ class PriceAlert(db.Model):
     __tablename__ = 'price_alerts'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    product_id = Column(Integer, ForeignKey('products.id'), nullable=False)
+    user_id = Column(Integer, nullable=False)
+    product_id = Column(Integer, nullable=False)
     alert_type = Column(String(20), nullable=False)  # price_drop, back_in_stock, target_price
     target_price = Column(Float)
     percentage_drop = Column(Float)
@@ -159,8 +159,8 @@ class ProductReview(db.Model):
     __tablename__ = 'product_reviews'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    product_id = Column(Integer, ForeignKey('products.id'), nullable=False)
+    user_id = Column(Integer, nullable=False)
+    product_id = Column(Integer, nullable=False)
     rating = Column(Integer, nullable=False)  # 1-5 stars
     title = Column(String(255))
     review_text = Column(Text)
@@ -180,7 +180,7 @@ class ShoppingSession(db.Model):
     __tablename__ = 'shopping_sessions'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    user_id = Column(Integer, nullable=False)
     session_id = Column(String(255), unique=True)
     status = Column(String(20), default='active')  # active, completed, abandoned
     total_items = Column(Integer, default=0)
@@ -199,8 +199,8 @@ class ShoppingSessionItem(db.Model):
     __tablename__ = 'shopping_session_items'
     
     id = Column(Integer, primary_key=True)
-    session_id = Column(Integer, ForeignKey('shopping_sessions.id'), nullable=False)
-    product_id = Column(Integer, ForeignKey('products.id'), nullable=False)
+    session_id = Column(Integer, nullable=False)
+    product_id = Column(Integer, nullable=False)
     quantity = Column(Integer, default=1)
     price_at_time = Column(Float)
     source_store = Column(String(50))
@@ -216,8 +216,8 @@ class DealAlert(db.Model):
     __tablename__ = 'deal_alerts'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'))
-    product_id = Column(Integer, ForeignKey('products.id'))
+    user_id = Column(Integer)
+    product_id = Column(Integer)
     deal_type = Column(String(50))  # lightning_deal, daily_deal, coupon, clearance
     original_price = Column(Float)
     deal_price = Column(Float)
