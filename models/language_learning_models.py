@@ -233,3 +233,15 @@ def create_default_languages():
     
     db.session.commit()
     return "Default languages created successfully"
+
+class LanguageProfile(db.Model):
+    __table_args__ = {"extend_existing": True}
+    """User language learning profile"""
+    __tablename__ = 'language_profiles'
+    
+    id = Column(Integer, primary_key=True)
+    user_id = Column(String(50), nullable=False)
+    language_id = Column(Integer, nullable=False)
+    proficiency_level = Column(String(20), default='beginner')
+    goals = Column(Text)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
