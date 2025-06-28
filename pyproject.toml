@@ -50,6 +50,36 @@ dependencies = [
     # Real-time Communication - For Chat Features
     "flask-socketio>=5.3.6",
     
+    # Async Processing - For Background Tasks
+    "celery>=5.3.4",
+    
+    # Monitoring & Metrics - For Production
+    "prometheus-client>=0.19.0",
+    
+    # Compression - For Performance
+    "zstandard>=0.22.0",
+    
+    # AI Services - Core Intelligence
+    "google-generativeai>=0.3.2",
+    
+    # Computer Vision - Visual Intelligence
+    "opencv-python>=4.8.1",
+    "pytesseract>=0.3.10",
+    "pillow>=10.1.0",
+    
+    # Machine Learning - Analytics
+    "scikit-learn>=1.3.2",
+    "numpy>=1.24.4",
+    
+    # Audio Processing - Voice Features
+    "speechrecognition>=3.10.0",
+    
+    # Spotify Integration
+    "spotipy>=2.22.1",
+    
+    # JWT Authentication
+    "pyjwt>=2.8.0",
+    
     # Machine Learning & Data Processing - For Adaptive AI
     "numpy>=1.24.0",
     
