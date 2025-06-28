@@ -227,7 +227,8 @@ def create_app():
         try:
             # Test database connection
             from database import db
-            db.session.execute('SELECT 1').scalar()
+            from sqlalchemy import text
+            db.session.execute(text('SELECT 1')).scalar()
             
             health_status = {
                 'status': 'healthy',
