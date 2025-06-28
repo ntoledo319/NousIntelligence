@@ -25,10 +25,16 @@ class PredictiveAnalyticsEngine:
     def __init__(self):
         """Initialize predictive analytics engine"""
         self.ai_service = UnifiedAIService()
-        self.analytics_service = AnalyticsService()
+        # AnalyticsService needs db parameter - will be set when db is available
+        self.analytics_service = None
         self.db_path = Path("instance/analytics_predictions.db")
         self.init_database()
         logger.info("Predictive Analytics Engine initialized")
+    
+    def init_analytics_service(self, db):
+        """Initialize analytics service with database"""
+        if self.analytics_service is None:
+            self.analytics_service = AnalyticsService(db)
     
     def init_database(self):
         """Initialize predictions database"""
@@ -75,6 +81,11 @@ class PredictiveAnalyticsEngine:
     def analyze_user_patterns(self, user_id: str) -> Dict[str, Any]:
         """Analyze user behavior patterns from existing analytics data"""
         try:
+            # Check if analytics service is initialized
+            if self.analytics_service is None:
+                logger.warning("AnalyticsService not initialized - skipping pattern analysis")
+                return {}
+            
             # Get user activity data from analytics service
             user_activities = self.analytics_service.get_user_activities(user_id)
             
