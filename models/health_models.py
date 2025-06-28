@@ -298,3 +298,33 @@ class AABigBookAudio(db.Model):
             'audio_quality': self.audio_quality,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
+
+class AASpeakerRecording(db.Model):
+    """AA Speaker recording model"""
+    __tablename__ = 'aa_speaker_recordings'
+
+    id = db.Column(db.Integer, primary_key=True)
+    speaker_name = db.Column(db.String(200))
+    title = db.Column(db.String(500))
+    description = db.Column(db.Text)
+    audio_url = db.Column(db.String(500))
+    duration_minutes = db.Column(db.Integer)
+    recorded_date = db.Column(db.Date)
+    sobriety_years = db.Column(db.Float)
+    location = db.Column(db.String(200))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'speaker_name': self.speaker_name,
+            'title': self.title,
+            'description': self.description,
+            'audio_url': self.audio_url,
+            'duration_minutes': self.duration_minutes,
+            'recorded_date': self.recorded_date.isoformat() if self.recorded_date else None,
+            'sobriety_years': self.sobriety_years,
+            'location': self.location,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+

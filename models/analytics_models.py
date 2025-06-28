@@ -271,3 +271,92 @@ class SearchIndex(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         } 
+class Goal(db.Model):
+    """User goals and objectives tracking"""
+    __tablename__ = 'goals'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    category = db.Column(db.String(50))  # health, career, personal, etc.
+    target_value = db.Column(db.Float)  # Numeric target if applicable
+    current_value = db.Column(db.Float, default=0)
+    unit = db.Column(db.String(20))  # days, pounds, hours, etc.
+    status = db.Column(db.String(20), default='active')  # active, completed, paused, cancelled
+    priority = db.Column(db.String(20), default='medium')  # low, medium, high
+    start_date = db.Column(db.Date)
+    target_date = db.Column(db.Date)
+    completed_date = db.Column(db.Date)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('goals', lazy=True))
+
+    @hybrid_property
+    def progress_percentage(self):
+        """Calculate progress as percentage"""
+        if self.target_value and self.target_value > 0:
+            return min(100, (self.current_value / self.target_value) * 100)
+        return 0
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'title': self.title,
+            'description': self.description,
+            'category': self.category,
+            'target_value': self.target_value,
+            'current_value': self.current_value,
+            'unit': self.unit,
+            'status': self.status,
+            'priority': self.priority,
+            'progress_percentage': self.progress_percentage,
+            'start_date': self.start_date.isoformat() if self.start_date else None,
+            'target_date': self.target_date.isoformat() if self.target_date else None,
+            'completed_date': self.completed_date.isoformat() if self.completed_date else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class Insight(db.Model):
+    """AI-generated insights and recommendations"""
+    __tablename__ = 'insights'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    insight_type = db.Column(db.String(50))  # pattern, recommendation, alert, etc.
+    category = db.Column(db.String(50))  # health, productivity, relationships, etc.
+    priority = db.Column(db.Integer, default=5)  # 1-10 scale
+    confidence_score = db.Column(db.Float, default=0.5)  # 0.0-1.0
+    data_sources = db.Column(db.JSON)  # What data was used to generate this insight
+    action_items = db.Column(db.JSON)  # Suggested actions
+    is_read = db.Column(db.Boolean, default=False)
+    is_dismissed = db.Column(db.Boolean, default=False)
+    generated_at = db.Column(db.DateTime, default=datetime.utcnow)
+    expires_at = db.Column(db.DateTime)  # Some insights may have expiration
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('insights', lazy=True))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'title': self.title,
+            'content': self.content,
+            'insight_type': self.insight_type,
+            'category': self.category,
+            'priority': self.priority,
+            'confidence_score': self.confidence_score,
+            'data_sources': self.data_sources,
+            'action_items': self.action_items,
+            'is_read': self.is_read,
+            'is_dismissed': self.is_dismissed,
+            'generated_at': self.generated_at.isoformat() if self.generated_at else None,
+            'expires_at': self.expires_at.isoformat() if self.expires_at else None
+        }
