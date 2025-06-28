@@ -156,7 +156,7 @@ class SystemMetrics(Base):
     timestamp = Column(DateTime, default=datetime.utcnow, index=True)
     metric_type = Column(String(50), nullable=False)  # cpu, memory, db_query, response_time
     metric_value = Column(Integer)  # Value in appropriate units
-    metadata = Column(JSON)  # Additional context
+    extra_data = Column(JSON)  # Additional context
     
     def __repr__(self):
         return f"<SystemMetrics {self.metric_type}={self.metric_value}>"
@@ -167,5 +167,5 @@ class SystemMetrics(Base):
             'timestamp': self.timestamp.isoformat() if self.timestamp else None,
             'metric_type': self.metric_type,
             'metric_value': self.metric_value,
-            'metadata': self.metadata or {}
+            'extra_data': self.extra_data or {}
         }

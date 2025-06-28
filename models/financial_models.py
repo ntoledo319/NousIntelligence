@@ -6,6 +6,7 @@ supporting expense tracking, budgeting, and financial insights.
 """
 
 from datetime import datetime, timedelta
+from decimal import Decimal
 from sqlalchemy import func
 from sqlalchemy.ext.hybrid import hybrid_property
 from app import db
@@ -21,7 +22,7 @@ class BankAccount(db.Model):
     account_type = db.Column(db.String(50), nullable=False)  # checking, savings, credit
     account_number_masked = db.Column(db.String(20))  # Only last 4 digits
     bank_name = db.Column(db.String(100))
-    current_balance = db.Column(db.Decimal(10, 2), default=0.00)
+    current_balance = db.Column(db.Numeric(10, 2), default=0.00)
     is_active = db.Column(db.Boolean, default=True)
     is_primary = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -54,7 +55,7 @@ class Transaction(db.Model):
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     account_id = db.Column(db.Integer, db.ForeignKey('bank_accounts.id'), nullable=False)
     transaction_type = db.Column(db.String(20), nullable=False)  # income, expense, transfer
-    amount = db.Column(db.Decimal(10, 2), nullable=False)
+    amount = db.Column(db.Numeric(10, 2), nullable=False)
     description = db.Column(db.String(255))
     category_id = db.Column(db.Integer, db.ForeignKey('expense_categories.id'))
     merchant = db.Column(db.String(100))
@@ -128,7 +129,7 @@ class Budget(db.Model):
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     budget_type = db.Column(db.String(20), default='monthly')
-    total_amount = db.Column(db.Decimal(10, 2), nullable=False)
+    total_amount = db.Column(db.Numeric(10, 2), nullable=False)
     start_date = db.Column(db.Date, nullable=False)
     end_date = db.Column(db.Date, nullable=False)
     is_active = db.Column(db.Boolean, default=True)
@@ -174,7 +175,7 @@ class BudgetCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     budget_id = db.Column(db.Integer, db.ForeignKey('budgets.id'), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('expense_categories.id'), nullable=False)
-    allocated_amount = db.Column(db.Decimal(10, 2), nullable=False)
+    allocated_amount = db.Column(db.Numeric(10, 2), nullable=False)
     
     # Relationships
     category = db.relationship('ExpenseCategory')
@@ -196,7 +197,7 @@ class Bill(db.Model):
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
-    amount = db.Column(db.Decimal(10, 2), nullable=False)
+    amount = db.Column(db.Numeric(10, 2), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('expense_categories.id'))
     frequency = db.Column(db.String(20), default='monthly')  # weekly, monthly, quarterly, yearly
     due_day = db.Column(db.Integer)  # Day of month/week
@@ -241,9 +242,9 @@ class Investment(db.Model):
     symbol = db.Column(db.String(10), nullable=False)  # Stock symbol
     name = db.Column(db.String(200))
     investment_type = db.Column(db.String(50))  # stock, bond, crypto, etc.
-    quantity = db.Column(db.Decimal(10, 4), default=0)
-    average_cost = db.Column(db.Decimal(10, 2), default=0)
-    current_price = db.Column(db.Decimal(10, 2), default=0)
+    quantity = db.Column(db.Numeric(10, 4), default=0)
+    average_cost = db.Column(db.Numeric(10, 2), default=0)
+    current_price = db.Column(db.Numeric(10, 2), default=0)
     last_updated = db.Column(db.DateTime, default=datetime.utcnow)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -295,8 +296,8 @@ class FinancialGoal(db.Model):
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     goal_type = db.Column(db.String(50))  # savings, debt_payoff, investment, etc.
-    target_amount = db.Column(db.Decimal(12, 2), nullable=False)
-    current_amount = db.Column(db.Decimal(12, 2), default=0)
+    target_amount = db.Column(db.Numeric(12, 2), nullable=False)
+    current_amount = db.Column(db.Numeric(12, 2), default=0)
     target_date = db.Column(db.Date)
     is_completed = db.Column(db.Boolean, default=False)
     priority = db.Column(db.String(20), default='medium')  # low, medium, high
