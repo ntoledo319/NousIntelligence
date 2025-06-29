@@ -8,17 +8,17 @@
     <meta property="og:title" content="NOUS - Intelligent Personal Assistant">
     <meta property="og:description" content="Your AI-powered companion for productivity, creativity, and mental wellness. Features CBT tools, smart automation, and personalized assistance.">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="{{ url_for('static', filename='favicon.ico') }}">
+    <meta property="og:image" content="/static/favicon.ico">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="NOUS">
     <title>NOUS - Intelligent Personal Assistant</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/favicon.ico">
 </head>
 <body class="landing-page">
     <div class="container">
@@ -81,10 +81,10 @@
                 {% endwith %}
                 
                 <div class="cta-buttons">
-                    <a href="{{ url_for('public_demo') }}" class="demo-btn">
+                    <a href="/demo" class="demo-btn">
                         🚀 Try Demo Now
                     </a>
-                    <a href="{{ url_for('public_demo') }}" class="google-signin-btn">
+                    <a href="/demo" class="google-signin-btn">
                         <svg class="google-icon" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
