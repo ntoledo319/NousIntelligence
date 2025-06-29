@@ -4,7 +4,6 @@ Zero barriers - supports all access patterns
 """
 
 from flask import session, request, redirect, jsonify
-from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
 from functools import wraps
 
 def get_current_user():
