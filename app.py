@@ -472,31 +472,32 @@ def create_app():
     @app.route(f'{AppConfig.API_LEGACY_PATH}/chat', methods=['POST'])  # Legacy support
     def api_chat():
         """Chat API endpoint with AI brain cost optimization"""
-        data = request.get_json()
-        message = data.get('message', '').strip()
-        demo_mode = data.get('demo_mode', False) or data.get('demo', False)
-        
-        if not message:
-            return jsonify({'error': 'Message cannot be empty'}), 400
-        
-        # Check authentication only if not in demo mode
-        if not demo_mode and not is_authenticated():
-            return jsonify({'error': "Demo mode - limited access"}), 401
-        
-        # Get user info and ID for brain optimization
-        user_id = None
-        if demo_mode:
-            user_name = 'Guest User'
-            user_id = 'guest_user'
-        elif 'user' in session and session['user']:
-            user_name = session['user']['name']
-            user_id = session['user']['id']
-        else:
-            user_name = 'API User'
-            user_id = 'api_user'
-        
-        # AI Brain cost optimization
         try:
+            data = request.get_json()
+            message = data.get('message', '').strip()
+            demo_mode = data.get('demo_mode', False) or data.get('demo', False)
+            
+            if not message:
+                return jsonify({'error': 'Message cannot be empty'}), 400
+            
+            # Check authentication only if not in demo mode
+            if not demo_mode and not is_authenticated():
+                return jsonify({'error': "Demo mode - limited access"}), 401
+            
+            # Get user info and ID for brain optimization
+            user_id = None
+            if demo_mode:
+                user_name = 'Guest User'
+                user_id = 'guest_user'
+            elif 'user' in session and session['user']:
+                user_name = session['user']['name']
+                user_id = session['user']['id']
+            else:
+                user_name = 'API User'
+                user_id = 'api_user'
+            
+            # AI Brain cost optimization
+            try:
             from utils.ai_brain_cost_optimizer import optimize_ai_request, record_ai_interaction
             from utils.enhanced_ai_system import enhanced_ai, AITaskType
             
@@ -593,13 +594,13 @@ def create_app():
                     "fallback": "basic"
                 })
         
-    except Exception as e:
-        logger.error(f"Chat API error: {e}")
-        return jsonify({
-            "response": f"I'm experiencing some difficulty right now. Please try again shortly.",
-            "error": True,
-            "timestamp": datetime.now().isoformat()
-        }), 500
+        except Exception as e:
+            logger.error(f"Chat API error: {e}")
+            return jsonify({
+                "response": f"I'm experiencing some difficulty right now. Please try again shortly.",
+                "error": True,
+                "timestamp": datetime.now().isoformat()
+            }), 500
 
     @app.route('/api/enhanced/research', methods=['POST'])
     def api_research():
