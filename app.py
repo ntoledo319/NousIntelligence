@@ -193,6 +193,16 @@ def create_app():
     logger.info("🚀 Public access enabled - no authentication barriers")
     logger.info("💀 OPERATION PUBLIC-OR-BUST: Complete")
     
+    
+    # Register all application blueprints
+    try:
+        from routes import register_all_blueprints
+        register_all_blueprints(app)
+        logger.info("✅ All blueprints registered successfully")
+    except Exception as e:
+        logger.warning(f"⚠️ Blueprint registration issue: {e}")
+        # Continue without blueprints for basic functionality
+
     return app
 
 if __name__ == "__main__":
