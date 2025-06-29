@@ -1,17 +1,16 @@
 """
-from utils.auth_compat import get_demo_user
 Task management routes
 """
 
 from flask import Blueprint, render_template, jsonify, request
-from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user()
+from utils.auth_compat import login_required, get_demo_user, is_authenticated
 
 tasks_bp = Blueprint('tasks', __name__)
 
 @tasks_bp.route('/tasks')
 def tasks_main():
     """Tasks main page"""
-    user = get_get_demo_user()()
+    user = get_demo_user()()
     return render_template('tasks/main.html', user=user)
 
 @tasks_bp.route('/api/tasks')
