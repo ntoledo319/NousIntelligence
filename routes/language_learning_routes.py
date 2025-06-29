@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Language Learning Routes
 
 This module defines routes for language learning features including
@@ -11,7 +46,6 @@ import logging
 import json
 from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, request, jsonify, session, flash
-from flask_login import login_required, current_user
 
 from models.language_learning_models import (
     LanguageProfile, VocabularyItem, LearningSession
@@ -31,12 +65,10 @@ language_bp = Blueprint('language', __name__, url_prefix='/language')
 # Initialize service
 language_service = LanguageLearningService()
 
-
 @language_bp.route('/')
-@login_required
 def index():
     """Language learning dashboard"""
-    user_id = current_user.id
+    user_id = session.get('user', {}).get('id', 'demo_user')
     profiles = language_service.get_user_language_profiles(user_id)
     available_languages = get_available_languages()
 
@@ -46,13 +78,11 @@ def index():
         available_languages=available_languages
     )
 
-
 @language_bp.route('/profile/new', methods=['GET', 'POST'])
-@login_required
 def new_profile():
     """Create a new language learning profile"""
     if request.method == 'POST':
-        user_id = current_user.id
+        user_id = session.get('user', {}).get('id', 'demo_user')
         learning_language = request.form.get('learning_language', '')
         if not learning_language:
             flash('Learning language is required', 'error')
@@ -86,14 +116,18 @@ def new_profile():
         available_languages=available_languages
     )
 
-
 @language_bp.route('/profile/<int:profile_id>')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def profile(profile_id):
     """View a language learning profile"""
     profile_info = language_service.get_language_profile_details(profile_id)
 
-    if not profile_info or profile_info['profile'].user_id != current_user.id:
+    if not profile_info or profile_info['profile'].user_id != session.get('user', {}).get('id', 'demo_user'):
         flash('Language profile not found or access denied.', 'error')
         return redirect(url_for('language.index'))
 
@@ -102,14 +136,18 @@ def profile(profile_id):
         profile=profile_info
     )
 
-
 @language_bp.route('/vocabulary/<int:profile_id>')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def vocabulary(profile_id):
     """Vocabulary management for a language profile"""
     profile_info = language_service.get_language_profile_details(profile_id)
 
-    if not profile_info or profile_info['profile'].user_id != current_user.id:
+    if not profile_info or profile_info['profile'].user_id != session.get('user', {}).get('id', 'demo_user'):
         flash('Language profile not found or access denied.', 'error')
         return redirect(url_for('language.index'))
 
@@ -121,14 +159,18 @@ def vocabulary(profile_id):
         vocabulary_items=vocabulary_items
     )
 
-
 @language_bp.route('/vocabulary/add/<int:profile_id>', methods=['GET', 'POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def add_vocabulary(profile_id):
     """Add vocabulary to a language profile"""
     profile_info = language_service.get_language_profile_details(profile_id)
 
-    if not profile_info or profile_info['profile'].user_id != current_user.id:
+    if not profile_info or profile_info['profile'].user_id != session.get('user', {}).get('id', 'demo_user'):
         flash('Language profile not found or access denied.', 'error')
         return redirect(url_for('language.index'))
 
@@ -167,14 +209,18 @@ def add_vocabulary(profile_id):
         profile=profile_info
     )
 
-
 @language_bp.route('/practice/<int:profile_id>')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def practice_dashboard(profile_id):
     """Practice dashboard for a language profile"""
     profile_info = language_service.get_language_profile_details(profile_id)
 
-    if not profile_info or profile_info['profile'].user_id != current_user.id:
+    if not profile_info or profile_info['profile'].user_id != session.get('user', {}).get('id', 'demo_user'):
         flash('Language profile not found or access denied.', 'error')
         return redirect(url_for('language.index'))
 
@@ -194,14 +240,18 @@ def practice_dashboard(profile_id):
         conversation_templates=conversation_templates
     )
 
-
 @language_bp.route('/practice/vocabulary/<int:profile_id>')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def practice_vocabulary(profile_id):
     """Vocabulary practice for a language profile"""
     profile_info = language_service.get_language_profile_details(profile_id)
 
-    if not profile_info or profile_info['profile'].user_id != current_user.id:
+    if not profile_info or profile_info['profile'].user_id != session.get('user', {}).get('id', 'demo_user'):
         flash('Language profile not found or access denied.', 'error')
         return redirect(url_for('language.index'))
 
@@ -231,14 +281,18 @@ def practice_vocabulary(profile_id):
         review_items=review_items
     )
 
-
 @language_bp.route('/practice/conversation/<int:profile_id>/<int:template_id>')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def practice_conversation(profile_id, template_id):
     """Conversation practice for a language profile"""
     profile_info = language_service.get_language_profile_details(profile_id)
 
-    if not profile_info or profile_info['profile'].user_id != current_user.id:
+    if not profile_info or profile_info['profile'].user_id != session.get('user', {}).get('id', 'demo_user'):
         flash('Language profile not found or access denied.', 'error')
         return redirect(url_for('language.index'))
 
@@ -273,9 +327,13 @@ def practice_conversation(profile_id, template_id):
         prompts=template_data['prompts']
     )
 
-
 @language_bp.route('/api/complete-session', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def complete_session():
     """API endpoint to complete a learning session"""
     data = request.get_json()
@@ -304,9 +362,13 @@ def complete_session():
     else:
         return jsonify({'success': False, 'error': 'Failed to complete session'})
 
-
 @language_bp.route('/api/update-vocabulary', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def update_vocabulary():
     """API endpoint to update vocabulary after review"""
     data = request.get_json()
@@ -324,9 +386,13 @@ def update_vocabulary():
     else:
         return jsonify({'success': False, 'error': 'Failed to update vocabulary'})
 
-
 @language_bp.route('/api/translate', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def translate():
     """API endpoint for text translation"""
     data = request.get_json()
@@ -342,9 +408,13 @@ def translate():
 
     return jsonify(result)
 
-
 @language_bp.route('/api/pronounce', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def pronounce():
     """API endpoint to get pronunciation audio"""
     data = request.get_json()
@@ -358,7 +428,6 @@ def pronounce():
     result = language_service.get_pronunciation_audio(text, language)
 
     return jsonify(result)
-
 
 # Add to the app factory
 def register_language_learning_routes(app):

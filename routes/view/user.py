@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 User routes and views.
 Handles user-specific functionality like user guide and profile management.
 
@@ -7,7 +42,7 @@ Handles user-specific functionality like user guide and profile management.
 """
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
-from flask_login import login_required, current_user
+
 import logging
 from models import db, User
 
@@ -15,18 +50,34 @@ from models import db, User
 user_bp = Blueprint('user', __name__, url_prefix='/user')
 
 @user_bp.route('/guide')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def user_guide():
     """Display user guide page"""
     return render_template('user_guide.html')
 
 @user_bp.route('/profile')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def profile():
     """Display user profile page"""
-    return render_template('profile.html', user=current_user)
+    return render_template('profile.html', user=session.get('user'))
 
 @user_bp.route('/profile', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def update_profile():
     """Update user profile information"""
     try:
@@ -40,8 +91,8 @@ def update_profile():
             return redirect(url_for('user.profile'))
 
         # Update user data
-        current_user.first_name = first_name
-        current_user.last_name = last_name
+        session.get('user', {}).get('first_name = first_name
+        session.get('user', {}).get('last_name = last_name
 
         # Save to database
         db.session.commit()
@@ -54,7 +105,12 @@ def update_profile():
         return redirect(url_for('user.profile'))
 
 @user_bp.route('/api/notifications')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def get_notifications():
     """API endpoint to get user notifications"""
     # This is a placeholder for actual notification functionality

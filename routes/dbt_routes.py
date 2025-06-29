@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Dialectical Behavior Therapy routes
 All routes are prefixed with /dbt
 """
@@ -8,7 +43,6 @@ import json
 import datetime
 from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, session, current_app, abort, Response
-from flask_login import login_required, current_user
 
 # Import database from app to avoid circular imports
 from app import db
@@ -35,13 +69,18 @@ from utils.dbt_helper import (
 # Create blueprint
 dbt_bp = Blueprint('dbt', __name__, url_prefix='/dbt')
 
-# Helper to get user_id from current_user
+# Helper to get user_id from session.get('user')
 def get_user_id():
-    return str(current_user.id) if current_user.is_authenticated else None
+    return str(session.get('user', {}).get('id', 'demo_user')) if ('user' in session and session['user']) else None
 
 # Main DBT dashboard
 @dbt_bp.route('/')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def dashboard():
     """Main DBT dashboard"""
     user_id = get_user_id()
@@ -66,7 +105,12 @@ def dashboard():
 
 # Skills routes
 @dbt_bp.route('/skills')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def skills():
     """DBT skills page"""
     user_id = get_user_id()
@@ -86,7 +130,12 @@ def skills():
                           recommendations=recommendations)
 
 @dbt_bp.route('/skills/log', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def log_skill():
     """Log a DBT skill usage"""
     user_id = get_user_id()
@@ -115,7 +164,12 @@ def log_skill():
     return redirect(url_for('dbt.skills'))
 
 @dbt_bp.route('/skills/recommend', methods=['GET', 'POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def recommend_skills():
     """Get skill recommendations"""
     user_id = get_user_id()
@@ -133,7 +187,12 @@ def recommend_skills():
 
 # Diary card routes
 @dbt_bp.route('/diary', methods=['GET', 'POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def diary():
     """DBT diary card page"""
     user_id = get_user_id()
@@ -167,7 +226,12 @@ def diary():
 
 # Challenge routes
 @dbt_bp.route('/challenges')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def challenges():
     """DBT skill challenges page"""
     user_id = get_user_id()
@@ -187,7 +251,12 @@ def challenges():
                           current_category=category)
 
 @dbt_bp.route('/challenges/create', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def create_new_challenge():
     """Create a new skill challenge"""
     user_id = get_user_id()
@@ -213,7 +282,12 @@ def create_new_challenge():
     return redirect(url_for('dbt.challenges'))
 
 @dbt_bp.route('/challenges/update/<challenge_id>', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def update_challenge(challenge_id):
     """Update a challenge's progress"""
     user_id = get_user_id()
@@ -237,7 +311,12 @@ def update_challenge(challenge_id):
     return redirect(url_for('dbt.challenges'))
 
 @dbt_bp.route('/challenges/complete/<challenge_id>', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def complete_challenge(challenge_id):
     """Mark a challenge as completed"""
     user_id = get_user_id()
@@ -252,7 +331,12 @@ def complete_challenge(challenge_id):
     return redirect(url_for('dbt.challenges'))
 
 @dbt_bp.route('/challenges/reset/<challenge_id>', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def reset_challenge_progress(challenge_id):
     """Reset a challenge to start again"""
     user_id = get_user_id()
@@ -267,7 +351,12 @@ def reset_challenge_progress(challenge_id):
     return redirect(url_for('dbt.challenges'))
 
 @dbt_bp.route('/challenges/generate', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def generate_challenge():
     """Generate a personalized challenge"""
     user_id = get_user_id()
@@ -285,7 +374,12 @@ def generate_challenge():
 
 # DBT chatbot API routes
 @dbt_bp.route('/api/skills-on-demand', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_skills_on_demand():
     """API endpoint for skill suggestions"""
     data = request.get_json()
@@ -298,7 +392,12 @@ def api_skills_on_demand():
     return jsonify(result)
 
 @dbt_bp.route('/api/generate-diary-card', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_generate_diary_card():
     """API endpoint to generate a diary card"""
     data = request.get_json()
@@ -311,7 +410,12 @@ def api_generate_diary_card():
     return jsonify(result)
 
 @dbt_bp.route('/api/validate', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_validate():
     """API endpoint for validation"""
     data = request.get_json()
@@ -324,7 +428,12 @@ def api_validate():
     return jsonify(result)
 
 @dbt_bp.route('/api/distress', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_distress():
     """API endpoint for distress tolerance"""
     data = request.get_json()
@@ -337,7 +446,12 @@ def api_distress():
     return jsonify(result)
 
 @dbt_bp.route('/api/chain-analysis', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_chain_analysis():
     """API endpoint for chain analysis"""
     data = request.get_json()
@@ -350,7 +464,12 @@ def api_chain_analysis():
     return jsonify(result)
 
 @dbt_bp.route('/api/wise-mind', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_wise_mind():
     """API endpoint for wise mind"""
     data = request.get_json()
@@ -363,7 +482,12 @@ def api_wise_mind():
     return jsonify(result)
 
 @dbt_bp.route('/api/radical-acceptance', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_radical_acceptance():
     """API endpoint for radical acceptance"""
     data = request.get_json()
@@ -376,7 +500,12 @@ def api_radical_acceptance():
     return jsonify(result)
 
 @dbt_bp.route('/api/interpersonal', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_interpersonal():
     """API endpoint for interpersonal effectiveness"""
     data = request.get_json()
@@ -389,7 +518,12 @@ def api_interpersonal():
     return jsonify(result)
 
 @dbt_bp.route('/api/dialectic', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_dialectic():
     """API endpoint for dialectical thinking"""
     data = request.get_json()
@@ -402,7 +536,12 @@ def api_dialectic():
     return jsonify(result)
 
 @dbt_bp.route('/api/trigger-map', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_trigger_map():
     """API endpoint for trigger mapping"""
     data = request.get_json()
@@ -415,7 +554,12 @@ def api_trigger_map():
     return jsonify(result)
 
 @dbt_bp.route('/api/skill-of-day')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_skill_of_day():
     """API endpoint for skill of the day"""
     result = skill_of_the_day()
@@ -423,7 +567,12 @@ def api_skill_of_day():
     return jsonify(result)
 
 @dbt_bp.route('/api/edit-message', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_edit_message():
     """API endpoint to edit a message with DBT skills"""
     data = request.get_json()
@@ -436,7 +585,12 @@ def api_edit_message():
     return jsonify(result)
 
 @dbt_bp.route('/api/advise', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_advise():
     """API endpoint for DBT advice"""
     data = request.get_json()

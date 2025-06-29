@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Onboarding Routes - User Onboarding and Setup Experience
 Guided setup, preferences collection, feature introduction, and account configuration
 """
@@ -159,7 +194,6 @@ GOAL_CATEGORIES = [
     }
 ]
 
-
 @onboarding_bp.route('/')
 def onboarding_start():
     """Start the onboarding process"""
@@ -183,7 +217,6 @@ def onboarding_start():
     except Exception as e:
         logger.error(f"Error starting onboarding: {str(e)}")
         return render_template('error.html', error="Failed to start onboarding"), 500
-
 
 @onboarding_bp.route('/step/<int:step_index>')
 def onboarding_step(step_index):
@@ -225,7 +258,6 @@ def onboarding_step(step_index):
     except Exception as e:
         logger.error(f"Error displaying onboarding step: {str(e)}")
         return render_template('error.html', error="Failed to load onboarding step"), 500
-
 
 @onboarding_bp.route('/api/step/<int:step_index>', methods=['POST'])
 def save_onboarding_step(step_index):
@@ -291,7 +323,6 @@ def save_onboarding_step(step_index):
         logger.error(f"Error saving onboarding step: {str(e)}")
         return jsonify({'error': 'Failed to save step data'}), 500
 
-
 @onboarding_bp.route('/api/skip-step/<int:step_index>', methods=['POST'])
 def skip_onboarding_step(step_index):
     """Skip an optional onboarding step"""
@@ -337,7 +368,6 @@ def skip_onboarding_step(step_index):
         logger.error(f"Error skipping onboarding step: {str(e)}")
         return jsonify({'error': 'Failed to skip step'}), 500
 
-
 @onboarding_bp.route('/api/progress')
 def get_onboarding_progress():
     """Get current onboarding progress"""
@@ -367,7 +397,6 @@ def get_onboarding_progress():
     except Exception as e:
         logger.error(f"Error getting onboarding progress: {str(e)}")
         return jsonify({'error': 'Failed to get progress'}), 500
-
 
 @onboarding_bp.route('/api/complete', methods=['POST'])
 def complete_onboarding():
@@ -425,7 +454,6 @@ def complete_onboarding():
         logger.error(f"Error completing onboarding: {str(e)}")
         return jsonify({'error': 'Failed to complete onboarding'}), 500
 
-
 @onboarding_bp.route('/api/restart', methods=['POST'])
 def restart_onboarding():
     """Restart the onboarding process"""
@@ -449,12 +477,16 @@ def restart_onboarding():
         logger.error(f"Error restarting onboarding: {str(e)}")
         return jsonify({'error': 'Failed to restart onboarding'}), 500
 
-
 @onboarding_bp.route('/welcome')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def welcome_page():
     """Welcome page for new users"""
     return render_template('onboarding/welcome_standalone.html', steps=ONBOARDING_STEPS)
-
 
 @onboarding_bp.route('/checklist')
 def onboarding_checklist():
@@ -479,17 +511,14 @@ def onboarding_checklist():
                          step_status=step_status,
                          total_steps=len(ONBOARDING_STEPS))
 
-
 # Error handlers
 @onboarding_bp.errorhandler(404)
 def onboarding_not_found(error):
     return render_template('onboarding/404.html'), 404
 
-
 @onboarding_bp.errorhandler(500)
 def onboarding_server_error(error):
     return render_template('onboarding/500.html'), 500
-
 
 # Utility functions
 def get_onboarding_statistics():
@@ -504,7 +533,6 @@ def get_onboarding_statistics():
         'most_skipped_step': 'integrations',
         'drop_off_points': ['preferences', 'goals_setup']
     }
-
 
 def generate_onboarding_insights():
     """Generate insights about the onboarding process"""
@@ -525,7 +553,6 @@ def generate_onboarding_insights():
             'action': 'Complete all steps for the best experience'
         }
     ]
-
 
 def validate_onboarding_data(step_id, data):
     """Validate onboarding step data"""

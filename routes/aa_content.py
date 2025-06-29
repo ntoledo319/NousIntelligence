@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Alcoholics Anonymous Content Routes
 
 This module provides routes for accessing AA content such as
@@ -8,7 +43,7 @@ the Big Book text, audio versions, and speaker recordings.
 import os
 import logging
 from flask import Blueprint, render_template, request, jsonify, send_file, abort, current_app
-from flask_login import login_required, current_user
+
 from models.health_models import AABigBook, AASpeakerRecording, AAFavorite, db
 from models.aa_content_models import AABigBookAudio
 from utils.aa_content_loader import load_aa_content
@@ -20,11 +55,23 @@ aa_content = Blueprint('aa_content', __name__, url_prefix='/aa')
 logger = logging.getLogger(__name__)
 
 @aa_content.route('/')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def index():
     """AA content main page"""
     return render_template('aa/index.html')
 
 @aa_content.route('/big-book')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def big_book():
     """AA Big Book reader"""
     # Get all chapters
@@ -64,6 +111,12 @@ def big_book():
     )
 
 @aa_content.route('/big-book/<int:chapter_id>')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def big_book_chapter(chapter_id):
     """Get a specific Big Book chapter"""
     chapter = AABigBook.query.get_or_404(chapter_id)
@@ -75,6 +128,12 @@ def big_book_chapter(chapter_id):
     )
 
 @aa_content.route('/big-book/audio/<int:audio_id>')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def big_book_audio(audio_id):
     """Stream Big Book audio file"""
     audio = AABigBookAudio.query.get_or_404(audio_id)
@@ -87,6 +146,12 @@ def big_book_audio(audio_id):
     return send_file(file_path)
 
 @aa_content.route('/speakers')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def speakers():
     """AA speaker recordings list"""
     # Get all recordings
@@ -109,6 +174,12 @@ def speakers():
     return render_template('aa/speakers.html', recordings=recordings)
 
 @aa_content.route('/speakers/<int:recording_id>')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def speaker_detail(recording_id):
     """Detail view for a specific speaker recording"""
     recording = AASpeakerRecording.query.get_or_404(recording_id)
@@ -116,6 +187,12 @@ def speaker_detail(recording_id):
     return render_template('aa/speaker_detail.html', recording=recording)
 
 @aa_content.route('/speakers/audio/<int:recording_id>')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def speaker_audio(recording_id):
     """Stream speaker recording audio file"""
     recording = AASpeakerRecording.query.get_or_404(recording_id)
@@ -128,10 +205,9 @@ def speaker_audio(recording_id):
     return send_file(file_path)
 
 @aa_content.route('/favorites', methods=['GET'])
-@login_required
 def favorites():
     """User's favorite AA content"""
-    user_favorites = AAFavorite.query.filter_by(user_id=current_user.id).all()
+    user_favorites = AAFavorite.query.filter_by(user_id=session.get('user', {}).get('id', 'demo_user')).all()
 
     # Collect the actual content for each favorite
     favorite_content = []
@@ -162,7 +238,12 @@ def favorites():
     return render_template('aa/favorites.html', favorites=favorite_content)
 
 @aa_content.route('/favorites/add', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def add_favorite():
     """Add an item to favorites"""
     content_type = request.form.get('content_type')
@@ -174,7 +255,7 @@ def add_favorite():
 
     # Check if favorite already exists
     existing = AAFavorite.query.filter_by(
-        user_id=current_user.id,
+        user_id=session.get('user', {}).get('id', 'demo_user'),
         content_type=content_type,
         content_id=content_id
     ).first()
@@ -188,7 +269,7 @@ def add_favorite():
 
     # Create new favorite
     favorite = AAFavorite(
-        user_id=current_user.id,
+        user_id=session.get('user', {}).get('id', 'demo_user'),
         content_type=content_type,
         content_id=content_id,
         notes=notes
@@ -200,12 +281,11 @@ def add_favorite():
     return jsonify({'success': True, 'message': 'Added to favorites'})
 
 @aa_content.route('/favorites/remove/<int:favorite_id>', methods=['POST'])
-@login_required
 def remove_favorite(favorite_id):
     """Remove an item from favorites"""
     favorite = AAFavorite.query.filter_by(
         id=favorite_id,
-        user_id=current_user.id
+        user_id=session.get('user', {}).get('id', 'demo_user')
     ).first_or_404()
 
     db.session.delete(favorite)
@@ -214,6 +294,12 @@ def remove_favorite(favorite_id):
     return jsonify({'success': True, 'message': 'Removed from favorites'})
 
 @aa_content.route('/search', methods=['GET', 'POST'])
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def search():
     """Search AA content"""
     query = request.args.get('q', '') or request.form.get('q', '')

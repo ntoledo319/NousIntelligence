@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Financial Routes - Comprehensive Financial Management
 Banking integration, transaction tracking, budgeting, and investment monitoring
 """
@@ -102,7 +137,6 @@ SAMPLE_BUDGETS = [
     }
 ]
 
-
 @financial_bp.route('/')
 def financial_dashboard():
     """Main financial dashboard"""
@@ -142,7 +176,6 @@ def financial_dashboard():
         logger.error(f"Error loading financial dashboard: {str(e)}")
         return render_template('error.html', error="Failed to load financial dashboard"), 500
 
-
 @financial_bp.route('/api/accounts')
 def get_accounts():
     """Get user's financial accounts"""
@@ -161,7 +194,6 @@ def get_accounts():
     except Exception as e:
         logger.error(f"Error getting accounts: {str(e)}")
         return jsonify({'error': 'Failed to retrieve accounts'}), 500
-
 
 @financial_bp.route('/api/transactions')
 def get_transactions():
@@ -198,7 +230,6 @@ def get_transactions():
         logger.error(f"Error getting transactions: {str(e)}")
         return jsonify({'error': 'Failed to retrieve transactions'}), 500
 
-
 @financial_bp.route('/api/budgets')
 def get_budgets():
     """Get budget information"""
@@ -217,7 +248,6 @@ def get_budgets():
     except Exception as e:
         logger.error(f"Error getting budgets: {str(e)}")
         return jsonify({'error': 'Failed to retrieve budgets'}), 500
-
 
 @financial_bp.route('/api/budgets/<budget_id>', methods=['PUT'])
 def update_budget(budget_id):
@@ -249,7 +279,6 @@ def update_budget(budget_id):
     except Exception as e:
         logger.error(f"Error updating budget: {str(e)}")
         return jsonify({'error': 'Failed to update budget'}), 500
-
 
 @financial_bp.route('/api/spending-analysis')
 def spending_analysis():
@@ -291,7 +320,6 @@ def spending_analysis():
     except Exception as e:
         logger.error(f"Error in spending analysis: {str(e)}")
         return jsonify({'error': 'Failed to analyze spending'}), 500
-
 
 @financial_bp.route('/api/investment-summary')
 def investment_summary():
@@ -350,7 +378,6 @@ def investment_summary():
         logger.error(f"Error getting investment summary: {str(e)}")
         return jsonify({'error': 'Failed to retrieve investment data'}), 500
 
-
 @financial_bp.route('/api/financial-goals')
 def get_financial_goals():
     """Get user's financial goals"""
@@ -402,7 +429,6 @@ def get_financial_goals():
         logger.error(f"Error getting financial goals: {str(e)}")
         return jsonify({'error': 'Failed to retrieve financial goals'}), 500
 
-
 @financial_bp.route('/api/financial-goals', methods=['POST'])
 def create_financial_goal():
     """Create a new financial goal"""
@@ -444,53 +470,80 @@ def create_financial_goal():
         logger.error(f"Error creating financial goal: {str(e)}")
         return jsonify({'error': 'Failed to create financial goal'}), 500
 
-
 @financial_bp.route('/accounts')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def accounts_page():
     """Accounts management page"""
     return render_template('financial/accounts.html', accounts=SAMPLE_ACCOUNTS)
 
-
 @financial_bp.route('/transactions')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def transactions_page():
     """Transactions history page"""
     return render_template('financial/transactions.html', transactions=SAMPLE_TRANSACTIONS)
 
-
 @financial_bp.route('/budgets')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def budgets_page():
     """Budget management page"""
     return render_template('financial/budgets.html', budgets=SAMPLE_BUDGETS)
 
-
 @financial_bp.route('/investments')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def investments_page():
     """Investment portfolio page"""
     return render_template('financial/investments.html')
 
-
 @financial_bp.route('/goals')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def goals_page():
     """Financial goals page"""
     return render_template('financial/goals.html')
 
-
 @financial_bp.route('/reports')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def reports_page():
     """Financial reports and analytics page"""
     return render_template('financial/reports.html')
-
 
 # Error handlers
 @financial_bp.errorhandler(404)
 def financial_not_found(error):
     return render_template('financial/404.html'), 404
 
-
 @financial_bp.errorhandler(500)
 def financial_server_error(error):
     return render_template('financial/500.html'), 500
-
 
 # Utility functions
 def calculate_budget_progress():
@@ -505,7 +558,6 @@ def calculate_budget_progress():
             }
     return progress
 
-
 def get_spending_trends():
     """Get spending trends over time"""
     # This would normally query transaction history from database
@@ -515,7 +567,6 @@ def get_spending_trends():
         'categories': ['Food', 'Transport', 'Entertainment', 'Utilities', 'Shopping'],
         'trend': 'increasing'
     }
-
 
 def generate_financial_insights():
     """Generate AI-powered financial insights"""

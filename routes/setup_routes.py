@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Setup Wizard Routes
 
 Complete setup wizard for new users after first login.
@@ -97,11 +132,9 @@ WELLNESS_GOALS = [
     {'value': 'gratitude', 'label': 'Gratitude Practice', 'icon': '🙏'}
 ]
 
-
 # ===== MAIN SETUP ROUTES =====
 
 @setup_bp.route('/')
-@login_required
 def index():
     """Setup wizard entry point - redirect to appropriate step"""
     user_id = get_user_id()
@@ -117,9 +150,13 @@ def index():
     # Redirect to current step
     return redirect(url_for(f'setup.{next_step}'))
 
-
 @setup_bp.route('/welcome')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def welcome():
     """Welcome step - introduction to setup wizard"""
     user_id = get_user_id()
@@ -127,22 +164,24 @@ def welcome():
     
     return render_template('setup/welcome.html', 
                          progress=progress,
-                         user=current_user)
-
+                         user=session.get('user'))
 
 @setup_bp.route('/welcome/save', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def welcome_save():
     """Save welcome step and proceed"""
     user_id = get_user_id()
     setup_service.update_setup_step(user_id, 'welcome')
     return redirect(url_for('setup.languages'))
 
-
 # ===== LANGUAGES STEP =====
 
 @setup_bp.route('/languages')
-@login_required
 def languages():
     """Language preferences step"""
     user_id = get_user_id()
@@ -155,9 +194,7 @@ def languages():
                          languages=LANGUAGE_OPTIONS,
                          preferences=preferences)
 
-
 @setup_bp.route('/languages/save', methods=['POST'])
-@login_required
 def languages_save():
     """Save language preferences"""
     user_id = get_user_id()
@@ -171,11 +208,9 @@ def languages_save():
     setup_service.update_setup_step(user_id, 'languages', data)
     return redirect(url_for('setup.neurodivergent'))
 
-
 # ===== NEURODIVERGENT STEP =====
 
 @setup_bp.route('/neurodivergent')
-@login_required
 def neurodivergent():
     """Neurodivergent support step"""
     user_id = get_user_id()
@@ -188,9 +223,7 @@ def neurodivergent():
                          conditions=NEURODIVERGENT_CONDITIONS,
                          preferences=preferences)
 
-
 @setup_bp.route('/neurodivergent/save', methods=['POST'])
-@login_required
 def neurodivergent_save():
     """Save neurodivergent preferences"""
     user_id = get_user_id()
@@ -211,11 +244,9 @@ def neurodivergent_save():
     setup_service.update_setup_step(user_id, 'neurodivergent', data)
     return redirect(url_for('setup.mental_health'))
 
-
 # ===== MENTAL HEALTH STEP =====
 
 @setup_bp.route('/mental-health')
-@login_required
 def mental_health():
     """Mental health goals step"""
     user_id = get_user_id()
@@ -228,9 +259,7 @@ def mental_health():
                          goals=MENTAL_HEALTH_GOALS,
                          preferences=preferences)
 
-
 @setup_bp.route('/mental-health/save', methods=['POST'])
-@login_required
 def mental_health_save():
     """Save mental health preferences"""
     user_id = get_user_id()
@@ -244,11 +273,9 @@ def mental_health_save():
     setup_service.update_setup_step(user_id, 'mental_health', data)
     return redirect(url_for('setup.ai_assistant'))
 
-
 # ===== AI ASSISTANT STEP =====
 
 @setup_bp.route('/ai-assistant')
-@login_required
 def ai_assistant():
     """AI assistant preferences step"""
     user_id = get_user_id()
@@ -260,9 +287,7 @@ def ai_assistant():
                          progress=progress,
                          preferences=preferences)
 
-
 @setup_bp.route('/ai-assistant/save', methods=['POST'])
-@login_required
 def ai_assistant_save():
     """Save AI assistant preferences"""
     user_id = get_user_id()
@@ -277,11 +302,9 @@ def ai_assistant_save():
     setup_service.update_setup_step(user_id, 'ai_assistant', data)
     return redirect(url_for('setup.health_wellness'))
 
-
 # ===== HEALTH & WELLNESS STEP =====
 
 @setup_bp.route('/health-wellness')
-@login_required
 def health_wellness():
     """Health and wellness step"""
     user_id = get_user_id()
@@ -295,9 +318,7 @@ def health_wellness():
                          wellness_goals=WELLNESS_GOALS,
                          preferences=preferences)
 
-
 @setup_bp.route('/health-wellness/save', methods=['POST'])
-@login_required
 def health_wellness_save():
     """Save health and wellness preferences"""
     user_id = get_user_id()
@@ -323,11 +344,9 @@ def health_wellness_save():
     setup_service.update_setup_step(user_id, 'health_wellness', data)
     return redirect(url_for('setup.theme_accessibility'))
 
-
 # ===== THEME & ACCESSIBILITY STEP =====
 
 @setup_bp.route('/theme-accessibility')
-@login_required
 def theme_accessibility():
     """Theme and accessibility step"""
     user_id = get_user_id()
@@ -339,9 +358,7 @@ def theme_accessibility():
                          progress=progress,
                          preferences=preferences)
 
-
 @setup_bp.route('/theme-accessibility/save', methods=['POST'])
-@login_required
 def theme_accessibility_save():
     """Save theme and accessibility preferences"""
     user_id = get_user_id()
@@ -369,11 +386,9 @@ def theme_accessibility_save():
     setup_service.update_setup_step(user_id, 'theme_accessibility', data)
     return redirect(url_for('setup.notifications_privacy'))
 
-
 # ===== NOTIFICATIONS & PRIVACY STEP =====
 
 @setup_bp.route('/notifications-privacy')
-@login_required
 def notifications_privacy():
     """Notifications and privacy step"""
     user_id = get_user_id()
@@ -385,9 +400,7 @@ def notifications_privacy():
                          progress=progress,
                          preferences=preferences)
 
-
 @setup_bp.route('/notifications-privacy/save', methods=['POST'])
-@login_required
 def notifications_privacy_save():
     """Save notifications and privacy preferences"""
     user_id = get_user_id()
@@ -410,11 +423,9 @@ def notifications_privacy_save():
     setup_service.update_setup_step(user_id, 'notifications_privacy', data)
     return redirect(url_for('setup.integrations'))
 
-
 # ===== INTEGRATIONS STEP =====
 
 @setup_bp.route('/integrations')
-@login_required
 def integrations():
     """Integrations step"""
     user_id = get_user_id()
@@ -426,9 +437,7 @@ def integrations():
                          progress=progress,
                          preferences=preferences)
 
-
 @setup_bp.route('/integrations/save', methods=['POST'])
-@login_required
 def integrations_save():
     """Save integration preferences"""
     user_id = get_user_id()
@@ -458,11 +467,9 @@ def integrations_save():
     setup_service.update_setup_step(user_id, 'integrations', data)
     return redirect(url_for('setup.emergency_safety'))
 
-
 # ===== EMERGENCY & SAFETY STEP =====
 
 @setup_bp.route('/emergency-safety')
-@login_required
 def emergency_safety():
     """Emergency and safety step"""
     user_id = get_user_id()
@@ -474,9 +481,7 @@ def emergency_safety():
                          progress=progress,
                          preferences=preferences)
 
-
 @setup_bp.route('/emergency-safety/save', methods=['POST'])
-@login_required
 def emergency_safety_save():
     """Save emergency and safety preferences"""
     user_id = get_user_id()
@@ -504,11 +509,9 @@ def emergency_safety_save():
     setup_service.update_setup_step(user_id, 'emergency_safety', data)
     return redirect(url_for('setup.features_guide'))
 
-
 # ===== FEATURES GUIDE STEP =====
 
 @setup_bp.route('/features-guide')
-@login_required
 def features_guide():
     """Features guide and FAQ step"""
     user_id = get_user_id()
@@ -520,20 +523,28 @@ def features_guide():
                          progress=progress,
                          preferences=preferences)
 
-
 @setup_bp.route('/features-guide/save', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def features_guide_save():
     """Complete features guide step"""
     user_id = get_user_id()
     setup_service.update_setup_step(user_id, 'features_guide')
     return redirect(url_for('setup.complete'))
 
-
 # ===== COMPLETION STEP =====
 
 @setup_bp.route('/complete')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def complete():
     """Setup completion step"""
     user_id = get_user_id()
@@ -548,20 +559,22 @@ def complete():
                          progress=progress,
                          setup_data=setup_data)
 
-
 # ===== API ENDPOINTS =====
 
 @setup_bp.route('/api/progress')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_progress():
     """Get setup progress via API"""
     user_id = get_user_id()
     progress = setup_service.get_step_progress(user_id)
     return jsonify(progress)
 
-
 @setup_bp.route('/api/skip-step', methods=['POST'])
-@login_required
 def api_skip_step():
     """Skip current step"""
     user_id = get_user_id()
@@ -573,9 +586,7 @@ def api_skip_step():
     
     return jsonify({'success': False, 'error': 'Invalid step'}), 400
 
-
 @setup_bp.route('/api/restart')
-@login_required
 def api_restart():
     """Restart setup wizard"""
     user_id = get_user_id()

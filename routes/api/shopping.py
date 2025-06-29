@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Shopping API routes.
 Handles shopping-related functionality such as shopping lists, products, etc.
 
@@ -7,7 +42,7 @@ Handles shopping-related functionality such as shopping lists, products, etc.
 """
 
 from flask import Blueprint, request, jsonify
-from flask_login import login_required, current_user
+
 import logging
 from models import db, ShoppingList, ShoppingItem, Product
 from utils.security_helper import rate_limit
@@ -27,11 +62,10 @@ def handle_exception(e):
 
 # Shopping List routes
 @shopping_bp.route('/lists', methods=['GET'])
-@login_required
 def get_shopping_lists():
     """Get all shopping lists for the current user"""
     try:
-        user_id = current_user.id
+        user_id = session.get('user', {}).get('id', 'demo_user')
         shopping_lists = ShoppingList.query.filter_by(user_id=user_id).all()
         return jsonify({
             'success': True,
@@ -45,11 +79,10 @@ def get_shopping_lists():
         }), 500
 
 @shopping_bp.route('/lists/<int:list_id>', methods=['GET'])
-@login_required
 def get_shopping_list(list_id):
     """Get a specific shopping list by ID"""
     try:
-        user_id = current_user.id
+        user_id = session.get('user', {}).get('id', 'demo_user')
         shopping_list = ShoppingList.query.filter_by(id=list_id, user_id=user_id).first()
 
         if not shopping_list:
@@ -70,7 +103,6 @@ def get_shopping_list(list_id):
         }), 500
 
 @shopping_bp.route('/lists', methods=['POST'])
-@login_required
 @rate_limit(max_requests=20, time_window=60)  # 20 requests per minute
 def create_shopping_list():
     """Create a new shopping list"""
@@ -99,7 +131,7 @@ def create_shopping_list():
             store=data.get('store', ''),
             is_recurring=data.get('is_recurring', False),
             frequency_days=data.get('frequency_days', 0),
-            user_id=current_user.id
+            user_id=session.get('user', {}).get('id', 'demo_user')
         )
 
         # Add next_order_date if provided
@@ -132,11 +164,10 @@ def create_shopping_list():
         }), 500
 
 @shopping_bp.route('/lists/<int:list_id>/items', methods=['GET'])
-@login_required
 def get_list_items(list_id):
     """Get all items in a shopping list"""
     try:
-        user_id = current_user.id
+        user_id = session.get('user', {}).get('id', 'demo_user')
         shopping_list = ShoppingList.query.filter_by(id=list_id, user_id=user_id).first()
 
         if not shopping_list:
@@ -160,12 +191,11 @@ def get_list_items(list_id):
         }), 500
 
 @shopping_bp.route('/lists/<int:list_id>/items', methods=['POST'])
-@login_required
 @rate_limit(max_requests=30, time_window=60)  # 30 requests per minute
 def add_list_item(list_id):
     """Add a new item to a shopping list"""
     try:
-        user_id = current_user.id
+        user_id = session.get('user', {}).get('id', 'demo_user')
         shopping_list = ShoppingList.query.filter_by(id=list_id, user_id=user_id).first()
 
         if not shopping_list:
@@ -220,14 +250,13 @@ def add_list_item(list_id):
         }), 500
 
 @shopping_bp.route('/items/<int:item_id>/check', methods=['PUT'])
-@login_required
 def toggle_item_checked(item_id):
     """Toggle item checked status"""
     try:
         # First verify that the item belongs to a list owned by the current user
         item = ShoppingItem.query.join(ShoppingList).filter(
             ShoppingItem.id == item_id,
-            ShoppingList.user_id == current_user.id
+            ShoppingList.user_id == session.get('user', {}).get('id', 'demo_user')
         ).first()
 
         if not item:
@@ -254,14 +283,13 @@ def toggle_item_checked(item_id):
         }), 500
 
 @shopping_bp.route('/items/<int:item_id>', methods=['DELETE'])
-@login_required
 def remove_list_item(item_id):
     """Remove an item from a shopping list"""
     try:
         # First verify that the item belongs to a list owned by the current user
         item = ShoppingItem.query.join(ShoppingList).filter(
             ShoppingItem.id == item_id,
-            ShoppingList.user_id == current_user.id
+            ShoppingList.user_id == session.get('user', {}).get('id', 'demo_user')
         ).first()
 
         if not item:
@@ -287,11 +315,10 @@ def remove_list_item(item_id):
 
 # Product routes
 @shopping_bp.route('/products', methods=['GET'])
-@login_required
 def get_products():
     """Get all products for the current user"""
     try:
-        user_id = current_user.id
+        user_id = session.get('user', {}).get('id', 'demo_user')
         products = Product.query.filter_by(user_id=user_id).all()
         return jsonify({
             'success': True,
@@ -305,11 +332,10 @@ def get_products():
         }), 500
 
 @shopping_bp.route('/products/<int:product_id>', methods=['GET'])
-@login_required
 def get_product(product_id):
     """Get a specific product by ID"""
     try:
-        user_id = current_user.id
+        user_id = session.get('user', {}).get('id', 'demo_user')
         product = Product.query.filter_by(id=product_id, user_id=user_id).first()
 
         if not product:
@@ -330,7 +356,6 @@ def get_product(product_id):
         }), 500
 
 @shopping_bp.route('/products', methods=['POST'])
-@login_required
 @rate_limit(max_requests=20, time_window=60)  # 20 requests per minute
 def add_product():
     """Add a new product"""
@@ -362,7 +387,7 @@ def add_product():
             source=data.get('source', ''),
             is_recurring=data.get('is_recurring', False),
             frequency_days=data.get('frequency_days', 0),
-            user_id=current_user.id
+            user_id=session.get('user', {}).get('id', 'demo_user')
         )
 
         # Set dates if provided

@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Standardized Authentication Routes
 
 This module implements authentication routes using standardized routing patterns.
@@ -17,6 +52,12 @@ logger = logging.getLogger(__name__)
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def login():
     """
     Handle user login
@@ -54,6 +95,12 @@ def login():
         return render_template('auth/login.html', title='Login'), 401
 
 @auth_bp.route('/logout')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def logout():
     """
     Handle user logout
@@ -67,6 +114,12 @@ def logout():
     return redirect(url_for('auth.login'))
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def register():
     """
     Handle user registration
@@ -98,6 +151,12 @@ def register():
         return render_template('auth/register.html', title='Register'), 400
 
 @auth_bp.route('/password/reset', methods=['GET', 'POST'])
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def password_reset_request():
     """
     Handle password reset request
@@ -127,6 +186,12 @@ def password_reset_request():
         return render_template('auth/password_reset_request.html', title='Reset Password'), 400
 
 @auth_bp.route('/password/reset/<token>', methods=['GET', 'POST'])
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def password_reset(token):
     """
     Handle password reset with token

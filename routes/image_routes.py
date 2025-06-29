@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Routes for image analysis features using Hugging Face's API
 """
 
@@ -35,6 +70,12 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @image_routes.route('/image/analyze', methods=['GET', 'POST'])
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def analyze_image():
     """Analyze an image using Hugging Face's API"""
     if request.method == 'GET':
@@ -100,6 +141,12 @@ def analyze_image():
                            filename=filename if filename else "unknown.jpg")
 
 @image_routes.route('/image/gallery')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def image_gallery():
     """Display the user's uploaded image gallery, organized by content."""
     user_id = session.get('user_id')
@@ -128,6 +175,12 @@ def image_gallery():
     return render_template('image_gallery.html', albums=albums, user_dir=f"user_{user_id}")
 
 @image_routes.route('/image/organize', methods=['POST'])
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def organize_images():
     """Organize multiple images by content using Hugging Face's API"""
     if 'images' not in request.files:

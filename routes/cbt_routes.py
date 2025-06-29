@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 CBT (Cognitive Behavioral Therapy) Routes
 Comprehensive CBT feature set for NOUS personal assistant
 All routes are prefixed with /cbt
@@ -8,7 +43,6 @@ import os
 import json
 from datetime import datetime, date, timedelta
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, session, current_app
-from flask_login import login_required, current_user
 
 # Import database
 from database import db
@@ -35,12 +69,11 @@ cbt_bp = Blueprint('cbt', __name__, url_prefix='/cbt')
 
 def get_user_id():
     """Get current user ID"""
-    return str(current_user.id) if current_user.is_authenticated else None
+    return str(session.get('user', {}).get('id', 'demo_user')) if ('user' in session and session['user']) else None
 
 # ===== MAIN CBT DASHBOARD =====
 
 @cbt_bp.route('/')
-@login_required
 def dashboard():
     """Main CBT dashboard"""
     try:
@@ -86,20 +119,35 @@ def dashboard():
 # ===== THOUGHT RECORDS =====
 
 @cbt_bp.route('/thought-records')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def thought_records():
     """Thought records management page"""
     thoughts = get_thought_records(session, limit=20)
     return render_template('cbt/thought_records.html', thoughts=thoughts)
 
 @cbt_bp.route('/thought-records/new')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def new_thought_record():
     """Create new thought record page"""
     return render_template('cbt/new_thought_record.html')
 
 @cbt_bp.route('/thought-records/<int:record_id>')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def view_thought_record(record_id):
     """View specific thought record"""
     user_id = get_user_id()
@@ -111,7 +159,6 @@ def view_thought_record(record_id):
     return render_template('cbt/view_thought_record.html', record=record.to_dict())
 
 @cbt_bp.route('/api/thought-records', methods=['POST'])
-@login_required
 def api_create_thought_record():
     """Create a new thought record"""
     data = request.get_json()
@@ -137,7 +184,12 @@ def api_create_thought_record():
         return jsonify(result), 400
 
 @cbt_bp.route('/api/thought-records/<int:record_id>', methods=['PUT'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_complete_thought_record(record_id):
     """Complete a thought record with cognitive restructuring"""
     data = request.get_json()
@@ -154,7 +206,12 @@ def api_complete_thought_record(record_id):
     return jsonify(result), 200 if result.get('success') else 400
 
 @cbt_bp.route('/api/thought-records/analysis')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_thought_pattern_analysis():
     """Get analysis of thought patterns"""
     result = analyze_thought_patterns(session)
@@ -163,14 +220,18 @@ def api_thought_pattern_analysis():
 # ===== MOOD TRACKING =====
 
 @cbt_bp.route('/mood-tracking')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def mood_tracking():
     """Mood tracking dashboard"""
     mood_trends = get_mood_trends(session, days=30)
     return render_template('cbt/mood_tracking.html', mood_trends=mood_trends)
 
 @cbt_bp.route('/api/mood', methods=['POST'])
-@login_required
 def api_log_mood():
     """Log a mood entry"""
     data = request.get_json()
@@ -191,7 +252,12 @@ def api_log_mood():
     return jsonify(result), 201 if result.get('success') else 400
 
 @cbt_bp.route('/api/mood/trends')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_mood_trends():
     """Get mood trends analysis"""
     days = request.args.get('days', 30, type=int)
@@ -201,7 +267,12 @@ def api_mood_trends():
 # ===== COPING SKILLS =====
 
 @cbt_bp.route('/coping-skills')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def coping_skills():
     """Coping skills library"""
     category = request.args.get('category')
@@ -214,7 +285,12 @@ def coping_skills():
                          selected_category=category)
 
 @cbt_bp.route('/coping-skills/<int:skill_id>')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def view_coping_skill(skill_id):
     """View specific coping skill"""
     user_id = get_user_id()
@@ -232,7 +308,6 @@ def view_coping_skill(skill_id):
     return render_template('cbt/view_coping_skill.html', skill=skill.to_dict())
 
 @cbt_bp.route('/api/coping-skills')
-@login_required
 def api_get_coping_skills():
     """Get coping skills"""
     category = request.args.get('category')
@@ -241,7 +316,6 @@ def api_get_coping_skills():
     return jsonify({"skills": skills})
 
 @cbt_bp.route('/api/coping-skills/recommend', methods=['POST'])
-@login_required
 def api_recommend_coping_skill():
     """Get coping skill recommendation"""
     data = request.get_json()
@@ -259,7 +333,12 @@ def api_recommend_coping_skill():
     return jsonify(result)
 
 @cbt_bp.route('/api/coping-skills/<int:skill_id>/use', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_log_skill_usage(skill_id):
     """Log usage of a coping skill"""
     data = request.get_json()
@@ -280,7 +359,12 @@ def api_log_skill_usage(skill_id):
 # ===== BEHAVIORAL EXPERIMENTS =====
 
 @cbt_bp.route('/behavior-experiments')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def behavior_experiments():
     """Behavioral experiments management"""
     user_id = get_user_id()
@@ -291,7 +375,6 @@ def behavior_experiments():
                          experiments=[exp.to_dict() for exp in experiments])
 
 @cbt_bp.route('/api/behavior-experiments', methods=['POST'])
-@login_required
 def api_create_behavior_experiment():
     """Create a new behavioral experiment"""
     data = request.get_json()
@@ -311,7 +394,6 @@ def api_create_behavior_experiment():
     return jsonify(result), 201 if result.get('success') else 400
 
 @cbt_bp.route('/api/behavior-experiments/<int:experiment_id>/complete', methods=['PUT'])
-@login_required
 def api_complete_behavior_experiment(experiment_id):
     """Complete a behavioral experiment"""
     data = request.get_json()
@@ -331,7 +413,12 @@ def api_complete_behavior_experiment(experiment_id):
 # ===== ACTIVITY SCHEDULING =====
 
 @cbt_bp.route('/activity-scheduling')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def activity_scheduling():
     """Activity scheduling dashboard"""
     user_id = get_user_id()
@@ -352,7 +439,6 @@ def activity_scheduling():
                          recent_completed=[act.to_dict() for act in recent_completed])
 
 @cbt_bp.route('/api/activities', methods=['POST'])
-@login_required
 def api_schedule_activity():
     """Schedule a new activity"""
     data = request.get_json()
@@ -374,7 +460,12 @@ def api_schedule_activity():
     return jsonify(result), 201 if result.get('success') else 400
 
 @cbt_bp.route('/api/activities/<int:activity_id>/complete', methods=['PUT'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_complete_activity(activity_id):
     """Mark an activity as completed"""
     data = request.get_json()
@@ -392,7 +483,12 @@ def api_complete_activity(activity_id):
 # ===== COGNITIVE BIASES =====
 
 @cbt_bp.route('/cognitive-biases')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def cognitive_biases():
     """Cognitive biases tracking"""
     user_id = get_user_id()
@@ -404,7 +500,6 @@ def cognitive_biases():
                          all_biases=COGNITIVE_BIASES)
 
 @cbt_bp.route('/api/cognitive-biases/identify', methods=['POST'])
-@login_required
 def api_identify_cognitive_bias():
     """Identify cognitive biases in text"""
     data = request.get_json()
@@ -421,7 +516,6 @@ def api_identify_cognitive_bias():
     })
 
 @cbt_bp.route('/api/cognitive-biases/log', methods=['POST'])
-@login_required
 def api_log_cognitive_bias():
     """Log a cognitive bias occurrence"""
     data = request.get_json()
@@ -436,7 +530,12 @@ def api_log_cognitive_bias():
 # ===== GOALS =====
 
 @cbt_bp.route('/goals')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def goals():
     """CBT goals management"""
     user_id = get_user_id()
@@ -450,7 +549,6 @@ def goals():
                          completed_goals=[goal.to_dict() for goal in completed_goals])
 
 @cbt_bp.route('/api/goals', methods=['POST'])
-@login_required
 def api_create_goal():
     """Create a new CBT goal"""
     data = request.get_json()
@@ -490,13 +588,17 @@ def api_create_goal():
 # ===== AI ASSISTANT =====
 
 @cbt_bp.route('/ai-assistant')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def ai_assistant():
     """CBT AI assistant interface"""
     return render_template('cbt/ai_assistant.html')
 
 @cbt_bp.route('/api/ai-assistant', methods=['POST'])
-@login_required
 def api_cbt_ai_assistant():
     """Get AI-powered CBT assistance"""
     data = request.get_json()
@@ -514,7 +616,6 @@ def api_cbt_ai_assistant():
 # ===== QUICK ACTIONS =====
 
 @cbt_bp.route('/api/quick-check-in', methods=['POST'])
-@login_required
 def api_quick_check_in():
     """Quick mood and coping check-in"""
     data = request.get_json()
@@ -555,7 +656,6 @@ def api_quick_check_in():
         return jsonify({"error": str(e), "success": False}), 400
 
 @cbt_bp.route('/api/emergency-coping', methods=['POST'])
-@login_required
 def api_emergency_coping():
     """Emergency coping skill recommendations"""
     data = request.get_json()

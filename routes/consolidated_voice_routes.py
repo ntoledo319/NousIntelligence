@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Consolidated Voice Routes - Zero Functionality Loss Optimization
 Consolidates voice_routes.py, voice_emotion_routes.py, voice_mindfulness_routes.py
 """
@@ -12,6 +47,12 @@ consolidated_voice_bp = Blueprint('consolidated_voice', __name__)
 
 # Voice Interface Routes (from voice_routes.py)
 @consolidated_voice_bp.route('/', methods=['GET'])
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def voice_interface():
     """Main voice interface page"""
     return render_template('voice_interface.html')
@@ -135,6 +176,12 @@ def complete_mindfulness_session():
     })
 
 @consolidated_voice_bp.route('/mindfulness/templates', methods=['GET'])
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def mindfulness_templates():
     """Get available mindfulness templates"""
     return render_template('voice_mindfulness/templates.html')
