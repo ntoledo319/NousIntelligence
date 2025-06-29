@@ -6,6 +6,15 @@ Zero barriers - supports all access patterns
 from flask import session, request, redirect, jsonify
 from functools import wraps
 
+# Export all functions for easy importing
+__all__ = [
+    'get_current_user', 'is_authenticated', 'login_required', 
+    'require_authentication', 'check_authentication', 'current_user',
+    'get_user_id', 'get_user_name', 'get_user_email', 'is_demo_mode',
+    'require_auth', 'authenticated', 'optional_auth', 'ensure_demo_access',
+    'get_demo_user', 'AlwaysAuthenticatedUser', 'UserMixin'
+]
+
 def get_current_user():
     """Get user - always returns a valid user object"""
     # Return session user if available
@@ -80,6 +89,3 @@ class UserMixin:
     
     def get_id(self):
         return str(getattr(self, 'id', 'demo_user'))
-
-# Export UserMixin for models that need it
-__all__.append('UserMixin')
