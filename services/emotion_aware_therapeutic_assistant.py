@@ -34,7 +34,7 @@ except ImportError as e:
 
 # Import AI service
 try:
-    from services.unified_ai_service import UnifiedAIService
+    from utils.unified_ai_service import UnifiedAIService
 except ImportError:
     # Fallback AI service
     class UnifiedAIService:

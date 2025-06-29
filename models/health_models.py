@@ -273,31 +273,6 @@ class AABigBook(db.Model):
                 cls.keywords.contains(query)
             )
         ).limit(limit).all()
-class AABigBookAudio(db.Model):
-    """AA Big Book audio content model"""
-    __tablename__ = 'aa_big_book_audio'
-
-    id = db.Column(db.Integer, primary_key=True)
-    book_section_id = db.Column(db.Integer, db.ForeignKey('aa_big_book.id'))
-    audio_url = db.Column(db.String(500))
-    duration_seconds = db.Column(db.Integer)
-    speaker = db.Column(db.String(100))
-    audio_quality = db.Column(db.String(50))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    # Relationships
-    section = db.relationship('AABigBook', backref=db.backref('audio_files', lazy=True))
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'book_section_id': self.book_section_id,
-            'audio_url': self.audio_url,
-            'duration_seconds': self.duration_seconds,
-            'speaker': self.speaker,
-            'audio_quality': self.audio_quality,
-            'created_at': self.created_at.isoformat() if self.created_at else None
-        }
 
 class AASpeakerRecording(db.Model):
     """AA Speaker recording model"""

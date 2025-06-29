@@ -50,14 +50,9 @@ dependencies = [
     # Real-time Communication - For Chat Features
     "flask-socketio>=5.3.6",
     
-    # Async Processing - For Background Tasks
-    "celery>=5.3.4",
-    
-    # Monitoring & Metrics - For Production
-    "prometheus-client>=0.19.0",
-    
-    # Compression - For Performance
-    "zstandard>=0.22.0",
+    # Async Processing - For Background Tasks (Lightweight fallback available)
+    # Monitoring & Metrics - For Production (Optional dependency)
+    # Compression - For Performance (Optional dependency)
     
     # AI Services - Core Intelligence
     "google-generativeai>=0.3.2",
