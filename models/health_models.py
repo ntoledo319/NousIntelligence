@@ -274,6 +274,36 @@ class AABigBook(db.Model):
             )
         ).limit(limit).all()
 
+class AABigBookAudio(db.Model):
+    """AA Big Book audio recordings"""
+    __tablename__ = 'aa_big_book_audio'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    chapter_id = db.Column(db.Integer, db.ForeignKey('aa_big_book.id'), nullable=False)
+    audio_url = db.Column(db.String(500), nullable=False)
+    narrator = db.Column(db.String(255))
+    duration_seconds = db.Column(db.Integer)
+    file_size_mb = db.Column(db.Float)
+    quality = db.Column(db.String(50), default='standard')  # standard, high, premium
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    chapter = db.relationship('AABigBook', backref=db.backref('audio_recordings', lazy=True))
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'chapter_id': self.chapter_id,
+            'audio_url': self.audio_url,
+            'narrator': self.narrator,
+            'duration_seconds': self.duration_seconds,
+            'file_size_mb': self.file_size_mb,
+            'quality': self.quality,
+            'is_active': self.is_active,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
 class AASpeakerRecording(db.Model):
     """AA Speaker recording model"""
     __tablename__ = 'aa_speaker_recordings'
