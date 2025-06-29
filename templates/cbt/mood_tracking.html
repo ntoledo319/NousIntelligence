@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mood Tracking - CBT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1><i class="fas fa-heart text-primary"></i> Mood Tracking</h1>
+                    <div>
+                        <button class="btn btn-primary" onclick="logNewMood()">
+                            <i class="fas fa-plus"></i> Log Mood
+                        </button>
+                        <a href="{{ url_for('cbt.dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to CBT Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mood Trends Summary -->
+        {% if mood_trends.success %}
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h4 class="text-primary">{{ mood_trends.total_entries }}</h4>
+                        <p class="mb-0">Total Entries</p>
+                        <small class="text-muted">{{ mood_trends.period }}</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h4 class="text-success">{{ mood_trends.average_intensity }}</h4>
+                        <p class="mb-0">Avg Intensity</p>
+                        <small class="text-muted">Out of 10</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h6>Most Common Emotion</h6>
+                        <h4 class="text-info">{{ mood_trends.most_common_emotion or 'N/A' }}</h4>
+                        {% if mood_trends.patterns %}
+                        <small class="text-muted">{{ mood_trends.patterns[0] }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Recent Mood Entries -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5>Recent Mood Entries</h5>
+                        <button class="btn btn-sm btn-outline-info" onclick="getMoodAnalysis()">
+                            <i class="fas fa-chart-line"></i> Get Analysis
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        {% if mood_trends.success and mood_trends.data %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Emotion</th>
+                                        <th>Intensity</th>
+                                        <th>Triggers</th>
+                                        <th>Coping Used</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for entry in mood_trends.data[:10] %}
+                                    <tr>
+                                        <td>{{ entry.get('date', 'N/A') }}</td>
+                                        <td>{{ entry.get('time_of_day', 'N/A')[:5] if entry.get('time_of_day') else 'N/A' }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if entry.get('primary_emotion') in ['happy', 'calm', 'excited'] else 'warning' if entry.get('primary_emotion') in ['neutral', 'tired'] else 'danger' }}">
+                                                {{ entry.get('primary_emotion', 'N/A').title() }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ 'danger' if entry.get('emotion_intensity', 0) >= 8 else 'warning' if entry.get('emotion_intensity', 0) >= 6 else 'success' }}">
+                                                {{ entry.get('emotion_intensity', 'N/A') }}/10
+                                            </span>
+                                        </td>
+                                        <td>{{ (entry.get('triggers', '') or 'None')[:30] }}...</td>
+                                        <td>{{ (entry.get('coping_strategy_used', '') or 'None')[:20] }}...</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewMoodDetails('{{ entry.get('id') }}')">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-heart fa-3x text-muted mb-3"></i>
+                            <h4>No mood entries yet</h4>
+                            <p class="text-muted">Start tracking your mood to identify patterns and triggers.</p>
+                            <button class="btn btn-primary" onclick="logNewMood()">
+                                <i class="fas fa-plus"></i> Log Your First Mood
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Log Mood Modal -->
+    <div class="modal fade" id="logMoodModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Log Current Mood</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="moodForm">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label>Primary Emotion</label>
+                                <select class="form-select" id="primaryEmotion" required>
+                                    <option value="">Select emotion...</option>
+                                    <option value="happy">Happy</option>
+                                    <option value="sad">Sad</option>
+                                    <option value="anxious">Anxious</option>
+                                    <option value="angry">Angry</option>
+                                    <option value="frustrated">Frustrated</option>
+                                    <option value="calm">Calm</option>
+                                    <option value="excited">Excited</option>
+                                    <option value="overwhelmed">Overwhelmed</option>
+                                    <option value="stressed">Stressed</option>
+                                    <option value="content">Content</option>
+                                    <option value="worried">Worried</option>
+                                    <option value="disappointed">Disappointed</option>
+                                    <option value="hopeful">Hopeful</option>
+                                    <option value="lonely">Lonely</option>
+                                    <option value="grateful">Grateful</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label>Intensity (1-10): <span id="intensityValue">5</span></label>
+                                <input type="range" class="form-range" id="emotionIntensity" min="1" max="10" value="5" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>What triggered this emotion? (optional)</label>
+                            <textarea class="form-control" id="triggers" rows="2" 
+                                placeholder="Describe what happened or what you were thinking about..."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Current thoughts (optional)</label>
+                            <textarea class="form-control" id="thoughts" rows="2" 
+                                placeholder="What's going through your mind right now?"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Physical symptoms (optional)</label>
+                            <textarea class="form-control" id="physicalSymptoms" rows="2" 
+                                placeholder="Any physical sensations (tension, fatigue, etc.)?"></textarea>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label>Coping strategy used (optional)</label>
+                                <input type="text" class="form-control" id="copingStrategy" 
+                                    placeholder="What did you do to cope?">
+                            </div>
+                            <div class="col-md-6">
+                                <label>How effective was it? (1-10)</label>
+                                <select class="form-select" id="effectivenessRating">
+                                    <option value="">Select...</option>
+                                    {% for i in range(1, 11) %}
+                                    <option value="{{ i }}">{{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Additional notes (optional)</label>
+                            <textarea class="form-control" id="notes" rows="2" 
+                                placeholder="Any other observations or context..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitMoodLog()">Log Mood</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Update intensity display
+        document.getElementById('emotionIntensity').addEventListener('input', function() {
+            document.getElementById('intensityValue').textContent = this.value;
+        });
+
+        function logNewMood() {
+            new bootstrap.Modal(document.getElementById('logMoodModal')).show();
+        }
+
+        async function submitMoodLog() {
+            const formData = {
+                primary_emotion: document.getElementById('primaryEmotion').value,
+                emotion_intensity: parseInt(document.getElementById('emotionIntensity').value),
+                triggers: document.getElementById('triggers').value,
+                thoughts: document.getElementById('thoughts').value,
+                coping_strategy_used: document.getElementById('copingStrategy').value,
+                effectiveness_rating: document.getElementById('effectivenessRating').value ? 
+                    parseInt(document.getElementById('effectivenessRating').value) : null
+            };
+
+            if (!formData.primary_emotion) {
+                alert('Please select your primary emotion.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/cbt/api/mood', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('logMoodModal')).hide();
+                    alert('Mood logged successfully!');
+                    location.reload();
+                } else {
+                    alert('Error logging mood: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error logging mood: ' + error.message);
+            }
+        }
+
+        async function getMoodAnalysis() {
+            try {
+                const response = await fetch('/cbt/api/mood/trends?days=30');
+                const result = await response.json();
+                
+                if (result.success) {
+                    let analysis = `Mood Analysis (Last 30 Days):\n\n`;
+                    analysis += `Total entries: ${result.total_entries}\n`;
+                    analysis += `Average intensity: ${result.average_intensity}/10\n`;
+                    analysis += `Most common emotion: ${result.most_common_emotion || 'N/A'}\n\n`;
+                    
+                    if (result.patterns && result.patterns.length > 0) {
+                        analysis += `Patterns identified:\n`;
+                        result.patterns.forEach(pattern => {
+                            analysis += `• ${pattern}\n`;
+                        });
+                    }
+                    
+                    alert(analysis);
+                } else {
+                    alert('Error getting mood analysis: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error getting mood analysis: ' + error.message);
+            }
+        }
+
+        function viewMoodDetails(entryId) {
+            // In a full implementation, this would show detailed view
+            alert('Detailed mood view coming soon!');
+        }
+    </script>
+</body>
+</html>

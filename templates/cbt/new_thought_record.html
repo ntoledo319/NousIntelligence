@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Thought Record - CBT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1><i class="fas fa-lightbulb text-primary"></i> New Thought Record</h1>
+                    <a href="{{ url_for('cbt.thought_records') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Thought Records
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Create Thought Record</h5>
+                        <small class="text-muted">
+                            Thought records help you identify and challenge negative automatic thoughts using CBT techniques.
+                        </small>
+                    </div>
+                    <div class="card-body">
+                        <form id="thoughtRecordForm">
+                            <!-- Step 1: Identify the situation -->
+                            <div class="mb-4">
+                                <h6 class="text-primary">Step 1: What happened?</h6>
+                                <label for="situation" class="form-label">
+                                    Describe the situation that triggered your thoughts
+                                </label>
+                                <textarea class="form-control" id="situation" rows="3" required
+                                    placeholder="Example: I got a critical email from my boss about my project..."></textarea>
+                            </div>
+
+                            <!-- Step 2: Identify the automatic thought -->
+                            <div class="mb-4">
+                                <h6 class="text-primary">Step 2: What went through your mind?</h6>
+                                <label for="automaticThought" class="form-label">
+                                    What automatic thought or image came to mind?
+                                </label>
+                                <textarea class="form-control" id="automaticThought" rows="3" required
+                                    placeholder="Example: I'm going to get fired. I'm terrible at my job..."></textarea>
+                            </div>
+
+                            <!-- Step 3: Identify emotions -->
+                            <div class="mb-4">
+                                <h6 class="text-primary">Step 3: How did you feel?</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label for="emotion" class="form-label">Primary emotion</label>
+                                        <select class="form-select" id="emotion">
+                                            <option value="">Select emotion...</option>
+                                            <option value="anxious">Anxious</option>
+                                            <option value="sad">Sad</option>
+                                            <option value="angry">Angry</option>
+                                            <option value="frustrated">Frustrated</option>
+                                            <option value="ashamed">Ashamed</option>
+                                            <option value="guilty">Guilty</option>
+                                            <option value="hopeless">Hopeless</option>
+                                            <option value="overwhelmed">Overwhelmed</option>
+                                            <option value="fearful">Fearful</option>
+                                            <option value="disappointed">Disappointed</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="emotionIntensity" class="form-label">
+                                            Intensity (1-10): <span id="intensityValue">5</span>
+                                        </label>
+                                        <input type="range" class="form-range" id="emotionIntensity" 
+                                               min="1" max="10" value="5">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Cognitive Bias Detection -->
+                            <div class="mb-4">
+                                <h6 class="text-primary">Step 4: Check for thinking patterns</h6>
+                                <button type="button" class="btn btn-outline-info" onclick="identifyBiases()">
+                                    <i class="fas fa-search"></i> Identify Cognitive Patterns
+                                </button>
+                                <div id="biasResults" class="mt-3"></div>
+                            </div>
+
+                            <!-- Challenge Section (initially hidden) -->
+                            <div id="challengeSection" style="display: none;">
+                                <hr>
+                                <h6 class="text-success">Step 5: Challenge the thought</h6>
+                                
+                                <div class="mb-3">
+                                    <label for="evidenceFor" class="form-label">
+                                        What evidence supports this thought?
+                                    </label>
+                                    <textarea class="form-control" id="evidenceFor" rows="2"
+                                        placeholder="List factual evidence that supports your automatic thought..."></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="evidenceAgainst" class="form-label">
+                                        What evidence contradicts this thought?
+                                    </label>
+                                    <textarea class="form-control" id="evidenceAgainst" rows="2"
+                                        placeholder="List evidence that contradicts your automatic thought..."></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="balancedThought" class="form-label">
+                                        What's a more balanced, realistic thought?
+                                    </label>
+                                    <textarea class="form-control" id="balancedThought" rows="3"
+                                        placeholder="Create a more balanced perspective based on the evidence..."></textarea>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label for="newEmotion" class="form-label">New emotion (after reframing)</label>
+                                        <select class="form-select" id="newEmotion">
+                                            <option value="">Select emotion...</option>
+                                            <option value="calm">Calm</option>
+                                            <option value="hopeful">Hopeful</option>
+                                            <option value="confident">Confident</option>
+                                            <option value="motivated">Motivated</option>
+                                            <option value="neutral">Neutral</option>
+                                            <option value="concerned">Concerned (but manageable)</option>
+                                            <option value="determined">Determined</option>
+                                            <option value="accepting">Accepting</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="newEmotionIntensity" class="form-label">
+                                            New intensity (1-10): <span id="newIntensityValue">5</span>
+                                        </label>
+                                        <input type="range" class="form-range" id="newEmotionIntensity" 
+                                               min="1" max="10" value="5">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-4">
+                                <button type="button" class="btn btn-primary" onclick="saveThoughtRecord()">
+                                    <i class="fas fa-save"></i> Save Thought Record
+                                </button>
+                                <button type="button" class="btn btn-success" onclick="showChallengeSection()" id="challengeBtn">
+                                    <i class="fas fa-brain"></i> Challenge This Thought
+                                </button>
+                                <button type="button" class="btn btn-info" onclick="getAIHelp()">
+                                    <i class="fas fa-robot"></i> Get AI Guidance
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentThoughtRecordId = null;
+
+        // Update intensity display
+        document.getElementById('emotionIntensity').addEventListener('input', function() {
+            document.getElementById('intensityValue').textContent = this.value;
+        });
+
+        document.getElementById('newEmotionIntensity').addEventListener('input', function() {
+            document.getElementById('newIntensityValue').textContent = this.value;
+        });
+
+        function showChallengeSection() {
+            document.getElementById('challengeSection').style.display = 'block';
+            document.getElementById('challengeBtn').style.display = 'none';
+        }
+
+        async function identifyBiases() {
+            const automaticThought = document.getElementById('automaticThought').value;
+            if (!automaticThought) {
+                alert('Please enter your automatic thought first.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/cbt/api/cognitive-biases/identify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ thought_text: automaticThought })
+                });
+
+                const result = await response.json();
+                const biasResults = document.getElementById('biasResults');
+                
+                if (result.success && result.identified_biases.length > 0) {
+                    let html = '<div class="alert alert-info"><h6>Potential thinking patterns detected:</h6><ul class="mb-0">';
+                    result.identified_biases.forEach(bias => {
+                        html += `<li><strong>${bias.name}:</strong> ${bias.description}<br>
+                                <small class="text-muted">${bias.reframe_suggestion}</small></li>`;
+                    });
+                    html += '</ul></div>';
+                    biasResults.innerHTML = html;
+                } else {
+                    biasResults.innerHTML = '<div class="alert alert-success">No specific thinking patterns detected. Your thought seems balanced!</div>';
+                }
+            } catch (error) {
+                console.error('Error identifying biases:', error);
+                document.getElementById('biasResults').innerHTML = '<div class="alert alert-warning">Unable to analyze thinking patterns at this time.</div>';
+            }
+        }
+
+        async function saveThoughtRecord() {
+            const formData = {
+                situation: document.getElementById('situation').value,
+                automatic_thought: document.getElementById('automaticThought').value,
+                emotion: document.getElementById('emotion').value,
+                emotion_intensity: parseInt(document.getElementById('emotionIntensity').value)
+            };
+
+            // Validate required fields
+            if (!formData.situation || !formData.automatic_thought) {
+                alert('Please fill in the situation and automatic thought fields.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/cbt/api/thought-records', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentThoughtRecordId = result.data.id;
+                    
+                    // Show identified biases if any
+                    if (result.identified_biases && result.identified_biases.length > 0) {
+                        const biasResults = document.getElementById('biasResults');
+                        let html = '<div class="alert alert-info"><h6>Thinking patterns detected:</h6><ul class="mb-0">';
+                        result.identified_biases.forEach(bias => {
+                            html += `<li><strong>${bias.name}:</strong> ${bias.reframe_suggestion}</li>`;
+                        });
+                        html += '</ul></div>';
+                        biasResults.innerHTML = html;
+                    }
+
+                    alert('Thought record saved successfully!');
+                    
+                    // Enable challenge section
+                    showChallengeSection();
+                } else {
+                    alert('Error saving thought record: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error saving thought record: ' + error.message);
+            }
+        }
+
+        async function completeChallenge() {
+            if (!currentThoughtRecordId) {
+                await saveThoughtRecord();
+                if (!currentThoughtRecordId) return;
+            }
+
+            const challengeData = {
+                evidence_for: document.getElementById('evidenceFor').value,
+                evidence_against: document.getElementById('evidenceAgainst').value,
+                balanced_thought: document.getElementById('balancedThought').value,
+                new_emotion: document.getElementById('newEmotion').value,
+                new_emotion_intensity: parseInt(document.getElementById('newEmotionIntensity').value)
+            };
+
+            try {
+                const response = await fetch(`/cbt/api/thought-records/${currentThoughtRecordId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(challengeData)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Thought record completed successfully!');
+                    window.location.href = '/cbt/thought-records';
+                } else {
+                    alert('Error completing thought record: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error completing thought record: ' + error.message);
+            }
+        }
+
+        async function getAIHelp() {
+            const situation = document.getElementById('situation').value;
+            const automaticThought = document.getElementById('automaticThought').value;
+            
+            if (!situation || !automaticThought) {
+                alert('Please fill in the situation and automatic thought first.');
+                return;
+            }
+
+            const userInput = `Situation: ${situation}\nAutomatic thought: ${automaticThought}`;
+
+            try {
+                const response = await fetch('/cbt/api/ai-assistant', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        user_input: userInput,
+                        context: 'thought_challenging'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(`CBT Assistant Guidance:\n\n${result.response}`);
+                } else {
+                    alert('AI guidance is temporarily unavailable.');
+                }
+            } catch (error) {
+                alert('AI guidance is temporarily unavailable.');
+            }
+        }
+
+        // Add complete challenge button when challenge section is shown
+        document.getElementById('challengeSection').addEventListener('DOMNodeInserted', function() {
+            if (!document.getElementById('completeBtn')) {
+                const completeBtn = document.createElement('button');
+                completeBtn.id = 'completeBtn';
+                completeBtn.type = 'button';
+                completeBtn.className = 'btn btn-success mt-3';
+                completeBtn.innerHTML = '<i class="fas fa-check"></i> Complete Thought Record';
+                completeBtn.onclick = completeChallenge;
+                document.getElementById('challengeSection').appendChild(completeBtn);
+            }
+        });
+    </script>
+</body>
+</html>
