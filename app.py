@@ -27,6 +27,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+# OPERATION PUBLIC-OR-BUST: Disable heavy features for faster public deployment
+DISABLE_HEAVY_FEATURES = os.environ.get('DISABLE_HEAVY_FEATURES', 'false').lower() == 'true'
+
+if DISABLE_HEAVY_FEATURES:
+    logger.info("💀 PUBLIC-OR-BUST MODE: Heavy features disabled for faster startup")
+
+
 # Enhanced imports with intelligent fallback management for 100% functionality
 class DependencyManager:
     def __init__(self):
