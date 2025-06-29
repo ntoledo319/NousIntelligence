@@ -43,6 +43,7 @@ class TaskComplexity(Enum):
     BASIC = 1    # Simple responses, classification
     STANDARD = 2 # Regular chat, summarization
     COMPLEX = 3  # Creative content, complex reasoning
+    RESEARCH = 4 # Research questions, analysis, fact-checking
 
 class ServiceTier(Enum):
     ECONOMY = 1  # Lower cost, may have lower quality
@@ -87,6 +88,16 @@ class UnifiedAIService:
                        user_id: str = None, context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Enhanced chat completion with adaptive AI learning integration"""
         try:
+            # Auto-detect research questions if complexity not explicitly set
+            if complexity == TaskComplexity.STANDARD and messages:
+                last_message = messages[-1]['content'].lower()
+                research_keywords = ['research', 'study', 'analyze', 'investigate', 'compare', 'evaluate', 
+                                   'what is', 'how does', 'why does', 'explain', 'definition', 'facts about',
+                                   'statistics', 'data on', 'studies show', 'evidence', 'scientific']
+                if any(keyword in last_message for keyword in research_keywords):
+                    complexity = TaskComplexity.RESEARCH
+                    logger.info("Auto-detected research question, upgrading to RESEARCH complexity")
+            
             # MTM-CE Enhancement: Integrate with adaptive AI system
             if ADAPTIVE_AI_AVAILABLE and user_id and context:
                 # Get adaptive insights for better provider selection and response optimization
@@ -105,7 +116,9 @@ class UnifiedAIService:
             elif optimal_provider == 'gemini' and 'gemini' in self.available_providers:
                 response = self._gemini_chat(messages, max_tokens, temperature)
             elif optimal_provider == 'openai' and 'openai' in self.available_providers:
-                response = self._openai_chat(messages, max_tokens, temperature)
+                # Use GPT-4o for research tasks, GPT-4o-mini for others
+                model = "gpt-4o" if complexity == TaskComplexity.RESEARCH else "gpt-4o-mini"
+                response = self._openai_chat(messages, max_tokens, temperature, model)
             else:
                 response = self._fallback_response(messages[-1]['content'] if messages else "Hello")
             
@@ -257,7 +270,15 @@ class UnifiedAIService:
     
     def _select_best_provider(self, complexity: TaskComplexity) -> str:
         """Standard provider selection based on complexity"""
-        if complexity == TaskComplexity.COMPLEX:
+        if complexity == TaskComplexity.RESEARCH:
+            # Research questions - use GPT-4o for best reasoning and accuracy
+            if 'openai' in self.available_providers:
+                return 'openai'
+            elif 'openrouter' in self.available_providers:
+                return 'openrouter'  # Can route to GPT-4o
+            elif 'gemini' in self.available_providers:
+                return 'gemini'
+        elif complexity == TaskComplexity.COMPLEX:
             # Complex tasks - prefer OpenRouter for variety
             if 'openrouter' in self.available_providers:
                 return 'openrouter'
@@ -379,8 +400,8 @@ class UnifiedAIService:
             logger.error(f"Gemini error: {e}")
             return self._fallback_response(messages[-1]['content'])
 
-    def _openai_chat(self, messages: List[Dict[str, str]], max_tokens: int, temperature: float) -> Dict[str, Any]:
-        """OpenAI chat implementation"""
+    def _openai_chat(self, messages: List[Dict[str, str]], max_tokens: int, temperature: float, model: str = "gpt-4o-mini") -> Dict[str, Any]:
+        """OpenAI chat implementation with dynamic model selection"""
         try:
             headers = {
                 "Authorization": f"Bearer {self.openai_key}",
@@ -388,7 +409,7 @@ class UnifiedAIService:
             }
             
             payload = {
-                "model": "gpt-3.5-turbo",
+                "model": model,
                 "messages": messages,
                 "max_tokens": max_tokens,
                 "temperature": temperature
