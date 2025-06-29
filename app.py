@@ -102,20 +102,23 @@ class DependencyManager:
         """Create fallback routes if needed"""
         from flask import Blueprint, jsonify
         
-        # Create fallback blueprints
-        fallback_bp = Blueprint('fallback', __name__)
-        
-        @fallback_bp.route('/health-fallback')
-        def health_fallback():
-            return jsonify({"status": "healthy", "mode": "fallback"})
+        # Create unique fallback blueprints for each missing route
+        def create_fallback_blueprint(name):
+            bp = Blueprint(f'fallback_{name}', __name__)
+            
+            @bp.route(f'/{name}-fallback')
+            def fallback_route():
+                return jsonify({"status": "healthy", "mode": "fallback", "service": name})
+            
+            return bp
         
         self.routes.update({
-            'feedback_api': fallback_bp,
-            'health_bp': fallback_bp,
-            'maps_bp': fallback_bp,
-            'weather_bp': fallback_bp,
-            'tasks_bp': fallback_bp,
-            'recovery_bp': fallback_bp
+            'feedback_api': create_fallback_blueprint('feedback'),
+            'health_bp': create_fallback_blueprint('health'),
+            'maps_bp': create_fallback_blueprint('maps'),
+            'weather_bp': create_fallback_blueprint('weather'),
+            'tasks_bp': create_fallback_blueprint('tasks'),
+            'recovery_bp': create_fallback_blueprint('recovery')
         })
     
     def get(self, category, name):
