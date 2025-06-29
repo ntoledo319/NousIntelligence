@@ -13,6 +13,7 @@ from models.database import init_db, get_db_health
 # Import all models directly - let individual files handle graceful degradation
 import models.health_models
 import models.analytics_models
+import models.setup_models
 
 # Re-export for convenience
 from models.health_models import (
