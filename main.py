@@ -4,13 +4,15 @@ Optimized main.py for OPERATION PUBLIC-OR-BUST
 Fast startup with public access guarantees
 """
 import os
+from datetime import datetime
 
 # Set critical environment variables for public deployment
 os.environ.setdefault('PORT', '5000')
 os.environ.setdefault('HOST', '0.0.0.0')
 os.environ.setdefault('FLASK_ENV', 'production')
 
-# Disable heavy optional features for faster startup
+# Enable fast startup for deployment
+os.environ.setdefault('FAST_STARTUP', 'true')
 os.environ.setdefault('DISABLE_HEAVY_FEATURES', 'true')
 
 if __name__ == "__main__":
@@ -23,6 +25,8 @@ if __name__ == "__main__":
         host = os.environ.get('HOST', '0.0.0.0')
         
         print(f"🚀 NOUS starting on {host}:{port}")
+        print("⚡ FAST STARTUP: Core functionality active")
+        print("🔧 Heavy features will load in background after startup")
         print("💀 OPERATION PUBLIC-OR-BUST: Public access enabled")
         
         # Start with optimized settings for public deployment
