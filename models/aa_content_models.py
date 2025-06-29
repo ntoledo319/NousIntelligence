@@ -187,6 +187,7 @@ class AABigBook(db.Model):
 class AABigBookAudio(db.Model):
     """AA Big Book audio recordings"""
     __tablename__ = 'aa_big_book_audio'
+    __table_args__ = {'extend_existing': True}
     
     id = Column(Integer, primary_key=True)
     chapter_id = Column(Integer, ForeignKey('aa_big_book.id'), nullable=False)
