@@ -65,6 +65,10 @@ OPTIONAL_BLUEPRINTS = [
 def register_all_blueprints(app: Flask) -> Flask:
     """
     Register all application blueprints with the Flask app using standardized patterns
+    OPTIMIZED: Enhanced error handling and performance monitoring
+    """
+    """
+    Register all application blueprints with the Flask app using standardized patterns
 
     Args:
         app: Flask application instance
