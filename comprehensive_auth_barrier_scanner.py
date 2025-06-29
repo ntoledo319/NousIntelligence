@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+from utils.auth_compat import auth_not_required, get_demo_user
 Comprehensive Authentication Barrier Scanner
 Scans entire NOUS codebase for ALL authentication barriers preventing public access
 """
@@ -15,17 +16,17 @@ class AuthBarrierScanner:
         self.files_scanned = 0
         self.authentication_patterns = [
             # Flask-Login patterns
-            r'@login_required',
-            r'from flask_login import.*login_required',
-            r'login_required\(',
-            r'current_user\.',
-            r'if not current_user',
-            r'current_user\.is_authenticated',
+            r'@auth_not_required  # Removed auth barrier',
+            r'# Removed Flask-Login import',
+            r'auth_not_required\(',
+            r'get_demo_user()\.',
+            r'if not get_demo_user()',
+            r'get_demo_user()\.is_authenticated',
             
             # Session-based auth barriers
             r'if.*not.*session\[.*user.*\]',
             r'if.*session\.get\(.*user.*\).*is None',
-            r'return redirect.*login',
+            r'return redirect("/demo")  # Redirect to demo',
             r'abort\(401\)',
             r'abort\(403\)',
             
@@ -33,7 +34,7 @@ class AuthBarrierScanner:
             r'@require_auth',
             r'@authenticated',
             r'@auth_required',
-            r'@login_required',
+            r'@auth_not_required  # Removed auth barrier',
             
             # Auth check functions that block access
             r'def.*require.*authentication',
@@ -42,8 +43,8 @@ class AuthBarrierScanner:
             
             # Error messages indicating auth barriers
             r'["\']You must be logged in',
-            r'["\']Please log in',
-            r'["\']Authentication required',
+            r'["\']Demo mode active',
+            r'["\']Demo mode - no authentication required',
             r'["\']Access denied',
             r'["\']Unauthorized',
             
@@ -86,15 +87,15 @@ class AuthBarrierScanner:
     def _assess_severity(self, pattern, line):
         """Assess the severity of an authentication barrier"""
         # Critical barriers that completely block access
-        if any(p in pattern for p in ['@login_required', 'abort(401)', 'abort(403)']):
+        if any(p in pattern for p in ['@auth_not_required  # Removed auth barrier', 'pass  # Auth barrier removed', 'pass  # Auth barrier removed']):
             return 'CRITICAL'
         
         # High severity - likely to cause access issues
-        if any(p in pattern for p in ['redirect.*login', 'You must be logged in']):
+        if any(p in pattern for p in ['redirect.*login', 'Demo mode active - full access available']):
             return 'HIGH'
         
         # Medium severity - conditional access
-        if any(p in pattern for p in ['if.*not.*session', 'current_user']):
+        if any(p in pattern for p in ['if.*not.*session', 'get_demo_user()']):
             return 'MEDIUM'
         
         # Low severity - informational or fallback
@@ -207,8 +208,8 @@ Generated: {os.popen('date').read().strip()}
                 'file': file_path,
                 'barriers_count': len(barriers),
                 'actions': [
-                    'Replace @login_required with session-based auth checks',
-                    'Replace current_user with get_current_user() from auth_compat',
+                    'Replace @auth_not_required  # Removed auth barrier with session-based auth checks',
+                    'Replace get_demo_user() with get_get_demo_user()() from auth_compat',
                     'Add demo mode support',
                     'Replace authentication redirects with graceful fallbacks'
                 ]
@@ -216,8 +217,8 @@ Generated: {os.popen('date').read().strip()}
         
         # Batch operations
         fix_plan['batch_operations'] = [
-            'Mass replace @login_required decorators',
-            'Update current_user references',
+            'Mass replace @auth_not_required  # Removed auth barrier decorators',
+            'Update get_demo_user() references',
             'Add demo mode support to all routes',
             'Update authentication compatibility layer'
         ]
@@ -273,7 +274,7 @@ def main():
         print(f"\n🚨 URGENT ACTION REQUIRED:")
         print(f"   - {critical_count} CRITICAL barriers")
         print(f"   - {high_count} HIGH priority barriers")
-        print(f"   - These will cause 'You must be logged in' errors")
+        print(f"   - These will cause 'Demo mode active - full access available' errors")
     else:
         print(f"\n✅ NO CRITICAL BARRIERS FOUND!")
         print(f"   - Application should allow public access")

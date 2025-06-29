@@ -431,7 +431,7 @@ class UnifiedSpotifyService:
         if not self.sp:
             return None
         try:
-            user_id = self.sp.current_user()['id']
+            user_id = self.sp.get_demo_user()()['id']
             return self.sp.user_playlist_create(user_id, name, description=description)
         except Exception:
             return None

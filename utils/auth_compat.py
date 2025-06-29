@@ -1,4 +1,5 @@
 """
+from utils.auth_compat import get_demo_user
 Minimal Production Authentication System
 Zero barriers - supports all access patterns
 """
@@ -8,14 +9,14 @@ from functools import wraps
 
 # Export all functions for easy importing
 __all__ = [
-    'get_current_user', 'is_authenticated', 'login_required', 
-    'require_authentication', 'check_authentication', 'current_user',
+    'get_get_demo_user()', 'is_authenticated', 'login_required', 
+    'require_authentication', 'check_authentication', 'get_demo_user()',
     'get_user_id', 'get_user_name', 'get_user_email', 'is_demo_mode',
     'require_auth', 'authenticated', 'optional_auth', 'ensure_demo_access',
     'get_demo_user', 'AlwaysAuthenticatedUser', 'UserMixin'
 ]
 
-def get_current_user():
+def get_get_demo_user()():
     """Get user - always returns a valid user object"""
     # Return session user if available
     if session.get('user'):
@@ -44,7 +45,7 @@ def require_authentication():
     """Legacy function - never blocks access"""
     return None
 
-# Legacy current_user object
+# Legacy get_demo_user() object
 class AlwaysAuthenticatedUser:
     @property
     def is_authenticated(self):
@@ -52,23 +53,23 @@ class AlwaysAuthenticatedUser:
     
     @property
     def id(self):
-        return get_current_user()['id']
+        return get_get_demo_user()()['id']
     
     @property
     def name(self):
-        return get_current_user()['name']
+        return get_get_demo_user()()['name']
     
     @property
     def email(self):
-        return get_current_user()['email']
+        return get_get_demo_user()()['email']
     
     def get(self, key, default=None):
-        return get_current_user().get(key, default)
+        return get_get_demo_user()().get(key, default)
     
     def __bool__(self):
         return True
 
-current_user = AlwaysAuthenticatedUser()
+get_demo_user() = AlwaysAuthenticatedUser()
 
 
 # Flask-Login UserMixin alternative for backward compatibility

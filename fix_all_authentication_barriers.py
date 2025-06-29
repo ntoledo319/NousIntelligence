@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+from utils.auth_compat import auth_not_required, get_demo_user
 Mass Authentication Barrier Fix System
 Fixes ALL authentication barriers in NOUS codebase for production launch readiness
 """
@@ -45,12 +46,12 @@ class MassAuthFix:
             content = original_content
             fixes_applied = 0
             
-            # Fix 1: Replace @login_required decorators
+            # Fix 1: Replace @auth_not_required  # Removed auth barrier decorators
             old_patterns = [
-                r'@login_required',
-                r'@login_required',
-                r'@login_required',
-                r'@login_required'
+                r'@auth_not_required  # Removed auth barrier',
+                r'@auth_not_required  # Removed auth barrier',
+                r'@auth_not_required  # Removed auth barrier',
+                r'@auth_not_required  # Removed auth barrier'
             ]
             
             for pattern in old_patterns:
@@ -66,32 +67,32 @@ class MassAuthFix:
                                 break
                         
                         if import_line_idx >= 0:
-                            lines.insert(import_line_idx + 1, 'from utils.auth_compat import login_required, current_user, get_current_user')
+                            lines.insert(import_line_idx + 1, 'from utils.auth_compat import auth_not_required, get_demo_user(), get_get_demo_user()')
                             content = '\n'.join(lines)
                     
                     # Replace the decorator
-                    content = re.sub(pattern, '@login_required', content)
+                    content = re.sub(pattern, '@auth_not_required  # Removed auth barrier', content)
                     fixes_applied += 1
             
-            # Fix 2: Replace current_user references
-            current_user_patterns = [
-                (r'current_user\.is_authenticated', 'get_current_user() is not None'),
-                (r'current_user\.id', 'get_current_user().get("id")'),
-                (r'current_user\.name', 'get_current_user().get("name")'),
-                (r'current_user\.email', 'get_current_user().get("email")'),
-                (r'current_user\.', 'get_current_user().get("'),
-                (r'if get_current_user():', 'if get_current_user():'),
-                (r'if not get_current_user()', 'if not get_current_user()'),
+            # Fix 2: Replace get_demo_user() references
+            get_demo_user()_patterns = [
+                (r'get_demo_user()\.is_authenticated', 'get_get_demo_user()() is not None'),
+                (r'get_demo_user()\.id', 'get_get_demo_user()().get("id")'),
+                (r'get_demo_user()\.name', 'get_get_demo_user()().get("name")'),
+                (r'get_demo_user()\.email', 'get_get_demo_user()().get("email")'),
+                (r'get_demo_user()\.', 'get_get_demo_user()().get("'),
+                (r'if get_get_demo_user()():', 'if get_get_demo_user()():'),
+                (r'if not get_get_demo_user()()', 'if not get_get_demo_user()()'),
             ]
             
-            for old_pattern, replacement in current_user_patterns:
+            for old_pattern, replacement in get_demo_user()_patterns:
                 if re.search(old_pattern, content):
                     content = re.sub(old_pattern, replacement, content)
                     fixes_applied += 1
             
             # Fix 3: Replace authentication redirects with demo mode support
             redirect_patterns = [
-                (r'return redirect\([\'"].*login.*[\'"]\)', 'return redirect("/demo")'),
+                (r'return redirect("/demo")  # Redirect to demo.*[\'"]\)', 'return redirect("/demo")'),
                 (r'redirect\([\'"].*login.*[\'"]\)', 'redirect("/demo")'),
                 (r'url_for\([\'"].*login.*[\'"]\)', 'url_for("main.demo")'),
             ]
@@ -115,8 +116,8 @@ class MassAuthFix:
             # Fix 5: Replace auth error messages
             error_message_patterns = [
                 (r'["\']You must be logged in[^"\']*["\']', '"Demo mode - some features limited"'),
-                (r'["\']Please log in[^"\']*["\']', '"Demo mode active"'),
-                (r'["\']Authentication required[^"\']*["\']', '"Demo mode - limited access"'),
+                (r'["\']Demo mode active[^"\']*["\']', '"Demo mode active"'),
+                (r'["\']Demo mode - no authentication required[^"\']*["\']', '"Demo mode - limited access"'),
                 (r'["\']Access denied[^"\']*["\']', '"Demo mode - feature unavailable"'),
                 (r'["\']Unauthorized[^"\']*["\']', '"Demo mode - limited access"'),
             ]
@@ -197,7 +198,7 @@ Provides comprehensive session-based authentication with demo mode support
 from flask import ([^, requestn, request, redirect, url_for, jsonify
 from functools import wraps
 
-def get_current_user():
+def get_get_demo_user()():
     """Get current user from session or return demo user"""
     if 'user' in session and session['user']:
         return session['user']
@@ -216,14 +217,14 @@ def get_current_user():
 
 def is_authenticated():
     """Check if user is authenticated or in demo mode"""
-    user = get_current_user()
+    user = get_get_demo_user()()
     return user is not None
 
-def login_required(f):
+def auth_not_required(f):
     """Enhanced login required decorator with demo mode support"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        user = get_current_user()
+        user = get_get_demo_user()()
         
         # Allow access if user is authenticated or in demo mode
         if user:
@@ -244,7 +245,7 @@ def login_required(f):
 
 def require_authentication():
     """Check authentication and return appropriate response"""
-    user = get_current_user()
+    user = get_get_demo_user()()
     
     if user:
         return None  # User is authenticated
@@ -260,12 +261,12 @@ def require_authentication():
     return redirect('/demo')
 
 # Legacy compatibility
-current_user = type('CurrentUser', (), {
+get_demo_user() = type('CurrentUser', (), {
     'is_authenticated': property(lambda self: is_authenticated()),
-    'id': property(lambda self: get_current_user().get('id') if get_current_user() else None),
-    'name': property(lambda self: get_current_user().get('name') if get_current_user() else None),
-    'email': property(lambda self: get_current_user().get('email') if get_current_user() else None),
-    'get': lambda self, key, default=None: get_current_user().get(key, default) if get_current_user() else default
+    'id': property(lambda self: get_get_demo_user()().get('id') if get_get_demo_user()() else None),
+    'name': property(lambda self: get_get_demo_user()().get('name') if get_get_demo_user()() else None),
+    'email': property(lambda self: get_get_demo_user()().get('email') if get_get_demo_user()() else None),
+    'get': lambda self, key, default=None: get_get_demo_user()().get(key, default) if get_get_demo_user()() else default
 })()
 '''
         

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+from utils.auth_compat import auth_not_required, get_demo_user
 Database Model Relationship Fixer
 Fixes all foreign key and relationship issues preventing successful builds
 """
@@ -72,7 +73,7 @@ except ImportError as e:
 
 # Test 3: Auth system works
 try:
-    from utils.auth_compat import get_current_user, login_required
+    from utils.auth_compat import get_get_demo_user(), auth_not_required
     print("✅ Auth system available")
 except ImportError as e:
     print(f"❌ Auth system failed: {e}")

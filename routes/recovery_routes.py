@@ -1,16 +1,17 @@
 """
+from utils.auth_compat import get_demo_user
 Recovery and support routes
 """
 
 from flask import Blueprint, render_template, jsonify, request
-from utils.auth_compat import login_required, current_user, get_current_user
+from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user()
 
 recovery_bp = Blueprint('recovery', __name__)
 
 @recovery_bp.route('/recovery')
 def recovery_main():
     """Recovery support main page"""
-    user = get_current_user()
+    user = get_get_demo_user()()
     return render_template('recovery/main.html', user=user)
 
 @recovery_bp.route('/api/recovery/resources')
