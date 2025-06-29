@@ -1,10 +1,9 @@
 """
-from utils.auth_compat import get_demo_user
 Search functionality routes
 """
 
 from flask import Blueprint, render_template, jsonify, request
-from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user()
+from utils.auth_compat import login_required, get_demo_user, is_authenticated
 
 search_bp = Blueprint('search', __name__)
 

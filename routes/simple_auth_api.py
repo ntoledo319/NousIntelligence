@@ -1,10 +1,9 @@
 """
-from utils.auth_compat import get_demo_user
 Simple Authentication API
 """
 
 from flask import Blueprint, request, jsonify, session
-from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user()
+from utils.auth_compat import login_required, get_demo_user, is_authenticated
 import jwt
 import datetime
 

@@ -1,10 +1,9 @@
 """
-from utils.auth_compat import get_demo_user
 API routes for NOUS application
 """
 
 from flask import Blueprint, jsonify, request, session
-from utils.auth_compat import get_get_demo_user(), require_authentication
+from utils.auth_compat import login_required, get_demo_user, is_authenticated
 
 api_bp = Blueprint('api', __name__)
 
@@ -15,7 +14,7 @@ def chat_api():
     message = data.get('message', '')
     
     # Get user (demo or authenticated)
-    user = get_get_demo_user()()
+    user = get_demo_user()()
     
     # Simple response for now
     response = {
@@ -29,5 +28,5 @@ def chat_api():
 @api_bp.route('/user')
 def api_user():
     """Get current user info"""
-    user = get_get_demo_user()()
+    user = get_demo_user()()
     return jsonify(user)
