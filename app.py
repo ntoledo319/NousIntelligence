@@ -496,15 +496,236 @@ def create_app():
             user_name = 'API User'
             response_prefix = "Response: "
         
-        # Enhanced response with AI integration and learning
+        # Enhanced response with new AI system integration
         try:
-            # Try to get AI response using unified AI service
-            from utils.unified_ai_service import get_unified_ai_service
+            # Import enhanced AI systems
+            from utils.enhanced_ai_system import enhanced_ai, AITaskType
+            from utils.enhanced_voice_emotion import analyze_text_emotion
+            from utils.enhanced_therapeutic_ai import get_therapeutic_response
             
-            ai_service = get_unified_ai_service()
-            ai_response = ai_service.chat_completion([{"role": "user", "content": message}])
+            # Detect if this is a therapeutic conversation
+            if any(word in message.lower() for word in ['therapy', 'anxious', 'depressed', 'stressed', 'cbt', 'dbt']):
+                # Use therapeutic AI
+                therapeutic_response = get_therapeutic_response(message, framework="general")
+                ai_response = therapeutic_response.get("response", "I'm here to support you.")
+                
+                # Add emotion analysis
+                emotion_analysis = analyze_text_emotion(message)
+                emotion_info = f" (Detected emotion: {emotion_analysis.get('primary_emotion', 'neutral')})"
+                
+            elif any(word in message.lower() for word in ['research', 'study', 'analyze', 'what is', 'explain']):
+                # Use research AI (GPT-4o)
+                ai_response = enhanced_ai.research_query(message)
+                emotion_info = ""
+                
+            else:
+                # Use standard enhanced AI
+                ai_response = enhanced_ai.make_ai_request(message, AITaskType.STANDARD)
+                ai_response = ai_response.get("content", "I understand your message.")
+                emotion_info = ""
             
-            if ai_response.get('success'):
+            enhanced_response = f"{response_prefix}{ai_response}{emotion_info}"
+            
+        except ImportError as e:
+            logger.warning(f"Enhanced AI systems not available: {e}")
+            # Fallback to unified AI service
+            try:
+                from utils.unified_ai_service import get_unified_ai_service
+                ai_service = get_unified_ai_service()
+                ai_response = ai_service.chat_completion([{"role": "user", "content": message}])
+                enhanced_response = f"{response_prefix}{ai_response}"
+            except ImportError as e2:
+                logger.warning(f"Unified AI service not available: {e2}")
+                enhanced_response = f"{response_prefix}I understand your message. How can I help you today?"
+        
+        # Return enhanced response
+        return jsonify({
+            "response": enhanced_response,
+            "user": user_name,
+            "timestamp": datetime.now().isoformat(),
+            "demo": demo_mode
+        })
+    
+    except Exception as e:
+        logger.error(f"Chat API error: {e}")
+        return jsonify({
+            "response": f"I'm experiencing some difficulty right now. Please try again shortly.",
+            "error": True,
+            "timestamp": datetime.now().isoformat()
+        }), 500
+
+@app.route('/api/enhanced/research', methods=['POST'])
+def api_research():
+    """Enhanced research endpoint using GPT-4o"""
+    if not is_authenticated() and not request.json.get('demo_mode'):
+        return jsonify({"error": "Authentication required"}), 401
+    
+    try:
+        data = request.get_json()
+        question = data.get('question', '')
+        
+        if not question:
+            return jsonify({"error": "Question is required"}), 400
+        
+        from utils.enhanced_ai_system import enhanced_ai
+        response = enhanced_ai.research_query(question)
+        
+        return jsonify({
+            "research_response": response,
+            "type": "research",
+            "timestamp": datetime.now().isoformat()
+        })
+        
+    except ImportError:
+        return jsonify({"error": "Research AI not available"}), 503
+    except Exception as e:
+        logger.error(f"Research API error: {e}")
+        return jsonify({"error": "Research service temporarily unavailable"}), 500
+
+@app.route('/api/enhanced/therapeutic', methods=['POST'])
+def api_therapeutic():
+    """Enhanced therapeutic AI endpoint"""
+    if not is_authenticated() and not request.json.get('demo_mode'):
+        return jsonify({"error": "Authentication required"}), 401
+    
+    try:
+        data = request.get_json()
+        message = data.get('message', '')
+        framework = data.get('framework', 'general')
+        
+        if not message:
+            return jsonify({"error": "Message is required"}), 400
+        
+        from utils.enhanced_therapeutic_ai import get_therapeutic_response
+        response = get_therapeutic_response(message, framework)
+        
+        return jsonify({
+            "therapeutic_response": response,
+            "framework": framework,
+            "timestamp": datetime.now().isoformat()
+        })
+        
+    except ImportError:
+        return jsonify({"error": "Therapeutic AI not available"}), 503
+    except Exception as e:
+        logger.error(f"Therapeutic API error: {e}")
+        return jsonify({"error": "Therapeutic service temporarily unavailable"}), 500
+
+@app.route('/api/enhanced/emotion', methods=['POST'])
+def api_emotion_analysis():
+    """Enhanced emotion analysis endpoint"""
+    if not is_authenticated() and not request.json.get('demo_mode'):
+        return jsonify({"error": "Authentication required"}), 401
+    
+    try:
+        data = request.get_json()
+        text = data.get('text', '')
+        
+        if not text:
+            return jsonify({"error": "Text is required"}), 400
+        
+        from utils.enhanced_voice_emotion import analyze_text_emotion
+        emotion_data = analyze_text_emotion(text)
+        
+        return jsonify({
+            "emotion_analysis": emotion_data,
+            "timestamp": datetime.now().isoformat()
+        })
+        
+    except ImportError:
+        return jsonify({"error": "Emotion analysis not available"}), 503
+    except Exception as e:
+        logger.error(f"Emotion analysis API error: {e}")
+        return jsonify({"error": "Emotion analysis service temporarily unavailable"}), 500
+
+@app.route('/api/enhanced/cost-report', methods=['GET'])
+def api_cost_report():
+    """Get AI cost and usage report"""
+    if not is_authenticated():
+        return jsonify({"error": "Authentication required"}), 401
+    
+    try:
+        reports = {}
+        
+        try:
+            from utils.enhanced_ai_system import get_ai_cost_report
+            reports['enhanced_ai'] = get_ai_cost_report()
+        except ImportError:
+            pass
+            
+        try:
+            from utils.enhanced_therapeutic_ai import get_therapeutic_cost_report
+            reports['therapeutic'] = get_therapeutic_cost_report()
+        except ImportError:
+            pass
+            
+        try:
+            from utils.enhanced_voice_emotion import enhanced_voice_emotion
+            reports['voice_emotion'] = {
+                "daily_requests": enhanced_voice_emotion.daily_requests,
+                "monthly_cost": enhanced_voice_emotion.monthly_cost
+            }
+        except ImportError:
+            pass
+            
+        try:
+            from utils.enhanced_visual_intelligence import get_visual_cost_report
+            reports['visual'] = get_visual_cost_report()
+        except ImportError:
+            pass
+        
+        # Calculate totals
+        total_cost = sum(
+            report.get('monthly_cost', 0) if isinstance(report, dict) else 
+            report.get('monthly_costs', {}).get('total', 0) if isinstance(report, dict) else 0
+            for report in reports.values()
+        )
+        
+        return jsonify({
+            "cost_reports": reports,
+            "total_monthly_cost": total_cost,
+            "cost_per_user": total_cost / 30,  # 30 beta users
+            "savings_vs_commercial": (25 - (total_cost / 30)) / 25 * 100,  # vs $25/user
+            "timestamp": datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Cost report API error: {e}")
+        return jsonify({"error": "Cost report service temporarily unavailable"}), 500
+
+    @app.route('/api/enhanced/visual', methods=['POST'])
+    def api_visual_analysis():
+        """Enhanced visual analysis endpoint"""
+        if not is_authenticated() and not request.json.get('demo_mode'):
+            return jsonify({"error": "Authentication required"}), 401
+        
+        try:
+            # Handle file upload
+            if 'image' not in request.files:
+                return jsonify({"error": "Image file is required"}), 400
+            
+            file = request.files['image']
+            if file.filename == '':
+                return jsonify({"error": "No image selected"}), 400
+            
+            # Read image data
+            image_data = file.read()
+            analysis_type = request.form.get('analysis_type', 'general')
+            
+            from utils.enhanced_visual_intelligence import analyze_image
+            result = analyze_image(image_data, analysis_type)
+            
+            return jsonify({
+                "visual_analysis": result,
+                "analysis_type": analysis_type,
+                "timestamp": datetime.now().isoformat()
+            })
+            
+        except ImportError:
+            return jsonify({"error": "Visual analysis not available"}), 503
+        except Exception as e:
+            logger.error(f"Visual analysis API error: {e}")
+            return jsonify({"error": "Visual analysis service temporarily unavailable"}), 500
                 ai_message = ai_response.get('response', f"{response_prefix}{message}")
                 ai_provider = ai_response.get('metadata', {}).get('provider', 'unified_ai')
             else:
