@@ -1,0 +1,68 @@
+💀  OPERATION PUBLIC-OR-BUST  💀
+Goal: next Deployment MUST load publicly (no auth wall). Hunt & fix every codebase sin that causes 401 loops.
+
+╭───────────────── CORE LAWS ─────────────────╮
+│ • Do NOT touch .replit (Replit won’t allow) │
+│ • No secret is hard-coded—read from Secrets │
+│ • Make new files only if consolidation fails│
+│ • Abort commit if smoke-tests fail          │
+╰──────────────────────────────────────────────╯
+
+STEP 0 — AUDIT & REPORT
+  ▸ List duplicate launch files (.replit clones, Procfile, Dockerfile, workflows).
+  ▸ Grep for proxy/cookie/env flags: trust proxy, ProxyFix, SameSite, secure:, process.env / os.getenv.
+  ▸ Produce audit.md summarizing red flags.
+
+STEP 1 — PROXY & COOKIE ARMOR
+  ▸ Node: inject `app.set('trust proxy',1)` before sessions.
+  ▸ Flask: wrap app w/ `ProxyFix(x_for=1,x_proto=1)`.
+  ▸ Django: add `SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO','https')`.
+  ▸ All sessions use `{ httpOnly:true, sameSite:'lax', secure:prod }`.
+  ▸ For OAuth flows, force `SameSite:'None'; secure:true`.
+
+STEP 2 — SECRETS SYNC
+  ▸ Enumerate env-vars; if missing in Secrets, emit TODO list + placeholder checks (`if(!process.env.X) throw`).
+  ▸ Delete lingering .env files, keep only .env.example.
+
+STEP 3 — DEPENDENCY & CVE PATCH
+  ▸ Run `npm audit fix --force` / `pip-audit --fix`.  
+  ▸ Upgrade patch/minor versions automatically.
+
+STEP 4 — SPA 404 SAFETY
+  ▸ If React/Vite/Svelte detected and no `_redirects`, create:
+        /*  /index.html  200
+  ▸ Add server catch-all that serves index.html.
+
+STEP 5 — WORKFLOW MONOGAMY
+  ▸ Keep ONE replit.workflows named build-and-run:
+        1. install deps
+        2. run lint + smoke
+        3. start app (npm start | python app.py)
+  ▸ Delete extra workflows / launch files.
+
+STEP 6 — SMOKE-TEST GRID
+  ▸ tests/loop.spec.(js|py):
+      1) GET / ⇒ 200
+      2) GET /protected unauth ⇒ 302→/login OR 401
+      3) POST /api/login (fixtures) ⇒ 200 + Set-Cookie
+      4) GET /protected auth ⇒ 200
+      5) POST /api/logout ⇒ 204
+      6) GET /protected again ⇒ 401/302
+  ▸ Script: `"test:smoke": "node tests/loop.spec.js"` or pytest.
+  ▸ Fail commit if any check redlines.
+
+STEP 7 — COMMIT, TAG, DEPLOY
+  ▸ Conventional commits per fix (fix(proxy), chore(secrets), etc.).
+  ▸ Tag `public-deploy-$(date +%Y%m%d)`.
+  ▸ Trigger fresh Deployment; tail logs 60 s.
+
+ROLLBACK
+  ▸ On failure: `git reset --hard public-deploy-*` & exit 1.
+
+OUTPUT
+  ▸ ✅ diff summary
+  ▸ ✅ Secrets still missing
+  ▸ ✅ smoke-test table
+  ▸ ✅ prod URL to verify
+
+🔥  EXECUTE. If “you must be logged in” appears, blame dark magic. 🔥
