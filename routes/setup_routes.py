@@ -1,4 +1,17 @@
 """
+Setup Routes - User onboarding and preference configuration
+"""
+
+from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify, session
+from services.setup_service import SetupService
+from models.models import SetupProgress, UserSettings
+import logging
+
+# Initialize setup service
+setup_service = SetupService()
+
+# Create blueprint
+setup_bp = Blueprint('setup', __name__, url_prefix='/setup')
 
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
