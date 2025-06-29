@@ -39,6 +39,11 @@ def create_app():
         "pool_pre_ping": True,
     }
     
+    # Configure URL generation for templates
+    app.config['SERVER_NAME'] = os.environ.get('REPLIT_DOMAINS', 'localhost:5000').split(',')[0]
+    app.config['APPLICATION_ROOT'] = '/'
+    app.config['PREFERRED_URL_SCHEME'] = 'https' if 'replit' in app.config.get('SERVER_NAME', '') else 'http'
+    
     # Setup ProxyFix for reverse proxy deployment
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
     
