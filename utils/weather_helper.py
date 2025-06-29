@@ -686,6 +686,41 @@ def get_activity_recommendations(location: str, activity: str = 'outdoor'):
     return weather_helper.get_best_times_today(location, activity)
 
 
+def get_pollution_data(latitude: float, longitude: float):
+    """Get air pollution data for given coordinates"""
+    try:
+        # Return sample pollution data since this requires specialized API
+        return {
+            'success': True,
+            'location': {'lat': latitude, 'lon': longitude},
+            'air_quality': {
+                'index': 2,  # 1-5 scale (1=good, 5=hazardous)
+                'category': 'fair',
+                'main_pollutant': 'pm2.5',
+                'concentration': 15.2,
+                'health_advice': 'Air quality is acceptable for most people'
+            },
+            'pollutants': {
+                'pm2_5': 15.2,
+                'pm10': 23.1,
+                'no2': 18.5,
+                'o3': 45.2,
+                'co': 0.8,
+                'so2': 3.2
+            },
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+            'source': 'fallback',
+            'note': 'Sample data - requires air quality API key for real data'
+        }
+    except Exception as e:
+        logger.error(f"Error getting pollution data: {str(e)}")
+        return {
+            'success': False,
+            'error': str(e),
+            'air_quality': None
+        }
+
+
 class WeatherService:
     """Legacy compatibility class"""
     

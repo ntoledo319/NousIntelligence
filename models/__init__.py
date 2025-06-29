@@ -43,6 +43,7 @@ except ImportError:
 class Product(db.Model):
     """Product model for shopping and price tracking"""
     __tablename__ = 'products'
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
@@ -66,6 +67,7 @@ class Product(db.Model):
 class Task(db.Model):
     """Task model for task management"""
     __tablename__ = 'tasks'
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
@@ -86,6 +88,7 @@ class Task(db.Model):
 class UserPreference(db.Model):
     """User preferences and settings"""
     __tablename__ = 'user_preferences'
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
@@ -100,6 +103,7 @@ class UserPreference(db.Model):
 class SystemSettings(db.Model):
     """System-wide settings"""
     __tablename__ = 'system_settings'
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     setting_key = db.Column(db.String(100), nullable=False, unique=True)
@@ -149,6 +153,7 @@ class SystemSettings(db.Model):
 class WeatherLocation(db.Model):
     """Weather location tracking"""
     __tablename__ = 'weather_locations'
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
@@ -167,6 +172,7 @@ class WeatherLocation(db.Model):
 class UserSettings(db.Model):
     """Individual user settings (alias for UserPreference for backward compatibility)"""
     __tablename__ = 'user_settings'
+    __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
