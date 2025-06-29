@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thought Record - CBT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1><i class="fas fa-lightbulb text-primary"></i> Thought Record Details</h1>
+                    <a href="{{ url_for('cbt.thought_records') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Thought Records
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>{{ record.date }} Thought Record</h5>
+                        <small class="text-muted">Created: {{ record.created_at[:19] if record.created_at else 'N/A' }}</small>
+                    </div>
+                    <div class="card-body">
+                        <!-- Original Thought Information -->
+                        <div class="mb-4">
+                            <h6 class="text-primary">Situation</h6>
+                            <p class="card-text">{{ record.situation }}</p>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6 class="text-primary">Automatic Thought</h6>
+                            <p class="card-text">{{ record.automatic_thought }}</p>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h6 class="text-primary">Original Emotion</h6>
+                                <p class="card-text">
+                                    {% if record.emotion %}
+                                    <span class="badge bg-info">{{ record.emotion.title() }}</span>
+                                    {% else %}
+                                    <span class="text-muted">Not specified</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-primary">Original Intensity</h6>
+                                <p class="card-text">
+                                    {% if record.emotion_intensity %}
+                                    <span class="badge bg-{{ 'danger' if record.emotion_intensity >= 8 else 'warning' if record.emotion_intensity >= 6 else 'success' }}">
+                                        {{ record.emotion_intensity }}/10
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted">Not specified</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Cognitive Restructuring Section -->
+                        {% if record.evidence_for or record.evidence_against or record.balanced_thought %}
+                        <hr>
+                        <h6 class="text-success">Cognitive Restructuring</h6>
+                        
+                        {% if record.evidence_for %}
+                        <div class="mb-3">
+                            <strong>Evidence Supporting the Thought:</strong>
+                            <p class="mt-2">{{ record.evidence_for }}</p>
+                        </div>
+                        {% endif %}
+
+                        {% if record.evidence_against %}
+                        <div class="mb-3">
+                            <strong>Evidence Against the Thought:</strong>
+                            <p class="mt-2">{{ record.evidence_against }}</p>
+                        </div>
+                        {% endif %}
+
+                        {% if record.balanced_thought %}
+                        <div class="mb-3">
+                            <strong>Balanced, Realistic Thought:</strong>
+                            <p class="mt-2 p-3 bg-light rounded">{{ record.balanced_thought }}</p>
+                        </div>
+                        {% endif %}
+
+                        {% if record.new_emotion or record.new_emotion_intensity %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>New Emotion:</strong>
+                                <p class="mt-2">
+                                    {% if record.new_emotion %}
+                                    <span class="badge bg-success">{{ record.new_emotion.title() }}</span>
+                                    {% else %}
+                                    <span class="text-muted">Not specified</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>New Intensity:</strong>
+                                <p class="mt-2">
+                                    {% if record.new_emotion_intensity %}
+                                    <span class="badge bg-success">{{ record.new_emotion_intensity }}/10</span>
+                                    {% else %}
+                                    <span class="text-muted">Not specified</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Progress Indicator -->
+                        {% if record.emotion_intensity and record.new_emotion_intensity %}
+                        <div class="mt-3">
+                            <h6>Emotional Change</h6>
+                            {% set improvement = record.emotion_intensity - record.new_emotion_intensity %}
+                            {% if improvement > 0 %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle"></i> 
+                                Intensity reduced by {{ improvement }} points ({{ record.emotion_intensity }} → {{ record.new_emotion_intensity }})
+                            </div>
+                            {% elif improvement < 0 %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i> 
+                                Intensity increased by {{ -improvement }} points
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> 
+                                Intensity remained the same
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        {% else %}
+                        <!-- Incomplete Record Actions -->
+                        <hr>
+                        <div class="text-center">
+                            <h6 class="text-warning">Thought Record Incomplete</h6>
+                            <p class="text-muted">Complete the cognitive restructuring process to get the most benefit.</p>
+                            <button class="btn btn-success" onclick="completeRecord()">
+                                <i class="fas fa-edit"></i> Complete This Record
+                            </button>
+                        </div>
+                        {% endif %}
+
+                        <!-- Actions -->
+                        <div class="mt-4 text-center">
+                            <a href="{{ url_for('cbt.thought_records') }}" class="btn btn-primary">
+                                <i class="fas fa-list"></i> View All Records
+                            </a>
+                            <a href="{{ url_for('cbt.new_thought_record') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-plus"></i> New Record
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Complete Record Modal -->
+    <div class="modal fade" id="completeRecordModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Complete Thought Record</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="completeRecordForm">
+                        <div class="mb-3">
+                            <label>Evidence supporting the thought:</label>
+                            <textarea class="form-control" id="evidenceFor" rows="3" 
+                                placeholder="What facts support your automatic thought?"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Evidence against the thought:</label>
+                            <textarea class="form-control" id="evidenceAgainst" rows="3" 
+                                placeholder="What evidence contradicts your automatic thought?"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Balanced, realistic thought:</label>
+                            <textarea class="form-control" id="balancedThought" rows="3" 
+                                placeholder="Based on the evidence, what's a more balanced perspective?"></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label>New emotion (after reframing):</label>
+                                <select class="form-select" id="newEmotion">
+                                    <option value="">Select...</option>
+                                    <option value="calm">Calm</option>
+                                    <option value="hopeful">Hopeful</option>
+                                    <option value="confident">Confident</option>
+                                    <option value="motivated">Motivated</option>
+                                    <option value="neutral">Neutral</option>
+                                    <option value="concerned">Concerned (manageable)</option>
+                                    <option value="determined">Determined</option>
+                                    <option value="accepting">Accepting</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label>New intensity (1-10): <span id="newIntensityValue">5</span></label>
+                                <input type="range" class="form-range" id="newEmotionIntensity" 
+                                       min="1" max="10" value="5">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="submitCompletion()">Complete Record</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('newEmotionIntensity').addEventListener('input', function() {
+            document.getElementById('newIntensityValue').textContent = this.value;
+        });
+
+        function completeRecord() {
+            new bootstrap.Modal(document.getElementById('completeRecordModal')).show();
+        }
+
+        async function submitCompletion() {
+            const formData = {
+                evidence_for: document.getElementById('evidenceFor').value,
+                evidence_against: document.getElementById('evidenceAgainst').value,
+                balanced_thought: document.getElementById('balancedThought').value,
+                new_emotion: document.getElementById('newEmotion').value,
+                new_emotion_intensity: parseInt(document.getElementById('newEmotionIntensity').value)
+            };
+
+            try {
+                const response = await fetch(`/cbt/api/thought-records/{{ record.id }}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('completeRecordModal')).hide();
+                    alert('Thought record completed successfully!');
+                    location.reload();
+                } else {
+                    alert('Error completing record: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error completing record: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

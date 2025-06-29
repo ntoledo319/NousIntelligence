@@ -29,6 +29,7 @@ CORE_BLUEPRINTS = [
 OPTIONAL_BLUEPRINTS = [
     {'name': 'aa', 'module': 'routes.aa_routes', 'attr': 'aa_bp', 'url_prefix': '/aa'},
     {'name': 'dbt', 'module': 'routes.dbt_routes', 'attr': 'dbt_bp', 'url_prefix': '/dbt'},
+    {'name': 'cbt', 'module': 'routes.cbt_routes', 'attr': 'cbt_bp', 'url_prefix': '/cbt'},
     {'name': 'user', 'module': 'routes.user_routes', 'attr': 'user_bp', 'url_prefix': '/user'},
     {'name': 'dashboard', 'module': 'routes.dashboard', 'attr': 'dashboard_bp', 'url_prefix': '/dashboard'},
     {'name': 'smart_shopping', 'module': 'routes.smart_shopping_routes', 'attr': 'smart_shopping_bp', 'url_prefix': '/smart-shopping'},
