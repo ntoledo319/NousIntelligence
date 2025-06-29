@@ -39,11 +39,8 @@ def create_app():
         "pool_pre_ping": True,
     }
     
-    # Configure URL generation for templates (only set SERVER_NAME if explicitly provided)
-    replit_domains = os.environ.get('REPLIT_DOMAINS')
-    if replit_domains:
-        app.config['SERVER_NAME'] = replit_domains.split(',')[0]
-        app.config['PREFERRED_URL_SCHEME'] = 'https'
+    # Templates now use relative paths, no SERVER_NAME needed
+    # This allows the app to work on localhost and deployed domains
     
     # Setup ProxyFix for reverse proxy deployment
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
