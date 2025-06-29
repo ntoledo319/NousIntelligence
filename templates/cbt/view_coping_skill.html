@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ skill.skill_name }} - CBT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1><i class="fas fa-tools text-primary"></i> {{ skill.skill_name }}</h1>
+                    <a href="{{ url_for('cbt.coping_skills') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Skills
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5>{{ skill.skill_name }}</h5>
+                            <span class="badge bg-primary">{{ skill.category.title() }}</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text mb-4">{{ skill.description }}</p>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <h6>Duration</h6>
+                                <p><i class="fas fa-clock"></i> {{ skill.duration_minutes or 'Varies' }} minutes</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6>Difficulty</h6>
+                                <p>
+                                    {% for i in range(1, 6) %}
+                                    <i class="fas fa-star {{ 'text-warning' if i <= (skill.difficulty_level or 1) else 'text-muted' }}"></i>
+                                    {% endfor %}
+                                </p>
+                            </div>
+                            <div class="col-md-4">
+                                <h6>Usage</h6>
+                                <p><i class="fas fa-users"></i> {{ skill.usage_count }} times used</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6>Instructions</h6>
+                            <div class="p-3 bg-light rounded">
+                                <pre class="mb-0" style="white-space: pre-wrap; font-family: inherit;">{{ skill.instructions }}</pre>
+                            </div>
+                        </div>
+
+                        {% if skill.effectiveness_situations %}
+                        <div class="mb-4">
+                            <h6>Best Used For</h6>
+                            <p class="text-muted">{{ skill.effectiveness_situations }}</p>
+                        </div>
+                        {% endif %}
+
+                        {% if skill.contraindications %}
+                        <div class="mb-4">
+                            <h6>Important Notes</h6>
+                            <div class="alert alert-warning">
+                                {{ skill.contraindications }}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="text-center">
+                            <button class="btn btn-primary btn-lg" onclick="useSkill()">
+                                <i class="fas fa-play"></i> Use This Skill Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function useSkill() {
+            // Redirect back to skills page with usage modal
+            window.location.href = `/cbt/coping-skills?use={{ skill.id }}`;
+        }
+    </script>
+</body>
+</html>

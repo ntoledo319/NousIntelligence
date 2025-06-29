@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Behavioral Experiments - CBT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1><i class="fas fa-flask text-primary"></i> Behavioral Experiments</h1>
+                    <div>
+                        <button class="btn btn-primary" onclick="createExperiment()">
+                            <i class="fas fa-plus"></i> New Experiment
+                        </button>
+                        <a href="{{ url_for('cbt.dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to CBT Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Your Behavioral Experiments</h5>
+                        <small class="text-muted">Test negative beliefs through structured experiments</small>
+                    </div>
+                    <div class="card-body">
+                        {% if experiments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Belief to Test</th>
+                                        <th>Experiment</th>
+                                        <th>Status</th>
+                                        <th>Confidence Change</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for exp in experiments %}
+                                    <tr>
+                                        <td>{{ exp.belief_to_test[:50] }}...</td>
+                                        <td>{{ exp.experiment_description[:50] }}...</td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if exp.status == 'completed' else 'warning' if exp.status == 'in_progress' else 'secondary' }}">
+                                                {{ exp.status.title() }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if exp.confidence_before and exp.confidence_after %}
+                                            {{ exp.confidence_before }}/10 → {{ exp.confidence_after }}/10
+                                            {% else %}
+                                            N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if exp.status != 'completed' %}
+                                            <button class="btn btn-sm btn-success" onclick="completeExperiment({{ exp.id }})">
+                                                <i class="fas fa-check"></i> Complete
+                                            </button>
+                                            {% else %}
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewExperiment({{ exp.id }})">
+                                                <i class="fas fa-eye"></i> View
+                                            </button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-flask fa-3x text-muted mb-3"></i>
+                            <h4>No behavioral experiments yet</h4>
+                            <p class="text-muted">Create experiments to test negative beliefs and gather evidence.</p>
+                            <button class="btn btn-primary" onclick="createExperiment()">
+                                <i class="fas fa-plus"></i> Create First Experiment
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function createExperiment() {
+            alert('Create experiment modal coming soon!');
+        }
+
+        function completeExperiment(expId) {
+            alert('Complete experiment modal coming soon!');
+        }
+
+        function viewExperiment(expId) {
+            alert('View experiment details coming soon!');
+        }
+    </script>
+</body>
+</html>
