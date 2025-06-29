@@ -7,7 +7,6 @@ Optimized flow with beautiful design and comprehensive preferences.
 
 import logging
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify, flash, session
-from flask_login import login_required, current_user
 from services.setup_service import setup_service
 from utils.multilingual_voice import LANGUAGE_CODES
 
@@ -17,8 +16,14 @@ logger = logging.getLogger(__name__)
 setup_bp = Blueprint('setup', __name__, url_prefix='/setup')
 
 def get_user_id():
-    """Get current user ID"""
-    return str(current_user.id) if current_user.is_authenticated else None
+    """Get current user ID from session"""
+    if 'user' in session and session['user']:
+        return str(session['user']['id'])
+    return None
+
+def is_authenticated():
+    """Check if user is authenticated via session"""
+    return 'user' in session and session['user'] is not None
 
 # Configuration data for forms
 LANGUAGE_OPTIONS = [
