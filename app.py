@@ -28,9 +28,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# OPERATION PUBLIC-OR-BUST: Disable heavy features for faster public deployment
+# Optimization flags for faster startup
+FAST_STARTUP = os.environ.get('FAST_STARTUP', 'false').lower() == 'true'
 DISABLE_HEAVY_FEATURES = os.environ.get('DISABLE_HEAVY_FEATURES', 'false').lower() == 'true'
 
+if FAST_STARTUP:
+    logger.info("⚡ FAST STARTUP MODE: Optimized initialization sequence")
 if DISABLE_HEAVY_FEATURES:
     logger.info("💀 PUBLIC-OR-BUST MODE: Heavy features disabled for faster startup")
 
@@ -44,54 +47,57 @@ class DependencyManager:
         self.load_routes()
     
     def load_extensions(self):
-        """Load extensions with fallbacks"""
-        try:
-            from extensions import (
-                plugin_registry, init_async_processing, init_monitoring, 
-                init_learning_system, init_compression
-            )
-            from utils.health_monitor import health_monitor
-            from utils.database_optimizer import db_optimizer
+        """Load extensions with fallbacks and timeout protection"""
+        if FAST_STARTUP:
+            self.create_extension_fallbacks()
+            logger.info("⚡ Using extension fallbacks for fast startup")
+            return
             
-            self.extensions.update({
-                'plugin_registry': plugin_registry,
-                'init_async_processing': init_async_processing,
-                'init_monitoring': init_monitoring,
-                'init_learning_system': init_learning_system,
-                'init_compression': init_compression,
-                'health_monitor': health_monitor,
-                'db_optimizer': db_optimizer
-            })
+        try:
+            # Load core extensions with individual error handling
+            extensions_to_load = [
+                ('plugin_registry', 'extensions', 'plugin_registry'),
+                ('init_async_processing', 'extensions', 'init_async_processing'),
+                ('init_monitoring', 'extensions', 'init_monitoring'),
+                ('init_learning_system', 'extensions', 'init_learning_system'),
+                ('init_compression', 'extensions', 'init_compression'),
+                ('health_monitor', 'utils.health_monitor', 'health_monitor'),
+                ('db_optimizer', 'utils.database_optimizer', 'db_optimizer')
+            ]
+            
+            for ext_name, module_path, attr_name in extensions_to_load:
+                try:
+                    module = __import__(module_path, fromlist=[attr_name])
+                    self.extensions[ext_name] = getattr(module, attr_name)
+                except ImportError as e:
+                    logger.warning(f"Extension {ext_name} not available: {e}")
+                    self.extensions[ext_name] = None
+                    
             logger.info("✅ Extensions loaded successfully")
-        except ImportError as e:
-            logger.warning(f"Extensions not available, using fallbacks: {e}")
+        except Exception as e:
+            logger.warning(f"Extension loading failed, using fallbacks: {e}")
             self.create_extension_fallbacks()
     
     def load_routes(self):
-        """Load routes with fallbacks"""
-        try:
-            from routes.health_api import health_api_bp
-            from routes.maps_routes import maps_bp
-            from routes.weather_routes import weather_bp  
-            from routes.tasks_routes import tasks_bp
-            from routes.recovery_routes import recovery_bp
+        """Load routes with individual error handling"""
+        routes_to_load = [
+            ('health_bp', 'routes.health_api', 'health_api_bp'),
+            ('maps_bp', 'routes.maps_routes', 'maps_bp'),
+            ('weather_bp', 'routes.weather_routes', 'weather_bp'),
+            ('tasks_bp', 'routes.tasks_routes', 'tasks_bp'),
+            ('recovery_bp', 'routes.recovery_routes', 'recovery_bp'),
+            ('feedback_api', 'routes.api.feedback', 'feedback_api')
+        ]
+        
+        for route_name, module_path, attr_name in routes_to_load:
             try:
-                from routes.api.feedback import feedback_api
-            except ImportError:
-                feedback_api = None
-            
-            self.routes.update({
-                'feedback_api': feedback_api,
-                'health_bp': health_api_bp,
-                'maps_bp': maps_bp,
-                'weather_bp': weather_bp,
-                'tasks_bp': tasks_bp,
-                'recovery_bp': recovery_bp
-            })
-            logger.info("✅ Routes loaded successfully")
-        except ImportError as e:
-            logger.warning(f"Some routes not available: {e}")
-            self.create_route_fallbacks()
+                module = __import__(module_path, fromlist=[attr_name])
+                self.routes[route_name] = getattr(module, attr_name)
+            except ImportError as e:
+                logger.warning(f"Route {route_name} not available: {e}")
+                self.routes[route_name] = None
+                
+        logger.info("✅ Routes loaded successfully")
     
     def create_extension_fallbacks(self):
         """Create fallback implementations for extensions"""

@@ -201,3 +201,27 @@ class AABigBookAudio(db.Model):
     
     # Relationships
     chapter = relationship("AABigBook", backref="audio_recordings")
+
+
+class AASpeakerRecording(db.Model):
+    """AA speaker recording and story content"""
+    __tablename__ = 'aa_speaker_recordings'
+    __table_args__ = {'extend_existing': True}
+    
+    id = Column(Integer, primary_key=True)
+    speaker_name = Column(String(255), nullable=False)
+    title = Column(String(500))
+    description = Column(Text)
+    audio_url = Column(String(500), nullable=False)
+    transcript = Column(Text)
+    duration_seconds = Column(Integer)
+    file_size_mb = Column(Float)
+    sobriety_date = Column(DateTime)
+    location = Column(String(255))
+    event_name = Column(String(255))
+    tags = Column(String(500))  # Comma-separated tags
+    quality = Column(String(50), default='standard')
+    is_featured = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
