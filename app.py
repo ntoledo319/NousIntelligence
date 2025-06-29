@@ -208,74 +208,82 @@ def create_app():
     if health_monitor:
         health_monitor.init_app(app)
     
-    # Initialize NOUS Extensions
-    logger.info("Initializing NOUS Extensions...")
+    # Initialize NOUS Extensions with fast startup optimization
+    fast_startup = FAST_STARTUP or DISABLE_HEAVY_FEATURES
     
-    # Initialize NOUS Tech System
-    try:
-        from nous_tech import (
-            init_parallel, init_compression as nous_compression, 
-            init_brain, init_selflearn, init_security_monitor
-        )
-        from nous_tech.features.ai_system_brain import create_ai_system_brain
+    if fast_startup:
+        logger.info("⚡ FAST STARTUP: Deferring heavy NOUS Extensions initialization")
+        # Mark for deferred initialization
+        app.config['deferred_init'] = True
+        app.config['heavy_features_initialized'] = False
+    else:
+        logger.info("Initializing NOUS Extensions...")
         
-        # Initialize NOUS Tech components
-        init_parallel(app)
-        logger.info("NOUS Tech parallel processing initialized")
-        
-        nous_compression(app)
-        logger.info("NOUS Tech compression initialized")
-        
-        init_brain(app)
-        logger.info("NOUS Tech AI brain initialized")
-        
-        init_selflearn(app)
-        logger.info("NOUS Tech self-learning initialized")
-        
-        init_security_monitor(app)
-        logger.info("NOUS Tech security monitor initialized")
-        
-        # Initialize advanced AI System Brain
+        # Initialize NOUS Tech System
         try:
-            app.config['ai_system_brain'] = create_ai_system_brain({
-                'learning_enabled': True,
-                'security_level': 'high',
-                'performance_monitoring': True
-            })
-        except Exception as e:
-            logger.warning(f"AI System Brain initialization failed: {e}")
-            app.config['ai_system_brain'] = None
-        logger.info("NOUS Tech AI System Brain initialized")
+            from nous_tech import (
+                init_parallel, init_compression as nous_compression, 
+                init_brain, init_selflearn, init_security_monitor
+            )
+            from nous_tech.features.ai_system_brain import create_ai_system_brain
+            
+            # Initialize NOUS Tech components
+            init_parallel(app)
+            logger.info("NOUS Tech parallel processing initialized")
+            
+            nous_compression(app)
+            logger.info("NOUS Tech compression initialized")
+            
+            init_brain(app)
+            logger.info("NOUS Tech AI brain initialized")
+            
+            init_selflearn(app)
+            logger.info("NOUS Tech self-learning initialized")
+            
+            init_security_monitor(app)
+            logger.info("NOUS Tech security monitor initialized")
+            
+            # Initialize advanced AI System Brain
+            try:
+                app.config['ai_system_brain'] = create_ai_system_brain({
+                    'learning_enabled': True,
+                    'security_level': 'high',
+                    'performance_monitoring': True
+                })
+            except Exception as e:
+                logger.warning(f"AI System Brain initialization failed: {e}")
+                app.config['ai_system_brain'] = None
+            logger.info("NOUS Tech AI System Brain initialized")
+            
+        except ImportError as e:
+            logger.warning(f"NOUS Tech not available: {e}")
         
-    except ImportError as e:
-        logger.warning(f"NOUS Tech not available: {e}")
-    
-    # Initialize async processing (Celery)
-    if init_async_processing:
-        init_async_processing(app)
-        logger.info("Async processing initialized")
-    
-    # Initialize monitoring and metrics
-    if init_monitoring:
-        init_monitoring(app)
-        logger.info("Monitoring system initialized")
-    
-    # Initialize learning system
-    if init_learning_system:
-        init_learning_system(app)
-        logger.info("Learning system initialized")
-    
-    # Initialize compression
-    if init_compression:
-        init_compression(app)
-        logger.info("Compression system initialized")
-    
-    # Initialize and wire plugin registry
-    if plugin_registry:
-        # Register any existing plugins
-        plugin_registry.init_all(app)
-        plugin_registry.wire_blueprints(app)
-        logger.info("Plugin registry initialized")
+        # Initialize async processing (Celery)
+        if init_async_processing:
+            init_async_processing(app)
+            logger.info("Async processing initialized")
+        
+        # Initialize monitoring and metrics
+        if init_monitoring:
+            init_monitoring(app)
+            logger.info("Monitoring system initialized")
+        
+        # Initialize learning system
+        if init_learning_system:
+            init_learning_system(app)
+            logger.info("Learning system initialized")
+        
+        # Initialize compression
+        if init_compression:
+            init_compression(app)
+            logger.info("Compression system initialized")
+        
+        # Initialize and wire plugin registry
+        if plugin_registry:
+            # Register any existing plugins
+            plugin_registry.init_all(app)
+            plugin_registry.wire_blueprints(app)
+            logger.info("Plugin registry initialized")
     
     # Register NOUS Tech routes
     try:
@@ -582,6 +590,66 @@ def create_app():
         user_data['authenticated'] = True
         user_data['is_guest'] = False
         return jsonify(user_data)
+    
+    @app.route('/init-heavy-features')
+    def init_heavy_features():
+        """Initialize heavy features on demand"""
+        if app.config.get('heavy_features_initialized', False):
+            return jsonify({'status': 'already_initialized', 'message': 'Heavy features already loaded'})
+        
+        try:
+            logger.info("🔄 Starting background initialization of heavy features...")
+            
+            # Initialize NOUS Tech System
+            from nous_tech import (
+                init_parallel, init_compression as nous_compression, 
+                init_brain, init_selflearn, init_security_monitor
+            )
+            from nous_tech.features.ai_system_brain import create_ai_system_brain
+            
+            # Initialize components
+            init_parallel(app)
+            nous_compression(app)
+            init_brain(app)
+            init_selflearn(app)
+            init_security_monitor(app)
+            
+            # Initialize AI System Brain
+            app.config['ai_system_brain'] = create_ai_system_brain({
+                'learning_enabled': True,
+                'security_level': 'high',
+                'performance_monitoring': True
+            })
+            
+            # Initialize other systems
+            if init_async_processing:
+                init_async_processing(app)
+            if init_monitoring:
+                init_monitoring(app)
+            if init_learning_system:
+                init_learning_system(app)
+            if init_compression:
+                init_compression(app)
+            if plugin_registry:
+                plugin_registry.init_all(app)
+                plugin_registry.wire_blueprints(app)
+            
+            app.config['heavy_features_initialized'] = True
+            logger.info("✅ Heavy features initialization complete")
+            
+            return jsonify({
+                'status': 'success', 
+                'message': 'All heavy features initialized successfully',
+                'features_loaded': ['nous_tech', 'ai_brain', 'learning', 'monitoring', 'compression']
+            })
+            
+        except Exception as e:
+            logger.error(f"Heavy features initialization failed: {e}")
+            return jsonify({
+                'status': 'error', 
+                'message': f'Initialization failed: {str(e)}',
+                'fallback_active': True
+            }), 500
     
     @app.route('/health')
     @app.route('/healthz')
