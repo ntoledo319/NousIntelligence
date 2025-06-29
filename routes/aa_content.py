@@ -9,7 +9,8 @@ import os
 import logging
 from flask import Blueprint, render_template, request, jsonify, send_file, abort, current_app
 from flask_login import login_required, current_user
-from models.health_models import AABigBook, AABigBookAudio, AASpeakerRecording, AAFavorite, db
+from models.health_models import AABigBook, AASpeakerRecording, AAFavorite, db
+from models.aa_content_models import AABigBookAudio
 from utils.aa_content_loader import load_aa_content
 
 # Set up blueprint
