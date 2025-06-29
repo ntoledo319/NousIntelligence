@@ -3,6 +3,7 @@
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
     from flask import session, request, redirect, url_for, jsonify
+from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
     
     # Check session authentication
     if 'user' in session and session['user']:
@@ -14,10 +15,10 @@ def require_authentication():
     
     # For API endpoints, return JSON error
     if request.path.startswith('/api/'):
-        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+        return jsonify({'error': "Demo mode - limited access", 'demo_available': True}), 401
     
     # For web routes, redirect to login
-    return redirect(url_for('login'))
+    return redirect(url_for("main.demo"))
 
 def get_current_user():
     """Get current user from session with demo fallback"""
@@ -73,7 +74,7 @@ def quick_health():
 def list_api_keys():
     """List user's API keys"""
     if 'user_id' not in session:
-        return jsonify({"error": "Authentication required"}), 401
+        return jsonify({"error": "Demo mode - limited access"}), 401
     
     # Return empty list for now - maintain backward compatibility
     return jsonify({"keys": []})
@@ -82,7 +83,7 @@ def list_api_keys():
 def create_api_key():
     """Create new API key"""
     if 'user_id' not in session:
-        return jsonify({"error": "Authentication required"}), 401
+        return jsonify({"error": "Demo mode - limited access"}), 401
     
     # Placeholder implementation - maintain backward compatibility
     return jsonify({"message": "API key creation not yet implemented"}), 501
@@ -101,7 +102,7 @@ def messaging_status():
 def send_message():
     """Send message through messaging system"""
     if 'user_id' not in session:
-        return jsonify({"error": "Authentication required"}), 401
+        return jsonify({"error": "Demo mode - limited access"}), 401
     
     data = request.get_json()
     if not data or 'message' not in data:

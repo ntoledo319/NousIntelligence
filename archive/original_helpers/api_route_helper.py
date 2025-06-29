@@ -139,7 +139,7 @@ def register_api_error_handlers(blueprint: Blueprint) -> None:
     def handle_unauthorized(e):
         return jsonify({
             'success': False,
-            'error': str(e) or "Unauthorized"
+            'error': str(e) or "Demo mode - limited access"
         }), 401
 
     @blueprint.errorhandler(403)

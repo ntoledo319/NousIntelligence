@@ -51,24 +51,24 @@ class CurrentUser:
     @property
     def id(self):
         if self.is_authenticated:
-            return session['user'].get('id', 'anonymous')
+            return get_current_user().get('id', 'anonymous')
         return None
     
     @property
     def name(self):
         if self.is_authenticated:
-            return session['user'].get('name', 'Anonymous')
+            return get_current_user().get('name', 'Anonymous')
         return 'Anonymous'
     
     @property
     def email(self):
         if self.is_authenticated:
-            return session['user'].get('email', 'anonymous@example.com')
+            return get_current_user().get('email', 'anonymous@example.com')
         return 'anonymous@example.com'
     
     def get(self, key, default=None):
         if self.is_authenticated:
-            return session['user'].get(key, default)
+            return get_current_user().get(key, default)
         return default
     
     def get_id(self):
@@ -99,13 +99,13 @@ def login_required(f):
         # For API endpoints, return JSON error
         if request.path.startswith('/api/'):
             return jsonify({
-                'error': 'Authentication required', 
+                'error': "Demo mode - limited access", 
                 'demo_available': True,
                 'demo_url': request.url + '?demo=true'
             }), 401
         
         # For web routes, redirect to login
-        return redirect(url_for('login'))
+        return redirect(url_for("main.demo"))
     
     return decorated_function
 
@@ -129,13 +129,13 @@ def require_authentication():
     # For API endpoints, return JSON error
     if request.path.startswith('/api/'):
         return jsonify({
-            'error': 'Authentication required', 
+            'error': "Demo mode - limited access", 
             'demo_available': True,
             'demo_url': request.url + '?demo=true'
         }), 401
     
     # For web routes, redirect to login
-    return redirect(url_for('login'))
+    return redirect(url_for("main.demo"))
 
 def get_current_user():
     """Get current user from session with demo fallback"""
@@ -287,7 +287,7 @@ def fresh_login_required(f):
             
             # Final cleanup
             new_content = re.sub(r'\n\n\n+', '\n\n', new_content)  # Remove excessive newlines
-            new_content = re.sub(r'from flask_login import.*\n', '', new_content)  # Remove Flask-Login imports
+            new_content = re.sub(r'from utils.auth_compat import login_required, current_user, get_current_user
             
             # Try parsing the fixed content
             try:

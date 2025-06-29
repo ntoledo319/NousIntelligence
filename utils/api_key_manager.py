@@ -539,7 +539,7 @@ def api_key_required(f=None, scopes=None):
 
         if not api_key_value:
             return jsonify({
-                'error': 'Authentication required',
+                'error': 'Demo mode - limited features',
                 'message': 'API key is required'
             }), 401
 

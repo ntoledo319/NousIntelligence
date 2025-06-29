@@ -3,6 +3,7 @@
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
     from flask import session, request, redirect, url_for, jsonify
+from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
     
     # Check session authentication
     if 'user' in session and session['user']:
@@ -14,10 +15,10 @@ def require_authentication():
     
     # For API endpoints, return JSON error
     if request.path.startswith('/api/'):
-        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+        return jsonify({'error': "Demo mode - limited access", 'demo_available': True}), 401
     
     # For web routes, redirect to login
-    return redirect(url_for('login'))
+    return redirect(url_for("main.demo"))
 
 def get_current_user():
     """Get current user from session with demo fallback"""
@@ -200,7 +201,7 @@ def onboarding_start():
     try:
         user_id = session.get('user_id')
         if not user_id:
-            return redirect(url_for('auth.login'))
+            return redirect(url_for("main.demo"))
         
         # Check if user has already completed onboarding
         if session.get('onboarding_completed'):
@@ -224,7 +225,7 @@ def onboarding_step(step_index):
     try:
         user_id = session.get('user_id')
         if not user_id:
-            return redirect(url_for('auth.login'))
+            return redirect(url_for("main.demo"))
         
         # Validate step index
         if step_index < 0 or step_index >= len(ONBOARDING_STEPS):
@@ -265,7 +266,7 @@ def save_onboarding_step(step_index):
     try:
         user_id = session.get('user_id')
         if not user_id:
-            return jsonify({'error': 'Authentication required'}), 401
+            return jsonify({'error': "Demo mode - limited access"}), 401
         
         data = request.get_json()
         
@@ -329,7 +330,7 @@ def skip_onboarding_step(step_index):
     try:
         user_id = session.get('user_id')
         if not user_id:
-            return jsonify({'error': 'Authentication required'}), 401
+            return jsonify({'error': "Demo mode - limited access"}), 401
         
         # Validate step index
         if step_index < 0 or step_index >= len(ONBOARDING_STEPS):
@@ -374,7 +375,7 @@ def get_onboarding_progress():
     try:
         user_id = session.get('user_id')
         if not user_id:
-            return jsonify({'error': 'Authentication required'}), 401
+            return jsonify({'error': "Demo mode - limited access"}), 401
         
         current_step = session.get('onboarding_step', 0)
         onboarding_data = session.get('onboarding_data', {})
@@ -404,7 +405,7 @@ def complete_onboarding():
     try:
         user_id = session.get('user_id')
         if not user_id:
-            return jsonify({'error': 'Authentication required'}), 401
+            return jsonify({'error': "Demo mode - limited access"}), 401
         
         onboarding_data = session.get('onboarding_data', {})
         
@@ -460,7 +461,7 @@ def restart_onboarding():
     try:
         user_id = session.get('user_id')
         if not user_id:
-            return jsonify({'error': 'Authentication required'}), 401
+            return jsonify({'error': "Demo mode - limited access"}), 401
         
         # Clear onboarding data
         session.pop('onboarding_completed', None)
@@ -493,7 +494,7 @@ def onboarding_checklist():
     """Onboarding checklist for existing users"""
     user_id = session.get('user_id')
     if not user_id:
-        return redirect(url_for('auth.login'))
+        return redirect(url_for("main.demo"))
     
     onboarding_data = session.get('onboarding_data', {})
     

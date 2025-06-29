@@ -9,7 +9,7 @@ for secure access to the NOUS API.
 """
 import logging
 from flask import Blueprint, request, jsonify, g
-from flask_login import current_user, login_required
+from utils.auth_compat import login_required, current_user, get_current_user
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 import json
 from datetime import datetime
@@ -59,7 +59,7 @@ def list_keys():
     }
     """
     # Get keys for current user
-    api_keys = APIKey.query.filter_by(user_id=current_user.id).all()
+    api_keys = APIKey.query.filter_by(user_id=get_current_user().get("id") if get_current_user() else None).all()
 
     # Format response
     keys = [key.to_dict() for key in api_keys]
@@ -98,7 +98,7 @@ def get_key(key_id):
     api_key = APIKey.query.get_or_404(key_id)
 
     # Check authorization (must be owner or admin)
-    if api_key.user_id != current_user.id and not current_user.is_administrator():
+    if api_key.user_id != get_current_user().get("id") if get_current_user() else None and not current_user.is_administrator():
         return jsonify({
             "error": "Forbidden",
             "message": "You do not have permission to view this API key"
@@ -151,7 +151,7 @@ def create_key():
     try:
         # Create new API key
         api_key, full_key = create_api_key(
-            user_id=current_user.id,
+            user_id=get_current_user().get("id") if get_current_user() else None,
             name=name,
             scopes=scopes,
             expires_in_days=expires_in_days,
@@ -205,7 +205,7 @@ def rotate_key(key_id):
     api_key = APIKey.query.get_or_404(key_id)
 
     # Check authorization (must be owner or admin)
-    if api_key.user_id != current_user.id and not current_user.is_administrator():
+    if api_key.user_id != get_current_user().get("id") if get_current_user() else None and not current_user.is_administrator():
         return jsonify({
             "error": "Forbidden",
             "message": "You do not have permission to rotate this API key"
@@ -218,7 +218,7 @@ def rotate_key(key_id):
         # Rotate the key
         new_key, full_key = rotate_api_key(
             api_key_id=key_id,
-            performed_by_id=current_user.id,
+            performed_by_id=get_current_user().get("id") if get_current_user() else None,
             request_info=request_info
         )
 
@@ -259,7 +259,7 @@ def revoke_key(key_id):
     api_key = APIKey.query.get_or_404(key_id)
 
     # Check authorization (must be owner or admin)
-    if api_key.user_id != current_user.id and not current_user.is_administrator():
+    if api_key.user_id != get_current_user().get("id") if get_current_user() else None and not current_user.is_administrator():
         return jsonify({
             "error": "Forbidden",
             "message": "You do not have permission to revoke this API key"
@@ -272,7 +272,7 @@ def revoke_key(key_id):
         # Revoke the key
         revoke_api_key(
             api_key_id=key_id,
-            performed_by_id=current_user.id,
+            performed_by_id=get_current_user().get("id") if get_current_user() else None,
             request_info=request_info
         )
 
@@ -328,7 +328,7 @@ def key_events(key_id):
     api_key = APIKey.query.get_or_404(key_id)
 
     # Check authorization (must be owner or admin)
-    if api_key.user_id != current_user.id and not current_user.is_administrator():
+    if api_key.user_id != get_current_user().get("id") if get_current_user() else None and not current_user.is_administrator():
         return jsonify({
             "error": "Forbidden",
             "message": "You do not have permission to view events for this API key"

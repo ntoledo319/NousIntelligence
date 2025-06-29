@@ -21,7 +21,7 @@ import io
 import json
 import logging
 from flask import Blueprint, render_template, request, jsonify, current_app, session
-from flask_login import login_required, current_user
+from utils.auth_compat import login_required, current_user, get_current_user
 
 from utils.emotion_detection import analyze_voice_audio
 from utils.settings import get_setting
@@ -68,7 +68,7 @@ def analyze_voice_emotion():
             return jsonify({'success': False, 'error': 'Empty audio file'}), 400
 
         # Get the user ID if a user is logged in
-        user_id = str(current_user.id) if current_user.is_authenticated else None
+        user_id = str(get_current_user().get("id") if get_current_user() else None) if is_authenticated() else None
 
         # Analyze the audio for emotions
         result = analyze_voice_audio(audio_bytes, user_id)

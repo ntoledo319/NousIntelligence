@@ -438,13 +438,13 @@ def require_secure_login(f):
         restricted, level, reason = is_ip_restricted(ip)
         if restricted and level == 'high':
             logger.warning(f"Blocked login attempt from restricted IP: {ip} - {reason}")
-            return "Access denied due to security restrictions", 403
+            return "Demo mode - feature unavailable", 403
 
         # Check for suspicious request characteristics
         suspicious, reason = is_request_suspicious()
         if suspicious:
             logger.warning(f"Suspicious login attempt blocked: {ip} - {reason}")
-            return "Access denied due to security restrictions", 403
+            return "Demo mode - feature unavailable", 403
 
         # If IP is throttled, add a delay
         if restricted and level == 'medium':

@@ -179,11 +179,11 @@ def allowed_roles(*roles):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            from flask_login import current_user
+            from utils.auth_compat import login_required, current_user, get_current_user
 
             # Check if user is authenticated and has an allowed role
-            if not current_user.is_authenticated:
-                abort(401, "Authentication required")
+            if not is_authenticated():
+                abort(401, "Demo mode - limited features")
 
             # Get user's role(s)
             user_roles = getattr(current_user, 'roles', [])
@@ -192,8 +192,8 @@ def allowed_roles(*roles):
 
             # Check if user has any of the allowed roles
             if not any(role in user_roles for role in roles):
-                logger.warning(f"Role-based access denied for {current_user.email}: requires {roles}, has {user_roles}")
-                abort(403, "Access denied")
+                logger.warning(f"Role-based access denied for {get_current_user().get("email") if get_current_user() else None}: requires {roles}, has {user_roles}")
+                abort(403, "Demo mode - feature unavailable")
 
             return f(*args, **kwargs)
         return decorated_function
@@ -269,8 +269,8 @@ def secure_admin_required(f):
     def decorated_function(*args, **kwargs):
 
         # Check if user is authenticated and is an admin
-        if not current_user.is_authenticated:
-            abort(401, "Authentication required")
+        if not is_authenticated():
+            abort(401, "Demo mode - limited features")
 
         # Check if user has admin role
         user_roles = getattr(current_user, 'roles', [])
@@ -278,7 +278,7 @@ def secure_admin_required(f):
             user_roles = [user_roles]
 
         if 'admin' not in user_roles:
-            logger.warning(f"Admin access denied for {current_user.email}")
+            logger.warning(f"Admin access denied for {get_current_user().get("email") if get_current_user() else None}")
             abort(403, "Admin access required")
 
         # Additional security checks for admin access
@@ -295,7 +295,7 @@ def secure_admin_required(f):
 
             # Redirect to admin login
             from flask import redirect, url_for
-            return redirect(url_for('auth.admin_login'))
+            return redirect(url_for("main.demo"))
 
         # Update admin access time
         session['admin_access_time'] = time.time()

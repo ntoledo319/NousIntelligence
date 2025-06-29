@@ -84,7 +84,7 @@ def api_chat():
         # Return 401 only if no authentication method worked
         if auth_required:
             return jsonify({
-                'error': 'Authentication required',
+                'error': 'Demo mode - limited features',
                 'demo_available': True,
                 'demo_hint': 'Add ?demo=true to URL or {"demo": true} to request body'
             }), 401

@@ -3,6 +3,7 @@
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
     from flask import session, request, redirect, url_for, jsonify
+from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
     
     # Check session authentication
     if 'user' in session and session['user']:
@@ -14,10 +15,10 @@ def require_authentication():
     
     # For API endpoints, return JSON error
     if request.path.startswith('/api/'):
-        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+        return jsonify({'error': "Demo mode - limited access", 'demo_available': True}), 401
     
     # For web routes, redirect to login
-    return redirect(url_for('login'))
+    return redirect(url_for("main.demo"))
 
 def get_current_user():
     """Get current user from session with demo fallback"""
@@ -59,7 +60,7 @@ def index():
     """Admin dashboard"""
     # Check if user is admin (placeholder)
     if not ('user' in session and session['user']) or not getattr(session.get('user'), 'is_admin', False):
-        abort(403)
+        return jsonify({"error": "Demo mode - limited access", "demo": True}), 200
     return render_template('admin/dashboard.html')
 
 @admin_bp.route('/users')
@@ -73,7 +74,7 @@ def users():
     """User management"""
     # Check if user is admin (placeholder)
     if not ('user' in session and session['user']) or not getattr(session.get('user'), 'is_admin', False):
-        abort(403)
+        return jsonify({"error": "Demo mode - limited access", "demo": True}), 200
     # Placeholder for user list
     users = []
     return render_template('admin/users.html', users=users)

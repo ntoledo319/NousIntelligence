@@ -7,7 +7,7 @@ import os
 import re
 import logging
 from flask import session, g
-from flask_login import current_user
+from utils.auth_compat import login_required, current_user, get_current_user
 
 # Initialize with default difficulty
 _current_difficulty = "intermediate"
@@ -31,7 +31,7 @@ def get_current_difficulty():
     global _current_difficulty
 
     # Try to get from current user's database settings first
-    if current_user and current_user.is_authenticated and hasattr(current_user, 'settings') and current_user.settings:
+    if current_user and is_authenticated() and hasattr(current_user, 'settings') and current_user.settings:
         return current_user.settings.conversation_difficulty
 
     # Next try session

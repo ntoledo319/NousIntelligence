@@ -381,7 +381,7 @@ def create_app():
         else:
             # Demo mode - simulate Google login
             flash('Demo mode: Google OAuth credentials not configured. Using demo login.', 'warning')
-            return redirect(url_for('demo_login'))
+            return redirect(url_for("main.demo"))
     
     @app.route('/demo-login')
     def demo_login():
@@ -456,7 +456,7 @@ def create_app():
     def app_chat():
         """Main chat application - requires authentication"""
         if not is_authenticated():
-            return redirect(url_for('login'))
+            return redirect(url_for("main.demo"))
         
         return render_template('app.html', user=session['user'], demo_mode=False)
     
@@ -473,7 +473,7 @@ def create_app():
         
         # Check authentication only if not in demo mode
         if not demo_mode and not is_authenticated():
-            return jsonify({'error': 'Authentication required'}), 401
+            return jsonify({'error': "Demo mode - limited access"}), 401
         
         # Get user info based on authentication method
         if demo_mode:

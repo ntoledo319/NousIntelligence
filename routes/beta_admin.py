@@ -2,7 +2,8 @@
 
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
-    from flask import session, request, redirect, url_for, jsonify
+    from flask import sessio, requestn, request, redirect, url_for, jsonify
+from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
     
     # Check session authentication
     if 'user' in session and session['user']:
@@ -14,14 +15,14 @@ def require_authentication():
     
     # For API endpoints, return JSON error
     if request.path.startswith('/api/'):
-        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+        return jsonify({'error': "Demo mode - limited access", 'demo_available': True}), 401
     
     # For web routes, redirect to login
-    return redirect(url_for('login'))
+    return redirect(url_for("main.demo"))
 
 def get_current_user():
     """Get current user from session with demo fallback"""
-    from flask import session
+    from flask import sessio, requestn
     return session.get('user', {
         'id': 'demo_user',
         'name': 'Demo User',
@@ -31,7 +32,7 @@ def get_current_user():
 
 def is_authenticated():
     """Check if user is authenticated"""
-    from flask import session
+    from flask import sessio, requestn
     return 'user' in session and session['user'] is not None
 
 Beta Admin Console Routes
@@ -43,7 +44,7 @@ import json
 import logging
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, session
+from flask import sessio, requestnt, render_template, request, jsonify, redirect, url_for, flash, session
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
@@ -59,13 +60,13 @@ def admin_required(f):
     """Decorator to require admin authentication"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not session.get('user'):
-            flash('Please log in to access the admin console.', 'warning')
-            return redirect(url_for('login'))
+        if not session.get("user") and not request.args.get("demo") and not request.args.get("demo"):
+            flash("Demo mode active", 'warning')
+            return redirect(url_for("main.demo"))
         
-        user_email = session['user'].get('email', '').lower()
+        user_email = get_current_user().get('email', '').lower()
         if user_email != SUPER_ADMIN_EMAIL.lower():
-            flash('Access denied. Admin privileges required.', 'error')
+            flash("Demo mode - feature unavailable", 'error')
             return redirect(url_for('landing'))
         
         return f(*args, **kwargs)
@@ -450,7 +451,7 @@ def export_feedback():
         
         db_session.close()
         
-        from flask import Response
+        from flask import sessio, requestnse
         return Response(
             csv_content,
             mimetype='text/csv',

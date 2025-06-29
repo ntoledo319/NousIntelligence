@@ -5,7 +5,7 @@ This module defines user-related database models for the NOUS application,
 including user account data, preferences, and authentication.
 """
 
-from flask_login import UserMixin
+from utils.auth_compat import login_required, current_user, get_current_user
 from database import db
 from datetime import datetime
 

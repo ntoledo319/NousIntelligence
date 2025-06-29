@@ -3,6 +3,7 @@
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
     from flask import session, request, redirect, url_for, jsonify
+from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
     
     # Check session authentication
     if 'user' in session and session['user']:
@@ -14,10 +15,10 @@ def require_authentication():
     
     # For API endpoints, return JSON error
     if request.path.startswith('/api/'):
-        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+        return jsonify({'error': "Demo mode - limited access", 'demo_available': True}), 401
     
     # For web routes, redirect to login
-    return redirect(url_for('login'))
+    return redirect(url_for("main.demo"))
 
 def get_current_user():
     """Get current user from session with demo fallback"""
@@ -111,7 +112,7 @@ def logout():
     session.clear()
 
     # Redirect to login page
-    return redirect(url_for('auth.login'))
+    return redirect(url_for("main.demo"))
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 
@@ -143,7 +144,7 @@ def register():
 
         # Simulate successful registration
         flash('Registration successful! Please log in.', 'success')
-        return redirect(url_for('auth.login'))
+        return redirect(url_for("main.demo"))
 
     except Exception as e:
         logger.error(f"Registration error: {str(e)}")
@@ -178,7 +179,7 @@ def password_reset_request():
 
         # Simulate successful request
         flash('If your email is registered, you will receive password reset instructions.', 'info')
-        return redirect(url_for('auth.login'))
+        return redirect(url_for("main.demo"))
 
     except Exception as e:
         logger.error(f"Password reset request error: {str(e)}")
@@ -225,7 +226,7 @@ def password_reset(token):
 
         # Simulate successful reset
         flash('Your password has been reset. Please log in with your new password.', 'success')
-        return redirect(url_for('auth.login'))
+        return redirect(url_for("main.demo"))
 
     except Exception as e:
         logger.error(f"Password reset error: {str(e)}")

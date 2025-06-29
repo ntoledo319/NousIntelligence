@@ -13,6 +13,7 @@ import os
 from typing import Dict, List, Any, Optional, Union
 import random
 from flask import session
+from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
 
 from utils.spotify_helper import get_spotify_client
 

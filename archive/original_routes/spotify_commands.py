@@ -10,7 +10,7 @@ It processes actions detected by the AI helper and executes the appropriate Spot
 
 import logging
 from flask import Blueprint, jsonify, request, session
-from flask_login import current_user, login_required
+from utils.auth_compat import login_required, current_user, get_current_user
 import os
 
 from utils.spotify_helper import get_spotify_client
@@ -27,8 +27,8 @@ spotify_commands = Blueprint('spotify_commands', __name__)
 @login_required
 def execute_spotify_command():
     """Execute a Spotify command from the chat interface"""
-    if not current_user.is_authenticated:
-        return jsonify({"success": False, "error": "Authentication required"}), 401
+    if not is_authenticated():
+        return jsonify({"success": False, "error": "Demo mode - limited features"}), 401
 
     # Get Spotify client
     spotify_client, _ = get_spotify_client(
@@ -36,7 +36,7 @@ def execute_spotify_command():
         client_id=SPOTIFY_CLIENT_ID,
         client_secret=SPOTIFY_CLIENT_SECRET,
         redirect_uri=SPOTIFY_REDIRECT,
-        user_id=current_user.id
+        user_id=get_current_user().get("id") if get_current_user() else None
     )
 
     if not spotify_client:
@@ -217,7 +217,7 @@ def execute_spotify_command():
             if create_playlist:
                 # Create a mood-based playlist using SpotifyAI
                 spotify_ai = get_spotify_ai()
-                spotify_ai.authenticate(session, current_user.id)
+                spotify_ai.authenticate(session, get_current_user().get("id") if get_current_user() else None)
 
                 # Get mood recommendations
                 tracks = spotify_ai.recommend_music_by_mood(mood, diversity_level=0.7)
@@ -265,7 +265,7 @@ def execute_spotify_command():
             else:
                 # Use the AI integration for recommendations
                 spotify_ai = get_spotify_ai()
-                spotify_ai.authenticate(session, current_user.id)
+                spotify_ai.authenticate(session, get_current_user().get("id") if get_current_user() else None)
                 recommendations = spotify_ai.recommend_music_by_mood(mood)
 
                 if recommendations:
@@ -292,7 +292,7 @@ def execute_spotify_command():
 
             # Use the AI integration to find an activity playlist
             spotify_ai = get_spotify_ai()
-            spotify_ai.authenticate(session, current_user.id)
+            spotify_ai.authenticate(session, get_current_user().get("id") if get_current_user() else None)
             playlist = spotify_ai.get_playlist_for_activity(activity, personalize=True)
 
             if playlist:
@@ -323,7 +323,7 @@ def execute_spotify_command():
 
                 # Use SpotifyAI for track analysis
                 spotify_ai = get_spotify_ai()
-                spotify_ai.authenticate(session, current_user.id)
+                spotify_ai.authenticate(session, get_current_user().get("id") if get_current_user() else None)
 
                 # Search for the track
                 tracks = spotify_client.search_tracks(track_name, limit=1)
@@ -394,7 +394,7 @@ def execute_spotify_command():
 
                 # Use SpotifyAI for more advanced analysis
                 spotify_ai = get_spotify_ai()
-                spotify_ai.authenticate(session, current_user.id)
+                spotify_ai.authenticate(session, get_current_user().get("id") if get_current_user() else None)
                 listening_history = spotify_ai.analyze_user_listening_history(time_range)
 
                 if listening_history and not isinstance(listening_history, dict) and not listening_history.get('error'):
@@ -510,8 +510,8 @@ def execute_spotify_command():
 @login_required
 def create_smart_playlist():
     """Create a smart playlist based on a seed"""
-    if not current_user.is_authenticated:
-        return jsonify({"success": False, "error": "Authentication required"}), 401
+    if not is_authenticated():
+        return jsonify({"success": False, "error": "Demo mode - limited features"}), 401
 
     # Get Spotify client
     spotify_client, _ = get_spotify_client(
@@ -519,7 +519,7 @@ def create_smart_playlist():
         client_id=SPOTIFY_CLIENT_ID,
         client_secret=SPOTIFY_CLIENT_SECRET,
         redirect_uri=SPOTIFY_REDIRECT,
-        user_id=current_user.id
+        user_id=get_current_user().get("id") if get_current_user() else None
     )
 
     if not spotify_client:
@@ -541,7 +541,7 @@ def create_smart_playlist():
     try:
         # Create a smart playlist using SpotifyAI
         spotify_ai = get_spotify_ai()
-        spotify_ai.authenticate(session, current_user.id)
+        spotify_ai.authenticate(session, get_current_user().get("id") if get_current_user() else None)
 
         result = spotify_ai.generate_smart_playlist(name, seed_type, seed_value, track_count)
 
@@ -555,8 +555,8 @@ def create_smart_playlist():
 @login_required
 def get_track_mood():
     """Get the mood classification for a track"""
-    if not current_user.is_authenticated:
-        return jsonify({"success": False, "error": "Authentication required"}), 401
+    if not is_authenticated():
+        return jsonify({"success": False, "error": "Demo mode - limited features"}), 401
 
     # Get Spotify client
     spotify_client, _ = get_spotify_client(
@@ -564,7 +564,7 @@ def get_track_mood():
         client_id=SPOTIFY_CLIENT_ID,
         client_secret=SPOTIFY_CLIENT_SECRET,
         redirect_uri=SPOTIFY_REDIRECT,
-        user_id=current_user.id
+        user_id=get_current_user().get("id") if get_current_user() else None
     )
 
     if not spotify_client:
@@ -588,7 +588,7 @@ def get_track_mood():
 
         # Use SpotifyAI for mood classification
         spotify_ai = get_spotify_ai()
-        spotify_ai.authenticate(session, current_user.id)
+        spotify_ai.authenticate(session, get_current_user().get("id") if get_current_user() else None)
         mood = spotify_ai.classify_track_mood(track_id)
 
         result = {

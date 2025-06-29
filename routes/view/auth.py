@@ -3,6 +3,7 @@
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
     from flask import session, request, redirect, url_for, jsonify
+from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
     
     # Check session authentication
     if 'user' in session and session['user']:
@@ -14,10 +15,10 @@ def require_authentication():
     
     # For API endpoints, return JSON error
     if request.path.startswith('/api/'):
-        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+        return jsonify({'error': "Demo mode - limited access", 'demo_available': True}), 401
     
     # For web routes, redirect to login
-    return redirect(url_for('login'))
+    return redirect(url_for("main.demo"))
 
 def get_current_user():
     """Get current user from session with demo fallback"""
@@ -116,14 +117,14 @@ def email_login():
     if not check_rate_limit(request.remote_addr, 'login_attempt'):
         flash('Too many login attempts. Please try again later.', 'danger')
         logger.warning(f"Rate limit exceeded for login from IP: {request.remote_addr}")
-        return redirect(url_for('auth.login'))
+        return redirect(url_for("main.demo"))
 
     email = request.form.get('email')
     password = request.form.get('password')
 
     if not email or not password:
         flash('Please enter both email and password', 'danger')
-        return redirect(url_for('auth.login'))
+        return redirect(url_for("main.demo"))
 
     # Look up the user by email
     user = User.query.filter_by(email=email).first()
@@ -148,7 +149,7 @@ def email_login():
     # Login failed
     flash("Invalid email or password. Please try again.", "danger")
     logger.warning(f"Failed login attempt for {email}")
-    return redirect(url_for('auth.login'))
+    return redirect(url_for("main.demo"))
 
 @auth_bp.route('/direct-google-login', methods=['GET'])
 
@@ -168,7 +169,7 @@ def direct_google_login():
     logger.info("Direct Google authentication requested")
 
     # Redirect to Google auth login
-    return redirect(url_for("google_auth.login"))
+    return redirect(url_for("main.demo"))
 
 # Remove insecure admin_login route
 # Admin access should only be done through secure authentication

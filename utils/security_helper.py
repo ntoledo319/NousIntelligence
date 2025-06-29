@@ -8,6 +8,7 @@ import time
 import re
 from functools import wraps
 from flask import request, jsonify, session
+from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
 from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
 
@@ -227,7 +228,7 @@ def get_client_identifier() -> str:
     """
     # Try to get user ID from session
     if 'user' in session and session['user']:
-        return f"user_{session['user'].get('id', 'unknown')}"
+        return f"user_{get_current_user().get('id', 'unknown')}"
     
     # Fall back to IP address
     ip = request.headers.get('X-Forwarded-For', request.remote_addr)
