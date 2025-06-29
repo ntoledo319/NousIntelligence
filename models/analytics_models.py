@@ -107,7 +107,7 @@ class UserInsight(db.Model):
     expires_at = db.Column(db.DateTime)  # For time-sensitive insights
     
     # Relationships
-    user = db.relationship('User', backref=db.backref('insights', lazy=True))
+    user = db.relationship('User', backref=db.backref('user_insights', lazy=True))
 
     def to_dict(self):
         return {
@@ -341,7 +341,7 @@ class Insight(db.Model):
     expires_at = db.Column(db.DateTime)  # Some insights may have expiration
     
     # Relationships
-    user = db.relationship('User', backref=db.backref('insights', lazy=True))
+    user = db.relationship('User', backref=db.backref('analytics_insights', lazy=True))
 
     def to_dict(self):
         return {
