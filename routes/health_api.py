@@ -1,4 +1,13 @@
 """
+Health API routes for monitoring and diagnostics
+"""
+
+from flask import Blueprint, jsonify, request
+import datetime
+import os
+
+# Create blueprint
+health_api_bp = Blueprint('health_api', __name__)
 
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
