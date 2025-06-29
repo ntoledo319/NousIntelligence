@@ -11,7 +11,14 @@ import logging
 import tempfile
 import subprocess
 from typing import Optional, Dict, Any, List, Tuple
-import speech_recognition as sr
+
+# Try to import speech_recognition with fallback
+try:
+    import speech_recognition as sr
+    SPEECH_RECOGNITION_AVAILABLE = True
+except ImportError:
+    SPEECH_RECOGNITION_AVAILABLE = False
+    sr = None
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -29,7 +36,14 @@ class SpeechToText:
         Args:
             whisper_model_path: Path to Whisper model file (if using local processing)
         """
-        self.recognizer = sr.Recognizer()
+        self.recognizer = None
+        self.has_speech_recognition = SPEECH_RECOGNITION_AVAILABLE
+        
+        if self.has_speech_recognition and sr:
+            self.recognizer = sr.Recognizer()
+        else:
+            logger.warning("speech_recognition library not available. Voice features will be limited.")
+            
         self.whisper_model_path = whisper_model_path
         self.whisper_binary_path = os.path.expanduser("~/whisper.cpp/main")
         
@@ -40,7 +54,7 @@ class SpeechToText:
         else:
             logger.warning("Whisper.cpp binary not found. Will use alternative methods.")
     
-    def record_audio(self, duration: int = 5) -> sr.AudioData:
+    def record_audio(self, duration: int = 5):
         """
         Record audio from microphone for specified duration.
         
@@ -51,15 +65,18 @@ class SpeechToText:
             AudioData object containing the recorded audio
             
         Raises:
-            RuntimeError: If microphone access fails
+            RuntimeError: If microphone access fails or speech_recognition not available
         """
+        if not self.has_speech_recognition or not self.recognizer:
+            raise RuntimeError("speech_recognition library not available")
+            
         logger.info("Recording audio for %d seconds", duration)
         with sr.Microphone() as source:
             # Adjust for ambient noise
-            self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
+            self.recognizer.adjust_for_ambient_noise(source, duration=1)
             return self.recognizer.record(source, duration=duration)
     
-    def save_audio_data(self, audio_data: sr.AudioData, file_path: str) -> None:
+    def save_audio_data(self, audio_data, file_path: str) -> None:
         """
         Save AudioData to WAV file.
         
@@ -67,6 +84,9 @@ class SpeechToText:
             audio_data: AudioData object to save
             file_path: Path where to save the WAV file
         """
+        if not self.has_speech_recognition:
+            raise RuntimeError("speech_recognition library not available")
+            
         with open(file_path, "wb") as f:
             f.write(audio_data.get_wav_data())
         logger.debug("Audio saved to %s", file_path)
@@ -113,7 +133,7 @@ class SpeechToText:
             logger.error("Whisper.cpp transcription failed: %s", e.stderr)
             raise RuntimeError(f"Whisper transcription failed: {e.stderr}")
     
-    def transcribe_with_google(self, audio_data: sr.AudioData) -> str:
+    def transcribe_with_google(self, audio_data) -> str:
         """
         Transcribe audio using Google Web Speech API.
         
@@ -124,13 +144,15 @@ class SpeechToText:
             Transcribed text
             
         Raises:
-            sr.UnknownValueError: If speech is unintelligible
-            sr.RequestError: If API request fails
+            RuntimeError: If speech_recognition not available
+            Exception: If speech is unintelligible or API request fails
         """
+        if not self.has_speech_recognition or not self.recognizer:
+            raise RuntimeError("speech_recognition library not available")
+            
         return self.recognizer.recognize_google(audio_data)
     
-    def transcribe_audio(self, audio_data: Optional[sr.AudioData] = None, 
-                         duration: int = 5) -> Dict[str, Any]:
+    def transcribe_audio(self, audio_data=None, duration: int = 5) -> Dict[str, Any]:
         """
         Transcribe audio to text using available methods.
         
@@ -148,13 +170,21 @@ class SpeechToText:
             "method": None
         }
         
+        # If speech_recognition is not available and Whisper is not available
+        if not self.has_speech_recognition and not self.has_whisper:
+            result["error"] = "No speech recognition methods available. Please install speech-recognition package or Whisper.cpp"
+            return result
+        
         try:
-            # Record audio if not provided
-            if audio_data is None:
+            # Record audio if not provided and speech_recognition is available
+            if audio_data is None and self.has_speech_recognition:
                 audio_data = self.record_audio(duration=duration)
+            elif audio_data is None and not self.has_speech_recognition:
+                result["error"] = "Cannot record audio without speech_recognition library"
+                return result
             
             # Try using Whisper.cpp first if available
-            if self.has_whisper:
+            if self.has_whisper and audio_data:
                 with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
                     temp_path = temp_file.name
                 
@@ -163,21 +193,27 @@ class SpeechToText:
                     result["text"] = self.transcribe_with_whisper(temp_path)
                     result["method"] = "whisper-local"
                     result["success"] = True
+                except Exception as e:
+                    logger.warning("Whisper transcription failed: %s", e)
                 finally:
                     # Clean up temp file
                     if os.path.exists(temp_path):
                         os.unlink(temp_path)
             
             # Fall back to Google Web Speech API if Whisper failed or is unavailable
-            if not result["success"]:
-                result["text"] = self.transcribe_with_google(audio_data)
-                result["method"] = "google-web-speech"
-                result["success"] = True
+            if not result["success"] and self.has_speech_recognition and audio_data:
+                try:
+                    result["text"] = self.transcribe_with_google(audio_data)
+                    result["method"] = "google-web-speech"
+                    result["success"] = True
+                except Exception as e:
+                    if "unintelligible" in str(e).lower():
+                        result["error"] = "Speech was unintelligible"
+                    elif "request" in str(e).lower():
+                        result["error"] = f"API request failed: {e}"
+                    else:
+                        result["error"] = f"Google Speech API error: {e}"
                 
-        except sr.UnknownValueError:
-            result["error"] = "Speech was unintelligible"
-        except sr.RequestError as e:
-            result["error"] = f"API request failed: {e}"
         except RuntimeError as e:
             result["error"] = str(e)
         except Exception as e:
