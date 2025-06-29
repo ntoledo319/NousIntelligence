@@ -19,8 +19,18 @@ def is_authenticated():
 @notifications_bp.route('/', methods=['GET'])
 def get_notifications():
     """Get user notifications"""
+    # Allow public access with demo notifications for guests
     if not is_authenticated():
-        return jsonify({'error': 'Authentication required'}), 401
+        return jsonify({
+            'success': True,
+            'data': {
+                'notifications': [
+                    {'id': 'demo-1', 'message': 'Welcome to NOUS! Sign up for personalized notifications.', 'type': 'info', 'read': False}
+                ],
+                'total': 1,
+                'demo_mode': True
+            }
+        })
     
     try:
         from app import db

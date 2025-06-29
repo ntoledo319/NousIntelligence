@@ -222,11 +222,15 @@ def create_app():
         logger.info("NOUS Tech security monitor initialized")
         
         # Initialize advanced AI System Brain
-        app.ai_system_brain = create_ai_system_brain({
-            'learning_enabled': True,
-            'security_level': 'high',
-            'performance_monitoring': True
-        })
+        try:
+            app.config['ai_system_brain'] = create_ai_system_brain({
+                'learning_enabled': True,
+                'security_level': 'high',
+                'performance_monitoring': True
+            })
+        except Exception as e:
+            logger.warning(f"AI System Brain initialization failed: {e}")
+            app.config['ai_system_brain'] = None
         logger.info("NOUS Tech AI System Brain initialized")
         
     except ImportError as e:
@@ -672,8 +676,12 @@ def create_app():
     @app.route(f'{AppConfig.API_BASE_PATH}/feedback', methods=['POST'])
     def api_feedback():
         """Endpoint for collecting user feedback on AI responses"""
+        # Allow public feedback with guest user fallback
         if not is_authenticated():
-            return jsonify({'error': 'Authentication required'}), 401
+            # Create guest user session for feedback
+            user_id = 'guest_user'
+        else:
+            user_id = session['user']['id']
         
         data = request.get_json()
         if not data:
@@ -681,8 +689,6 @@ def create_app():
         
         try:
             from extensions.learning import log_interaction
-            
-            user_id = session['user']['id']
             input_text = data.get('input_text', '')
             response_text = data.get('response_text', '')
             rating = data.get('rating')  # 1-5 scale
@@ -718,8 +724,14 @@ def create_app():
     @app.route(f'{AppConfig.API_BASE_PATH}/analytics')
     def api_analytics():
         """Endpoint for retrieving learning analytics"""
+        # Allow public analytics with limited data for guests
         if not is_authenticated():
-            return jsonify({'error': 'Authentication required'}), 401
+            return jsonify({
+                'analytics': {'total_interactions': 0, 'demo_mode': True},
+                'improvements': ['Sign up for personalized analytics'],
+                'timestamp': datetime.now().isoformat(),
+                'is_guest': True
+            })
         
         try:
             from extensions.learning import get_feedback_analytics, suggest_improvements

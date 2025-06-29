@@ -19,8 +19,17 @@ def is_authenticated():
 @search_bp.route('/', methods=['GET'])
 def search_all():
     """Search across all user content"""
+    # Allow public search with limited results for guests
     if not is_authenticated():
-        return jsonify({'error': 'Authentication required'}), 401
+        query = request.args.get('q', '').strip()
+        return jsonify({
+            'success': True,
+            'data': {
+                'results': [{'title': f'Demo search result for: {query}', 'content': 'Sign up for full search capabilities', 'type': 'demo'}],
+                'total': 1,
+                'demo_mode': True
+            }
+        })
     
     try:
         from app import db
