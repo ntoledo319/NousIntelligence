@@ -102,8 +102,8 @@ class AppConfig:
         """Validate configuration and return any issues"""
         issues = []
         
-        if not (1024 <= cls.PORT <= 65535):
-            issues.append(f"Invalid port {cls.PORT}: must be between 1024-65535")
+        if not (1 <= cls.PORT <= 65535):
+            issues.append(f"Invalid port {cls.PORT}: must be between 1-65535")
         
         if not cls.SECRET_KEY or len(cls.SECRET_KEY) < 16:
             issues.append("SECRET_KEY is too short or missing")
