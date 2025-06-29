@@ -237,12 +237,32 @@ class EnhancedAISystem:
             else:
                 return "fallback", "local_template", 0.0
 
-    def make_ai_request(self, prompt: str, task_type: AITaskType = None, max_tokens: int = 1000) -> Dict[str, Any]:
-        """Enhanced AI request with full optimization"""
+    def make_ai_request(self, prompt: str, task_type: AITaskType = None, max_tokens: int = 1000, user_id: str = None) -> Dict[str, Any]:
+        """Enhanced AI request with AI brain optimization"""
         
         # Auto-detect task type if not provided
         if task_type is None:
             task_type = self.detect_task_type(prompt)
+        
+        # AI Brain optimization first
+        try:
+            from utils.ai_brain_cost_optimizer import optimize_ai_request
+            brain_optimization = optimize_ai_request(prompt, user_id)
+            
+            if brain_optimization.use_local:
+                # Use local/cached response
+                return {
+                    "content": self._generate_local_response(prompt, brain_optimization),
+                    "provider": brain_optimization.provider,
+                    "model": brain_optimization.model,
+                    "task_type": task_type.value,
+                    "estimated_cost": 0.0,
+                    "quality_score": brain_optimization.confidence,
+                    "ai_brain_optimized": True,
+                    "reasoning": brain_optimization.reasoning
+                }
+        except ImportError:
+            logger.warning("AI Brain optimizer not available, using standard optimization")
         
         # Check cache first
         cached_response = self.get_cached_response(prompt, task_type)
@@ -407,9 +427,35 @@ class EnhancedAISystem:
             self.usage_stats["voice_analyses"] += 1
             self.monthly_costs["voice"] += cost
 
+    def _generate_local_response(self, prompt: str, optimization: 'CostOptimization') -> str:
+        """Generate local response based on optimization"""
+        
+        if optimization.provider == "template":
+            # Use template responses
+            prompt_lower = prompt.lower()
+            
+            if any(greeting in prompt_lower for greeting in ["hello", "hi", "hey"]):
+                return "Hello! I'm here to help you today. What can I assist you with?"
+            elif any(thanks in prompt_lower for thanks in ["thank you", "thanks"]):
+                return "You're very welcome! I'm glad I could help. Is there anything else you need?"
+            elif any(status in prompt_lower for status in ["how are you", "status", "working"]):
+                return "I'm working perfectly and ready to help! What can I do for you?"
+            elif any(feeling in prompt_lower for feeling in ["feeling", "anxious", "stressed"]):
+                return "I hear you sharing about your feelings. That takes courage. Would you like to talk more about what you're experiencing?"
+        
+        elif optimization.provider == "cache":
+            return "Based on similar previous conversations, here's what I found helpful..."
+        
+        elif optimization.provider == "predictive":
+            return "Based on our conversation patterns, I anticipate you might be interested in..."
+        
+        # Default local response
+        return "I understand your request. Let me help you with that using my knowledge base."
+
     def get_cost_report(self) -> Dict[str, Any]:
-        """Get detailed cost and usage report"""
-        return {
+        """Get detailed cost and usage report with AI brain optimization"""
+        
+        base_report = {
             "monthly_costs": self.monthly_costs,
             "usage_stats": self.usage_stats,
             "free_tier_usage": self.free_tier_usage,
@@ -417,6 +463,16 @@ class EnhancedAISystem:
             "cost_per_user": self.monthly_costs["total"] / max(1, sum(self.usage_stats.values())),
             "optimization_status": "active"
         }
+        
+        # Add AI brain optimization report
+        try:
+            from utils.ai_brain_cost_optimizer import get_ai_optimization_report
+            brain_report = get_ai_optimization_report()
+            base_report["ai_brain_optimization"] = brain_report
+        except ImportError:
+            base_report["ai_brain_optimization"] = {"status": "not_available"}
+        
+        return base_report
 
     # Enhanced convenience methods
     def research_query(self, question: str) -> str:

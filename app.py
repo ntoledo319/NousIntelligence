@@ -471,7 +471,7 @@ def create_app():
     @app.route(f'{AppConfig.API_BASE_PATH}/chat', methods=['POST'])
     @app.route(f'{AppConfig.API_LEGACY_PATH}/chat', methods=['POST'])  # Legacy support
     def api_chat():
-        """Chat API endpoint - supports both authenticated and demo mode"""
+        """Chat API endpoint with AI brain cost optimization"""
         data = request.get_json()
         message = data.get('message', '').strip()
         demo_mode = data.get('demo_mode', False) or data.get('demo', False)
@@ -483,68 +483,115 @@ def create_app():
         if not demo_mode and not is_authenticated():
             return jsonify({'error': "Demo mode - limited access"}), 401
         
-        # Get user info based on authentication method
+        # Get user info and ID for brain optimization
+        user_id = None
         if demo_mode:
             user_name = 'Guest User'
-            response_prefix = "Demo response: "
+            user_id = 'guest_user'
         elif 'user' in session and session['user']:
-            # Session authentication
             user_name = session['user']['name']
-            response_prefix = "Echo: "
+            user_id = session['user']['id']
         else:
-            # API token authentication or fallback
             user_name = 'API User'
-            response_prefix = "Response: "
+            user_id = 'api_user'
         
-        # Enhanced response with new AI system integration
+        # AI Brain cost optimization
         try:
-            # Import enhanced AI systems
+            from utils.ai_brain_cost_optimizer import optimize_ai_request, record_ai_interaction
             from utils.enhanced_ai_system import enhanced_ai, AITaskType
-            from utils.enhanced_voice_emotion import analyze_text_emotion
-            from utils.enhanced_therapeutic_ai import get_therapeutic_response
             
-            # Detect if this is a therapeutic conversation
-            if any(word in message.lower() for word in ['therapy', 'anxious', 'depressed', 'stressed', 'cbt', 'dbt']):
-                # Use therapeutic AI
-                therapeutic_response = get_therapeutic_response(message, framework="general")
-                ai_response = therapeutic_response.get("response", "I'm here to support you.")
+            # Get optimization recommendations
+            optimization = optimize_ai_request(message, user_id)
+            
+            if optimization.use_local:
+                # Use local/cached response with cost savings
+                ai_response = enhanced_ai._generate_local_response(message, optimization)
                 
-                # Add emotion analysis
-                emotion_analysis = analyze_text_emotion(message)
-                emotion_info = f" (Detected emotion: {emotion_analysis.get('primary_emotion', 'neutral')})"
+                # Record zero-cost interaction
+                record_ai_interaction(message, ai_response, 0.0, 4.5, user_id)
                 
-            elif any(word in message.lower() for word in ['research', 'study', 'analyze', 'what is', 'explain']):
-                # Use research AI (GPT-4o)
-                ai_response = enhanced_ai.research_query(message)
-                emotion_info = ""
+                return jsonify({
+                    "response": ai_response,
+                    "user": user_name,
+                    "timestamp": datetime.now().isoformat(),
+                    "demo": demo_mode,
+                    "cost_optimized": True,
+                    "optimization_type": optimization.provider,
+                    "estimated_cost": 0.0,
+                    "reasoning": optimization.reasoning,
+                    "ai_brain_savings": True
+                })
+            
+            # Use enhanced AI with optimization guidance
+            message_lower = message.lower()
+            cost = 0.0
+            
+            if any(word in message_lower for word in ['therapy', 'anxious', 'depressed', 'stressed', 'cbt', 'dbt']):
+                # Therapeutic conversation
+                response_obj = enhanced_ai.make_ai_request(message, AITaskType.THERAPEUTIC, user_id=user_id)
+                ai_response = response_obj.get("content", "I'm here to support you.")
+                cost = response_obj.get("estimated_cost", 0.0)
+                
+                # Add emotion context
+                try:
+                    from utils.enhanced_voice_emotion import analyze_text_emotion
+                    emotion_analysis = analyze_text_emotion(message)
+                    emotion_info = f" (Emotion: {emotion_analysis.get('primary_emotion', 'neutral')})"
+                    ai_response += emotion_info
+                except ImportError:
+                    pass
+                
+            elif any(word in message_lower for word in ['research', 'study', 'analyze', 'what is', 'explain']):
+                # Research conversation - GPT-4o
+                response_obj = enhanced_ai.make_ai_request(message, AITaskType.RESEARCH, user_id=user_id)
+                ai_response = response_obj.get("content", "Let me research that for you.")
+                cost = response_obj.get("estimated_cost", 0.075)
                 
             else:
-                # Use standard enhanced AI
-                ai_response = enhanced_ai.make_ai_request(message, AITaskType.STANDARD)
-                ai_response = ai_response.get("content", "I understand your message.")
-                emotion_info = ""
+                # Standard conversation
+                response_obj = enhanced_ai.make_ai_request(message, AITaskType.STANDARD, user_id=user_id)
+                ai_response = response_obj.get("content", "I understand your message.")
+                cost = response_obj.get("estimated_cost", 0.0)
             
-            enhanced_response = f"{response_prefix}{ai_response}{emotion_info}"
+            # Record interaction for learning
+            record_ai_interaction(message, ai_response, cost, 4.0, user_id)
+            
+            return jsonify({
+                "response": ai_response,
+                "user": user_name,
+                "timestamp": datetime.now().isoformat(),
+                "demo": demo_mode,
+                "cost_optimized": response_obj.get("ai_brain_optimized", False),
+                "provider": response_obj.get("provider", "enhanced_ai"),
+                "estimated_cost": cost,
+                "quality_score": response_obj.get("quality_score", 0.8)
+            })
             
         except ImportError as e:
-            logger.warning(f"Enhanced AI systems not available: {e}")
-            # Fallback to unified AI service
+            logger.warning(f"AI brain optimizer not available: {e}")
+            # Fallback to standard enhanced AI
             try:
-                from utils.unified_ai_service import get_unified_ai_service
-                ai_service = get_unified_ai_service()
-                ai_response = ai_service.chat_completion([{"role": "user", "content": message}])
-                enhanced_response = f"{response_prefix}{ai_response}"
+                from utils.enhanced_ai_system import enhanced_ai, AITaskType
+                response_obj = enhanced_ai.make_ai_request(message, AITaskType.STANDARD)
+                ai_response = response_obj.get("content", "I understand your message.")
+                
+                return jsonify({
+                    "response": ai_response,
+                    "user": user_name,
+                    "timestamp": datetime.now().isoformat(),
+                    "demo": demo_mode,
+                    "fallback": "standard_ai"
+                })
             except ImportError as e2:
-                logger.warning(f"Unified AI service not available: {e2}")
-                enhanced_response = f"{response_prefix}I understand your message. How can I help you today?"
-        
-        # Return enhanced response
-        return jsonify({
-            "response": enhanced_response,
-            "user": user_name,
-            "timestamp": datetime.now().isoformat(),
-            "demo": demo_mode
-        })
+                logger.warning(f"Enhanced AI not available: {e2}")
+                # Final fallback
+                return jsonify({
+                    "response": f"I understand your message: {message}. How can I help you today?",
+                    "user": user_name,
+                    "timestamp": datetime.now().isoformat(),
+                    "demo": demo_mode,
+                    "fallback": "basic"
+                })
         
     except Exception as e:
         logger.error(f"Chat API error: {e}")
@@ -640,25 +687,35 @@ def create_app():
 
     @app.route('/api/enhanced/cost-report', methods=['GET'])
     def api_cost_report():
-        """Get AI cost and usage report"""
+        """Get comprehensive AI cost and usage report with brain optimization"""
         if not is_authenticated():
             return jsonify({"error": "Authentication required"}), 401
         
         try:
             reports = {}
             
+            # Enhanced AI system report
             try:
                 from utils.enhanced_ai_system import get_ai_cost_report
                 reports['enhanced_ai'] = get_ai_cost_report()
             except ImportError:
                 pass
                 
+            # AI Brain optimization report
+            try:
+                from utils.ai_brain_cost_optimizer import get_ai_optimization_report
+                reports['ai_brain_optimization'] = get_ai_optimization_report()
+            except ImportError:
+                pass
+                
+            # Therapeutic AI report
             try:
                 from utils.enhanced_therapeutic_ai import get_therapeutic_cost_report
                 reports['therapeutic'] = get_therapeutic_cost_report()
             except ImportError:
                 pass
                 
+            # Voice emotion report
             try:
                 from utils.enhanced_voice_emotion import enhanced_voice_emotion
                 reports['voice_emotion'] = {
@@ -668,24 +725,39 @@ def create_app():
             except ImportError:
                 pass
                 
+            # Visual intelligence report
             try:
                 from utils.enhanced_visual_intelligence import get_visual_cost_report
                 reports['visual'] = get_visual_cost_report()
             except ImportError:
                 pass
             
-            # Calculate totals
-            total_cost = sum(
+            # Calculate totals with brain optimization savings
+            base_cost = sum(
                 report.get('monthly_cost', 0) if isinstance(report, dict) else 
                 report.get('monthly_costs', {}).get('total', 0) if isinstance(report, dict) else 0
-                for report in reports.values()
+                for key, report in reports.items() if key != 'ai_brain_optimization'
             )
+            
+            brain_savings = 0.0
+            if 'ai_brain_optimization' in reports:
+                brain_savings = reports['ai_brain_optimization'].get('monthly_savings', 0.0)
+            
+            optimized_cost = max(0, base_cost - brain_savings)
             
             return jsonify({
                 "cost_reports": reports,
-                "total_monthly_cost": total_cost,
-                "cost_per_user": total_cost / 30,  # 30 beta users
-                "savings_vs_commercial": (25 - (total_cost / 30)) / 25 * 100,  # vs $25/user
+                "base_monthly_cost": base_cost,
+                "ai_brain_savings": brain_savings,
+                "optimized_monthly_cost": optimized_cost,
+                "cost_per_user": optimized_cost / 30,  # 30 beta users
+                "savings_vs_commercial": (25 - (optimized_cost / 30)) / 25 * 100,  # vs $25/user
+                "cost_reduction_percentage": (brain_savings / max(base_cost, 0.01)) * 100,
+                "optimization_effectiveness": {
+                    "local_response_rate": reports.get('ai_brain_optimization', {}).get('local_response_rate', 0),
+                    "cache_hit_rate": reports.get('ai_brain_optimization', {}).get('cache_hit_rate', 0),
+                    "total_lifetime_savings": reports.get('ai_brain_optimization', {}).get('total_lifetime_savings', 0)
+                },
                 "timestamp": datetime.now().isoformat()
             })
             
