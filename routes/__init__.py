@@ -1,6 +1,6 @@
 """
 Routes initialization module
-Centralizes the registration of all application blueprints with standardized patterns
+Centralizes the registration of all application blueprints
 """
 
 import logging
@@ -10,22 +10,29 @@ from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-# Core blueprint definitions - name, module, url_prefix
+# Core blueprint definitions
 CORE_BLUEPRINTS = [
     {'name': 'main', 'module': 'routes.main', 'attr': 'main_bp', 'url_prefix': None},
-    {'name': 'setup', 'module': 'routes.setup_routes', 'attr': 'setup_bp', 'url_prefix': '/setup'},
     {'name': 'health_api', 'module': 'routes.health_api', 'attr': 'health_api_bp', 'url_prefix': '/api'},
     {'name': 'auth_api', 'module': 'routes.simple_auth_api', 'attr': 'auth_bp', 'url_prefix': None},
     {'name': 'api', 'module': 'routes.api_routes', 'attr': 'api_bp', 'url_prefix': '/api/v1'},
+    {'name': 'chat', 'module': 'routes.chat_routes', 'attr': 'chat_bp', 'url_prefix': None},
 ]
 
-# Optional blueprint definitions
+# Feature blueprints
 OPTIONAL_BLUEPRINTS = [
-    {'name': 'aa', 'module': 'routes.aa_routes', 'attr': 'aa_bp', 'url_prefix': '/aa'},
+    {'name': 'dashboard', 'module': 'routes.dashboard', 'attr': 'dashboard_bp', 'url_prefix': None},
+    {'name': 'user', 'module': 'routes.user_routes', 'attr': 'user_bp', 'url_prefix': '/user'},
     {'name': 'dbt', 'module': 'routes.dbt_routes', 'attr': 'dbt_bp', 'url_prefix': '/dbt'},
     {'name': 'cbt', 'module': 'routes.cbt_routes', 'attr': 'cbt_bp', 'url_prefix': '/cbt'},
-    {'name': 'user', 'module': 'routes.user_routes', 'attr': 'user_bp', 'url_prefix': '/user'},
-    {'name': 'dashboard', 'module': 'routes.dashboard', 'attr': 'dashboard_bp', 'url_prefix': '/dashboard'},
+    {'name': 'aa', 'module': 'routes.aa_routes', 'attr': 'aa_bp', 'url_prefix': '/aa'},
+    {'name': 'financial', 'module': 'routes.financial_routes', 'attr': 'financial_bp', 'url_prefix': '/financial'},
+    {'name': 'search', 'module': 'routes.search_routes', 'attr': 'search_bp', 'url_prefix': '/api/v1/search'},
+    {'name': 'analytics', 'module': 'routes.analytics_routes', 'attr': 'analytics_bp', 'url_prefix': '/api/v1/analytics'},
+    {'name': 'notifications', 'module': 'routes.notification_routes', 'attr': 'notifications_bp', 'url_prefix': '/api/v1/notifications'},
+    {'name': 'maps', 'module': 'routes.maps_routes', 'attr': 'maps_bp', 'url_prefix': None},
+    {'name': 'weather', 'module': 'routes.weather_routes', 'attr': 'weather_bp', 'url_prefix': None},
+    {'name': 'tasks', 'module': 'routes.tasks_routes', 'attr': 'tasks_bp', 'url_prefix': None},
 ]
 
 def register_all_blueprints(app: Flask) -> Flask:
