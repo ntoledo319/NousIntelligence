@@ -1,0 +1,60 @@
+{% extends "setup/base.html" %}
+
+{% block title %}Welcome{% endblock %}
+{% block header_title %}Welcome to NOUS{% endblock %}
+{% block header_subtitle %}Your intelligent personal assistant{% endblock %}
+
+{% block content %}
+<form method="POST" action="{{ url_for('setup.welcome_save') }}">
+    <div class="step-title">
+        <i class="fas fa-hand-sparkles text-primary"></i>
+        Welcome, {{ user.email }}!
+    </div>
+    
+    <div class="step-description">
+        We're excited to help you get the most out of NOUS! This quick setup will personalize your experience based on your preferences, goals, and needs. It will take about 5-10 minutes and can be customized later in your settings.
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>What we'll set up:</strong>
+                <ul class="mt-2 mb-0">
+                    <li>Language preferences</li>
+                    <li>Accessibility needs</li>
+                    <li>Mental health goals</li>
+                    <li>AI assistant personality</li>
+                    <li>Theme and display options</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="alert alert-warning">
+                <i class="fas fa-shield-alt me-2"></i>
+                <strong>Your privacy matters:</strong>
+                <ul class="mt-2 mb-0">
+                    <li>All data stays private and secure</li>
+                    <li>You control what's shared</li>
+                    <li>Settings can be changed anytime</li>
+                    <li>No data is sold or mined</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <p class="text-muted">Ready to get started? Let's personalize your NOUS experience!</p>
+    </div>
+</form>
+{% endblock %}
+
+{% block action_buttons %}
+<a href="{{ url_for('main.dashboard') }}" class="btn btn-outline">
+    Skip Setup
+</a>
+<button type="submit" class="btn btn-primary" form="form">
+    Let's Begin!
+    <i class="fas fa-arrow-right"></i>
+</button>
+{% endblock %}

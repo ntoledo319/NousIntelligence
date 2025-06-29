@@ -1,0 +1,97 @@
+{% extends "setup/base.html" %}
+
+{% block title %}Language Preferences{% endblock %}
+{% block header_title %}Language Preferences{% endblock %}
+{% block header_subtitle %}Choose your languages for the best experience{% endblock %}
+
+{% block content %}
+<form method="POST" action="{{ url_for('setup.languages_save') }}">
+    <div class="step-title">
+        <i class="fas fa-globe text-primary"></i>
+        Language Settings
+    </div>
+    
+    <div class="step-description">
+        Choose your preferred languages so NOUS can communicate with you effectively and help you learn new languages if desired.
+    </div>
+
+    <!-- Primary Language -->
+    <div class="form-section">
+        <div class="form-section-title">
+            <i class="fas fa-star"></i>
+            Primary Language
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="primary_language">What's your main language? *</label>
+            <select name="primary_language" id="primary_language" class="form-select" required>
+                <option value="">Select your primary language</option>
+                {% for lang in languages %}
+                <option value="{{ lang.code }}" {{ 'selected' if preferences.primary_language == lang.code }}>
+                    {{ lang.flag }} {{ lang.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Secondary Languages -->
+    <div class="form-section">
+        <div class="form-section-title">
+            <i class="fas fa-comments"></i>
+            Additional Languages You Speak
+        </div>
+        <div class="form-group">
+            <label class="form-label">Select any other languages you're comfortable with</label>
+            <div class="checkbox-grid">
+                {% for lang in languages %}
+                <div class="checkbox-card">
+                    <input type="checkbox" name="secondary_languages" value="{{ lang.code }}" 
+                           {{ 'checked' if lang.code in (preferences.secondary_languages or []) }}>
+                    <span class="checkbox-card-icon">{{ lang.flag }}</span>
+                    <div class="checkbox-card-title">{{ lang.name }}</div>
+                    <div class="checkbox-card-description">Use {{ lang.name }} for communication</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Learning Languages -->
+    <div class="form-section">
+        <div class="form-section-title">
+            <i class="fas fa-graduation-cap"></i>
+            Languages You Want to Learn
+        </div>
+        <div class="form-group">
+            <label class="form-label">Select languages you'd like NOUS to help you learn</label>
+            <div class="checkbox-grid">
+                {% for lang in languages %}
+                <div class="checkbox-card">
+                    <input type="checkbox" name="learning_languages" value="{{ lang.code }}"
+                           {{ 'checked' if lang.code in (preferences.learning_languages or []) }}>
+                    <span class="checkbox-card-icon">{{ lang.flag }}</span>
+                    <div class="checkbox-card-title">{{ lang.name }}</div>
+                    <div class="checkbox-card-description">Practice and learn {{ lang.name }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info">
+        <i class="fas fa-lightbulb me-2"></i>
+        <strong>Why we ask:</strong> Language preferences help NOUS communicate with you in your preferred language and provide personalized language learning features when you want to practice new languages.
+    </div>
+</form>
+{% endblock %}
+
+{% block action_buttons %}
+<a href="{{ url_for('setup.welcome') }}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left"></i>
+    Back
+</a>
+<button type="submit" form="form" class="btn btn-primary">
+    Continue
+    <i class="fas fa-arrow-right"></i>
+</button>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "setup/base.html" %}
+
+{% block title %}Mental Health Goals{% endblock %}
+{% block header_title %}Mental Health Goals{% endblock %}
+{% block header_subtitle %}Tell us how NOUS can support your wellbeing{% endblock %}
+
+{% block content %}
+<form method="POST" action="{{ url_for('setup.mental_health_save') }}">
+    <div class="step-title">
+        <i class="fas fa-heart text-primary"></i>
+        Mental Health & Wellbeing
+    </div>
+    
+    <div class="step-description">
+        NOUS offers comprehensive mental health support through CBT, DBT, and wellness features. Select your goals so we can provide the most helpful tools and guidance.
+    </div>
+
+    <!-- Mental Health Goals -->
+    <div class="form-section">
+        <div class="form-section-title">
+            <i class="fas fa-bullseye"></i>
+            What are your mental health goals?
+        </div>
+        <div class="form-group">
+            <label class="form-label">Select any that interest you (you can always change these later)</label>
+            <div class="checkbox-grid">
+                {% for goal in goals %}
+                <div class="checkbox-card">
+                    <input type="checkbox" name="goals" value="{{ goal.value }}"
+                           {{ 'checked' if goal.value in (preferences.mental_health_goals or []) }}>
+                    <span class="checkbox-card-icon">{{ goal.icon }}</span>
+                    <div class="checkbox-card-title">{{ goal.label }}</div>
+                    <div class="checkbox-card-description">Get support and tools for {{ goal.label.lower() }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Therapeutic Approach -->
+    <div class="form-section">
+        <div class="form-section-title">
+            <i class="fas fa-brain"></i>
+            Preferred Therapeutic Approach
+        </div>
+        <div class="form-group">
+            <label class="form-label">Which approach would you like NOUS to focus on?</label>
+            <div class="radio-group">
+                <div class="radio-card">
+                    <input type="radio" name="therapeutic_approach" value="dbt" 
+                           {{ 'checked' if preferences.therapeutic_approach == 'dbt' }}>
+                    <div class="radio-card-title">DBT-Focused</div>
+                    <div class="radio-card-description">Dialectical Behavior Therapy - emotion regulation, distress tolerance</div>
+                </div>
+                <div class="radio-card">
+                    <input type="radio" name="therapeutic_approach" value="cbt"
+                           {{ 'checked' if preferences.therapeutic_approach == 'cbt' }}>
+                    <div class="radio-card-title">CBT-Focused</div>
+                    <div class="radio-card-description">Cognitive Behavioral Therapy - thought patterns, behavior change</div>
+                </div>
+                <div class="radio-card">
+                    <input type="radio" name="therapeutic_approach" value="integrated" 
+                           {{ 'checked' if preferences.therapeutic_approach == 'integrated' or not preferences.therapeutic_approach }}>
+                    <div class="radio-card-title">Integrated Approach</div>
+                    <div class="radio-card-description">Blend of both DBT and CBT based on your needs</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Crisis Support -->
+    <div class="form-section">
+        <div class="form-section-title">
+            <i class="fas fa-shield-alt"></i>
+            Crisis Support
+        </div>
+        <div class="form-group">
+            <label class="form-label">Would you like crisis support features enabled?</label>
+            <div class="radio-group">
+                <div class="radio-card">
+                    <input type="radio" name="crisis_support" value="yes" 
+                           {{ 'checked' if preferences.crisis_support_enabled != false }}>
+                    <div class="radio-card-title">Yes, Enable</div>
+                    <div class="radio-card-description">Emergency resources, crisis detection, quick access to help</div>
+                </div>
+                <div class="radio-card">
+                    <input type="radio" name="crisis_support" value="no"
+                           {{ 'checked' if preferences.crisis_support_enabled == false }}>
+                    <div class="radio-card-title">No, Disable</div>
+                    <div class="radio-card-description">Focus on regular wellness features only</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Privacy Note:</strong> All mental health data is kept completely private and secure. NOUS uses this information only to provide personalized support and never shares it with anyone.
+    </div>
+</form>
+{% endblock %}
+
+{% block action_buttons %}
+<a href="{{ url_for('setup.neurodivergent') }}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left"></i>
+    Back
+</a>
+<button type="submit" form="form" class="btn btn-primary">
+    Continue
+    <i class="fas fa-arrow-right"></i>
+</button>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "setup/base.html" %}
+
+{% block title %}Setup Complete{% endblock %}
+{% block header_title %}Setup Complete!{% endblock %}
+{% block header_subtitle %}Your NOUS assistant is ready to help{% endblock %}
+
+{% block content %}
+<div class="text-center">
+    <div class="step-title justify-content-center">
+        <i class="fas fa-check-circle text-success" style="font-size: 3rem;"></i>
+    </div>
+    
+    <h2 class="mb-4">Welcome to your personalized NOUS experience!</h2>
+    
+    <div class="step-description">
+        Great job completing the setup! NOUS is now configured to provide you with personalized support based on your preferences. You can always change these settings later in your profile.
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="alert alert-success">
+            <i class="fas fa-thumbs-up me-2"></i>
+            <strong>What's configured:</strong>
+            <ul class="mt-2 mb-0">
+                <li>Language preferences</li>
+                <li>Accessibility features</li>
+                <li>Mental health support</li>
+                <li>AI assistant personality</li>
+                <li>Health tracking goals</li>
+                <li>Privacy settings</li>
+            </ul>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="alert alert-info">
+            <i class="fas fa-lightbulb me-2"></i>
+            <strong>Next steps:</strong>
+            <ul class="mt-2 mb-0">
+                <li>Explore your personalized dashboard</li>
+                <li>Try the AI chat assistant</li>
+                <li>Check out mental health tools</li>
+                <li>Set up daily wellness tracking</li>
+                <li>Configure notifications</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="text-center mt-4">
+    <h4>Ready to start your NOUS journey?</h4>
+    <p class="text-muted">Your intelligent assistant is waiting to help you achieve your goals!</p>
+</div>
+{% endblock %}
+
+{% block actions %}
+<div class="setup-actions">
+    <div class="step-info">
+        Setup completed successfully!
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('setup.api_restart') }}" class="btn btn-outline">
+            <i class="fas fa-redo"></i>
+            Restart Setup
+        </a>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">
+            Go to Dashboard
+            <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+</div>
+{% endblock %}
