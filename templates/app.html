@@ -79,8 +79,8 @@
                     <button class="features-btn">✨ Features</button>
                     <div class="features-dropdown">
                         <a href="/api/v1/analytics/dashboard-view">📊 Analytics Dashboard</a>
-                        <a href="{{ url_for('consolidated_voice.voice_emotion_analysis') }}">🎤 Voice Emotion Analysis</a>
-                        <a href="{{ url_for('voice_mindfulness.index') }}">🧘 Mindfulness Assistant</a>
+                        <a href="#" onclick="alert('Voice features available with full setup')">🎤 Voice Emotion Analysis</a>
+                        <a href="#" onclick="alert('Mindfulness features available with full setup')">🧘 Mindfulness Assistant</a>
                         <a href="/financial">💰 Financial Tracker</a>
                         <a href="/family">👨‍👩‍👧‍👦 Family Dashboard</a>
                         <a href="/goals">🎯 Goals & Progress</a>
@@ -98,7 +98,7 @@
                     </div>
                     <div class="user-info">
                         <span class="user-name">{{ user.name }}</span>
-                        <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+                        <a href="/" class="logout-btn">Home</a>
                     </div>
                 </div>
             </div>
