@@ -1,4 +1,13 @@
 """
+Auth Api Routes
+Auth Api functionality for the NOUS application
+"""
+
+from flask import Blueprint, render_template, session, request, redirect, url_for, jsonify
+from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
+
+auth_api_bp = Blueprint('auth_api', __name__)
+
 
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""

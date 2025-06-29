@@ -8,7 +8,6 @@ from utils.auth_compat import login_required, current_user, get_current_user
 tasks_bp = Blueprint('tasks', __name__)
 
 @tasks_bp.route('/tasks')
-@login_required
 def tasks_main():
     """Tasks main page"""
     user = get_current_user()

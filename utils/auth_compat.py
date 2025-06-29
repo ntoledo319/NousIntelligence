@@ -60,3 +60,26 @@ class AlwaysAuthenticatedUser:
         return True
 
 current_user = AlwaysAuthenticatedUser()
+
+
+# Flask-Login UserMixin alternative for backward compatibility
+class UserMixin:
+    """Minimal UserMixin replacement for authentication compatibility"""
+    
+    @property
+    def is_authenticated(self):
+        return True
+    
+    @property
+    def is_active(self):
+        return True
+    
+    @property
+    def is_anonymous(self):
+        return False
+    
+    def get_id(self):
+        return str(getattr(self, 'id', 'demo_user'))
+
+# Export UserMixin for models that need it
+__all__.append('UserMixin')

@@ -9,7 +9,7 @@ from utils.auth_compat import login_required, current_user, get_current_user
 from database import db
 from datetime import datetime
 
-class User(UserMixin, db.Model):
+class User(db.Model):
     """User account model"""
     
     __tablename__ = 'users'

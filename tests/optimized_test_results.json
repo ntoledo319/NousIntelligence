@@ -1,0 +1,394 @@
+{
+  "files_scanned": 77,
+  "auth_barriers": {
+    "total_barriers": 6,
+    "critical_barriers": 6,
+    "issues": [
+      {
+        "file": "routes/user_routes.py",
+        "pattern": "@login_required",
+        "matches": 1,
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/dashboard.py",
+        "pattern": "@login_required",
+        "matches": 1,
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/tasks_routes.py",
+        "pattern": "@login_required",
+        "matches": 1,
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/analytics_routes.py",
+        "pattern": "@login_required",
+        "matches": 1,
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/financial_routes.py",
+        "pattern": "@login_required",
+        "matches": 2,
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/setup_routes.py",
+        "pattern": "@login_required",
+        "matches": 3,
+        "severity": "CRITICAL"
+      }
+    ]
+  },
+  "critical_errors": {
+    "total_errors": 46,
+    "critical_errors": 34,
+    "errors": [
+      {
+        "file": "app.py",
+        "type": "ImportError",
+        "message": "6 import errors detected",
+        "severity": "HIGH"
+      },
+      {
+        "file": "database.py",
+        "type": "ImportError",
+        "message": "1 import errors detected",
+        "severity": "HIGH"
+      },
+      {
+        "file": "routes/settings.py",
+        "type": "SyntaxError",
+        "line": 90,
+        "message": "unterminated string literal (detected at line 90) (<unknown>, line 90)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/index.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/pulse.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/beta_admin.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/api.py",
+        "type": "SyntaxError",
+        "line": 68,
+        "message": "unterminated string literal (detected at line 68) (<unknown>, line 68)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/admin_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/amazon_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/async_api.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/beta_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/chat_meet_commands.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/chat_router.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/crisis_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/forms_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/health_check.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/image_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/language_learning_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/meet_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/memory_dashboard_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/memory_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/price_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/smart_shopping_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/two_factor_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/consolidated_voice_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/consolidated_voice_routes.py",
+        "type": "ImportError",
+        "message": "3 import errors detected",
+        "severity": "HIGH"
+      },
+      {
+        "file": "routes/consolidated_spotify_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/consolidated_spotify_routes.py",
+        "type": "ImportError",
+        "message": "3 import errors detected",
+        "severity": "HIGH"
+      },
+      {
+        "file": "routes/enhanced_api_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/adaptive_ai_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/api_key_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/messaging_status.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/consolidated_api_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/consolidated_api_routes.py",
+        "type": "ImportError",
+        "message": "5 import errors detected",
+        "severity": "HIGH"
+      },
+      {
+        "file": "routes/auth_api.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/auth_api.py",
+        "type": "ImportError",
+        "message": "3 import errors detected",
+        "severity": "HIGH"
+      },
+      {
+        "file": "routes/collaboration_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/onboarding_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/nous_tech_status_routes.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "routes/aa_content.py",
+        "type": "SyntaxError",
+        "line": 4,
+        "message": "invalid syntax (<unknown>, line 4)",
+        "severity": "CRITICAL"
+      },
+      {
+        "file": "utils/unified_ai_service.py",
+        "type": "ImportError",
+        "message": "3 import errors detected",
+        "severity": "HIGH"
+      },
+      {
+        "file": "utils/unified_google_services.py",
+        "type": "ImportError",
+        "message": "3 import errors detected",
+        "severity": "HIGH"
+      },
+      {
+        "file": "utils/unified_spotify_services.py",
+        "type": "ImportError",
+        "message": "1 import errors detected",
+        "severity": "HIGH"
+      },
+      {
+        "file": "utils/unified_ai_services.py",
+        "type": "ImportError",
+        "message": "4 import errors detected",
+        "severity": "HIGH"
+      },
+      {
+        "file": "services/enhanced_voice.py",
+        "type": "ImportError",
+        "message": "3 import errors detected",
+        "severity": "HIGH"
+      },
+      {
+        "file": "services/emotion_aware_therapeutic_assistant.py",
+        "type": "ImportError",
+        "message": "2 import errors detected",
+        "severity": "HIGH"
+      }
+    ]
+  },
+  "app_health": {
+    "app_importable": false,
+    "database_accessible": true,
+    "auth_system_working": false,
+    "basic_routes_exist": true
+  },
+  "recommendations": [
+    {
+      "priority": "CRITICAL",
+      "category": "Authentication",
+      "issue": "6 authentication barriers found",
+      "action": "Run authentication barrier fixer or manually remove @login_required decorators"
+    },
+    {
+      "priority": "CRITICAL",
+      "category": "Syntax",
+      "issue": "34 critical syntax errors found",
+      "action": "Fix syntax errors in Python files before deployment"
+    },
+    {
+      "priority": "CRITICAL",
+      "category": "Application",
+      "issue": "Application cannot be imported",
+      "action": "Fix import errors in app.py"
+    },
+    {
+      "priority": "HIGH",
+      "category": "Authentication",
+      "issue": "Authentication system not working",
+      "action": "Check utils/auth_compat.py and fix authentication system"
+    }
+  ],
+  "test_duration": 1.7974274158477783
+}

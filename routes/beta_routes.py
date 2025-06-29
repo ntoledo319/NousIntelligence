@@ -1,4 +1,13 @@
 """
+Beta Routes Routes
+Beta Routes functionality for the NOUS application
+"""
+
+from flask import Blueprint, render_template, session, request, redirect, url_for, jsonify
+from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
+
+beta_routes_bp = Blueprint('beta_routes', __name__)
+
 
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
