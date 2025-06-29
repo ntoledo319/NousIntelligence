@@ -17,7 +17,7 @@ with templates in the `templates/voice_mindfulness/` directory.
 import os
 import json
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, session
-from flask_login import login_required, current_user
+from utils.auth_compat import login_required, current_user, get_current_user
 
 # Import our voice mindfulness utility
 from utils.voice_mindfulness import (
@@ -35,7 +35,7 @@ voice_mindfulness_bp = Blueprint('voice_mindfulness', __name__, url_prefix='/voi
 
 # Helper to get user_id from current_user
 def get_user_id():
-    return str(current_user.id) if current_user.is_authenticated else None
+    return str(get_current_user().get("id") if get_current_user() else None) if is_authenticated() else None
 
 @voice_mindfulness_bp.route('/')
 @login_required

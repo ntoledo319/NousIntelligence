@@ -477,7 +477,7 @@ def create_enhanced_app():
     def main_app():
         """Main application interface"""
         if not is_authenticated():
-            return redirect('/login')
+            return redirect("/demo")
         
         return """
         <!DOCTYPE html>

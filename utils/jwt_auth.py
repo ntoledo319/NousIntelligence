@@ -8,6 +8,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from flask import request, jsonify, current_app, session
+from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
 from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)

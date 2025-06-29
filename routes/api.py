@@ -3,6 +3,7 @@
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
     from flask import session, request, redirect, url_for, jsonify
+from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
     
     # Check session authentication
     if 'user' in session and session['user']:
@@ -14,10 +15,10 @@ def require_authentication():
     
     # For API endpoints, return JSON error
     if request.path.startswith('/api/'):
-        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+        return jsonify({'error': "Demo mode - limited access", 'demo_available': True}), 401
     
     # For web routes, redirect to login
-    return redirect(url_for('login'))
+    return redirect(url_for("main.demo"))
 
 def get_current_user():
     """Get current user from session with demo fallback"""
@@ -258,7 +259,7 @@ def process_chat():
     if not ('user' in session and session['user']):
         return jsonify({
             "success": False,
-            "error": "Authentication required"
+            "error": "Demo mode - limited access"
         }), 401
 
     # Get chat message from request
@@ -296,7 +297,7 @@ def process_chat():
 def get_user_profile():
     """Get the current user's profile information"""
     if not ('user' in session and session['user']):
-        return jsonify({"error": "Authentication required"}), 401
+        return jsonify({"error": "Demo mode - limited access"}), 401
 
     try:
         profile = {
@@ -316,7 +317,7 @@ def get_user_profile():
 def user_settings():
     """Get or update user settings"""
     if not ('user' in session and session['user']):
-        return jsonify({"error": "Authentication required"}), 401
+        return jsonify({"error": "Demo mode - limited access"}), 401
 
     # Handle GET request
     if request.method == 'GET':

@@ -8,7 +8,7 @@ import json
 import logging
 from datetime import datetime
 from flask import Blueprint, request, jsonify, session
-from flask_login import current_user
+from utils.auth_compat import login_required, current_user, get_current_user
 from werkzeug.utils import secure_filename
 
 # Import therapeutic assistant
@@ -22,7 +22,7 @@ therapeutic_chat_bp = Blueprint('therapeutic_chat', __name__, url_prefix='/api/t
 
 def get_user_id():
     """Get current user ID"""
-    return str(current_user.id) if current_user.is_authenticated else session.get('guest_id', 'guest')
+    return str(get_current_user().get("id") if get_current_user() else None) if is_authenticated() else session.get('guest_id', 'guest')
 
 @therapeutic_chat_bp.route('/chat', methods=['POST'])
 def therapeutic_chat():

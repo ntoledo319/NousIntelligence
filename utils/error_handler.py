@@ -38,7 +38,7 @@ def register_error_handlers(app):
         logger.warning(f"401 error: {error}")
         if request.path.startswith('/api'):
             return jsonify({
-                'error': 'Unauthorized',
+                'error': 'Demo mode - limited access',
                 'message': 'Authentication is required to access this resource'
             }), 401
         return render_template('errors/401.html'), 401

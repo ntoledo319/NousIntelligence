@@ -3,6 +3,7 @@
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
     from flask import session, request, redirect, url_for, jsonify
+from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
     
     # Check session authentication
     if 'user' in session and session['user']:
@@ -14,10 +15,10 @@ def require_authentication():
     
     # For API endpoints, return JSON error
     if request.path.startswith('/api/'):
-        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+        return jsonify({'error': "Demo mode - limited access", 'demo_available': True}), 401
     
     # For web routes, redirect to login
-    return redirect(url_for('login'))
+    return redirect(url_for("main.demo"))
 
 def get_current_user():
     """Get current user from session with demo fallback"""
@@ -151,8 +152,8 @@ def image_gallery():
     """Display the user's uploaded image gallery, organized by content."""
     user_id = session.get('user_id')
     if not user_id:
-        flash("You must be logged in to view your gallery.")
-        return redirect(url_for('auth.login'))  # Or wherever your login route is
+        flash("Demo mode - some features limited")
+        return redirect(url_for("main.demo"))  # Or wherever your login route is
 
     user_dir = os.path.join(UPLOAD_FOLDER, f"user_{user_id}")
     

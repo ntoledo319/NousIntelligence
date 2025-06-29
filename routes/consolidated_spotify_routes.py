@@ -3,6 +3,7 @@
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
     from flask import session, request, redirect, url_for, jsonify
+from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
     
     # Check session authentication
     if 'user' in session and session['user']:
@@ -14,10 +15,10 @@ def require_authentication():
     
     # For API endpoints, return JSON error
     if request.path.startswith('/api/'):
-        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+        return jsonify({'error': "Demo mode - limited access", 'demo_available': True}), 401
     
     # For web routes, redirect to login
-    return redirect(url_for('login'))
+    return redirect(url_for("main.demo"))
 
 def get_current_user():
     """Get current user from session with demo fallback"""
@@ -81,7 +82,7 @@ def spotify_callback():
 def current_playing():
     """Get currently playing track"""
     if 'user_id' not in session:
-        return jsonify({"error": "Authentication required"}), 401
+        return jsonify({"error": "Demo mode - limited access"}), 401
     
     return jsonify({
         "is_playing": False,
@@ -96,7 +97,7 @@ def current_playing():
 def play_track():
     """Play/resume playback"""
     if 'user_id' not in session:
-        return jsonify({"error": "Authentication required"}), 401
+        return jsonify({"error": "Demo mode - limited access"}), 401
     
     data = request.get_json() or {}
     track_uri = data.get('track_uri')
@@ -111,7 +112,7 @@ def play_track():
 def pause_track():
     """Pause playback"""
     if 'user_id' not in session:
-        return jsonify({"error": "Authentication required"}), 401
+        return jsonify({"error": "Demo mode - limited access"}), 401
     
     return jsonify({
         "status": "paused",
@@ -122,7 +123,7 @@ def pause_track():
 def next_track():
     """Skip to next track"""
     if 'user_id' not in session:
-        return jsonify({"error": "Authentication required"}), 401
+        return jsonify({"error": "Demo mode - limited access"}), 401
     
     return jsonify({
         "status": "skipped",
@@ -133,7 +134,7 @@ def next_track():
 def previous_track():
     """Skip to previous track"""
     if 'user_id' not in session:
-        return jsonify({"error": "Authentication required"}), 401
+        return jsonify({"error": "Demo mode - limited access"}), 401
     
     return jsonify({
         "status": "skipped",
@@ -145,7 +146,7 @@ def previous_track():
 def process_spotify_command():
     """Process natural language Spotify commands"""
     if 'user_id' not in session:
-        return jsonify({"error": "Authentication required"}), 401
+        return jsonify({"error": "Demo mode - limited access"}), 401
     
     data = request.get_json()
     if not data or 'command' not in data:
@@ -194,7 +195,7 @@ def search_spotify():
 def get_recommendations():
     """Get music recommendations"""
     if 'user_id' not in session:
-        return jsonify({"error": "Authentication required"}), 401
+        return jsonify({"error": "Demo mode - limited access"}), 401
     
     mood = request.args.get('mood', 'neutral')
     genre = request.args.get('genre', 'pop')
@@ -222,7 +223,7 @@ def spotify_visualizations():
 def listening_stats():
     """Get listening statistics"""
     if 'user_id' not in session:
-        return jsonify({"error": "Authentication required"}), 401
+        return jsonify({"error": "Demo mode - limited access"}), 401
     
     period = request.args.get('period', 'short_term')
     
@@ -239,7 +240,7 @@ def listening_stats():
 def audio_features_analysis():
     """Analyze audio features of user's music"""
     if 'user_id' not in session:
-        return jsonify({"error": "Authentication required"}), 401
+        return jsonify({"error": "Demo mode - limited access"}), 401
     
     return jsonify({
         "average_features": {
@@ -258,7 +259,7 @@ def audio_features_analysis():
 def visualization_data():
     """Get data for visualizations"""
     if 'user_id' not in session:
-        return jsonify({"error": "Authentication required"}), 401
+        return jsonify({"error": "Demo mode - limited access"}), 401
     
     viz_type = request.args.get('type', 'listening_history')
     
@@ -274,7 +275,7 @@ def visualization_data():
 def get_playlists():
     """Get user's playlists"""
     if 'user_id' not in session:
-        return jsonify({"error": "Authentication required"}), 401
+        return jsonify({"error": "Demo mode - limited access"}), 401
     
     return jsonify({
         "playlists": [],
@@ -286,7 +287,7 @@ def get_playlists():
 def create_playlist():
     """Create new playlist"""
     if 'user_id' not in session:
-        return jsonify({"error": "Authentication required"}), 401
+        return jsonify({"error": "Demo mode - limited access"}), 401
     
     data = request.get_json()
     if not data or 'name' not in data:

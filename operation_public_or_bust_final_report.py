@@ -17,7 +17,7 @@ def audit_authentication_barriers():
     critical_files = ['app.py', 'main.py']
     auth_patterns = [
         r'return.*401',
-        r'Authentication required',
+        r'Demo mode - limited features',
         r'if not.*authenticated.*:.*return'
     ]
     

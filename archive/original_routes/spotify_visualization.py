@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, render_template, session
-from flask_login import current_user, login_required
+from utils.auth_compat import login_required, current_user, get_current_user
 import logging
 from utils.spotify_helper import get_spotify_client
 from utils.spotify_visualizer import (
@@ -31,12 +31,12 @@ def spotify_report_page():
 @login_required
 def get_spotify_report():
     """Generate a full Spotify listening report with multiple visualizations"""
-    if not current_user.is_authenticated:
-        return jsonify({"error": "Authentication required"}), 401
+    if not is_authenticated():
+        return jsonify({"error": "Demo mode - limited features"}), 401
 
     # Get Spotify client
     spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET,
-                                 SPOTIFY_REDIRECT, current_user.id)
+                                 SPOTIFY_REDIRECT, get_current_user().get("id") if get_current_user() else None)
 
     if not spotify:
         return jsonify({"error": "Spotify connection required"}), 400
@@ -57,8 +57,8 @@ def get_spotify_report():
 @login_required
 def get_top_artists_chart():
     """Generate chart of top artists"""
-    if not current_user.is_authenticated:
-        return jsonify({"error": "Authentication required"}), 401
+    if not is_authenticated():
+        return jsonify({"error": "Demo mode - limited features"}), 401
 
     # Get parameters
     time_range = request.args.get("time_range", "medium_term")
@@ -66,7 +66,7 @@ def get_top_artists_chart():
 
     # Get Spotify client
     spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET,
-                                 SPOTIFY_REDIRECT, current_user.id)
+                                 SPOTIFY_REDIRECT, get_current_user().get("id") if get_current_user() else None)
 
     if not spotify:
         return jsonify({"error": "Spotify connection required"}), 400
@@ -86,8 +86,8 @@ def get_top_artists_chart():
 @login_required
 def get_top_tracks_chart():
     """Generate chart of top tracks"""
-    if not current_user.is_authenticated:
-        return jsonify({"error": "Authentication required"}), 401
+    if not is_authenticated():
+        return jsonify({"error": "Demo mode - limited features"}), 401
 
     # Get parameters
     time_range = request.args.get("time_range", "medium_term")
@@ -95,7 +95,7 @@ def get_top_tracks_chart():
 
     # Get Spotify client
     spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET,
-                                 SPOTIFY_REDIRECT, current_user.id)
+                                 SPOTIFY_REDIRECT, get_current_user().get("id") if get_current_user() else None)
 
     if not spotify:
         return jsonify({"error": "Spotify connection required"}), 400
@@ -115,15 +115,15 @@ def get_top_tracks_chart():
 @login_required
 def get_genre_chart():
     """Generate chart of top genres"""
-    if not current_user.is_authenticated:
-        return jsonify({"error": "Authentication required"}), 401
+    if not is_authenticated():
+        return jsonify({"error": "Demo mode - limited features"}), 401
 
     # Get parameters
     limit = int(request.args.get("limit", 10))
 
     # Get Spotify client
     spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET,
-                                 SPOTIFY_REDIRECT, current_user.id)
+                                 SPOTIFY_REDIRECT, get_current_user().get("id") if get_current_user() else None)
 
     if not spotify:
         return jsonify({"error": "Spotify connection required"}), 400
@@ -143,15 +143,15 @@ def get_genre_chart():
 @login_required
 def get_listening_history_chart():
     """Generate chart of listening history"""
-    if not current_user.is_authenticated:
-        return jsonify({"error": "Authentication required"}), 401
+    if not is_authenticated():
+        return jsonify({"error": "Demo mode - limited features"}), 401
 
     # Get parameters
     limit = int(request.args.get("limit", 50))
 
     # Get Spotify client
     spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET,
-                                 SPOTIFY_REDIRECT, current_user.id)
+                                 SPOTIFY_REDIRECT, get_current_user().get("id") if get_current_user() else None)
 
     if not spotify:
         return jsonify({"error": "Spotify connection required"}), 400
@@ -171,15 +171,15 @@ def get_listening_history_chart():
 @login_required
 def get_track_features_chart():
     """Generate radar chart of audio features for a track"""
-    if not current_user.is_authenticated:
-        return jsonify({"error": "Authentication required"}), 401
+    if not is_authenticated():
+        return jsonify({"error": "Demo mode - limited features"}), 401
 
     # Get parameters
     track_id = request.args.get("track_id")
 
     # Get Spotify client
     spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET,
-                                 SPOTIFY_REDIRECT, current_user.id)
+                                 SPOTIFY_REDIRECT, get_current_user().get("id") if get_current_user() else None)
 
     if not spotify:
         return jsonify({"error": "Spotify connection required"}), 400
@@ -203,8 +203,8 @@ def get_track_features_chart():
 @login_required
 def get_playlist_analysis():
     """Generate analysis of a playlist's mood and characteristics"""
-    if not current_user.is_authenticated:
-        return jsonify({"error": "Authentication required"}), 401
+    if not is_authenticated():
+        return jsonify({"error": "Demo mode - limited features"}), 401
 
     # Get parameters
     playlist_id = request.args.get("playlist_id")
@@ -214,7 +214,7 @@ def get_playlist_analysis():
 
     # Get Spotify client
     spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET,
-                                 SPOTIFY_REDIRECT, current_user.id)
+                                 SPOTIFY_REDIRECT, get_current_user().get("id") if get_current_user() else None)
 
     if not spotify:
         return jsonify({"error": "Spotify connection required"}), 400
@@ -237,8 +237,8 @@ def get_playlist_analysis():
 @login_required
 def compare_tracks():
     """Generate comparison of audio features between multiple tracks"""
-    if not current_user.is_authenticated:
-        return jsonify({"error": "Authentication required"}), 401
+    if not is_authenticated():
+        return jsonify({"error": "Demo mode - limited features"}), 401
 
     # Get parameters from JSON body
     data = request.json
@@ -253,7 +253,7 @@ def compare_tracks():
 
     # Get Spotify client
     spotify, _ = get_spotify_client(session, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET,
-                                 SPOTIFY_REDIRECT, current_user.id)
+                                 SPOTIFY_REDIRECT, get_current_user().get("id") if get_current_user() else None)
 
     if not spotify:
         return jsonify({"error": "Spotify connection required"}), 400

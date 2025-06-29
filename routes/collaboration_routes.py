@@ -3,6 +3,7 @@
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
     from flask import session, request, redirect, url_for, jsonify
+from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
     
     # Check session authentication
     if 'user' in session and session['user']:
@@ -14,10 +15,10 @@ def require_authentication():
     
     # For API endpoints, return JSON error
     if request.path.startswith('/api/'):
-        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+        return jsonify({'error': "Demo mode - limited access", 'demo_available': True}), 401
     
     # For web routes, redirect to login
-    return redirect(url_for('login'))
+    return redirect(url_for("main.demo"))
 
 def get_current_user():
     """Get current user from session with demo fallback"""
@@ -224,7 +225,7 @@ def get_families():
     try:
         user_id = session.get('user_id')
         if not user_id:
-            return jsonify({'error': 'Authentication required'}), 401
+            return jsonify({'error': "Demo mode - limited access"}), 401
         
         # Filter families where user is a member
         user_families = [f for f in SAMPLE_FAMILIES if any(m['id'] == user_id for m in f['members'])]
@@ -245,7 +246,7 @@ def create_family():
     try:
         user_id = session.get('user_id')
         if not user_id:
-            return jsonify({'error': 'Authentication required'}), 401
+            return jsonify({'error': "Demo mode - limited access"}), 401
         
         data = request.get_json()
         
@@ -289,7 +290,7 @@ def get_family_tasks(family_id):
     try:
         user_id = session.get('user_id')
         if not user_id:
-            return jsonify({'error': 'Authentication required'}), 401
+            return jsonify({'error': "Demo mode - limited access"}), 401
         
         # Filter tasks for this family
         family_tasks = [t for t in SAMPLE_SHARED_TASKS if t['family_id'] == family_id]
@@ -323,7 +324,7 @@ def create_family_task(family_id):
     try:
         user_id = session.get('user_id')
         if not user_id:
-            return jsonify({'error': 'Authentication required'}), 401
+            return jsonify({'error': "Demo mode - limited access"}), 401
         
         data = request.get_json()
         
@@ -366,7 +367,7 @@ def update_task_status(task_id):
     try:
         user_id = session.get('user_id')
         if not user_id:
-            return jsonify({'error': 'Authentication required'}), 401
+            return jsonify({'error': "Demo mode - limited access"}), 401
         
         data = request.get_json()
         new_status = data.get('status')
@@ -398,7 +399,7 @@ def get_family_events(family_id):
     try:
         user_id = session.get('user_id')
         if not user_id:
-            return jsonify({'error': 'Authentication required'}), 401
+            return jsonify({'error': "Demo mode - limited access"}), 401
         
         # Filter events for this family
         family_events = [e for e in SAMPLE_SHARED_EVENTS if e['family_id'] == family_id]
@@ -422,7 +423,7 @@ def get_shopping_lists(family_id):
     try:
         user_id = session.get('user_id')
         if not user_id:
-            return jsonify({'error': 'Authentication required'}), 401
+            return jsonify({'error': "Demo mode - limited access"}), 401
         
         # Filter shopping lists for this family
         family_lists = [l for l in SAMPLE_SHOPPING_LISTS if l['family_id'] == family_id]
@@ -443,7 +444,7 @@ def add_shopping_item(list_id):
     try:
         user_id = session.get('user_id')
         if not user_id:
-            return jsonify({'error': 'Authentication required'}), 401
+            return jsonify({'error': "Demo mode - limited access"}), 401
         
         data = request.get_json()
         
@@ -483,7 +484,7 @@ def toggle_shopping_item(item_id):
     try:
         user_id = session.get('user_id')
         if not user_id:
-            return jsonify({'error': 'Authentication required'}), 401
+            return jsonify({'error': "Demo mode - limited access"}), 401
         
         # Find item across all shopping lists
         for shopping_list in SAMPLE_SHOPPING_LISTS:

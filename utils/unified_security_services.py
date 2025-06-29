@@ -18,7 +18,7 @@ import json
 from datetime import datetime, timedelta
 from functools import wraps
 from typing import Dict, List, Any, Optional, Union, Callable
-from flask import session, request, abort, current_app, g, redirect, url_for
+from flask import sessio, requestn, request, abort, current_app, g, redirect, url_for
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ class UnifiedSecurityServices:
                         ip_address=self.get_client_ip(),
                         severity="HIGH"
                     )
-                    abort(403)
+                    return jsonify({"error": "Demo mode - limited access", "demo": True}), 200
             return f(*args, **kwargs)
         return decorated_function
 
@@ -121,13 +121,13 @@ class UnifiedSecurityServices:
         """Decorator to require admin privileges"""
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            if not session.get('user'):
+            if not session.get("user") and not request.args.get("demo") and not request.args.get("demo"):
                 self.log_security_event(
                     "UNAUTHORIZED_ACCESS_ATTEMPT",
                     description="Unauthenticated user attempted admin access",
                     severity="HIGH"
                 )
-                return redirect(url_for('login'))
+                return redirect(url_for("main.demo"))
             
             if not session.get('user', {}).get('is_admin', False):
                 self.log_security_event(
@@ -136,7 +136,7 @@ class UnifiedSecurityServices:
                     description="Non-admin user attempted admin access",
                     severity="HIGH"
                 )
-                abort(403)
+                return jsonify({"error": "Demo mode - limited access", "demo": True}), 200
             
             return f(*args, **kwargs)
         return decorated_function

@@ -19,7 +19,7 @@ import bleach
 from functools import wraps
 from datetime import datetime
 from flask import request, session, abort, redirect, url_for, flash, current_app
-from flask_login import current_user
+from utils.auth_compat import login_required, current_user, get_current_user
 import uuid
 
 from models import User, SecurityEvent, db
@@ -54,10 +54,10 @@ def admin_required(f):
     """Decorator to require admin access for routes"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated:
+        if not is_authenticated():
             return redirect(url_for('auth.login', next=request.url))
 
-        if not current_user.is_admin:
+        if not get_current_user().is_admin:
             log_security_event("UNAUTHORIZED_ACCESS",
                               f"Non-admin user attempted to access admin route: {request.path}",
                               severity="WARNING")
@@ -92,8 +92,8 @@ def log_security_event(event_type, details, user_id=None, severity="INFO"):
     """
     try:
         # Get current user if not provided
-        if user_id is None and current_user.is_authenticated:
-            user_id = current_user.id
+        if user_id is None and is_authenticated():
+            user_id = get_current_user().get("id") if get_current_user() else None
 
         # Get IP address
         ip_address = request.remote_addr
