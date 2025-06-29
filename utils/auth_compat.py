@@ -1,92 +1,70 @@
 """
-from utils.auth_compat import get_demo_user
-Minimal Production Authentication System
-Zero barriers - supports all access patterns
+Complete Authentication Compatibility Layer
+Provides full demo user support with zero authentication barriers
 """
 
-from flask import session, request, redirect, jsonify
+from flask import session, request
+from datetime import datetime
 from functools import wraps
 
-# Export all functions for easy importing
-__all__ = [
-    'get_get_demo_user()', 'is_authenticated', 'login_required', 
-    'require_authentication', 'check_authentication', 'get_demo_user()',
-    'get_user_id', 'get_user_name', 'get_user_email', 'is_demo_mode',
-    'require_auth', 'authenticated', 'optional_auth', 'ensure_demo_access',
-    'get_demo_user', 'AlwaysAuthenticatedUser', 'UserMixin'
-]
-
-def get_get_demo_user()():
-    """Get user - always returns a valid user object"""
-    # Return session user if available
-    if session.get('user'):
-        return session['user']
+class DemoUser:
+    """Demo user class with Flask-Login compatibility"""
+    def __init__(self):
+        self.id = 'demo_user_123'
+        self.name = 'Demo User'
+        self.email = 'demo@nous.app'
+        self.is_authenticated = True
+        self.is_active = True
+        self.is_anonymous = False
+        self.demo_mode = True
+        self.login_time = datetime.now().isoformat()
     
-    # Always provide demo user for public access
-    return {
-        'id': 'demo_user',
-        'name': 'Demo User',
-        'email': 'demo@nous.app',
-        'demo_mode': True
-    }
+    def get_id(self):
+        return self.id
+
+def get_demo_user():
+    """Get demo user instance"""
+    return DemoUser()
 
 def is_authenticated():
-    """Always return True - no authentication barriers"""
+    """Always return True for demo mode"""
     return True
 
 def login_required(f):
-    """No-barrier decorator - always allows access"""
+    """No-barrier decorator that ensures demo user in session"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        # Ensure demo user is in session
+        if 'user' not in session:
+            session['user'] = {
+                'id': 'demo_user_123',
+                'name': 'Demo User',
+                'email': 'demo@nous.app',
+                'demo_mode': True
+            }
         return f(*args, **kwargs)
     return decorated_function
 
-def require_authentication():
-    """Legacy function - never blocks access"""
-    return None
+def auth_not_required(f):
+    """Alias for login_required (no barriers)"""
+    return login_required(f)
 
-# Legacy get_demo_user() object
-class AlwaysAuthenticatedUser:
-    @property
-    def is_authenticated(self):
-        return True
-    
-    @property
-    def id(self):
-        return get_get_demo_user()()['id']
-    
-    @property
-    def name(self):
-        return get_get_demo_user()()['name']
-    
-    @property
-    def email(self):
-        return get_get_demo_user()()['email']
-    
-    def get(self, key, default=None):
-        return get_get_demo_user()().get(key, default)
-    
-    def __bool__(self):
-        return True
+# Global instances for compatibility
+current_user = get_demo_user()
 
-get_demo_user() = AlwaysAuthenticatedUser()
+def ensure_demo_session():
+    """Ensure demo user is in Flask session"""
+    if 'user' not in session:
+        session['user'] = {
+            'id': 'demo_user_123',
+            'name': 'Demo User', 
+            'email': 'demo@nous.app',
+            'demo_mode': True,
+            'is_authenticated': True
+        }
+    return session['user']
 
-
-# Flask-Login UserMixin alternative for backward compatibility
-class UserMixin:
-    """Minimal UserMixin replacement for authentication compatibility"""
-    
-    @property
-    def is_authenticated(self):
-        return True
-    
-    @property
-    def is_active(self):
-        return True
-    
-    @property
-    def is_anonymous(self):
-        return False
-    
-    def get_id(self):
-        return str(getattr(self, 'id', 'demo_user'))
+def get_current_user():
+    """Get current user (always demo user)"""
+    ensure_demo_session()
+    return get_demo_user()
