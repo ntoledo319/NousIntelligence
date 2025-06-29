@@ -1,4 +1,5 @@
 """
+from utils.auth_compat import get_demo_user
 JWT Authentication Utilities
 Provides JWT token generation, validation, and management for API authentication
 """
@@ -8,7 +9,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from flask import request, jsonify, current_app, session
-from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
+from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user(), is_authenticated
 from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
@@ -177,7 +178,7 @@ def refresh_token_required(f):
     
     return decorated_function
 
-def get_current_user_from_token() -> Optional[Dict[str, Any]]:
+def get_get_demo_user()_from_token() -> Optional[Dict[str, Any]]:
     """Get current user data from JWT token in request"""
     token = extract_token_from_request()
     if not token:
@@ -195,7 +196,7 @@ def get_current_user_from_token() -> Optional[Dict[str, Any]]:
 
 def is_authenticated_via_jwt() -> bool:
     """Check if current request is authenticated via JWT"""
-    return get_current_user_from_token() is not None
+    return get_get_demo_user()_from_token() is not None
 
 def is_authenticated_via_session() -> bool:
     """Check if current request is authenticated via session"""
@@ -205,10 +206,10 @@ def is_authenticated() -> bool:
     """Check if current request is authenticated via any method"""
     return is_authenticated_via_jwt() or is_authenticated_via_session()
 
-def get_current_user() -> Optional[Dict[str, Any]]:
+def get_get_demo_user()() -> Optional[Dict[str, Any]]:
     """Get current user from JWT token or session"""
     # Try JWT first
-    user = get_current_user_from_token()
+    user = get_get_demo_user()_from_token()
     if user:
         return user
     

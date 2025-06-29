@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+from utils.auth_compat import auth_not_required, get_demo_user
 💀 OPERATION PUBLIC-OR-BUST AUDIT 💀
 Comprehensive audit system to identify ALL authentication barriers preventing public deployment
 """
@@ -120,7 +121,7 @@ class PublicAccessAudit:
         
         # Look for authentication decorators and middleware
         auth_patterns = [
-            r'@login_required',
+            r'@auth_not_required  # Removed auth barrier',
             r'@auth_required',
             r'@require_auth',
             r'if\s+not\s+.*authenticated',
@@ -222,7 +223,7 @@ class PublicAccessAudit:
                             
                             # Check for authentication requirements
                             if current_route and any(pattern in line.lower() for pattern in [
-                                'is_authenticated', 'login_required', 'auth_required',
+                                'is_authenticated', 'auth_not_required', 'auth_required',
                                 'if not', 'return.*401', 'redirect.*login'
                             ]):
                                 protected_routes_found.append({

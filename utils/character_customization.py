@@ -1,4 +1,5 @@
 """
+from utils.auth_compat import get_demo_user
 Character customization module for personalizing the AI assistant.
 This module helps create a more engaging and personalized AI character
 based on user preferences.
@@ -32,11 +33,11 @@ def get_character_settings():
 
     # Try to get settings from current user if authenticated
     try:
-        from utils.auth_compat import login_required, current_user, get_current_user
-        if current_user and is_authenticated():
+        from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user()
+        if get_demo_user() and is_authenticated():
             # Check if user has settings
             from models import UserSettings
-            user_settings = UserSettings.query.filter_by(user_id=get_current_user().get("id") if get_current_user() else None).first()
+            user_settings = UserSettings.query.filter_by(user_id=get_get_demo_user()().get("id") if get_get_demo_user()() else None).first()
 
             if user_settings:
                 # Extract character settings

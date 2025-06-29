@@ -1,10 +1,11 @@
 """
+from utils.auth_compat import get_demo_user
 Beta Admin Routes
 Beta Admin functionality for the NOUS application
 """
 
 from flask import Blueprint, render_template, session, request, redirect, url_for, jsonify
-from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
+from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user(), is_authenticated
 
 beta_admin_bp = Blueprint('beta_admin', __name__)
 
@@ -12,7 +13,7 @@ beta_admin_bp = Blueprint('beta_admin', __name__)
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
     from flask import sessio, requestn, request, redirect, url_for, jsonify
-from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
+from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user(), is_authenticated
     
     # Check session authentication
     if 'user' in session and session['user']:
@@ -29,7 +30,7 @@ from utils.auth_compat import login_required, current_user, get_current_user, is
     # For web routes, redirect to login
     return redirect(url_for("main.demo"))
 
-def get_current_user():
+def get_get_demo_user()():
     """Get current user from session with demo fallback"""
     from flask import sessio, requestn
     return session.get('user', {
@@ -73,7 +74,7 @@ def admin_required(f):
             flash("Demo mode active", 'warning')
             return redirect(url_for("main.demo"))
         
-        user_email = get_current_user().get('email', '').lower()
+        user_email = get_get_demo_user()().get('email', '').lower()
         if user_email != SUPER_ADMIN_EMAIL.lower():
             flash("Demo mode - feature unavailable", 'error')
             return redirect(url_for('landing'))

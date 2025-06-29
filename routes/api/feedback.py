@@ -1,9 +1,10 @@
 """
+from utils.auth_compat import get_demo_user
 Feedback API routes
 """
 
 from flask import Blueprint, request, jsonify
-from utils.auth_compat import login_required, current_user, get_current_user
+from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user()
 
 feedback_api = Blueprint('feedback_api', __name__)
 
@@ -11,7 +12,7 @@ feedback_api = Blueprint('feedback_api', __name__)
 def submit_feedback():
     """Submit user feedback"""
     data = request.get_json() or {}
-    user = get_current_user()
+    user = get_get_demo_user()()
     
     feedback_data = {
         'user_id': user.get('id') if user else 'anonymous',

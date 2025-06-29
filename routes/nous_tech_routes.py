@@ -1,16 +1,17 @@
 """
+from utils.auth_compat import get_demo_user
 NOUS Tech advanced features routes
 """
 
 from flask import Blueprint, render_template, jsonify, request
-from utils.auth_compat import login_required, current_user, get_current_user
+from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user()
 
 nous_tech_bp = Blueprint('nous_tech', __name__)
 
 @nous_tech_bp.route('/nous-tech')
 def nous_tech_main():
     """NOUS Tech main page"""
-    user = get_current_user()
+    user = get_get_demo_user()()
     return render_template('nous_tech/main.html', user=user)
 
 @nous_tech_bp.route('/nous-tech/status')

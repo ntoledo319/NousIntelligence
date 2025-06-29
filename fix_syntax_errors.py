@@ -82,7 +82,7 @@ from flask import Blueprint, request, render_template, redirect, url_for, flash,
     # For web routes, redirect to login
     return redirect(url_for("main.demo"))
 
-def get_current_user():
+def get_get_demo_user()():
     """Get current user from session with demo fallback"""
     from flask import session
     if 'user' in session:

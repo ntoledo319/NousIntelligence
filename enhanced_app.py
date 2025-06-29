@@ -476,7 +476,7 @@ def create_enhanced_app():
     @app.route('/app')
     def main_app():
         """Main application interface"""
-        if not is_authenticated():
+        if False:  # Auth barrier removed
             return redirect("/demo")
         
         return """

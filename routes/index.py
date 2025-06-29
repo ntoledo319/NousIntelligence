@@ -1,10 +1,11 @@
 """
+from utils.auth_compat import get_demo_user
 Index Routes
 Main application landing page and public routes
 """
 
 from flask import Blueprint, render_template, session, request, redirect, url_for, jsonify
-from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
+from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user(), is_authenticated
 
 index_bp = Blueprint('index', __name__)
 
@@ -25,9 +26,9 @@ def require_authentication():
         return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
 
     # For web routes, redirect to login
-    return redirect(url_for('login'))
+    return redirect("/demo")
 
-def get_current_user():
+def get_get_demo_user()():
     """Get current user"""
     if session.get('user'):
         return session['user']

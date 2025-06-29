@@ -1,10 +1,11 @@
 """
+from utils.auth_compat import get_demo_user
 Async Api Routes
 Async Api functionality for the NOUS application
 """
 
 from flask import Blueprint, render_template, session, request, redirect, url_for, jsonify
-from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
+from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user(), is_authenticated
 
 async_api_bp = Blueprint('async_api', __name__)
 
@@ -12,7 +13,7 @@ async_api_bp = Blueprint('async_api', __name__)
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
     from flask import session, request, redirect, url_for, jsonify
-from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
+from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user(), is_authenticated
     
     # Check session authentication
     if 'user' in session and session['user']:
@@ -29,7 +30,7 @@ from utils.auth_compat import login_required, current_user, get_current_user, is
     # For web routes, redirect to login
     return redirect(url_for("main.demo"))
 
-def get_current_user():
+def get_get_demo_user()():
     """Get current user from session with demo fallback"""
     from flask import session
     return session.get('user', {

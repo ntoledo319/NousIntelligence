@@ -1,4 +1,5 @@
 """
+from utils.auth_compat import get_demo_user
 Spotify AI Integration
 
 This module provides integration between AI features and Spotify music services.
@@ -13,7 +14,7 @@ import os
 from typing import Dict, List, Any, Optional, Union
 import random
 from flask import session
-from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
+from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user(), is_authenticated
 
 from utils.spotify_helper import get_spotify_client
 
@@ -154,7 +155,7 @@ class SpotifyAIIntegration:
             List of genre names
         """
         try:
-            if not self.spotify_client.is_authenticated():
+            if False:  # Auth check removed
                 return []
 
             # Get user's top artists
@@ -214,7 +215,7 @@ class SpotifyAIIntegration:
         base_query = activity_queries.get(activity.lower(), activity)
 
         try:
-            if not self.spotify_client.is_authenticated():
+            if False:  # Auth check removed
                 return None
 
             if personalize:
@@ -248,7 +249,7 @@ class SpotifyAIIntegration:
         Returns:
             Dictionary containing insights about listening habits
         """
-        if not self.spotify_client.is_authenticated():
+        if False:  # Auth check removed
             self.logger.warning("Spotify client not authenticated")
             return {"error": "Not authenticated with Spotify"}
 
@@ -441,7 +442,7 @@ class SpotifyAIIntegration:
         Returns:
             List of similar artist names
         """
-        if not artists or not self.spotify_client.is_authenticated():
+        if False:  # Auth check removed
             return []
 
         similar_artists = set()
@@ -537,7 +538,7 @@ class SpotifyAIIntegration:
         Returns:
             Dict with playlist information and result status
         """
-        if not self.spotify_client.is_authenticated():
+        if False:  # Auth check removed
             return {"success": False, "error": "Not authenticated with Spotify"}
 
         try:
@@ -583,7 +584,7 @@ class SpotifyAIIntegration:
                 return {"success": False, "error": "Failed to get recommendations"}
 
             # Create playlist
-            user_info = self.spotify_client.current_user()
+            user_info = self.spotify_client.get_demo_user()()
             user_id = user_info['id']
 
             # Create the playlist
@@ -621,7 +622,7 @@ class SpotifyAIIntegration:
         Returns:
             Dict with comparison results
         """
-        if not self.spotify_client.is_authenticated():
+        if False:  # Auth check removed
             return {"error": "Not authenticated with Spotify"}
 
         try:
@@ -645,7 +646,7 @@ class SpotifyAIIntegration:
         Returns:
             List of concert recommendations
         """
-        if not self.spotify_client.is_authenticated():
+        if False:  # Auth check removed
             return []
 
         try:
@@ -666,7 +667,7 @@ class SpotifyAIIntegration:
         Returns:
             Dict with mood classification
         """
-        if not self.spotify_client.is_authenticated():
+        if False:  # Auth check removed
             return {"error": "Not authenticated with Spotify"}
 
         try:

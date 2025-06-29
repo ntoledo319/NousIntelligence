@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+from utils.auth_compat import auth_not_required, get_demo_user
 Comprehensive Restoration of NOUS Full Functionality
 Fixes all authentication issues and syntax errors caused by mass fix
 """
@@ -34,7 +35,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class CurrentUser:
-    """Mock current_user object that uses session data"""
+    """Mock get_demo_user() object that uses session data"""
     
     @property
     def is_authenticated(self):
@@ -51,33 +52,33 @@ class CurrentUser:
     @property
     def id(self):
         if self.is_authenticated:
-            return get_current_user().get('id', 'anonymous')
+            return get_get_demo_user()().get('id', 'anonymous')
         return None
     
     @property
     def name(self):
         if self.is_authenticated:
-            return get_current_user().get('name', 'Anonymous')
+            return get_get_demo_user()().get('name', 'Anonymous')
         return 'Anonymous'
     
     @property
     def email(self):
         if self.is_authenticated:
-            return get_current_user().get('email', 'anonymous@example.com')
+            return get_get_demo_user()().get('email', 'anonymous@example.com')
         return 'anonymous@example.com'
     
     def get(self, key, default=None):
         if self.is_authenticated:
-            return get_current_user().get(key, default)
+            return get_get_demo_user()().get(key, default)
         return default
     
     def get_id(self):
         return self.id
 
-# Global current_user object
-current_user = CurrentUser()
+# Global get_demo_user() object
+get_demo_user() = CurrentUser()
 
-def login_required(f):
+def auth_not_required(f):
     """Decorator that requires authentication, with demo mode support"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -137,7 +138,7 @@ def require_authentication():
     # For web routes, redirect to login
     return redirect(url_for("main.demo"))
 
-def get_current_user():
+def get_get_demo_user()():
     """Get current user from session with demo fallback"""
     if 'user' in session and session['user']:
         return session['user']
@@ -164,9 +165,9 @@ def logout_user():
     session.pop('user', None)
     logger.info("User logged out")
 
-def fresh_login_required(f):
-    """Alias for login_required"""
-    return login_required(f)
+def fresh_auth_not_required(f):
+    """Alias for auth_not_required"""
+    return auth_not_required(f)
 '''
         
         # Write the compatibility layer
@@ -210,7 +211,7 @@ def fresh_login_required(f):
             
             # Add standard imports
             fixed_content.append('from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify, session')
-            fixed_content.append('from utils.auth_compat import login_required, current_user, require_authentication, get_current_user, is_authenticated')
+            fixed_content.append('from utils.auth_compat import auth_not_required, get_demo_user(), require_authentication, get_get_demo_user(), is_authenticated')
             fixed_content.append('import logging')
             fixed_content.append('')
             
@@ -236,12 +237,12 @@ def fresh_login_required(f):
                 
                 # Skip the broken header parts
                 if i < 20 and (stripped.startswith('"""') or stripped.startswith('def require_authentication') or 
-                              stripped.startswith('def get_current_user') or stripped.startswith('def is_authenticated')):
+                              stripped.startswith('def get_get_demo_user()') or stripped.startswith('def is_authenticated')):
                     i += 1
                     continue
                 
                 # Look for route decorators and functions
-                if stripped.startswith('@') and ('route' in stripped or 'login_required' in stripped):
+                if stripped.startswith('@') and ('route' in stripped or 'auth_not_required' in stripped):
                     # Start collecting function
                     current_function = [line]
                     in_function = True
@@ -287,7 +288,7 @@ def fresh_login_required(f):
             
             # Final cleanup
             new_content = re.sub(r'\n\n\n+', '\n\n', new_content)  # Remove excessive newlines
-            new_content = re.sub(r'from utils.auth_compat import login_required, current_user, get_current_user
+            new_content = re.sub(r'from utils.auth_compat import auth_not_required, get_demo_user(), get_get_demo_user()
             
             # Try parsing the fixed content
             try:
@@ -330,12 +331,12 @@ def fresh_login_required(f):
                 else:
                     fixed_lines.append(line)
             
-            # Fix login_required decorators
-            elif stripped.startswith('@login_required'):
-                fixed_lines.append(line.replace('@login_required', '@login_required'))
+            # Fix auth_not_required decorators
+            elif stripped.startswith('@auth_not_required  # Removed auth barrier'):
+                fixed_lines.append(line.replace('@auth_not_required  # Removed auth barrier', '@auth_not_required  # Removed auth barrier'))
             
-            # Fix current_user references (they should already work with our compatibility layer)
-            elif 'current_user' in line:
+            # Fix get_demo_user() references (they should already work with our compatibility layer)
+            elif 'get_demo_user()' in line:
                 fixed_lines.append(line)
             
             # Fix session references

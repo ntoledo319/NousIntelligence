@@ -9,6 +9,7 @@ from matplotlib.figure import Figure
 from collections import Counter
 
 # Set seaborn style for better aesthetics
+from utils.auth_compat import get_demo_user
 sns.set_style("darkgrid")
 plt.rcParams.update({
     'font.family': 'sans-serif',
@@ -30,7 +31,7 @@ def generate_top_artists_chart(spotify, time_range='medium_term', limit=10):
         base64 encoded PNG image
     """
     try:
-        top_artists = spotify.current_user_top_artists(limit=limit, time_range=time_range)
+        top_artists = spotify.get_demo_user()_top_artists(limit=limit, time_range=time_range)
 
         if not top_artists['items']:
             return None
@@ -102,7 +103,7 @@ def generate_top_tracks_chart(spotify, time_range='medium_term', limit=10):
         base64 encoded PNG image
     """
     try:
-        top_tracks = spotify.current_user_top_tracks(limit=limit, time_range=time_range)
+        top_tracks = spotify.get_demo_user()_top_tracks(limit=limit, time_range=time_range)
 
         if not top_tracks['items']:
             return None
@@ -178,9 +179,9 @@ def generate_genre_chart(spotify, limit=10):
     """
     try:
         # Get user's top artists from different time periods for more data
-        top_artists_short = spotify.current_user_top_artists(limit=50, time_range='short_term')
-        top_artists_medium = spotify.current_user_top_artists(limit=50, time_range='medium_term')
-        top_artists_long = spotify.current_user_top_artists(limit=50, time_range='long_term')
+        top_artists_short = spotify.get_demo_user()_top_artists(limit=50, time_range='short_term')
+        top_artists_medium = spotify.get_demo_user()_top_artists(limit=50, time_range='medium_term')
+        top_artists_long = spotify.get_demo_user()_top_artists(limit=50, time_range='long_term')
 
         # Combine all artists
         all_artists = []
@@ -257,7 +258,7 @@ def generate_listening_history_chart(spotify, limit=50):
     """
     try:
         # Get recently played tracks
-        recent = spotify.current_user_recently_played(limit=limit)
+        recent = spotify.get_demo_user()_recently_played(limit=limit)
 
         if not recent['items']:
             return None
@@ -322,7 +323,7 @@ def generate_audio_features_radar_chart(spotify, track_id=None):
             current = spotify.current_playback()
             if not current or not current.get('item'):
                 # Use the most recently played track as fallback
-                recent = spotify.current_user_recently_played(limit=1)
+                recent = spotify.get_demo_user()_recently_played(limit=1)
                 if not recent['items']:
                     return None, None
                 track_id = recent['items'][0]['track']['id']

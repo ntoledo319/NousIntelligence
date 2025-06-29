@@ -1,5 +1,6 @@
 import asyncio
 """
+from utils.auth_compat import get_demo_user
 Unified Spotify Services
 Consolidated Spotify API integrations and utilities
 """
@@ -51,7 +52,7 @@ class UnifiedSpotifyService:
         if not self.sp:
             return False
         try:
-            self.sp.current_user()
+            self.sp.get_demo_user()()
             return True
         except:
             return False
@@ -245,7 +246,7 @@ class UnifiedSpotifyService:
         if not self.sp:
             return []
         try:
-            results = self.sp.current_user_playlists(limit=limit)
+            results = self.sp.get_demo_user()_playlists(limit=limit)
             return results['items']
         except Exception as e:
             print(f"User playlists error: {e}")
@@ -256,7 +257,7 @@ class UnifiedSpotifyService:
         if not self.sp:
             return None
         try:
-            user_id = self.sp.current_user()['id']
+            user_id = self.sp.get_demo_user()()['id']
             return self.sp.user_playlist_create(
                 user_id, name, public=public, description=description
             )
@@ -303,7 +304,7 @@ class UnifiedSpotifyService:
         if not self.sp:
             return []
         try:
-            results = self.sp.current_user_saved_tracks(limit=limit)
+            results = self.sp.get_demo_user()_saved_tracks(limit=limit)
             return results['items']
         except Exception as e:
             print(f"Saved tracks error: {e}")
@@ -314,7 +315,7 @@ class UnifiedSpotifyService:
         if not self.sp:
             return False
         try:
-            self.sp.current_user_saved_tracks_add(track_ids)
+            self.sp.get_demo_user()_saved_tracks_add(track_ids)
             return True
         except Exception as e:
             print(f"Save tracks error: {e}")
@@ -325,7 +326,7 @@ class UnifiedSpotifyService:
         if not self.sp:
             return False
         try:
-            self.sp.current_user_saved_tracks_delete(track_ids)
+            self.sp.get_demo_user()_saved_tracks_delete(track_ids)
             return True
         except Exception as e:
             print(f"Remove saved tracks error: {e}")
@@ -357,7 +358,7 @@ class UnifiedSpotifyService:
         if not self.sp:
             return []
         try:
-            results = self.sp.current_user_top_tracks(
+            results = self.sp.get_demo_user()_top_tracks(
                 time_range=time_range, limit=limit
             )
             return results['items']
@@ -370,7 +371,7 @@ class UnifiedSpotifyService:
         if not self.sp:
             return []
         try:
-            results = self.sp.current_user_top_artists(
+            results = self.sp.get_demo_user()_top_artists(
                 time_range=time_range, limit=limit
             )
             return results['items']
@@ -383,7 +384,7 @@ class UnifiedSpotifyService:
         if not self.sp:
             return []
         try:
-            results = self.sp.current_user_recently_played(limit=limit)
+            results = self.sp.get_demo_user()_recently_played(limit=limit)
             return results['items']
         except Exception as e:
             print(f"Recently played error: {e}")
