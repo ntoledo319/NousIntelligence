@@ -11,6 +11,9 @@ from typing import Dict, List, Optional, Any, Tuple
 from flask import session
 from sqlalchemy import and_, or_, desc, func
 
+# Setup logger
+logger = logging.getLogger(__name__)
+
 # Import database and models
 from database import db
 from models.health_models import (
@@ -25,7 +28,7 @@ try:
     from utils.dbt_helper import get_skill_recommendations as get_dbt_recommendations, log_dbt_skill
     from utils.cbt_helper import recommend_coping_skill, log_mood, get_coping_skills
 except ImportError as e:
-    logger.warning(f"Import warning: {e}")
+    print(f"Import warning: {e}")  # Temporary fallback until logger is defined
     # Fallback implementations
     def detect_emotion_from_text(text):
         return {'emotion': 'neutral', 'confidence': 0.5}

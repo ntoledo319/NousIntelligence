@@ -62,12 +62,19 @@ class DependencyManager:
     def load_routes(self):
         """Load routes with fallbacks"""
         try:
-            from routes import health_bp, maps_bp, weather_bp, tasks_bp, recovery_bp
-            from routes.api.feedback import feedback_api
+            from routes.health_api import health_api_bp
+            from routes.maps_routes import maps_bp
+            from routes.weather_routes import weather_bp  
+            from routes.tasks_routes import tasks_bp
+            from routes.recovery_routes import recovery_bp
+            try:
+                from routes.api.feedback import feedback_api
+            except ImportError:
+                feedback_api = None
             
             self.routes.update({
                 'feedback_api': feedback_api,
-                'health_bp': health_bp,
+                'health_bp': health_api_bp,
                 'maps_bp': maps_bp,
                 'weather_bp': weather_bp,
                 'tasks_bp': tasks_bp,
