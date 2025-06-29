@@ -545,7 +545,7 @@ def create_app():
             "timestamp": datetime.now().isoformat(),
             "demo": demo_mode
         })
-    
+        
     except Exception as e:
         logger.error(f"Chat API error: {e}")
         return jsonify({
@@ -554,144 +554,144 @@ def create_app():
             "timestamp": datetime.now().isoformat()
         }), 500
 
-@app.route('/api/enhanced/research', methods=['POST'])
-def api_research():
-    """Enhanced research endpoint using GPT-4o"""
-    if not is_authenticated() and not request.json.get('demo_mode'):
-        return jsonify({"error": "Authentication required"}), 401
-    
-    try:
-        data = request.get_json()
-        question = data.get('question', '')
-        
-        if not question:
-            return jsonify({"error": "Question is required"}), 400
-        
-        from utils.enhanced_ai_system import enhanced_ai
-        response = enhanced_ai.research_query(question)
-        
-        return jsonify({
-            "research_response": response,
-            "type": "research",
-            "timestamp": datetime.now().isoformat()
-        })
-        
-    except ImportError:
-        return jsonify({"error": "Research AI not available"}), 503
-    except Exception as e:
-        logger.error(f"Research API error: {e}")
-        return jsonify({"error": "Research service temporarily unavailable"}), 500
-
-@app.route('/api/enhanced/therapeutic', methods=['POST'])
-def api_therapeutic():
-    """Enhanced therapeutic AI endpoint"""
-    if not is_authenticated() and not request.json.get('demo_mode'):
-        return jsonify({"error": "Authentication required"}), 401
-    
-    try:
-        data = request.get_json()
-        message = data.get('message', '')
-        framework = data.get('framework', 'general')
-        
-        if not message:
-            return jsonify({"error": "Message is required"}), 400
-        
-        from utils.enhanced_therapeutic_ai import get_therapeutic_response
-        response = get_therapeutic_response(message, framework)
-        
-        return jsonify({
-            "therapeutic_response": response,
-            "framework": framework,
-            "timestamp": datetime.now().isoformat()
-        })
-        
-    except ImportError:
-        return jsonify({"error": "Therapeutic AI not available"}), 503
-    except Exception as e:
-        logger.error(f"Therapeutic API error: {e}")
-        return jsonify({"error": "Therapeutic service temporarily unavailable"}), 500
-
-@app.route('/api/enhanced/emotion', methods=['POST'])
-def api_emotion_analysis():
-    """Enhanced emotion analysis endpoint"""
-    if not is_authenticated() and not request.json.get('demo_mode'):
-        return jsonify({"error": "Authentication required"}), 401
-    
-    try:
-        data = request.get_json()
-        text = data.get('text', '')
-        
-        if not text:
-            return jsonify({"error": "Text is required"}), 400
-        
-        from utils.enhanced_voice_emotion import analyze_text_emotion
-        emotion_data = analyze_text_emotion(text)
-        
-        return jsonify({
-            "emotion_analysis": emotion_data,
-            "timestamp": datetime.now().isoformat()
-        })
-        
-    except ImportError:
-        return jsonify({"error": "Emotion analysis not available"}), 503
-    except Exception as e:
-        logger.error(f"Emotion analysis API error: {e}")
-        return jsonify({"error": "Emotion analysis service temporarily unavailable"}), 500
-
-@app.route('/api/enhanced/cost-report', methods=['GET'])
-def api_cost_report():
-    """Get AI cost and usage report"""
-    if not is_authenticated():
-        return jsonify({"error": "Authentication required"}), 401
-    
-    try:
-        reports = {}
+    @app.route('/api/enhanced/research', methods=['POST'])
+    def api_research():
+        """Enhanced research endpoint using GPT-4o"""
+        if not is_authenticated() and not request.json.get('demo_mode'):
+            return jsonify({"error": "Authentication required"}), 401
         
         try:
-            from utils.enhanced_ai_system import get_ai_cost_report
-            reports['enhanced_ai'] = get_ai_cost_report()
-        except ImportError:
-            pass
+            data = request.get_json()
+            question = data.get('question', '')
             
-        try:
-            from utils.enhanced_therapeutic_ai import get_therapeutic_cost_report
-            reports['therapeutic'] = get_therapeutic_cost_report()
-        except ImportError:
-            pass
+            if not question:
+                return jsonify({"error": "Question is required"}), 400
             
-        try:
-            from utils.enhanced_voice_emotion import enhanced_voice_emotion
-            reports['voice_emotion'] = {
-                "daily_requests": enhanced_voice_emotion.daily_requests,
-                "monthly_cost": enhanced_voice_emotion.monthly_cost
-            }
-        except ImportError:
-            pass
+            from utils.enhanced_ai_system import enhanced_ai
+            response = enhanced_ai.research_query(question)
             
-        try:
-            from utils.enhanced_visual_intelligence import get_visual_cost_report
-            reports['visual'] = get_visual_cost_report()
+            return jsonify({
+                "research_response": response,
+                "type": "research",
+                "timestamp": datetime.now().isoformat()
+            })
+            
         except ImportError:
-            pass
+            return jsonify({"error": "Research AI not available"}), 503
+        except Exception as e:
+            logger.error(f"Research API error: {e}")
+            return jsonify({"error": "Research service temporarily unavailable"}), 500
+
+    @app.route('/api/enhanced/therapeutic', methods=['POST'])
+    def api_therapeutic():
+        """Enhanced therapeutic AI endpoint"""
+        if not is_authenticated() and not request.json.get('demo_mode'):
+            return jsonify({"error": "Authentication required"}), 401
         
-        # Calculate totals
-        total_cost = sum(
-            report.get('monthly_cost', 0) if isinstance(report, dict) else 
-            report.get('monthly_costs', {}).get('total', 0) if isinstance(report, dict) else 0
-            for report in reports.values()
-        )
+        try:
+            data = request.get_json()
+            message = data.get('message', '')
+            framework = data.get('framework', 'general')
+            
+            if not message:
+                return jsonify({"error": "Message is required"}), 400
+            
+            from utils.enhanced_therapeutic_ai import get_therapeutic_response
+            response = get_therapeutic_response(message, framework)
+            
+            return jsonify({
+                "therapeutic_response": response,
+                "framework": framework,
+                "timestamp": datetime.now().isoformat()
+            })
+            
+        except ImportError:
+            return jsonify({"error": "Therapeutic AI not available"}), 503
+        except Exception as e:
+            logger.error(f"Therapeutic API error: {e}")
+            return jsonify({"error": "Therapeutic service temporarily unavailable"}), 500
+
+    @app.route('/api/enhanced/emotion', methods=['POST'])
+    def api_emotion_analysis():
+        """Enhanced emotion analysis endpoint"""
+        if not is_authenticated() and not request.json.get('demo_mode'):
+            return jsonify({"error": "Authentication required"}), 401
         
-        return jsonify({
-            "cost_reports": reports,
-            "total_monthly_cost": total_cost,
-            "cost_per_user": total_cost / 30,  # 30 beta users
-            "savings_vs_commercial": (25 - (total_cost / 30)) / 25 * 100,  # vs $25/user
-            "timestamp": datetime.now().isoformat()
-        })
+        try:
+            data = request.get_json()
+            text = data.get('text', '')
+            
+            if not text:
+                return jsonify({"error": "Text is required"}), 400
+            
+            from utils.enhanced_voice_emotion import analyze_text_emotion
+            emotion_data = analyze_text_emotion(text)
+            
+            return jsonify({
+                "emotion_analysis": emotion_data,
+                "timestamp": datetime.now().isoformat()
+            })
+            
+        except ImportError:
+            return jsonify({"error": "Emotion analysis not available"}), 503
+        except Exception as e:
+            logger.error(f"Emotion analysis API error: {e}")
+            return jsonify({"error": "Emotion analysis service temporarily unavailable"}), 500
+
+    @app.route('/api/enhanced/cost-report', methods=['GET'])
+    def api_cost_report():
+        """Get AI cost and usage report"""
+        if not is_authenticated():
+            return jsonify({"error": "Authentication required"}), 401
         
-    except Exception as e:
-        logger.error(f"Cost report API error: {e}")
-        return jsonify({"error": "Cost report service temporarily unavailable"}), 500
+        try:
+            reports = {}
+            
+            try:
+                from utils.enhanced_ai_system import get_ai_cost_report
+                reports['enhanced_ai'] = get_ai_cost_report()
+            except ImportError:
+                pass
+                
+            try:
+                from utils.enhanced_therapeutic_ai import get_therapeutic_cost_report
+                reports['therapeutic'] = get_therapeutic_cost_report()
+            except ImportError:
+                pass
+                
+            try:
+                from utils.enhanced_voice_emotion import enhanced_voice_emotion
+                reports['voice_emotion'] = {
+                    "daily_requests": enhanced_voice_emotion.daily_requests,
+                    "monthly_cost": enhanced_voice_emotion.monthly_cost
+                }
+            except ImportError:
+                pass
+                
+            try:
+                from utils.enhanced_visual_intelligence import get_visual_cost_report
+                reports['visual'] = get_visual_cost_report()
+            except ImportError:
+                pass
+            
+            # Calculate totals
+            total_cost = sum(
+                report.get('monthly_cost', 0) if isinstance(report, dict) else 
+                report.get('monthly_costs', {}).get('total', 0) if isinstance(report, dict) else 0
+                for report in reports.values()
+            )
+            
+            return jsonify({
+                "cost_reports": reports,
+                "total_monthly_cost": total_cost,
+                "cost_per_user": total_cost / 30,  # 30 beta users
+                "savings_vs_commercial": (25 - (total_cost / 30)) / 25 * 100,  # vs $25/user
+                "timestamp": datetime.now().isoformat()
+            })
+            
+        except Exception as e:
+            logger.error(f"Cost report API error: {e}")
+            return jsonify({"error": "Cost report service temporarily unavailable"}), 500
 
     @app.route('/api/enhanced/visual', methods=['POST'])
     def api_visual_analysis():
