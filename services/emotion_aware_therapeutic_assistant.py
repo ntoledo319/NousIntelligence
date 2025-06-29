@@ -42,6 +42,7 @@ except ImportError:
             return {'content': 'I understand you\'re sharing something important. How can I best support you?'}
 
 # Configure logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class EmotionAwareTherapeuticAssistant:
