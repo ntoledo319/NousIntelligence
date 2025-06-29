@@ -76,3 +76,18 @@ class EmotionDetector:
             'confidence': confidence,
             'all_scores': emotion_scores
         }
+
+# Create global detector instance
+_detector = EmotionDetector()
+
+def detect_emotion_from_text(text: str) -> Dict[str, Any]:
+    """
+    Detect emotion from text using the global detector instance
+    
+    Args:
+        text: The text to analyze
+        
+    Returns:
+        Dictionary with emotion, confidence, and all_scores
+    """
+    return _detector.analyze_text_emotion(text)
