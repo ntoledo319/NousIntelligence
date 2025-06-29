@@ -17,7 +17,7 @@ def index():
 @main_bp.route('/chat')
 def chat():
     """Main chat interface"""
-    user = get_demo_user()()
+    user = get_demo_user()
     return render_template('chat.html', user=user)
 
 @main_bp.route('/demo')
