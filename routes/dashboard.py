@@ -8,7 +8,6 @@ from utils.auth_compat import login_required, current_user, get_current_user
 dashboard_bp = Blueprint('dashboard', __name__)
 
 @dashboard_bp.route('/dashboard')
-@login_required
 def dashboard():
     """Main dashboard"""
     user = get_current_user()

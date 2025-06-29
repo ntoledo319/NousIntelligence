@@ -1,4 +1,13 @@
 """
+Nous Tech Status Routes Routes
+Nous Tech Status Routes functionality for the NOUS application
+"""
+
+from flask import Blueprint, render_template, session, request, redirect, url_for, jsonify
+from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
+
+nous_tech_status_routes_bp = Blueprint('nous_tech_status_routes', __name__)
+
 
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""

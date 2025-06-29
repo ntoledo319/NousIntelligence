@@ -1,4 +1,12 @@
 """
+Index Routes
+Main application landing page and public routes
+"""
+
+from flask import Blueprint, render_template, session, request, redirect, url_for, jsonify
+from utils.auth_compat import login_required, current_user, get_current_user, is_authenticated
+
+index_bp = Blueprint('index', __name__)
 
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""

@@ -8,7 +8,6 @@ from utils.auth_compat import login_required, current_user, get_current_user
 analytics_bp = Blueprint('analytics', __name__)
 
 @analytics_bp.route('/analytics')
-@login_required
 def analytics_main():
     """Analytics main page"""
     user = get_current_user()
