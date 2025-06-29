@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOUS - Emotion-Aware Therapeutic Chat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .emotion-indicator {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .emotion-neutral { background: #e9ecef; color: #495057; }
+        .emotion-happy { background: #d1ecf1; color: #0c5460; }
+        .emotion-sad { background: #d4edda; color: #155724; }
+        .emotion-angry { background: #f8d7da; color: #721c24; }
+        .emotion-anxious { background: #fff3cd; color: #856404; }
+        .emotion-frustrated { background: #e2e3e5; color: #383d41; }
+        .emotion-distressed { background: #f5c6cb; color: #721c24; }
+        
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .message {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        
+        .message.user {
+            flex-direction: row-reverse;
+        }
+        
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+        
+        .user-avatar {
+            background: #007bff;
+            color: white;
+        }
+        
+        .assistant-avatar {
+            background: #28a745;
+            color: white;
+        }
+        
+        .message-content {
+            max-width: 70%;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            position: relative;
+        }
+        
+        .user .message-content {
+            background: #007bff;
+            color: white;
+            border-bottom-right-radius: 0.25rem;
+        }
+        
+        .assistant .message-content {
+            background: #f8f9fa;
+            color: #212529;
+            border: 1px solid #dee2e6;
+            border-bottom-left-radius: 0.25rem;
+        }
+        
+        .skill-suggestions {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: #e8f5e8;
+            border-radius: 0.5rem;
+            border-left: 4px solid #28a745;
+        }
+        
+        .skill-suggestion {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.375rem 0.75rem;
+            margin: 0.25rem;
+            background: white;
+            border: 1px solid #28a745;
+            border-radius: 20px;
+            color: #28a745;
+            text-decoration: none;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .skill-suggestion:hover {
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .immediate-actions {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: #fff3cd;
+            border-radius: 0.5rem;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .immediate-action {
+            display: block;
+            padding: 0.25rem 0;
+            color: #856404;
+            font-size: 0.875rem;
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-end;
+        }
+        
+        .voice-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .voice-button {
+            padding: 0.5rem;
+            border: 2px solid #28a745;
+            background: white;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .voice-button:hover, .voice-button.active {
+            background: #28a745;
+            color: white;
+        }
+        
+        .voice-button.recording {
+            background: #dc3545;
+            color: white;
+            border-color: #dc3545;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .crisis-alert {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .crisis-alert.active {
+            display: block;
+        }
+        
+        .therapeutic-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            margin: 1rem 0;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <div class="chat-container">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <h2><i class="fas fa-heart text-success"></i> NOUS Therapeutic Assistant</h2>
+                <p class="text-muted">Emotion-aware support with DBT & CBT skills</p>
+            </div>
+            
+            <!-- Crisis Alert (Hidden by default) -->
+            <div id="crisisAlert" class="crisis-alert">
+                <h6><i class="fas fa-exclamation-triangle"></i> Crisis Support Available</h6>
+                <p>If you're in crisis, please reach out immediately:</p>
+                <ul class="mb-2">
+                    <li>Call 988 (Suicide & Crisis Lifeline)</li>
+                    <li>Text "HELLO" to 741741 (Crisis Text Line)</li>
+                    <li>Call 911 for immediate emergencies</li>
+                </ul>
+                <button class="btn btn-sm btn-danger" onclick="getCrisisSupport()">Get Crisis Support</button>
+            </div>
+            
+            <!-- Current Emotion Indicator -->
+            <div id="emotionIndicator" class="emotion-indicator emotion-neutral">
+                <i class="fas fa-circle"></i>
+                <span>Emotional state: <strong id="currentEmotion">Getting to know you...</strong></span>
+                <span class="ms-auto" id="emotionConfidence"></span>
+            </div>
+            
+            <!-- Therapeutic Info -->
+            <div class="therapeutic-info">
+                <i class="fas fa-info-circle"></i>
+                I can sense how you're feeling and adapt my responses to help you best. Share what's on your mind, and I'll guide you toward the most helpful DBT or CBT skills.
+            </div>
+            
+            <!-- Chat Messages -->
+            <div id="chatMessages" class="chat-messages">
+                <div class="message assistant">
+                    <div class="message-avatar assistant-avatar">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="message-content">
+                        <p>Hello! I'm your therapeutic assistant. I can sense emotions in your voice and text to provide personalized support using DBT and CBT techniques.</p>
+                        <p>How are you feeling today? What's on your mind?</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="loading">
+                <i class="fas fa-spinner fa-spin"></i> Understanding your emotions and finding the best support...
+            </div>
+            
+            <!-- Voice Controls -->
+            <div class="voice-controls">
+                <button id="recordButton" class="voice-button" title="Record voice message">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button id="stopRecording" class="voice-button" title="Stop recording" style="display: none;">
+                    <i class="fas fa-stop"></i>
+                </button>
+                <span id="recordingStatus" class="text-muted small"></span>
+            </div>
+            
+            <!-- Input Container -->
+            <div class="input-container">
+                <textarea id="messageInput" class="form-control" placeholder="Share what's on your mind..." rows="3"></textarea>
+                <button id="sendButton" class="btn btn-success" style="height: fit-content;">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        class TherapeuticChat {
+            constructor() {
+                this.messageInput = document.getElementById('messageInput');
+                this.sendButton = document.getElementById('sendButton');
+                this.chatMessages = document.getElementById('chatMessages');
+                this.emotionIndicator = document.getElementById('emotionIndicator');
+                this.currentEmotion = document.getElementById('currentEmotion');
+                this.emotionConfidence = document.getElementById('emotionConfidence');
+                this.loadingIndicator = document.getElementById('loadingIndicator');
+                this.crisisAlert = document.getElementById('crisisAlert');
+                this.recordButton = document.getElementById('recordButton');
+                this.stopRecording = document.getElementById('stopRecording');
+                this.recordingStatus = document.getElementById('recordingStatus');
+                
+                this.mediaRecorder = null;
+                this.audioChunks = [];
+                this.isRecording = false;
+                
+                this.init();
+            }
+            
+            init() {
+                this.sendButton.addEventListener('click', () => this.sendMessage());
+                this.messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+                
+                this.recordButton.addEventListener('click', () => this.startRecording());
+                this.stopRecording.addEventListener('click', () => this.stopRecordingFunc());
+                
+                this.setupVoiceRecording();
+            }
+            
+            async setupVoiceRecording() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    this.mediaRecorder = new MediaRecorder(stream);
+                    
+                    this.mediaRecorder.ondataavailable = (event) => {
+                        this.audioChunks.push(event.data);
+                    };
+                    
+                    this.mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
+                        this.sendVoiceMessage(audioBlob);
+                        this.audioChunks = [];
+                    };
+                } catch (error) {
+                    console.warn('Voice recording not available:', error);
+                    this.recordButton.style.display = 'none';
+                }
+            }
+            
+            startRecording() {
+                if (this.mediaRecorder && !this.isRecording) {
+                    this.audioChunks = [];
+                    this.mediaRecorder.start();
+                    this.isRecording = true;
+                    
+                    this.recordButton.classList.add('recording');
+                    this.recordButton.style.display = 'none';
+                    this.stopRecording.style.display = 'flex';
+                    this.recordingStatus.textContent = 'Recording... Speak now';
+                }
+            }
+            
+            stopRecordingFunc() {
+                if (this.mediaRecorder && this.isRecording) {
+                    this.mediaRecorder.stop();
+                    this.isRecording = false;
+                    
+                    this.recordButton.classList.remove('recording');
+                    this.recordButton.style.display = 'flex';
+                    this.stopRecording.style.display = 'none';
+                    this.recordingStatus.textContent = 'Processing voice...';
+                }
+            }
+            
+            async sendMessage(audioBlob = null) {
+                const message = this.messageInput.value.trim();
+                
+                if (!message && !audioBlob) return;
+                
+                // Add user message to chat if text provided
+                if (message) {
+                    this.addMessage(message, 'user');
+                    this.messageInput.value = '';
+                }
+                
+                this.showLoading(true);
+                
+                try {
+                    const formData = new FormData();
+                    if (message) formData.append('message', message);
+                    if (audioBlob) formData.append('audio', audioBlob, 'voice.wav');
+                    
+                    const response = await fetch('/api/therapeutic/chat', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.handleTherapeuticResponse(data);
+                    } else {
+                        this.addMessage(data.fallback_response || 'Sorry, I encountered an issue. How can I support you?', 'assistant');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    this.addMessage('I\'m having trouble connecting right now. Please try again in a moment.', 'assistant');
+                } finally {
+                    this.showLoading(false);
+                    this.recordingStatus.textContent = '';
+                }
+            }
+            
+            async sendVoiceMessage(audioBlob) {
+                this.addMessage('🎤 Voice message sent', 'user');
+                await this.sendMessage(audioBlob);
+            }
+            
+            handleTherapeuticResponse(data) {
+                // Update emotion indicator
+                this.updateEmotionIndicator(data.emotion_analysis);
+                
+                // Check for crisis indicators
+                if (data.emotion_analysis.context_factors && 
+                    data.emotion_analysis.context_factors.includes('crisis_risk')) {
+                    this.showCrisisAlert();
+                }
+                
+                // Add assistant message
+                this.addMessage(data.response, 'assistant', {
+                    skillSuggestions: data.skill_suggestions,
+                    immediateActions: data.immediate_actions,
+                    followUpSuggestions: data.follow_up_suggestions,
+                    therapeuticApproach: data.therapeutic_approach
+                });
+            }
+            
+            updateEmotionIndicator(emotionAnalysis) {
+                const emotion = emotionAnalysis.primary_emotion;
+                const confidence = emotionAnalysis.confidence;
+                const intensity = emotionAnalysis.emotional_intensity;
+                
+                // Update emotion display
+                this.currentEmotion.textContent = `${emotion} (${intensity} intensity)`;
+                this.emotionConfidence.textContent = `${Math.round(confidence * 100)}% confidence`;
+                
+                // Update indicator style
+                this.emotionIndicator.className = `emotion-indicator emotion-${emotion}`;
+            }
+            
+            addMessage(content, sender, options = {}) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+                
+                const avatar = document.createElement('div');
+                avatar.className = `message-avatar ${sender}-avatar`;
+                avatar.innerHTML = sender === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-heart"></i>';
+                
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                messageContent.innerHTML = `<p>${content}</p>`;
+                
+                // Add skill suggestions if provided
+                if (options.skillSuggestions && options.skillSuggestions.length > 0) {
+                    const skillsDiv = document.createElement('div');
+                    skillsDiv.className = 'skill-suggestions';
+                    skillsDiv.innerHTML = '<h6><i class="fas fa-tools"></i> Helpful Skills:</h6>';
+                    
+                    options.skillSuggestions.forEach(skill => {
+                        const skillButton = document.createElement('a');
+                        skillButton.className = 'skill-suggestion';
+                        skillButton.innerHTML = `<i class="fas fa-leaf"></i> ${skill.name}`;
+                        skillButton.onclick = () => this.practiceSkill(skill);
+                        skillsDiv.appendChild(skillButton);
+                    });
+                    
+                    messageContent.appendChild(skillsDiv);
+                }
+                
+                // Add immediate actions if provided
+                if (options.immediateActions && options.immediateActions.length > 0) {
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.className = 'immediate-actions';
+                    actionsDiv.innerHTML = '<h6><i class="fas fa-exclamation-circle"></i> Right Now:</h6>';
+                    
+                    options.immediateActions.forEach(action => {
+                        const actionSpan = document.createElement('span');
+                        actionSpan.className = 'immediate-action';
+                        actionSpan.innerHTML = `• ${action}`;
+                        actionsDiv.appendChild(actionSpan);
+                    });
+                    
+                    messageContent.appendChild(actionsDiv);
+                }
+                
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(messageContent);
+                
+                this.chatMessages.appendChild(messageDiv);
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            }
+            
+            practiceSkill(skill) {
+                // Send a message to get guidance on practicing this skill
+                this.messageInput.value = `I want to practice ${skill.name}`;
+                this.sendMessage();
+            }
+            
+            showLoading(show) {
+                this.loadingIndicator.classList.toggle('active', show);
+                this.sendButton.disabled = show;
+            }
+            
+            showCrisisAlert() {
+                this.crisisAlert.classList.add('active');
+            }
+        }
+        
+        // Crisis support function
+        async function getCrisisSupport() {
+            try {
+                const response = await fetch('/api/therapeutic/emergency-support', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ crisis_type: 'general' })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show crisis resources in chat
+                    const chat = window.therapeuticChat;
+                    chat.addMessage(data.response, 'assistant', {
+                        immediateActions: data.immediate_actions
+                    });
+                }
+            } catch (error) {
+                console.error('Crisis support error:', error);
+            }
+        }
+        
+        // Initialize chat when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.therapeuticChat = new TherapeuticChat();
+        });
+    </script>
+</body>
+</html>
