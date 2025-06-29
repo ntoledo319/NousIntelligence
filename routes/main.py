@@ -63,6 +63,24 @@ def help():
     """Help page route"""
     return render_template('help.html', title='Help')
 
+@main_bp.route('/therapeutic-chat')
+def therapeutic_chat():
+    """Emotion-aware therapeutic chat interface"""
+    try:
+        return render_template('emotion_aware_chat.html', title='Therapeutic Assistant')
+    except Exception as e:
+        logger.error(f"Error rendering therapeutic chat: {str(e)}")
+        return render_template_string("""
+            <html>
+                <head><title>NOUS - Therapeutic Assistant</title></head>
+                <body>
+                    <h1>Therapeutic Assistant</h1>
+                    <p>The emotion-aware therapeutic chat interface is currently unavailable. Please try again later.</p>
+                    <a href="{{ url_for('main.index') }}">Return to Home</a>
+                </body>
+            </html>
+        """)
+
 @main_bp.route('/health')
 def health():
     """Health check endpoint"""
