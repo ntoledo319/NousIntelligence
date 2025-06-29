@@ -91,7 +91,7 @@ class UserPreference(db.Model):
     __table_args__ = {'extend_existing': True}
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     preference_key = db.Column(db.String(100), nullable=False)
     preference_value = db.Column(db.Text)
     preference_type = db.Column(db.String(20), default='string')  # string, integer, boolean, json
@@ -99,6 +99,9 @@ class UserPreference(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('preferences', lazy=True))
 
 class SystemSettings(db.Model):
     """System-wide settings"""
