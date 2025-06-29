@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Consolidated Spotify Routes - Zero Functionality Loss Optimization
 Consolidates spotify_routes.py, spotify_commands.py, spotify_visualization.py
 """
@@ -12,6 +47,12 @@ consolidated_spotify_bp = Blueprint('consolidated_spotify', __name__)
 
 # Main Spotify Routes (from spotify_routes.py)
 @consolidated_spotify_bp.route('/', methods=['GET'])
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def spotify_dashboard():
     """Main Spotify dashboard"""
     return render_template('spotify/dashboard.html')
@@ -167,6 +208,12 @@ def get_recommendations():
 
 # Spotify Visualization (from spotify_visualization.py)
 @consolidated_spotify_bp.route('/visualize', methods=['GET'])
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def spotify_visualizations():
     """Main visualization page"""
     return render_template('spotify/visualizations.html')

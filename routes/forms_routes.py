@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Google Forms routes
 All routes are prefixed with /forms
 """
@@ -8,7 +43,6 @@ import json
 import datetime
 from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, session, current_app, abort, Response
-from flask_login import login_required, current_user
 
 # Import database from app to avoid circular imports
 from app import db
@@ -30,11 +64,11 @@ forms_bp = Blueprint('forms', __name__, url_prefix='/forms')
 # Helper to get user connection
 def get_user_forms_connection():
     """Get user's Forms service connection"""
-    if not current_user.is_authenticated:
+    if not ('user' in session and session['user']):
         return None
 
     # Get the connection
-    connection = get_user_connection(current_user.id, 'google')
+    connection = get_user_connection(session.get('user', {}).get('id', 'demo_user'), 'google')
 
     if not connection:
         return None
@@ -44,7 +78,12 @@ def get_user_forms_connection():
 
 # Forms dashboard
 @forms_bp.route('/')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def dashboard():
     """Forms dashboard showing user's forms and options to create new ones"""
     forms_service = get_user_forms_connection()
@@ -58,7 +97,12 @@ def dashboard():
 
 # Create form
 @forms_bp.route('/create', methods=['GET', 'POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def create():
     """Create a new form"""
     forms_service = get_user_forms_connection()
@@ -90,7 +134,12 @@ def create():
 
 # View form
 @forms_bp.route('/view/<form_id>')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def view(form_id):
     """View a form's details"""
     forms_service = get_user_forms_connection()
@@ -114,7 +163,12 @@ def view(form_id):
 
 # Create recovery assessment form
 @forms_bp.route('/recovery-assessment', methods=['GET', 'POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def recovery_assessment():
     """Create a recovery assessment form"""
     forms_service = get_user_forms_connection()
@@ -141,7 +195,12 @@ def recovery_assessment():
 
 # Create anonymous sharing form
 @forms_bp.route('/anonymous-sharing', methods=['GET', 'POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def anonymous_sharing():
     """Create an anonymous sharing form for group therapy"""
     forms_service = get_user_forms_connection()
@@ -168,7 +227,12 @@ def anonymous_sharing():
 
 # Create daily check-in form
 @forms_bp.route('/daily-check-in', methods=['GET', 'POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def daily_check_in():
     """Create a daily check-in form"""
     forms_service = get_user_forms_connection()
@@ -195,7 +259,12 @@ def daily_check_in():
 
 # Analyze form responses
 @forms_bp.route('/analyze/<form_id>')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def analyze(form_id):
     """Analyze responses for a form"""
     forms_service = get_user_forms_connection()
@@ -216,7 +285,12 @@ def analyze(form_id):
 
 # API routes for forms
 @forms_bp.route('/api/create', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_create_form():
     """API endpoint to create a form"""
     forms_service = get_user_forms_connection()
@@ -243,7 +317,12 @@ def api_create_form():
     return jsonify({"success": True, "form_id": result["form_id"], "url": result["url"]}), 200
 
 @forms_bp.route('/api/recovery-assessment', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_recovery_assessment():
     """API endpoint to create a recovery assessment form"""
     forms_service = get_user_forms_connection()
@@ -266,7 +345,12 @@ def api_recovery_assessment():
     return jsonify({"success": True, "form_id": result["form_id"], "url": result["url"]}), 200
 
 @forms_bp.route('/api/anonymous-sharing', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_anonymous_sharing():
     """API endpoint to create an anonymous sharing form"""
     forms_service = get_user_forms_connection()
@@ -289,7 +373,12 @@ def api_anonymous_sharing():
     return jsonify({"success": True, "form_id": result["form_id"], "url": result["url"]}), 200
 
 @forms_bp.route('/api/daily-check-in', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_daily_check_in():
     """API endpoint to create a daily check-in form"""
     forms_service = get_user_forms_connection()
@@ -312,7 +401,12 @@ def api_daily_check_in():
     return jsonify({"success": True, "form_id": result["form_id"], "url": result["url"]}), 200
 
 @forms_bp.route('/api/analyze/<form_id>', methods=['GET'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_analyze(form_id):
     """API endpoint to analyze form responses"""
     forms_service = get_user_forms_connection()

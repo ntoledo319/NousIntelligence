@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 API Routes Module
 
 This module defines API routes for accessing application data.
@@ -9,7 +44,7 @@ This module defines API routes for accessing application data.
 
 import logging
 from flask import Blueprint, jsonify, request, session
-from flask_login import login_required, current_user
+
 from models import db, Task
 # Chat processor functionality temporarily disabled during cleanup
 
@@ -27,33 +62,36 @@ def api_status():
     })
 
 @api_bp.route('/user')
-@login_required
 def get_user_info():
     """Get current user information"""
-    return jsonify(current_user.to_dict())
+    return jsonify(session.get('user', {}).get('to_dict())
 
 @api_bp.route('/settings', methods=['GET'])
-@login_required
 def get_settings():
     """Get user settings"""
-    if not current_user.settings:
+    if not session.get('user', {}).get('settings:
         return jsonify({'error': 'Settings not found'}), 404
 
-    return jsonify(current_user.settings.to_dict())
+    return jsonify(session.get('user', {}).get('settings.to_dict())
 
 @api_bp.route('/settings', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def update_settings():
     """Update user settings"""
     try:
         data = request.get_json()
 
         # Create settings if they don't exist
-        if not current_user.settings:
+        if not session.get('user', {}).get('settings:
             from models import UserSettings
-            settings = UserSettings(user_id=current_user.id)
+            settings = UserSettings(user_id=session.get('user', {}).get('id', 'demo_user'))
             db.session.add(settings)
-            current_user.settings = settings
+            session.get('user', {}).get('settings = settings
 
         # Update valid fields
         valid_fields = [
@@ -63,25 +101,29 @@ def update_settings():
 
         for field in valid_fields:
             if field in data:
-                setattr(current_user.settings, field, data[field])
+                setattr(session.get('user', {}).get('settings, field, data[field])
 
         # Save changes
         db.session.commit()
 
-        return jsonify(current_user.settings.to_dict())
+        return jsonify(session.get('user', {}).get('settings.to_dict())
     except Exception as e:
         logger.error(f"Error updating settings: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @api_bp.route('/tasks', methods=['GET'])
-@login_required
 def get_tasks():
     """Get user tasks"""
-    tasks = [task.to_dict() for task in current_user.tasks]
+    tasks = [task.to_dict() for task in session.get('user', {}).get('tasks]
     return jsonify(tasks)
 
 @api_bp.route('/tasks', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def create_task():
     """Create a new task"""
     try:
@@ -93,7 +135,7 @@ def create_task():
 
         # Create task
         task = Task(
-            user_id=current_user.id,
+            user_id=session.get('user', {}).get('id', 'demo_user'),
             title=data['title'],
             description=data.get('description'),
             priority=data.get('priority', 'medium'),
@@ -110,24 +152,34 @@ def create_task():
         return jsonify({'error': str(e)}), 500
 
 @api_bp.route('/tasks/<int:task_id>', methods=['GET'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def get_task(task_id):
     """Get a specific task"""
     task = Task.query.get(task_id)
 
-    if not task or task.user_id != current_user.id:
+    if not task or task.user_id != session.get('user', {}).get('id', 'demo_user'):
         return jsonify({'error': 'Task not found'}), 404
 
     return jsonify(task.to_dict())
 
 @api_bp.route('/tasks/<int:task_id>', methods=['PUT'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def update_task(task_id):
     """Update an existing task"""
     try:
         task = Task.query.get(task_id)
 
-        if not task or task.user_id != current_user.id:
+        if not task or task.user_id != session.get('user', {}).get('id', 'demo_user'):
             return jsonify({'error': 'Task not found'}), 404
 
         # Update task with request data
@@ -153,13 +205,18 @@ def update_task(task_id):
         return jsonify({'error': str(e)}), 500
 
 @api_bp.route('/tasks/<int:task_id>', methods=['DELETE'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def delete_task(task_id):
     """Delete a task"""
     try:
         task = Task.query.get(task_id)
 
-        if not task or task.user_id != current_user.id:
+        if not task or task.user_id != session.get('user', {}).get('id', 'demo_user'):
             return jsonify({'error': 'Task not found'}), 404
 
         # Delete the task
@@ -172,7 +229,12 @@ def delete_task(task_id):
         return jsonify({'error': str(e)}), 500
 
 @api_bp.route('/chat', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def process_chat():
     """
     Process chat messages and return responses
@@ -193,7 +255,7 @@ def process_chat():
         }
     }
     """
-    if not current_user.is_authenticated:
+    if not ('user' in session and session['user']):
         return jsonify({
             "success": False,
             "error": "Authentication required"
@@ -214,7 +276,7 @@ def process_chat():
         chat_processor = get_chat_processor()
         response = chat_processor.process_message(
             message=message,
-            user_id=current_user.id,
+            user_id=session.get('user', {}).get('id', 'demo_user'),
             session=session
         )
 
@@ -231,20 +293,19 @@ def process_chat():
         }), 500
 
 @api_bp.route('/user/profile', methods=['GET'])
-@login_required
 def get_user_profile():
     """Get the current user's profile information"""
-    if not current_user.is_authenticated:
+    if not ('user' in session and session['user']):
         return jsonify({"error": "Authentication required"}), 401
 
     try:
         profile = {
-            "id": current_user.id,
-            "username": current_user.username,
-            "email": current_user.email,
-            "first_name": current_user.first_name,
-            "last_name": current_user.last_name,
-            "created_at": current_user.created_at.isoformat() if hasattr(current_user, 'created_at') else None,
+            "id": session.get('user', {}).get('id', 'demo_user'),
+            "username": session.get('user', {}).get('username,
+            "email": session.get('user', {}).get('email,
+            "first_name": session.get('user', {}).get('first_name,
+            "last_name": session.get('user', {}).get('last_name,
+            "created_at": session.get('user', {}).get('created_at.isoformat() if hasattr(session.get('user'), 'created_at') else None,
         }
         return jsonify({"success": True, "profile": profile})
     except Exception as e:
@@ -252,19 +313,18 @@ def get_user_profile():
         return jsonify({"success": False, "error": str(e)}), 500
 
 @api_bp.route('/user/settings', methods=['GET', 'PUT'])
-@login_required
 def user_settings():
     """Get or update user settings"""
-    if not current_user.is_authenticated:
+    if not ('user' in session and session['user']):
         return jsonify({"error": "Authentication required"}), 401
 
     # Handle GET request
     if request.method == 'GET':
         try:
             settings = {
-                "theme": current_user.get_setting('theme', 'light'),
-                "notifications_enabled": current_user.get_setting('notifications_enabled', True),
-                "language": current_user.get_setting('language', 'en')
+                "theme": session.get('user', {}).get('get_setting('theme', 'light'),
+                "notifications_enabled": session.get('user', {}).get('get_setting('notifications_enabled', True),
+                "language": session.get('user', {}).get('get_setting('language', 'en')
             }
             return jsonify({"success": True, "settings": settings})
         except Exception as e:
@@ -280,7 +340,7 @@ def user_settings():
         try:
             # Update settings
             for key, value in data.items():
-                current_user.set_setting(key, value)
+                session.get('user', {}).get('set_setting(key, value)
 
             return jsonify({"success": True, "message": "Settings updated successfully"})
         except Exception as e:

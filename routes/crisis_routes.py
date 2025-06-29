@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Crisis management routes
 All routes are prefixed with /crisis
 """
@@ -7,7 +42,6 @@ import os
 import json
 from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, session
-from flask_login import login_required, current_user
 
 # Import database from database module to avoid circular imports
 from database import db
@@ -22,12 +56,17 @@ from utils.dbt_crisis_helper import (
 
 crisis_bp = Blueprint('crisis', __name__, url_prefix='/crisis')
 
-# Helper to get user_id from current_user
+# Helper to get user_id from session.get('user')
 def get_user_id():
-    return str(current_user.id) if current_user.is_authenticated else None
+    return str(session.get('user', {}).get('id', 'demo_user')) if ('user' in session and session['user']) else None
 
 @crisis_bp.route('/')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def index():
     """Crisis management dashboard"""
     user_id = get_user_id()
@@ -45,7 +84,12 @@ def index():
     )
 
 @crisis_bp.route('/mobile')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def mobile_interface():
     """Mobile-optimized crisis interface"""
     user_id = get_user_id()
@@ -67,7 +111,12 @@ def mobile_interface():
     )
 
 @crisis_bp.route('/grounding')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def grounding():
     """Grounding exercises page"""
     user_id = get_user_id()
@@ -81,7 +130,12 @@ def grounding():
     )
 
 @crisis_bp.route('/de-escalation')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def de_escalation():
     """De-escalation techniques page"""
     user_id = get_user_id()
@@ -95,7 +149,12 @@ def de_escalation():
     )
 
 @crisis_bp.route('/resources')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def resources():
     """Crisis resources page"""
     user_id = get_user_id()
@@ -109,7 +168,12 @@ def resources():
     )
 
 @crisis_bp.route('/add-resource', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def add_resource():
     """Add a new crisis resource"""
     user_id = get_user_id()
@@ -135,7 +199,12 @@ def add_resource():
     return redirect(url_for('crisis.resources'))
 
 @crisis_bp.route('/update-resource/<int:resource_id>', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def update_resource(resource_id):
     """Update a crisis resource"""
     user_id = get_user_id()
@@ -161,7 +230,12 @@ def update_resource(resource_id):
     return redirect(url_for('crisis.resources'))
 
 @crisis_bp.route('/delete-resource/<int:resource_id>', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def delete_resource(resource_id):
     """Delete a crisis resource"""
     user_id = get_user_id()
@@ -177,6 +251,12 @@ def delete_resource(resource_id):
     return redirect(url_for('crisis.resources'))
 
 @crisis_bp.route('/mobile')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def mobile_crisis():
     """Mobile-optimized crisis support page - accessible without login"""
     return render_template('crisis/mobile.html')

@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Authentication View Routes
 
 This module contains view routes for user authentication,
@@ -13,7 +48,7 @@ import os
 import secrets
 from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session, current_app
-from flask_login import login_required, logout_user, current_user
+
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -27,6 +62,12 @@ logger = logging.getLogger(__name__)
 csrf = CSRFProtect()
 
 @auth_bp.route('/login', methods=['GET'])
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def login():
     """
     Login handler - renders the login page with Google authentication option
@@ -35,7 +76,7 @@ def login():
         Rendered login page or redirect to dashboard if already logged in
     """
     # If user is already logged in, redirect to dashboard
-    if current_user.is_authenticated:
+    if ('user' in session and session['user']):
         return redirect(url_for('dashboard.dashboard'))
 
     # Get the next URL if it exists
@@ -56,6 +97,12 @@ def login():
     return render_template('login.html', csrf_token=csrf_token)
 
 @auth_bp.route('/email-login', methods=['POST'])
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def email_login():
     """
     Handle email/password login
@@ -64,7 +111,6 @@ def email_login():
         Redirect to dashboard on success or login page on failure
     """
     from models import User, UserSettings, db
-    from flask_login import login_user
 
     # Rate limiting check
     if not check_rate_limit(request.remote_addr, 'login_attempt'):
@@ -105,6 +151,12 @@ def email_login():
     return redirect(url_for('auth.login'))
 
 @auth_bp.route('/direct-google-login', methods=['GET'])
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def direct_google_login():
     """
     Direct redirect to Google authentication
@@ -122,7 +174,12 @@ def direct_google_login():
 # Admin access should only be done through secure authentication
 
 @auth_bp.route('/logout', methods=['GET'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def logout():
     """
     Logout the current user and redirect to home page
@@ -131,7 +188,7 @@ def logout():
         Redirect to the home page after logout
     """
     # Get user info for logging
-    user_email = current_user.email if current_user.is_authenticated else 'unknown'
+    user_email = session.get('user', {}).get('email if ('user' in session and session['user']) else 'unknown'
     logger.info(f"User logged out: {user_email}")
 
     # Log the user out

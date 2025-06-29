@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Dashboard View Routes
 
 This module contains view routes for the dashboard page.
@@ -10,22 +45,20 @@ This module contains view routes for the dashboard page.
 import datetime
 import logging
 from flask import Blueprint, render_template, redirect, url_for, flash, session
-from flask_login import current_user, login_required
+
 from utils.beta_test_helper import is_beta_tester
 
 # Create blueprint
 dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 
-
 @dashboard_bp.route('', methods=['GET'])
 @dashboard_bp.route('/', methods=['GET'])
-@login_required
 def dashboard():
     """Show dashboard with data visualizations and summaries"""
     # Add comprehensive logging to diagnose the blank page issue
     try:
-        user_email = current_user.email if current_user else 'unknown'
-        user_id = current_user.id if current_user else 'unknown'
+        user_email = session.get('user', {}).get('email if session.get('user') else 'unknown'
+        user_id = session.get('user', {}).get('id', 'demo_user') if session.get('user') else 'unknown'
         logging.info(f"Dashboard accessed by user: {user_email} (ID: {user_id})")
 
         # Check for beta access if beta mode is enabled

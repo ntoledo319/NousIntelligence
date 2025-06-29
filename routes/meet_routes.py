@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Google Meet routes
 All routes are prefixed with /meet
 """
@@ -8,7 +43,6 @@ import json
 import datetime
 from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, session, current_app, abort, Response
-from flask_login import login_required, current_user
 
 # Import database from app to avoid circular imports
 from app import db
@@ -30,11 +64,11 @@ meet_bp = Blueprint('meet', __name__, url_prefix='/meet')
 # Helper to get user connection
 def get_user_meet_connection():
     """Get user's Meet service connection"""
-    if not current_user.is_authenticated:
+    if not ('user' in session and session['user']):
         return None
 
     # Get the connection
-    connection = get_user_connection(current_user.id, 'google')
+    connection = get_user_connection(session.get('user', {}).get('id', 'demo_user'), 'google')
 
     if not connection:
         return None
@@ -44,7 +78,12 @@ def get_user_meet_connection():
 
 # Dashboard - Main page for Google Meet
 @meet_bp.route('/')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def dashboard():
     """Google Meet dashboard showing upcoming meetings"""
     calendar_service = get_user_meet_connection()
@@ -66,7 +105,12 @@ def dashboard():
 
 # Create standard meeting
 @meet_bp.route('/create', methods=['GET', 'POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def create():
     """Create a standard Google Meet meeting"""
     calendar_service = get_user_meet_connection()
@@ -123,7 +167,12 @@ def create():
 
 # View meeting details
 @meet_bp.route('/view/<meeting_id>')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def view(meeting_id):
     """View meeting details"""
     calendar_service = get_user_meet_connection()
@@ -157,7 +206,12 @@ def view(meeting_id):
 
 # Edit meeting details
 @meet_bp.route('/edit/<meeting_id>', methods=['GET', 'POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def edit(meeting_id):
     """Edit meeting details"""
     calendar_service = get_user_meet_connection()
@@ -221,7 +275,12 @@ def edit(meeting_id):
 
 # Delete meeting
 @meet_bp.route('/delete/<meeting_id>', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def delete(meeting_id):
     """Delete a meeting"""
     calendar_service = get_user_meet_connection()
@@ -242,7 +301,12 @@ def delete(meeting_id):
 
 # Create therapy session
 @meet_bp.route('/therapy-session', methods=['GET', 'POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def therapy_session():
     """Create a therapy session with Google Meet"""
     calendar_service = get_user_meet_connection()
@@ -290,7 +354,12 @@ def therapy_session():
 
 # Create recovery group meeting
 @meet_bp.route('/recovery-group', methods=['GET', 'POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def recovery_group():
     """Create a recovery group meeting with Google Meet"""
     calendar_service = get_user_meet_connection()
@@ -342,7 +411,12 @@ def recovery_group():
 
 # Create mindfulness session
 @meet_bp.route('/mindfulness-session', methods=['GET', 'POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def mindfulness_session():
     """Create a mindfulness session with Google Meet"""
     calendar_service = get_user_meet_connection()
@@ -390,7 +464,12 @@ def mindfulness_session():
 
 # Create sponsor meeting
 @meet_bp.route('/sponsor-meeting', methods=['GET', 'POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def sponsor_meeting():
     """Create a sponsor meeting with Google Meet"""
     calendar_service = get_user_meet_connection()
@@ -440,7 +519,12 @@ def sponsor_meeting():
 
 # Generate meeting agenda
 @meet_bp.route('/generate-agenda', methods=['GET', 'POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def generate_agenda():
     """Generate an AI-powered agenda for a meeting"""
     calendar_service = get_user_meet_connection()
@@ -487,7 +571,12 @@ def generate_agenda():
 
 # Analyze meeting notes
 @meet_bp.route('/analyze-notes', methods=['GET', 'POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def analyze_notes():
     """Analyze meeting notes with AI"""
     if request.method == 'POST':
@@ -512,7 +601,12 @@ def analyze_notes():
 
 # Create notes for meeting
 @meet_bp.route('/create-notes/<meeting_id>')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def create_notes(meeting_id):
     """Create meeting notes template for a specific meeting"""
     calendar_service = get_user_meet_connection()
@@ -542,7 +636,7 @@ def create_notes(meeting_id):
 
     # Get Google Docs service
     from utils.docs_sheets_helper import get_docs_service, create_meeting_notes_template
-    docs_service = get_docs_service(get_user_connection(current_user.id, 'google'))
+    docs_service = get_docs_service(get_user_connection(session.get('user', {}).get('id', 'demo_user'), 'google'))
 
     if not docs_service:
         flash('Google Docs connection required. Please connect your Google account first.', 'warning')
@@ -560,7 +654,12 @@ def create_notes(meeting_id):
 
 # Email participants
 @meet_bp.route('/email-participants/<meeting_id>')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def email_participants(meeting_id):
     """Send email to meeting participants"""
     calendar_service = get_user_meet_connection()
@@ -594,7 +693,12 @@ def email_participants(meeting_id):
 
 # API routes for Meet
 @meet_bp.route('/api/create', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_create_meeting():
     """API endpoint to create a meeting"""
     calendar_service = get_user_meet_connection()
@@ -644,7 +748,12 @@ def api_create_meeting():
     }), 200
 
 @meet_bp.route('/api/therapy-session', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_therapy_session():
     """API endpoint to create a therapy session"""
     calendar_service = get_user_meet_connection()
@@ -688,7 +797,12 @@ def api_therapy_session():
     }), 200
 
 @meet_bp.route('/api/recovery-group', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_recovery_group():
     """API endpoint to create a recovery group meeting"""
     calendar_service = get_user_meet_connection()

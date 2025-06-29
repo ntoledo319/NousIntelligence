@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Amazon shopping routes
 All routes are prefixed with /amazon
 """
@@ -6,7 +41,7 @@ All routes are prefixed with /amazon
 import os
 import json
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, session
-from flask_login import login_required, current_user
+
 from werkzeug.utils import secure_filename
 
 # Import database from the app
@@ -25,13 +60,18 @@ from utils.amazon_helper import (
 
 amazon_bp = Blueprint('amazon', __name__, url_prefix='/amazon')
 
-# Helper to get user_id from current_user
+# Helper to get user_id from session.get('user')
 def get_user_id():
-    return str(current_user.id) if current_user.is_authenticated else None
+    return str(session.get('user', {}).get('id', 'demo_user')) if ('user' in session and session['user']) else None
 
 # Amazon product search
 @amazon_bp.route('/search')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def search():
     """Search for products on Amazon"""
     query = request.args.get('query', '')
@@ -59,7 +99,12 @@ def search():
 
 # View product details
 @amazon_bp.route('/product/<path:asin_or_url>')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def product_details(asin_or_url):
     """View details for a specific product"""
     user_id = get_user_id()
@@ -92,7 +137,12 @@ def product_details(asin_or_url):
 
 # Track a product
 @amazon_bp.route('/track', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def track_product():
     """Track a product for price changes and availability"""
     user_id = get_user_id()
@@ -136,7 +186,12 @@ def track_product():
 
 # Add product to shopping list
 @amazon_bp.route('/add-to-list', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def add_to_shopping_list():
     """Add a product to a shopping list"""
     user_id = get_user_id()
@@ -181,7 +236,12 @@ def add_to_shopping_list():
 
 # Manage tracked products
 @amazon_bp.route('/tracked')
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def tracked_products():
     """View all tracked Amazon products"""
     user_id = get_user_id()
@@ -204,7 +264,12 @@ def tracked_products():
 
 # Remove product tracking
 @amazon_bp.route('/untrack/<int:product_id>', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def untrack_product(product_id):
     """Stop tracking a product"""
     user_id = get_user_id()
@@ -230,7 +295,12 @@ def untrack_product(product_id):
 
 # Mark product as ordered
 @amazon_bp.route('/mark-ordered/<int:product_id>', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def mark_ordered(product_id):
     """Mark a product as ordered"""
     user_id = get_user_id()

@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Memory Routes
 
 This module provides API routes for the memory system, allowing the application
@@ -10,7 +45,7 @@ to retrieve and manage user memory data for persistent learning.
 
 import logging
 from flask import Blueprint, request, jsonify, current_app
-from flask_login import current_user, login_required
+
 from typing import Dict, Any, List
 
 from services.memory_service import get_memory_service
@@ -22,7 +57,12 @@ logger = logging.getLogger(__name__)
 memory_bp = Blueprint('memory', __name__, url_prefix='/api/memory')
 
 @memory_bp.route('/summary', methods=['GET'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def get_memory_summary():
     """
     Get a summary of the user's memory
@@ -32,7 +72,7 @@ def get_memory_summary():
     """
     try:
         memory_service = get_memory_service()
-        summary = memory_service.get_memory_summary(current_user.id)
+        summary = memory_service.get_memory_summary(session.get('user', {}).get('id', 'demo_user'))
 
         return jsonify({
             'status': 'success',
@@ -46,7 +86,12 @@ def get_memory_summary():
         }), 500
 
 @memory_bp.route('/recent', methods=['GET'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def get_recent_memories():
     """
     Get recent conversation memories
@@ -58,7 +103,7 @@ def get_recent_memories():
         count = request.args.get('count', 20, type=int)
 
         memory_service = get_memory_service()
-        memories = memory_service.get_recent_messages(current_user.id, count=count)
+        memories = memory_service.get_recent_messages(session.get('user', {}).get('id', 'demo_user'), count=count)
 
         return jsonify({
             'status': 'success',
@@ -72,7 +117,12 @@ def get_recent_memories():
         }), 500
 
 @memory_bp.route('/topics', methods=['GET'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def get_topics():
     """
     Get user's topics of interest
@@ -84,7 +134,7 @@ def get_topics():
         min_interest = request.args.get('min_interest', 0, type=int)
 
         memory_service = get_memory_service()
-        topics = memory_service.get_topic_interests(current_user.id, min_interest=min_interest)
+        topics = memory_service.get_topic_interests(session.get('user', {}).get('id', 'demo_user'), min_interest=min_interest)
 
         return jsonify({
             'status': 'success',
@@ -98,7 +148,12 @@ def get_topics():
         }), 500
 
 @memory_bp.route('/entities', methods=['GET'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def get_entities():
     """
     Get user's remembered entities
@@ -110,7 +165,7 @@ def get_entities():
         entity_type = request.args.get('type')
 
         memory_service = get_memory_service()
-        entities = memory_service.get_entity_memories(current_user.id, entity_type=entity_type)
+        entities = memory_service.get_entity_memories(session.get('user', {}).get('id', 'demo_user'), entity_type=entity_type)
 
         return jsonify({
             'status': 'success',
@@ -124,7 +179,12 @@ def get_entities():
         }), 500
 
 @memory_bp.route('/entities', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def add_entity():
     """
     Add or update an entity memory
@@ -148,7 +208,7 @@ def add_entity():
 
         memory_service = get_memory_service()
         success = memory_service.update_entity_memory(
-            current_user.id,
+            session.get('user', {}).get('id', 'demo_user'),
             entity_name,
             entity_type,
             attributes,
@@ -173,7 +233,12 @@ def add_entity():
         }), 500
 
 @memory_bp.route('/topics', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def update_topic():
     """
     Update a topic interest
@@ -196,7 +261,7 @@ def update_topic():
 
         memory_service = get_memory_service()
         success = memory_service.update_topic_interest(
-            current_user.id,
+            session.get('user', {}).get('id', 'demo_user'),
             topic_name,
             interest_delta=interest_delta,
             metadata=metadata
@@ -220,7 +285,12 @@ def update_topic():
         }), 500
 
 @memory_bp.route('/initialize', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def initialize_memory():
     """
     Initialize memory for the current user
@@ -230,7 +300,7 @@ def initialize_memory():
     """
     try:
         memory_service = get_memory_service()
-        success = memory_service.initialize_memory_for_user(current_user.id)
+        success = memory_service.initialize_memory_for_user(session.get('user', {}).get('id', 'demo_user'))
 
         if success:
             return jsonify({

@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Chat Routes and API Endpoints
 ============================
 
@@ -10,7 +45,7 @@ appropriate responses.
 import json
 import logging
 from flask import Blueprint, request, jsonify, session, current_app, render_template
-from flask_login import login_required, current_user
+
 from werkzeug.exceptions import BadRequest, Unauthorized
 
 from routes.chat_router import process_chat_command
@@ -23,13 +58,23 @@ chat_api_bp = Blueprint('chat_api', __name__, url_prefix='/api/chat')
 logger = logging.getLogger(__name__)
 
 @chat_bp.route('/', methods=['GET'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def chat_interface():
     """Render the chat interface"""
     return render_template('chat/index.html')
 
 @chat_api_bp.route('/message', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def chat_message():
     """
     Process a user's chat message and return the appropriate response
@@ -50,14 +95,14 @@ def chat_message():
 
         # Validate message content
         if not isinstance(user_message, str) or len(user_message) > 5000:
-            logger.warning(f"Invalid message format or length from user {current_user.id}")
+            logger.warning(f"Invalid message format or length from user {session.get('user', {}).get('id', 'demo_user')}")
             return jsonify({
                 'success': False,
                 'message': 'Invalid message format or length'
             }), 400
 
         # Process as a potential command
-        response = process_chat_command(current_user.id, user_message)
+        response = process_chat_command(session.get('user', {}).get('id', 'demo_user'), user_message)
 
         # If it wasn't a recognized command, use the AI for conversational response
         if not response.get('is_command', False) and response.get('success', False):
@@ -74,7 +119,7 @@ def chat_message():
             ai_response = get_ai_response(
                 user_message,
                 chat_history,
-                user_settings=current_user.settings
+                user_settings=session.get('user', {}).get('settings
             )
 
             # Update response with AI's message
@@ -112,7 +157,6 @@ def chat_message():
         }), 500
 
 @chat_api_bp.route('/history', methods=['GET'])
-@login_required
 def get_chat_history():
     """Get the current chat history for the user"""
     try:
@@ -129,7 +173,6 @@ def get_chat_history():
         }), 500
 
 @chat_api_bp.route('/history', methods=['DELETE'])
-@login_required
 def clear_chat_history():
     """Clear the chat history for the current user"""
     try:
@@ -146,7 +189,6 @@ def clear_chat_history():
         }), 500
 
 @chat_api_bp.route('/command_help', methods=['GET'])
-@login_required
 def get_command_help():
     """Get help information about available chat commands"""
     commands = {

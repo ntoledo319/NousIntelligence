@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Main Routes Blueprint
 
 This module defines the main routes for the NOUS application.
@@ -16,6 +51,12 @@ logger = logging.getLogger(__name__)
 main_bp = Blueprint('main', __name__, url_prefix='/')
 
 @main_bp.route('/')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def index():
     """Homepage with welcome message"""
     try:
@@ -59,6 +100,12 @@ def dashboard():
         return render_template('minimal.html', title='Dashboard')
 
 @main_bp.route('/help')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def help():
     """Help page route"""
     return render_template('help.html', title='Help')
@@ -100,6 +147,12 @@ def health():
                           timestamp=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
 @main_bp.route('/static/<path:path>')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def serve_static(path):
     """Serve static files"""
     return send_from_directory('static', path)

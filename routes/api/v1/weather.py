@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Weather API Routes
 
 This module contains API routes for weather data and location management.
@@ -8,7 +43,7 @@ This module contains API routes for weather data and location management.
 """
 
 from flask import Blueprint, request, jsonify
-from flask_login import current_user, login_required
+
 from utils.security_helper import rate_limit
 from utils.error_handler import APIError, validation_error
 from utils.weather_helper import (
@@ -21,8 +56,13 @@ from models import db, WeatherLocation
 # Create blueprint with URL prefix
 weather_bp = Blueprint('api_weather', __name__, url_prefix='/api/v1/weather')
 
-
 @weather_bp.route('/current', methods=['GET'])
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_get_current_weather():
     """Get current weather for a location"""
     location = request.args.get("location", "")
@@ -45,8 +85,13 @@ def api_get_current_weather():
         "data": formatted_data
     })
 
-
 @weather_bp.route('/forecast', methods=['GET'])
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def api_get_weather_forecast():
     """Get weather forecast for a location"""
     location = request.args.get("location", "")
@@ -76,12 +121,10 @@ def api_get_weather_forecast():
         "data": formatted_data
     })
 
-
 @weather_bp.route('/locations', methods=['GET'])
-@login_required
 def api_get_weather_locations():
     """Get saved weather locations for the user"""
-    user_id = current_user.id
+    user_id = session.get('user', {}).get('id', 'demo_user')
 
     # Query locations for this user
     locations = WeatherLocation.query.filter_by(user_id=user_id).all()
@@ -94,9 +137,7 @@ def api_get_weather_locations():
         "data": data
     })
 
-
 @weather_bp.route('/locations', methods=['POST'])
-@login_required
 @rate_limit(max_requests=10, time_window=60)  # 10 requests per minute
 def api_add_weather_location():
     """Add a new weather location for the user"""
@@ -111,7 +152,7 @@ def api_add_weather_location():
     if not location_name:
         return jsonify({"error": "Location name is required"}), 400
 
-    user_id = current_user.id
+    user_id = session.get('user', {}).get('id', 'demo_user')
 
     # Check if we have coordinates
     latitude = data.get("latitude")
@@ -160,12 +201,10 @@ def api_add_weather_location():
         "data": new_location.to_dict()
     })
 
-
 @weather_bp.route('/locations/<int:location_id>', methods=['DELETE'])
-@login_required
 def api_delete_weather_location(location_id):
     """Delete a weather location"""
-    user_id = current_user.id
+    user_id = session.get('user', {}).get('id', 'demo_user')
 
     # Find the location
     location = WeatherLocation.query.filter_by(id=location_id, user_id=user_id).first()
@@ -192,12 +231,10 @@ def api_delete_weather_location(location_id):
         "message": f"Deleted location '{location.name}'"
     })
 
-
 @weather_bp.route('/locations/<int:location_id>/primary', methods=['PUT'])
-@login_required
 def api_set_primary_weather_location(location_id):
     """Set a location as the primary location"""
-    user_id = current_user.id
+    user_id = session.get('user', {}).get('id', 'demo_user')
 
     # Find the location
     location = WeatherLocation.query.filter_by(id=location_id, user_id=user_id).first()
@@ -222,12 +259,10 @@ def api_set_primary_weather_location(location_id):
         "data": location.to_dict()
     })
 
-
 @weather_bp.route('/pain-forecast', methods=['GET'])
-@login_required
 def api_pain_flare_forecast():
     """Get pain flare forecast based on weather conditions"""
-    user_id = current_user.id
+    user_id = session.get('user', {}).get('id', 'demo_user')
 
     # Get location from query or use primary location
     location_id = request.args.get("location_id")

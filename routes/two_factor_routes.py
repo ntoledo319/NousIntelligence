@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Two-Factor Authentication Routes
 
 This module provides routes for setting up, verifying, and managing
@@ -9,7 +44,7 @@ two-factor authentication (2FA) for user accounts.
 """
 import logging
 from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for, g, flash
-from flask_login import current_user, login_required
+
 from werkzeug.exceptions import BadRequest, Unauthorized
 
 from utils.two_factor_auth import (
@@ -37,7 +72,6 @@ two_factor_bp = Blueprint('two_factor', __name__, url_prefix='/2fa')
 logger = logging.getLogger(__name__)
 
 @two_factor_bp.route('/setup', methods=['GET', 'POST'])
-@login_required
 @rate_limit(max_requests=5, time_window=60)
 def setup_2fa():
     """
@@ -46,7 +80,7 @@ def setup_2fa():
     GET: Returns setup page with QR code
     POST: Confirms setup with verification code
     """
-    user = current_user
+    user = session.get('user')
 
     # Check if 2FA is already enabled
     if user.two_factor_enabled:
@@ -119,6 +153,12 @@ def setup_2fa():
             return redirect(url_for('two_factor.setup_2fa'))
 
 @two_factor_bp.route('/verify', methods=['GET', 'POST'])
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def verify_2fa():
     """
     Verify a 2FA code
@@ -127,7 +167,7 @@ def verify_2fa():
     POST: Verify code and continue to original destination
     """
     # Check if user is logged in
-    if not current_user.is_authenticated:
+    if not ('user' in session and session['user']):
         return redirect(url_for('login'))
 
     # Check if 2FA is already verified for this session
@@ -136,7 +176,7 @@ def verify_2fa():
         next_url = session.pop('after_2fa_url', url_for('user.profile'))
         return redirect(next_url)
 
-    user = current_user
+    user = session.get('user')
 
     # Check if 2FA is enabled for this user
     if not user.two_factor_enabled:
@@ -192,11 +232,10 @@ def verify_2fa():
             return render_template('2fa/verify.html')
 
 @two_factor_bp.route('/disable', methods=['POST'])
-@login_required
 @rate_limit(max_requests=5, time_window=60)
 def disable_2fa():
     """Disable 2FA for the current user"""
-    user = current_user
+    user = session.get('user')
 
     # Check if 2FA is enabled
     if not user.two_factor_enabled:
@@ -225,11 +264,10 @@ def disable_2fa():
     return redirect(url_for('user.profile'))
 
 @two_factor_bp.route('/regenerate-backup-codes', methods=['POST'])
-@login_required
 @rate_limit(max_requests=5, time_window=60)
 def regenerate_backup_codes():
     """Generate new backup codes and invalidate old ones"""
-    user = current_user
+    user = session.get('user')
 
     # Check if 2FA is enabled
     if not user.two_factor_enabled:
@@ -272,11 +310,10 @@ def regenerate_backup_codes():
 
 # API routes for 2FA (used by mobile/SPA clients)
 @two_factor_bp.route('/api/setup', methods=['POST'])
-@login_required
 @rate_limit(max_requests=5, time_window=60)
 def api_setup_2fa():
     """API endpoint to setup 2FA (step 1)"""
-    user = current_user
+    user = session.get('user')
 
     # Check if 2FA is already enabled
     if user.two_factor_enabled:
@@ -301,11 +338,10 @@ def api_setup_2fa():
     })
 
 @two_factor_bp.route('/api/confirm', methods=['POST'])
-@login_required
 @rate_limit(max_requests=5, time_window=60)
 def api_confirm_2fa():
     """API endpoint to confirm 2FA setup (step 2)"""
-    user = current_user
+    user = session.get('user')
     data = request.get_json()
 
     if not data or 'verification_code' not in data:
@@ -358,13 +394,13 @@ def api_confirm_2fa():
 def api_verify_2fa():
     """API endpoint to verify a 2FA code"""
     # Check if user is logged in
-    if not current_user.is_authenticated:
+    if not ('user' in session and session['user']):
         return jsonify({
             "error": "Authentication required",
             "message": "You must be logged in to verify 2FA"
         }), 401
 
-    user = current_user
+    user = session.get('user')
     data = request.get_json()
 
     if not data:

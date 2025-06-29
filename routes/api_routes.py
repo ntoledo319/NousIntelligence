@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 API Routes Module
 
 This module provides API endpoints for the NOUS application,
@@ -7,7 +42,7 @@ including AI integration with cost-optimized processing.
 
 import logging
 from flask import Blueprint, request, jsonify, current_app
-from flask_login import login_required, current_user
+
 import json
 
 # Import AI integration with cost optimization
@@ -25,6 +60,12 @@ api_bp = Blueprint('api', __name__, url_prefix='/api')
 logger = logging.getLogger(__name__)
 
 @api_bp.route('/ai/ask', methods=['POST'])
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def ai_ask():
     """
     AI Question-Answer endpoint with context-aware responses
@@ -72,7 +113,7 @@ def ai_ask():
 
             # Use the cost-optimized AI integration
             if AI_INTEGRATION_AVAILABLE:
-                user_id = current_user.id if current_user.is_authenticated else None
+                user_id = session.get('user', {}).get('id', 'demo_user') if ('user' in session and session['user']) else None
                 result = generate_ai_text(
                     prompt=prompt,
                     task_type='aa_content_question',
@@ -117,7 +158,7 @@ def ai_ask():
 
             # Use the cost-optimized AI integration
             if AI_INTEGRATION_AVAILABLE:
-                user_id = current_user.id if current_user.is_authenticated else None
+                user_id = session.get('user', {}).get('id', 'demo_user') if ('user' in session and session['user']) else None
                 result = generate_ai_text(
                     prompt=prompt,
                     task_type='aa_content_question',
@@ -154,7 +195,7 @@ def ai_ask():
 
             # Use the cost-optimized AI integration
             if AI_INTEGRATION_AVAILABLE:
-                user_id = current_user.id if current_user.is_authenticated else None
+                user_id = session.get('user', {}).get('id', 'demo_user') if ('user' in session and session['user']) else None
                 result = generate_ai_text(
                     prompt=prompt,
                     task_type='general_question',
@@ -189,7 +230,12 @@ def ai_ask():
         }), 500
 
 @api_bp.route('/ai/analyze', methods=['POST'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def ai_analyze():
     """
     AI document analysis endpoint
@@ -221,7 +267,7 @@ def ai_analyze():
             result = analyze_document_content(
                 document_text=document_text,
                 document_type=document_type,
-                user_id=current_user.id
+                user_id=session.get('user', {}).get('id', 'demo_user')
             )
 
             if result.get('success', False):
@@ -245,7 +291,12 @@ def ai_analyze():
         }), 500
 
 @api_bp.route('/ai/stats', methods=['GET'])
-@login_required
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def ai_stats():
     """
     Get AI usage statistics for the current user
@@ -275,19 +326,19 @@ def ai_stats():
 
         # Today's usage
         today_usage = UserAIUsage.query.filter(
-            UserAIUsage.user_id == current_user.id,
+            UserAIUsage.user_id == session.get('user', {}).get('id', 'demo_user'),
             func.date(UserAIUsage.timestamp) == today
         ).all()
 
         # Yesterday's usage
         yesterday_usage = UserAIUsage.query.filter(
-            UserAIUsage.user_id == current_user.id,
+            UserAIUsage.user_id == session.get('user', {}).get('id', 'demo_user'),
             func.date(UserAIUsage.timestamp) == yesterday
         ).all()
 
         # Last 30 days usage
         month_usage = UserAIUsage.query.filter(
-            UserAIUsage.user_id == current_user.id,
+            UserAIUsage.user_id == session.get('user', {}).get('id', 'demo_user'),
             UserAIUsage.timestamp >= month_ago
         ).all()
 

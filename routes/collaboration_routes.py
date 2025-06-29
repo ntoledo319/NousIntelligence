@@ -1,4 +1,39 @@
 """
+
+def require_authentication():
+    """Check if user is authenticated, allow demo mode"""
+    from flask import session, request, redirect, url_for, jsonify
+    
+    # Check session authentication
+    if 'user' in session and session['user']:
+        return None  # User is authenticated
+    
+    # Allow demo mode
+    if request.args.get('demo') == 'true':
+        return None  # Demo mode allowed
+    
+    # For API endpoints, return JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'Authentication required', 'demo_available': True}), 401
+    
+    # For web routes, redirect to login
+    return redirect(url_for('login'))
+
+def get_current_user():
+    """Get current user from session with demo fallback"""
+    from flask import session
+    return session.get('user', {
+        'id': 'demo_user',
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'is_demo': True
+    })
+
+def is_authenticated():
+    """Check if user is authenticated"""
+    from flask import session
+    return 'user' in session and session['user'] is not None
+
 Collaboration Routes - Team and Family Management Features
 Shared tasks, family calendars, group activities, and collaborative planning
 """
@@ -151,7 +186,6 @@ SAMPLE_SHOPPING_LISTS = [
     }
 ]
 
-
 @collaboration_bp.route('/')
 def collaboration_dashboard():
     """Main collaboration dashboard"""
@@ -184,7 +218,6 @@ def collaboration_dashboard():
         logger.error(f"Error loading collaboration dashboard: {str(e)}")
         return render_template('error.html', error="Failed to load collaboration dashboard"), 500
 
-
 @collaboration_bp.route('/api/families')
 def get_families():
     """Get user's families"""
@@ -205,7 +238,6 @@ def get_families():
     except Exception as e:
         logger.error(f"Error getting families: {str(e)}")
         return jsonify({'error': 'Failed to retrieve families'}), 500
-
 
 @collaboration_bp.route('/api/families', methods=['POST'])
 def create_family():
@@ -251,7 +283,6 @@ def create_family():
         logger.error(f"Error creating family: {str(e)}")
         return jsonify({'error': 'Failed to create family'}), 500
 
-
 @collaboration_bp.route('/api/families/<family_id>/tasks')
 def get_family_tasks(family_id):
     """Get tasks for a specific family"""
@@ -285,7 +316,6 @@ def get_family_tasks(family_id):
     except Exception as e:
         logger.error(f"Error getting family tasks: {str(e)}")
         return jsonify({'error': 'Failed to retrieve family tasks'}), 500
-
 
 @collaboration_bp.route('/api/families/<family_id>/tasks', methods=['POST'])
 def create_family_task(family_id):
@@ -330,7 +360,6 @@ def create_family_task(family_id):
         logger.error(f"Error creating family task: {str(e)}")
         return jsonify({'error': 'Failed to create task'}), 500
 
-
 @collaboration_bp.route('/api/tasks/<task_id>/status', methods=['PUT'])
 def update_task_status(task_id):
     """Update task status"""
@@ -363,7 +392,6 @@ def update_task_status(task_id):
         logger.error(f"Error updating task status: {str(e)}")
         return jsonify({'error': 'Failed to update task status'}), 500
 
-
 @collaboration_bp.route('/api/families/<family_id>/events')
 def get_family_events(family_id):
     """Get events for a specific family"""
@@ -388,7 +416,6 @@ def get_family_events(family_id):
         logger.error(f"Error getting family events: {str(e)}")
         return jsonify({'error': 'Failed to retrieve family events'}), 500
 
-
 @collaboration_bp.route('/api/families/<family_id>/shopping-lists')
 def get_shopping_lists(family_id):
     """Get shopping lists for a family"""
@@ -409,7 +436,6 @@ def get_shopping_lists(family_id):
     except Exception as e:
         logger.error(f"Error getting shopping lists: {str(e)}")
         return jsonify({'error': 'Failed to retrieve shopping lists'}), 500
-
 
 @collaboration_bp.route('/api/shopping-lists/<list_id>/items', methods=['POST'])
 def add_shopping_item(list_id):
@@ -451,7 +477,6 @@ def add_shopping_item(list_id):
         logger.error(f"Error adding shopping item: {str(e)}")
         return jsonify({'error': 'Failed to add item'}), 500
 
-
 @collaboration_bp.route('/api/shopping-items/<item_id>/toggle', methods=['PUT'])
 def toggle_shopping_item(item_id):
     """Toggle shopping item completion status"""
@@ -479,14 +504,24 @@ def toggle_shopping_item(item_id):
         logger.error(f"Error toggling shopping item: {str(e)}")
         return jsonify({'error': 'Failed to toggle item'}), 500
 
-
 @collaboration_bp.route('/families')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def families_page():
     """Family management page"""
     return render_template('collaboration/families.html', families=SAMPLE_FAMILIES)
 
-
 @collaboration_bp.route('/families/<family_id>')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def family_detail_page(family_id):
     """Individual family detail page"""
     family = next((f for f in SAMPLE_FAMILIES if f['id'] == family_id), None)
@@ -495,35 +530,47 @@ def family_detail_page(family_id):
     
     return render_template('collaboration/family_detail.html', family=family)
 
-
 @collaboration_bp.route('/tasks')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def tasks_page():
     """Shared tasks page"""
     return render_template('collaboration/tasks.html', tasks=SAMPLE_SHARED_TASKS)
 
-
 @collaboration_bp.route('/calendar')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def calendar_page():
     """Shared family calendar page"""
     return render_template('collaboration/calendar.html', events=SAMPLE_SHARED_EVENTS)
 
-
 @collaboration_bp.route('/shopping')
+
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
+
 def shopping_page():
     """Shared shopping lists page"""
     return render_template('collaboration/shopping.html', shopping_lists=SAMPLE_SHOPPING_LISTS)
-
 
 # Error handlers
 @collaboration_bp.errorhandler(404)
 def collaboration_not_found(error):
     return render_template('collaboration/404.html'), 404
 
-
 @collaboration_bp.errorhandler(500)
 def collaboration_server_error(error):
     return render_template('collaboration/500.html'), 500
-
 
 # Utility functions
 def get_family_statistics(family_id):
@@ -539,7 +586,6 @@ def get_family_statistics(family_id):
                                if datetime.fromisoformat(e['start_time'].replace('Z', '+00:00')) > datetime.now(timezone.utc)]),
         'total_events': len(family_events)
     }
-
 
 def generate_family_insights(family_id):
     """Generate insights for family collaboration"""
