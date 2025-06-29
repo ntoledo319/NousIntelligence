@@ -143,7 +143,7 @@ class UserGoal(db.Model):
     completed_at = db.Column(db.DateTime)
     
     # Relationships
-    user = db.relationship('User', backref=db.backref('goals', lazy=True))
+    user = db.relationship('User', backref=db.backref('user_goals', lazy=True))
 
     @hybrid_property
     def progress_percentage(self):
@@ -292,7 +292,7 @@ class Goal(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    user = db.relationship('User', backref=db.backref('goals', lazy=True))
+    user = db.relationship('User', backref=db.backref('analytics_goals', lazy=True))
 
     @hybrid_property
     def progress_percentage(self):
