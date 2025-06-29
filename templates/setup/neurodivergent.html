@@ -1,0 +1,158 @@
+{% extends "setup/base.html" %}
+
+{% block title %}Accessibility Needs{% endblock %}
+{% block header_title %}Accessibility & Support{% endblock %}
+{% block header_subtitle %}Help us provide the best support for your needs{% endblock %}
+
+{% block content %}
+<form method="POST" action="{{ url_for('setup.neurodivergent_save') }}">
+    <div class="step-title">
+        <i class="fas fa-universal-access text-primary"></i>
+        Accessibility & Neurodivergent Support
+    </div>
+    
+    <div class="step-description">
+        NOUS can provide specialized support for neurodivergent individuals and various accessibility needs. This helps us customize the interface and features to work best for you.
+    </div>
+
+    <!-- Main Question -->
+    <div class="form-section">
+        <div class="form-section-title">
+            <i class="fas fa-question-circle"></i>
+            Do you identify as neurodivergent?
+        </div>
+        <div class="form-group">
+            <div class="radio-group">
+                <div class="radio-card">
+                    <input type="radio" name="is_neurodivergent" value="yes" 
+                           {{ 'checked' if preferences.is_neurodivergent }}>
+                    <div class="radio-card-title">Yes</div>
+                    <div class="radio-card-description">I have neurodivergent conditions that may benefit from specialized support</div>
+                </div>
+                <div class="radio-card">
+                    <input type="radio" name="is_neurodivergent" value="no"
+                           {{ 'checked' if not preferences.is_neurodivergent }}>
+                    <div class="radio-card-title">No</div>
+                    <div class="radio-card-description">I don't have neurodivergent conditions or prefer standard features</div>
+                </div>
+                <div class="radio-card">
+                    <input type="radio" name="is_neurodivergent" value="prefer-not-to-say"
+                           {{ 'checked' if preferences.is_neurodivergent == 'prefer-not-to-say' }}>
+                    <div class="radio-card-title">Prefer not to say</div>
+                    <div class="radio-card-description">I'd rather not specify but may want accessibility features</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conditions (shown when Yes is selected) -->
+    <div class="form-section" id="neurodivergent-conditions" style="display: none;">
+        <div class="form-section-title">
+            <i class="fas fa-brain"></i>
+            Which conditions apply to you?
+        </div>
+        <div class="form-group">
+            <label class="form-label">Select any that apply (this helps us provide better support)</label>
+            <div class="checkbox-grid">
+                {% for condition in conditions %}
+                <div class="checkbox-card">
+                    <input type="checkbox" name="conditions" value="{{ condition.value }}"
+                           {{ 'checked' if condition.value in (preferences.neurodivergent_conditions or []) }}>
+                    <div class="checkbox-card-title">{{ condition.label }}</div>
+                    <div class="checkbox-card-description">
+                        {% if condition.value == 'adhd' %}
+                        Features for focus, organization, and time management
+                        {% elif condition.value == 'autism' %}
+                        Clear interfaces, routine support, sensory considerations
+                        {% elif condition.value == 'anxiety' %}
+                        Calming designs, stress reduction tools, crisis support
+                        {% elif condition.value == 'depression' %}
+                        Mood tracking, gentle encouragement, wellness features
+                        {% elif condition.value == 'dyslexia' %}
+                        Text-to-speech, font options, reading assistance
+                        {% elif condition.value == 'other' %}
+                        Tell us more about your specific needs
+                        {% else %}
+                        Specialized support and features
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="form-group mt-3" id="other-condition-input" style="display: none;">
+                <label class="form-label" for="other_condition">Please specify your condition or needs:</label>
+                <input type="text" name="other_condition" id="other_condition" class="form-control" 
+                       placeholder="Describe your specific needs or condition">
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info">
+        <i class="fas fa-shield-alt me-2"></i>
+        <strong>Privacy:</strong> This information is completely confidential and only used to improve your NOUS experience. You can change or remove this information at any time in your settings.
+    </div>
+
+    <div class="alert alert-warning">
+        <i class="fas fa-lightbulb me-2"></i>
+        <strong>Benefits:</strong> Providing this information helps NOUS offer features like simplified interfaces, enhanced reminders, sensory-friendly themes, focus tools, and specialized therapeutic approaches tailored to your needs.
+    </div>
+</form>
+{% endblock %}
+
+{% block action_buttons %}
+<a href="{{ url_for('setup.languages') }}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left"></i>
+    Back
+</a>
+<button type="submit" form="form" class="btn btn-primary">
+    Continue
+    <i class="fas fa-arrow-right"></i>
+</button>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Show/hide conditions section
+    const neurodivergentRadios = document.querySelectorAll('input[name="is_neurodivergent"]');
+    const conditionsSection = document.getElementById('neurodivergent-conditions');
+    const otherInput = document.getElementById('other-condition-input');
+    const otherCheckbox = document.querySelector('input[value="other"]');
+    
+    neurodivergentRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'yes') {
+                conditionsSection.style.display = 'block';
+                conditionsSection.classList.add('fade-in');
+            } else {
+                conditionsSection.style.display = 'none';
+            }
+        });
+    });
+    
+    // Show initial state
+    const checkedRadio = document.querySelector('input[name="is_neurodivergent"]:checked');
+    if (checkedRadio && checkedRadio.value === 'yes') {
+        conditionsSection.style.display = 'block';
+    }
+    
+    // Show/hide other condition input
+    if (otherCheckbox) {
+        otherCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                otherInput.style.display = 'block';
+                otherInput.classList.add('fade-in');
+            } else {
+                otherInput.style.display = 'none';
+            }
+        });
+        
+        // Show initial state
+        if (otherCheckbox.checked) {
+            otherInput.style.display = 'block';
+        }
+    }
+});
+</script>
+{% endblock %}

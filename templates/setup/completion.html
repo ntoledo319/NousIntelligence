@@ -1,0 +1,275 @@
+{% extends "setup/base.html" %}
+
+{% block title %}Setup Complete{% endblock %}
+{% block header_title %}Welcome to NOUS!{% endblock %}
+{% block header_subtitle %}Your personal assistant is ready to help you{% endblock %}
+
+{% block content %}
+<div class="completion-container">
+    <div class="success-icon">
+        <i class="fas fa-check-circle text-success"></i>
+    </div>
+    
+    <div class="completion-title">
+        Setup Complete!
+    </div>
+    
+    <div class="completion-message">
+        Your NOUS personal assistant has been configured based on your preferences and is ready to help you manage your life more effectively.
+    </div>
+
+    <!-- Setup Summary -->
+    <div class="setup-summary">
+        <h3><i class="fas fa-clipboard-list"></i> Your Configuration</h3>
+        
+        <div class="summary-grid">
+            {% if setup_data %}
+            <div class="summary-card">
+                <div class="summary-title">Languages</div>
+                <div class="summary-content">
+                    {% if setup_data.primary_language %}
+                    Primary: {{ setup_data.primary_language.title() }}
+                    {% endif %}
+                    {% if setup_data.additional_languages %}
+                    <br>Learning: {{ setup_data.additional_languages | join(', ') | title }}
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if setup_data.therapeutic_goals %}
+            <div class="summary-card">
+                <div class="summary-title">Mental Health Focus</div>
+                <div class="summary-content">
+                    {{ setup_data.therapeutic_goals | join(', ') | title }}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if setup_data.is_neurodivergent %}
+            <div class="summary-card">
+                <div class="summary-title">Accessibility</div>
+                <div class="summary-content">
+                    Neurodivergent support enabled
+                    {% if setup_data.neurodivergent_conditions %}
+                    <br>{{ setup_data.neurodivergent_conditions | join(', ') | title }}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if setup_data.assistant_personality %}
+            <div class="summary-card">
+                <div class="summary-title">AI Assistant</div>
+                <div class="summary-content">
+                    {{ setup_data.assistant_personality.title() }} personality
+                    {% if setup_data.assistant_tone %}
+                    <br>{{ setup_data.assistant_tone.title() }} tone
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Feature Highlights -->
+    <div class="feature-highlights">
+        <h3><i class="fas fa-star"></i> What's Available</h3>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <i class="fas fa-comments"></i>
+                <div class="feature-title">AI Chat</div>
+                <div class="feature-description">Get help with tasks, questions, and emotional support</div>
+            </div>
+            
+            <div class="feature-card">
+                <i class="fas fa-heart"></i>
+                <div class="feature-title">Mental Health</div>
+                <div class="feature-description">DBT, CBT skills and therapeutic support</div>
+            </div>
+            
+            <div class="feature-card">
+                <i class="fas fa-tasks"></i>
+                <div class="feature-title">Task Management</div>
+                <div class="feature-description">Organize your life with intelligent reminders</div>
+            </div>
+            
+            <div class="feature-card">
+                <i class="fas fa-chart-line"></i>
+                <div class="feature-title">Analytics</div>
+                <div class="feature-description">Track your progress and insights</div>
+            </div>
+            
+            <div class="feature-card">
+                <i class="fas fa-language"></i>
+                <div class="feature-title">Language Learning</div>
+                <div class="feature-description">Practice and improve language skills</div>
+            </div>
+            
+            <div class="feature-card">
+                <i class="fas fa-dollar-sign"></i>
+                <div class="feature-title">Financial Tracking</div>
+                <div class="feature-description">Monitor expenses and budgets</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <h3><i class="fas fa-rocket"></i> Get Started</h3>
+        <div class="action-buttons">
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-home"></i>
+                Go to Dashboard
+            </a>
+            <a href="{{ url_for('main.chat') }}" class="btn btn-success btn-lg">
+                <i class="fas fa-comments"></i>
+                Start Chatting
+            </a>
+        </div>
+    </div>
+
+    <!-- Helpful Tips -->
+    <div class="tips-section">
+        <h3><i class="fas fa-lightbulb"></i> Tips to Get Started</h3>
+        <div class="tips-list">
+            <div class="tip-item">
+                <i class="fas fa-question-circle"></i>
+                Try asking: "What can you help me with?" or "How do I set goals?"
+            </div>
+            <div class="tip-item">
+                <i class="fas fa-cog"></i>
+                You can change these settings anytime in your profile
+            </div>
+            <div class="tip-item">
+                <i class="fas fa-mobile-alt"></i>
+                NOUS works great on mobile - add it to your home screen
+            </div>
+            <div class="tip-item">
+                <i class="fas fa-shield-alt"></i>
+                Your data is private and never shared with third parties
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.completion-container {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.success-icon i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.completion-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--bs-primary);
+    margin-bottom: 1rem;
+}
+
+.completion-message {
+    font-size: 1.2rem;
+    color: var(--bs-secondary);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.setup-summary, .feature-highlights, .quick-actions, .tips-section {
+    text-align: left;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border-radius: 12px;
+    background: var(--bs-light);
+}
+
+.setup-summary h3, .feature-highlights h3, .quick-actions h3, .tips-section h3 {
+    color: var(--bs-primary);
+    margin-bottom: 1rem;
+}
+
+.summary-grid, .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.summary-card, .feature-card {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--bs-primary);
+}
+
+.summary-title, .feature-title {
+    font-weight: bold;
+    color: var(--bs-primary);
+    margin-bottom: 0.5rem;
+}
+
+.feature-card i {
+    font-size: 2rem;
+    color: var(--bs-primary);
+    margin-bottom: 0.5rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+}
+
+.tips-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.tip-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: white;
+    border-radius: 8px;
+}
+
+.tip-item i {
+    color: var(--bs-info);
+    min-width: 20px;
+}
+
+@media (max-width: 768px) {
+    .completion-title {
+        font-size: 2rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn-lg {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block action_buttons %}
+<!-- No action buttons needed - user can navigate from the content -->
+{% endblock %}

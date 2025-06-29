@@ -1,0 +1,176 @@
+{% extends "setup/base.html" %}
+
+{% block title %}AI Assistant Preferences{% endblock %}
+{% block header_title %}AI Assistant Settings{% endblock %}
+{% block header_subtitle %}Personalize your AI companion{% endblock %}
+
+{% block content %}
+<form method="POST" action="{{ url_for('setup.ai_assistant_save') }}">
+    <div class="step-title">
+        <i class="fas fa-robot text-primary"></i>
+        AI Assistant Personality
+    </div>
+    
+    <div class="step-description">
+        Your NOUS AI assistant can adapt its personality and communication style to work best with you. Choose how you'd like it to interact with you.
+    </div>
+
+    <!-- Personality -->
+    <div class="form-section">
+        <div class="form-section-title">
+            <i class="fas fa-smile"></i>
+            Assistant Personality
+        </div>
+        <div class="form-group">
+            <label class="form-label">What personality would you prefer for your AI assistant?</label>
+            <div class="radio-group">
+                <div class="radio-card">
+                    <input type="radio" name="personality" value="empathetic" 
+                           {{ 'checked' if preferences.assistant_personality == 'empathetic' or not preferences.assistant_personality }}>
+                    <div class="radio-card-title">Empathetic</div>
+                    <div class="radio-card-description">Understanding, supportive, emotionally aware</div>
+                </div>
+                <div class="radio-card">
+                    <input type="radio" name="personality" value="professional"
+                           {{ 'checked' if preferences.assistant_personality == 'professional' }}>
+                    <div class="radio-card-title">Professional</div>
+                    <div class="radio-card-description">Formal, efficient, business-focused</div>
+                </div>
+                <div class="radio-card">
+                    <input type="radio" name="personality" value="friendly"
+                           {{ 'checked' if preferences.assistant_personality == 'friendly' }}>
+                    <div class="radio-card-title">Friendly</div>
+                    <div class="radio-card-description">Casual, warm, conversational</div>
+                </div>
+                <div class="radio-card">
+                    <input type="radio" name="personality" value="analytical"
+                           {{ 'checked' if preferences.assistant_personality == 'analytical' }}>
+                    <div class="radio-card-title">Analytical</div>
+                    <div class="radio-card-description">Data-driven, logical, precise</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tone -->
+    <div class="form-section">
+        <div class="form-section-title">
+            <i class="fas fa-volume-up"></i>
+            Communication Tone
+        </div>
+        <div class="form-group">
+            <label class="form-label">How should your assistant communicate?</label>
+            <div class="radio-group">
+                <div class="radio-card">
+                    <input type="radio" name="tone" value="compassionate" 
+                           {{ 'checked' if preferences.assistant_tone == 'compassionate' or not preferences.assistant_tone }}>
+                    <div class="radio-card-title">Compassionate</div>
+                    <div class="radio-card-description">Gentle, caring, therapeutic</div>
+                </div>
+                <div class="radio-card">
+                    <input type="radio" name="tone" value="encouraging"
+                           {{ 'checked' if preferences.assistant_tone == 'encouraging' }}>
+                    <div class="radio-card-title">Encouraging</div>
+                    <div class="radio-card-description">Motivating, positive, uplifting</div>
+                </div>
+                <div class="radio-card">
+                    <input type="radio" name="tone" value="direct"
+                           {{ 'checked' if preferences.assistant_tone == 'direct' }}>
+                    <div class="radio-card-title">Direct</div>
+                    <div class="radio-card-description">Straightforward, clear, efficient</div>
+                </div>
+                <div class="radio-card">
+                    <input type="radio" name="tone" value="adaptive"
+                           {{ 'checked' if preferences.assistant_tone == 'adaptive' }}>
+                    <div class="radio-card-title">Adaptive</div>
+                    <div class="radio-card-description">Changes based on context and mood</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Communication Style -->
+    <div class="form-section">
+        <div class="form-section-title">
+            <i class="fas fa-comments"></i>
+            Response Style
+        </div>
+        <div class="form-group">
+            <label class="form-label">How detailed should responses be?</label>
+            <div class="radio-group">
+                <div class="radio-card">
+                    <input type="radio" name="communication_style" value="concise" 
+                           {{ 'checked' if preferences.communication_style == 'concise' }}>
+                    <div class="radio-card-title">Concise</div>
+                    <div class="radio-card-description">Brief, to-the-point answers</div>
+                </div>
+                <div class="radio-card">
+                    <input type="radio" name="communication_style" value="balanced"
+                           {{ 'checked' if preferences.communication_style == 'balanced' or not preferences.communication_style }}>
+                    <div class="radio-card-title">Balanced</div>
+                    <div class="radio-card-description">Right amount of detail for context</div>
+                </div>
+                <div class="radio-card">
+                    <input type="radio" name="communication_style" value="detailed"
+                           {{ 'checked' if preferences.communication_style == 'detailed' }}>
+                    <div class="radio-card-title">Detailed</div>
+                    <div class="radio-card-description">Comprehensive explanations</div>
+                </div>
+                <div class="radio-card">
+                    <input type="radio" name="communication_style" value="conversational"
+                           {{ 'checked' if preferences.communication_style == 'conversational' }}>
+                    <div class="radio-card-title">Conversational</div>
+                    <div class="radio-card-description">Natural back-and-forth dialogue</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assistance Level -->
+    <div class="form-section">
+        <div class="form-section-title">
+            <i class="fas fa-hand-holding-heart"></i>
+            Assistance Level
+        </div>
+        <div class="form-group">
+            <label class="form-label">How proactive should your assistant be?</label>
+            <div class="radio-group">
+                <div class="radio-card">
+                    <input type="radio" name="assistance_level" value="proactive" 
+                           {{ 'checked' if preferences.ai_assistance_level == 'proactive' }}>
+                    <div class="radio-card-title">Proactive</div>
+                    <div class="radio-card-description">Offers suggestions and anticipates needs</div>
+                </div>
+                <div class="radio-card">
+                    <input type="radio" name="assistance_level" value="responsive"
+                           {{ 'checked' if preferences.ai_assistance_level == 'responsive' or not preferences.ai_assistance_level }}>
+                    <div class="radio-card-title">Responsive</div>
+                    <div class="radio-card-description">Responds when you ask for help</div>
+                </div>
+                <div class="radio-card">
+                    <input type="radio" name="assistance_level" value="minimal"
+                           {{ 'checked' if preferences.ai_assistance_level == 'minimal' }}>
+                    <div class="radio-card-title">Minimal</div>
+                    <div class="radio-card-description">Only provides basic assistance</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info">
+        <i class="fas fa-magic me-2"></i>
+        <strong>AI Learning:</strong> Your assistant will learn from your interactions and gradually adapt to your preferences over time, regardless of these initial settings.
+    </div>
+</form>
+{% endblock %}
+
+{% block action_buttons %}
+<a href="{{ url_for('setup.mental_health') }}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left"></i>
+    Back
+</a>
+<button type="submit" form="form" class="btn btn-primary">
+    Continue
+    <i class="fas fa-arrow-right"></i>
+</button>
+{% endblock %}
