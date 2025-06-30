@@ -22,7 +22,7 @@ def index():
         
         # Get OAuth availability from app config
         from flask import current_app
-        oauth_available = current_app.config.get('OAUTH_ENABLED', False)
+        oauth_available = current_app.config.get('OAUTH_ENABLED', True)  # Default to True for better UX
         
         return render_template('landing.html', 
                              user_authenticated=user_authenticated,
