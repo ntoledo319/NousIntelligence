@@ -55,7 +55,11 @@ def callback():
             return redirect(url_for('main.landing'))
             
     except Exception as e:
-        flash(f'Login error: {str(e)}', 'error')
+        # Log error securely without exposing sensitive information
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Authentication callback failed for user")
+        flash('Authentication failed. Please try again.', 'error')
         return redirect(url_for('main.landing'))
 
 
