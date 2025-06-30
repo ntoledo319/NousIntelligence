@@ -39,12 +39,15 @@ class GoogleOAuthService:
                 logger.warning("OAuth login will not be available. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET")
                 return False
             
-            # Configure Google OAuth client with refresh token support
+            # Configure Google OAuth client with direct endpoint configuration
+            # Using direct URLs instead of discovery document to avoid network issues
             self.google = self.oauth.register(
                 name='google',
                 client_id=client_id,
                 client_secret=client_secret,
-                server_metadata_url='https://accounts.google.com/.well-known/openid_configuration',
+                authorize_url='https://accounts.google.com/oauth2/auth',
+                access_token_url='https://oauth2.googleapis.com/token',
+                userinfo_endpoint='https://www.googleapis.com/oauth2/v2/userinfo',
                 client_kwargs={
                     'scope': 'openid email profile https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/tasks',
                     'access_type': 'offline',  # Request refresh token
