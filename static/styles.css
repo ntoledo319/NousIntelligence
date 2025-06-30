@@ -2,39 +2,59 @@
 
 /* CSS Variables for Theme System */
 :root {
-    /* Light Theme (Default) */
+    /* Light Theme (Default) - Enhanced for better visibility */
     --primary-color: #2563eb;
     --primary-hover: #1d4ed8;
+    --primary-light: #3b82f6;
     --secondary-color: #64748b;
     --background-color: #ffffff;
     --surface-color: #f8fafc;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --text-muted: #94a3b8;
+    --surface-hover: #f1f5f9;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
     --border-color: #e2e8f0;
+    --border-hover: #cbd5e1;
     --shadow-color: rgba(0, 0, 0, 0.1);
+    --shadow-strong: rgba(0, 0, 0, 0.15);
     --success-color: #16a34a;
+    --success-light: #22c55e;
     --error-color: #dc2626;
+    --error-light: #ef4444;
     --warning-color: #d97706;
+    --warning-light: #f59e0b;
     --accent-color: #7c3aed;
+    --accent-light: #8b5cf6;
     
     /* Gradients */
     --hero-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     --card-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
 }
 
-/* Dark Theme */
+/* Dark Theme - Enhanced for better visibility */
 [data-theme="dark"] {
-    --primary-color: #3b82f6;
-    --primary-hover: #2563eb;
+    --primary-color: #60a5fa;
+    --primary-hover: #3b82f6;
+    --primary-light: #93c5fd;
     --secondary-color: #64748b;
     --background-color: #0f172a;
     --surface-color: #1e293b;
-    --text-primary: #f1f5f9;
-    --text-secondary: #cbd5e1;
-    --text-muted: #64748b;
-    --border-color: #334155;
-    --shadow-color: rgba(0, 0, 0, 0.3);
+    --surface-hover: #334155;
+    --text-primary: #f8fafc;
+    --text-secondary: #e2e8f0;
+    --text-muted: #94a3b8;
+    --border-color: #475569;
+    --border-hover: #64748b;
+    --shadow-color: rgba(0, 0, 0, 0.4);
+    --shadow-strong: rgba(0, 0, 0, 0.6);
+    --success-color: #22c55e;
+    --success-light: #4ade80;
+    --error-color: #f87171;
+    --error-light: #fca5a5;
+    --warning-color: #fbbf24;
+    --warning-light: #fcd34d;
+    --accent-color: #a78bfa;
+    --accent-light: #c4b5fd;
     --hero-gradient: linear-gradient(135deg, #1e3a8a 0%, #581c87 100%);
     --card-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
 }
@@ -505,28 +525,102 @@ body {
     color: var(--text-muted);
 }
 
-/* Flash Messages */
+/* Enhanced Flash Messages with better visibility */
 .flash-messages {
     margin: 1rem 0;
+    max-width: 600px;
+    width: 100%;
 }
 
 .flash-message {
-    padding: 12px 16px;
-    border-radius: 8px;
-    margin-bottom: 10px;
+    padding: 1rem 1.25rem;
+    border-radius: 0.75rem;
+    margin-bottom: 0.75rem;
     font-weight: 500;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    border: 2px solid;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .flash-success {
-    background: #dcfce7;
-    color: #166534;
-    border: 1px solid #86efac;
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    color: #14532d;
+    border-color: var(--success-color);
+}
+
+.flash-success::before {
+    content: "✓";
+    font-weight: bold;
+    color: var(--success-color);
+    font-size: 1.2rem;
 }
 
 .flash-error {
-    background: #fef2f2;
-    color: #dc2626;
-    border: 1px solid #fca5a5;
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    color: #7f1d1d;
+    border-color: var(--error-color);
+}
+
+.flash-error::before {
+    content: "⚠";
+    font-weight: bold;
+    color: var(--error-color);
+    font-size: 1.2rem;
+}
+
+.flash-warning {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    color: #92400e;
+    border-color: var(--warning-color);
+}
+
+.flash-warning::before {
+    content: "⚡";
+    font-weight: bold;
+    color: var(--warning-color);
+    font-size: 1.2rem;
+}
+
+.flash-info {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    color: #1e3a8a;
+    border-color: var(--primary-color);
+}
+
+.flash-info::before {
+    content: "ℹ";
+    font-weight: bold;
+    color: var(--primary-color);
+    font-size: 1.2rem;
+}
+
+/* Dark theme flash messages */
+[data-theme="dark"] .flash-success {
+    background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+    color: var(--success-light);
+    border-color: var(--success-color);
+}
+
+[data-theme="dark"] .flash-error {
+    background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+    color: var(--error-light);
+    border-color: var(--error-color);
+}
+
+[data-theme="dark"] .flash-warning {
+    background: linear-gradient(135deg, #92400e 0%, #a16207 100%);
+    color: var(--warning-light);
+    border-color: var(--warning-color);
+}
+
+[data-theme="dark"] .flash-info {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+    color: #93c5fd;
+    border-color: var(--primary-color);
 }
 
 /* Footer */
