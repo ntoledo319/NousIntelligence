@@ -101,22 +101,59 @@ def google_callback():
         flash('Authentication failed. Please try again.', 'error')
         return redirect(url_for('auth.login'))
 
+@auth_bp.route('/demo-mode', methods=['POST'])
+def demo_mode():
+    """Activate demo mode - provides immediate access without authentication"""
+    try:
+        # Create demo user session
+        session['user'] = {
+            'id': 'demo_user_123',
+            'name': 'Demo User',
+            'email': 'demo@nous.app',
+            'demo_mode': True,
+            'avatar': '/static/images/default-avatar.png'
+        }
+        
+        logger.info("Demo mode activated successfully")
+        return redirect('/dashboard')
+        
+    except Exception as e:
+        logger.error(f"Demo mode activation failed: {e}")
+        flash('Failed to activate demo mode. Please try again.', 'error')
+        return redirect('/')
+
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
     """Logout current user with CSRF protection"""
     try:
-        oauth_service.logout()
+        if oauth_service:
+            oauth_service.logout()
+        # Clear session
+        session.pop('user', None)
         flash('You have been logged out.', 'info')
-        return redirect(url_for('main.index'))
+        return redirect('/')
     except Exception as e:
         logger.error(f"Logout failed: {str(e)}")
         flash('Logout failed. Please try again.', 'error')
-        return redirect(url_for('main.index'))
+        return redirect('/')
+
+@auth_bp.route('/status')
+def auth_status():
+    """Get authentication status"""
+    user_data = session.get('user')
+    oauth_configured = oauth_service.is_configured() if oauth_service else False
+    
+    return jsonify({
+        'authenticated': user_data is not None,
+        'user': user_data,
+        'oauth_available': oauth_configured
+    })
 
 @auth_bp.route('/profile')
 def profile():
     """Display user profile"""
-    return render_template('auth/profile.html', user=current_user)
+    user_data = session.get('user', {})
+    return render_template('auth/profile.html', user=user_data)
 
 def get_deployment_callback_uri():
     """Get the correct callback URI for the current deployment environment"""
