@@ -49,6 +49,12 @@ class AppConfig:
     # ===== SECURITY CONFIGURATION =====
     SECRET_KEY = os.environ.get('SESSION_SECRET')
     
+    # Session security configuration
+    SESSION_COOKIE_SECURE = os.environ.get('FLASK_ENV', 'production') != 'development'
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    PERMANENT_SESSION_LIFETIME = 86400  # 24 hours
+    
     # CORS configuration
     CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'https://nous.app,https://www.nous.app').split(',')
     

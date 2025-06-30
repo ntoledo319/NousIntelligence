@@ -43,16 +43,28 @@ class GoogleOAuthService:
         )
     
     def get_authorization_url(self, redirect_uri):
-        """Get Google OAuth authorization URL"""
+        """Get Google OAuth authorization URL with CSRF protection"""
         if not self.google:
             raise ValueError("OAuth not initialized")
         
-        return self.google.authorize_redirect(redirect_uri)
+        # Generate and store state parameter for CSRF protection
+        import secrets
+        state = secrets.token_urlsafe(32)
+        session['oauth_state'] = state
+        
+        return self.google.authorize_redirect(redirect_uri, state=state)
     
     def handle_callback(self, redirect_uri):
         """Handle OAuth callback and create/login user"""
         if not self.google:
             raise ValueError("OAuth not initialized")
+        
+        # Validate state parameter for CSRF protection
+        received_state = request.args.get('state')
+        stored_state = session.pop('oauth_state', None)
+        
+        if not received_state or not stored_state or received_state != stored_state:
+            raise ValueError("Invalid OAuth state parameter - possible CSRF attack")
         
         try:
             # Get access token from callback
@@ -137,18 +149,24 @@ class GoogleOAuthService:
             
         try:
             # Use the refresh token to get a new access token
-            refresh_response = self.google.refresh_token(user.google_refresh_token)
+            token_data = {
+                'refresh_token': user.google_refresh_token,
+                'grant_type': 'refresh_token'
+            }
+            
+            refresh_response = self.google.fetch_access_token(**token_data)
             
             if refresh_response and refresh_response.get('access_token'):
                 user.google_access_token = refresh_response['access_token']
-                if refresh_response.get('expires_at'):
-                    user.google_token_expires_at = datetime.fromtimestamp(refresh_response['expires_at'])
+                if refresh_response.get('expires_in'):
+                    expires_at = datetime.utcnow().timestamp() + refresh_response['expires_in']
+                    user.google_token_expires_at = datetime.fromtimestamp(expires_at)
                 db.session.commit()
                 return refresh_response['access_token']
                 
         except Exception as e:
             # Log error without exposing sensitive information
-            logger.error(f"Token refresh failed for user {user.id}")
+            logger.error(f"Token refresh failed for user {user.id}: {type(e).__name__}")
             return None
         
         return None
