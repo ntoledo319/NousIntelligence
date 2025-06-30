@@ -29,6 +29,9 @@ except (ImportError, TypeError):
 from utils.unified_ai_service import UnifiedAIService
 from utils.adaptive_ai_system import process_adaptive_request, provide_user_feedback, get_adaptive_ai
 
+# Initialize logger first
+logger = logging.getLogger(__name__)
+
 # NOUS Intelligence Hub
 try:
     from utils.nous_intelligence_hub import get_nous_intelligence_hub, process_unified_request
@@ -37,8 +40,6 @@ try:
 except ImportError:
     NOUS_HUB_AVAILABLE = False
     logger.warning("NOUS Intelligence Hub not available - using standard enhanced chat")
-
-logger = logging.getLogger(__name__)
 
 # Create enhanced chat blueprint
 enhanced_chat_bp = Blueprint('enhanced_chat', __name__, url_prefix='/api/enhanced')
@@ -104,8 +105,12 @@ def enhanced_chat():
         
         # NOUS Enhancement: Use Intelligence Hub for comprehensive processing
         if NOUS_HUB_AVAILABLE:
-            # Process through NOUS Intelligence Hub for maximum intelligence
-            integrated_result = process_unified_request(user_id, message, context)
+            try:
+                # Process through NOUS Intelligence Hub for maximum intelligence
+                integrated_result = process_unified_request(user_id, message, context)
+            except NameError:
+                # Fallback if function not available
+                integrated_result = {'primary_response': {}, 'enhanced_features': {}, 'intelligence_insights': {}}
             
             # Extract components from integrated result
             adaptive_result = integrated_result.get('primary_response', {})
