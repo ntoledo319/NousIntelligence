@@ -6,8 +6,9 @@ Fast startup with public access guarantees
 try:
     import os
     from datetime import datetime
+    from app import create_app
 except Exception as e:
-    print(f"Failed to import os or datetime: {e}")
+    print(f"Failed to import modules in main.py: {e}")
     raise
 
 # Set critical environment variables for public deployment
@@ -20,12 +21,10 @@ os.environ.setdefault('DATABASE_URL', 'sqlite:///instance/app.db')
 os.environ.setdefault('FAST_STARTUP', 'true')
 os.environ.setdefault('DISABLE_HEAVY_FEATURES', 'true')
 
+app = create_app()
+
 if __name__ == "__main__":
     try:
-        from app import create_app
-        
-        app = create_app()
-        
         # Get port from environment
         port = int(os.environ.get('PORT', 8080))
         host = os.environ.get('HOST', '0.0.0.0')
