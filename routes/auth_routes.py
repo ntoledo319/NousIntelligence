@@ -8,7 +8,7 @@ from flask_login import login_user, logout_user, current_user, login_required
 from utils.google_oauth import oauth_service
 from config.app_config import AppConfig
 
-auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
+auth_bp = Blueprint('google_auth', __name__, url_prefix='/auth')
 
 
 @auth_bp.route('/login')
@@ -103,11 +103,14 @@ def demo_mode():
     """Enable demo mode for testing without authentication"""
     if AppConfig.DEBUG:
         # In debug mode, allow demo mode for testing
-        from utils.auth_compat import get_demo_user
-        demo_user = get_demo_user()
-        session['demo_user'] = True
+        session['user'] = {
+            'id': 'demo_user_123',
+            'username': 'Demo User',
+            'email': 'demo@nous.app',
+            'demo_mode': True
+        }
         flash('Demo mode enabled', 'info')
-        return redirect(url_for('main.dashboard'))
+        return redirect('/')
     else:
         flash('Demo mode not available in production', 'error')
-        return redirect(url_for('main.landing'))
+        return redirect('/')
