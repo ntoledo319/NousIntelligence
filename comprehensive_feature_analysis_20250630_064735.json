@@ -1,0 +1,3810 @@
+{
+  "analysis_date": "2025-06-30T06:47:36.610889",
+  "summary": {
+    "total_route_files": 43,
+    "total_routes": 184,
+    "total_model_files": 11,
+    "total_models": 88,
+    "total_services": 10,
+    "total_utilities": 92,
+    "total_templates": 36,
+    "total_api_endpoints": 0
+  },
+  "routes": {
+    "Settings": {
+      "file": "routes/settings.py",
+      "endpoints": [
+        [
+          "/settings",
+          "update_profile"
+        ],
+        [
+          "/settings/appearance",
+          "update_appearance"
+        ],
+        [
+          "/settings/assistant",
+          "update_assistant"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\ndef require_authentication():"
+    },
+    "User": {
+      "file": "routes/user_routes.py",
+      "endpoints": [
+        [
+          "/profile",
+          "profile"
+        ],
+        [
+          "/api/user/profile",
+          "api_profile"
+        ]
+      ],
+      "description": "\nUser management routes\n"
+    },
+    "Dashboard": {
+      "file": "routes/dashboard.py",
+      "endpoints": [
+        [
+          "/dashboard",
+          "dashboard"
+        ],
+        [
+          "/api/dashboard/stats",
+          "dashboard_stats"
+        ]
+      ],
+      "description": "\nDashboard routes\n"
+    },
+    "Pulse": {
+      "file": "routes/pulse.py",
+      "endpoints": [
+        [
+          "/",
+          "pulse_dashboard"
+        ],
+        [
+          "/api/data",
+          "pulse_api"
+        ],
+        [
+          "/health",
+          "health_details"
+        ],
+        [
+          "/finance",
+          "finance_details"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nPulse Routes\nPulse functionality for the NOUS application"
+    },
+    "Beta Admin": {
+      "file": "routes/beta_admin.py",
+      "endpoints": [
+        [
+          "/",
+          "dashboard"
+        ],
+        [
+          "/users",
+          "manage_users"
+        ],
+        [
+          "/users/add",
+          "add_user"
+        ],
+        [
+          "/users/<user_id>/toggle",
+          "toggle_user_status"
+        ],
+        [
+          "/flags",
+          "manage_flags"
+        ],
+        [
+          "/flags/add",
+          "add_flag"
+        ],
+        [
+          "/flags/<flag_id>/toggle",
+          "toggle_flag"
+        ],
+        [
+          "/feedback",
+          "view_feedback"
+        ],
+        [
+          "/feedback/export",
+          "export_feedback"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nBeta Admin Routes\nBeta Admin functionality for the NOUS application"
+    },
+    "Api": {
+      "file": "routes/api_routes.py",
+      "endpoints": [
+        [
+          "/chat",
+          "chat_api"
+        ],
+        [
+          "/user",
+          "api_user"
+        ]
+      ],
+      "description": "\nAPI routes for NOUS application\n"
+    },
+    "Dbt": {
+      "file": "routes/dbt_routes.py",
+      "endpoints": [
+        [
+          "/dbt",
+          "dbt_main"
+        ],
+        [
+          "/api/dbt/skills",
+          "dbt_skills"
+        ]
+      ],
+      "description": "\nDBT (Dialectical Behavior Therapy) routes\n"
+    },
+    "Aa": {
+      "file": "routes/aa_routes.py",
+      "endpoints": [
+        [
+          "/aa",
+          "aa_main"
+        ],
+        [
+          "/api/aa/steps",
+          "aa_steps"
+        ]
+      ],
+      "description": "\nAA (Alcoholics Anonymous) support routes\n"
+    },
+    "Async Api": {
+      "file": "routes/async_api.py",
+      "endpoints": [
+        [
+          "/tasks/fibonacci",
+          "start_fibonacci_task"
+        ],
+        [
+          "/tasks/api_simulation",
+          "start_api_simulation"
+        ],
+        [
+          "/tasks/process_data",
+          "start_data_processing"
+        ],
+        [
+          "/tasks/<task_id>",
+          "handle_bad_request"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nAsync Api Routes\nAsync Api functionality for the NOUS application"
+    },
+    "Beta": {
+      "file": "routes/beta_routes.py",
+      "endpoints": [
+        [
+          "/",
+          "dashboard"
+        ],
+        [
+          "/leave",
+          "leave_beta"
+        ],
+        [
+          "/admin",
+          "admin_dashboard"
+        ],
+        [
+          "/admin/toggle/<user_id>",
+          "toggle_tester"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nBeta Routes Routes\nBeta Routes functionality for the NOUS application"
+    },
+    "Health Check": {
+      "file": "routes/health_check.py",
+      "endpoints": [
+        [
+          "/health",
+          "health_check"
+        ],
+        [
+          "/ready",
+          "readiness_check"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nHealth Check Routes\nHealth Check functionality for the NOUS application"
+    },
+    "Language Learning": {
+      "file": "routes/language_learning_routes.py",
+      "endpoints": [
+        [
+          "/",
+          "index"
+        ],
+        [
+          "/profile/new",
+          "new_profile"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nLanguage Learning Routes Routes\nLanguage Learning Routes functionality for the NOUS application"
+    },
+    "Memory Dashboard": {
+      "file": "routes/memory_dashboard_routes.py",
+      "endpoints": [
+        [
+          "/",
+          "register_memory_dashboard_routes"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nMemory Dashboard Routes Routes\nMemory Dashboard Routes functionality for the NOUS application"
+    },
+    "Two Factor": {
+      "file": "routes/two_factor_routes.py",
+      "endpoints": [
+        [
+          "/setup",
+          "setup_2fa"
+        ],
+        [
+          "/verify",
+          "disable_2fa"
+        ],
+        [
+          "/regenerate-backup-codes",
+          "regenerate_backup_codes"
+        ],
+        [
+          "/api/setup",
+          "api_setup_2fa"
+        ],
+        [
+          "/api/confirm",
+          "api_confirm_2fa"
+        ],
+        [
+          "/api/verify",
+          "api_verify_2fa"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nTwo Factor Routes Routes\nTwo Factor Routes functionality for the NOUS application"
+    },
+    "Maps": {
+      "file": "routes/maps_routes.py",
+      "endpoints": [
+        [
+          "/maps",
+          "maps_main"
+        ],
+        [
+          "/api/maps/location",
+          "maps_location"
+        ]
+      ],
+      "description": "\nMaps and location routes\n"
+    },
+    "Weather": {
+      "file": "routes/weather_routes.py",
+      "endpoints": [
+        [
+          "/weather",
+          "weather_main"
+        ],
+        [
+          "/api/weather/current",
+          "weather_current"
+        ]
+      ],
+      "description": "\nWeather information routes\n"
+    },
+    "Tasks": {
+      "file": "routes/tasks_routes.py",
+      "endpoints": [
+        [
+          "/tasks",
+          "tasks_main"
+        ],
+        [
+          "/api/tasks",
+          "tasks_list"
+        ]
+      ],
+      "description": "\nTask management routes\n"
+    },
+    "Analytics": {
+      "file": "routes/analytics_routes.py",
+      "endpoints": [
+        [
+          "/analytics",
+          "analytics_main"
+        ],
+        [
+          "/api/analytics/summary",
+          "analytics_summary"
+        ]
+      ],
+      "description": "\nAnalytics and insights routes\n"
+    },
+    "Consolidated Voice": {
+      "file": "routes/consolidated_voice_routes.py",
+      "endpoints": [
+        [
+          "/",
+          "process_voice"
+        ],
+        [
+          "/settings",
+          "voice_settings"
+        ],
+        [
+          "/emotion/analyze",
+          "analyze_emotion"
+        ],
+        [
+          "/emotion/history",
+          "emotion_history"
+        ],
+        [
+          "/mindfulness/session",
+          "start_mindfulness_session"
+        ],
+        [
+          "/mindfulness/session/<session_id>",
+          "get_mindfulness_session"
+        ],
+        [
+          "/mindfulness/complete",
+          "complete_mindfulness_session"
+        ],
+        [
+          "/mindfulness/templates",
+          "text_to_speech"
+        ],
+        [
+          "/stt",
+          "speech_to_text"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nConsolidated Voice Routes Routes\nConsolidated Voice Routes functionality for the NOUS application"
+    },
+    "Consolidated Spotify": {
+      "file": "routes/consolidated_spotify_routes.py",
+      "endpoints": [
+        [
+          "/",
+          "spotify_auth"
+        ],
+        [
+          "/callback",
+          "spotify_callback"
+        ],
+        [
+          "/player/current",
+          "current_playing"
+        ],
+        [
+          "/player/play",
+          "play_track"
+        ],
+        [
+          "/player/pause",
+          "pause_track"
+        ],
+        [
+          "/player/next",
+          "next_track"
+        ],
+        [
+          "/player/previous",
+          "previous_track"
+        ],
+        [
+          "/commands/process",
+          "process_spotify_command"
+        ],
+        [
+          "/search",
+          "search_spotify"
+        ],
+        [
+          "/recommendations",
+          "get_recommendations"
+        ],
+        [
+          "/visualize",
+          "listening_stats"
+        ],
+        [
+          "/stats/audio-features",
+          "audio_features_analysis"
+        ],
+        [
+          "/visualization/data",
+          "visualization_data"
+        ],
+        [
+          "/playlists",
+          "get_playlists"
+        ],
+        [
+          "/playlists",
+          "create_playlist"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nConsolidated Spotify Routes Routes\nConsolidated Spotify Routes functionality for the NOUS application"
+    },
+    "Enhanced Api": {
+      "file": "routes/enhanced_api_routes.py",
+      "endpoints": [
+        [
+          "/predictions/analyze",
+          "analyze_user_patterns"
+        ],
+        [
+          "/predictions/generate",
+          "generate_predictions"
+        ],
+        [
+          "/predictions/active",
+          "get_active_predictions"
+        ],
+        [
+          "/predictions/feedback",
+          "record_prediction_feedback"
+        ],
+        [
+          "/predictions/accuracy",
+          "get_prediction_accuracy"
+        ],
+        [
+          "/voice/process",
+          "process_voice_input"
+        ],
+        [
+          "/voice/emotional-insights",
+          "get_emotional_insights"
+        ],
+        [
+          "/automation/rules",
+          "get_automation_rules"
+        ],
+        [
+          "/automation/rules",
+          "create_automation_rule"
+        ],
+        [
+          "/automation/templates",
+          "get_automation_templates"
+        ],
+        [
+          "/automation/templates/<template_name>",
+          "create_rule_from_template"
+        ],
+        [
+          "/automation/rules/<rule_id>/toggle",
+          "toggle_automation_rule"
+        ],
+        [
+          "/automation/rules/<rule_id>",
+          "delete_automation_rule"
+        ],
+        [
+          "/automation/history",
+          "get_automation_history"
+        ],
+        [
+          "/automation/trigger",
+          "trigger_automation_event"
+        ],
+        [
+          "/visual/process",
+          "process_image_upload"
+        ],
+        [
+          "/visual/document/analyze",
+          "analyze_document"
+        ],
+        [
+          "/visual/tasks/create",
+          "create_tasks_from_image"
+        ],
+        [
+          "/visual/analytics",
+          "get_visual_analytics"
+        ],
+        [
+          "/visual/history",
+          "get_visual_processing_history"
+        ],
+        [
+          "/ai/chat",
+          "context_aware_chat"
+        ],
+        [
+          "/ai/insights",
+          "get_user_ai_insights"
+        ],
+        [
+          "/ai/context/reset",
+          "reset_user_ai_context"
+        ],
+        [
+          "/ai/export",
+          "export_user_ai_data"
+        ],
+        [
+          "/intelligence/dashboard",
+          "get_intelligence_dashboard"
+        ],
+        [
+          "/intelligence/status",
+          "get_intelligence_status"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nEnhanced Api Routes Routes\nEnhanced Api Routes functionality for the NOUS application"
+    },
+    "Adaptive Ai": {
+      "file": "routes/adaptive_ai_routes.py",
+      "endpoints": [
+        [
+          "/chat",
+          "adaptive_chat"
+        ],
+        [
+          "/feedback",
+          "submit_feedback"
+        ],
+        [
+          "/insights",
+          "get_learning_insights"
+        ],
+        [
+          "/status",
+          "adaptive_ai_status"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nAdaptive Ai Routes Routes\nAdaptive Ai Routes functionality for the NOUS application"
+    },
+    "Api Key": {
+      "file": "routes/api_key_routes.py",
+      "endpoints": [
+        [
+          "/generate",
+          "generate_api_key"
+        ],
+        [
+          "/validate",
+          "validate_api_key"
+        ],
+        [
+          "/status",
+          "api_key_status"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nApi Key Routes Routes\nApi Key Routes functionality for the NOUS application"
+    },
+    "Messaging Status": {
+      "file": "routes/messaging_status.py",
+      "endpoints": [
+        [
+          "/status",
+          "get_messaging_status"
+        ],
+        [
+          "/send",
+          "send_message"
+        ],
+        [
+          "/notifications",
+          "get_notifications"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nMessaging Status Routes\nMessaging Status functionality for the NOUS application"
+    },
+    "Consolidated Api": {
+      "file": "routes/consolidated_api_routes.py",
+      "endpoints": [
+        [
+          "/health/detailed",
+          "detailed_health"
+        ],
+        [
+          "/health/quick",
+          "quick_health"
+        ],
+        [
+          "/keys",
+          "list_api_keys"
+        ],
+        [
+          "/keys",
+          "create_api_key"
+        ],
+        [
+          "/messaging/status",
+          "messaging_status"
+        ],
+        [
+          "/messaging/send",
+          "send_message"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nConsolidated Api Routes Routes\nConsolidated Api Routes functionality for the NOUS application"
+    },
+    "Auth Api": {
+      "file": "routes/auth_api.py",
+      "endpoints": [
+        [
+          "/login",
+          "login"
+        ],
+        [
+          "/refresh",
+          "refresh"
+        ],
+        [
+          "/logout",
+          "logout"
+        ],
+        [
+          "/check",
+          "check_auth"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nAuth Api Routes\nAuth Api functionality for the NOUS application"
+    },
+    "Financial": {
+      "file": "routes/financial_routes.py",
+      "endpoints": [
+        [
+          "/financial",
+          "financial_main"
+        ],
+        [
+          "/api/financial/accounts",
+          "financial_accounts"
+        ]
+      ],
+      "description": "\nFinancial management routes\n"
+    },
+    "Collaboration": {
+      "file": "routes/collaboration_routes.py",
+      "endpoints": [
+        [
+          "/",
+          "collaboration_dashboard"
+        ],
+        [
+          "/api/families",
+          "get_families"
+        ],
+        [
+          "/api/families",
+          "create_family"
+        ],
+        [
+          "/api/families/<family_id>/tasks",
+          "get_family_tasks"
+        ],
+        [
+          "/api/families/<family_id>/tasks",
+          "create_family_task"
+        ],
+        [
+          "/api/tasks/<task_id>/status",
+          "update_task_status"
+        ],
+        [
+          "/api/families/<family_id>/events",
+          "get_family_events"
+        ],
+        [
+          "/api/families/<family_id>/shopping-lists",
+          "get_shopping_lists"
+        ],
+        [
+          "/api/shopping-lists/<list_id>/items",
+          "add_shopping_item"
+        ],
+        [
+          "/api/shopping-items/<item_id>/toggle",
+          "toggle_shopping_item"
+        ],
+        [
+          "/families",
+          "collaboration_not_found"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nCollaboration Routes Routes\nCollaboration Routes functionality for the NOUS application"
+    },
+    "Onboarding": {
+      "file": "routes/onboarding_routes.py",
+      "endpoints": [
+        [
+          "/",
+          "onboarding_start"
+        ],
+        [
+          "/step/<int:step_index>",
+          "onboarding_step"
+        ],
+        [
+          "/api/step/<int:step_index>",
+          "save_onboarding_step"
+        ],
+        [
+          "/api/skip-step/<int:step_index>",
+          "skip_onboarding_step"
+        ],
+        [
+          "/api/progress",
+          "get_onboarding_progress"
+        ],
+        [
+          "/api/complete",
+          "complete_onboarding"
+        ],
+        [
+          "/api/restart",
+          "restart_onboarding"
+        ],
+        [
+          "/welcome",
+          "onboarding_checklist"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nOnboarding Routes Routes\nOnboarding Routes functionality for the NOUS application"
+    },
+    "Nous Tech Status": {
+      "file": "routes/nous_tech_status_routes.py",
+      "endpoints": [
+        [
+          "/status",
+          "mtmce_system_status"
+        ],
+        [
+          "/integration-map",
+          "integration_map"
+        ],
+        [
+          "/performance-dashboard",
+          "performance_dashboard"
+        ],
+        [
+          "/enhancement-report",
+          "enhancement_report"
+        ],
+        [
+          "/dashboard",
+          "mtmce_dashboard"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nNous Tech Status Routes Routes\nNous Tech Status Routes functionality for the NOUS application"
+    },
+    "Cbt": {
+      "file": "routes/cbt_routes.py",
+      "endpoints": [
+        [
+          "/cbt",
+          "cbt_main"
+        ],
+        [
+          "/api/cbt/exercises",
+          "cbt_exercises"
+        ]
+      ],
+      "description": "\nCBT (Cognitive Behavioral Therapy) routes\n"
+    },
+    "Aa Content": {
+      "file": "routes/aa_content.py",
+      "endpoints": [
+        [
+          "/",
+          "favorites"
+        ],
+        [
+          "/favorites/add",
+          "remove_favorite"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nAa Content Routes\nAa Content functionality for the NOUS application"
+    },
+    "Search": {
+      "file": "routes/search_routes.py",
+      "endpoints": [
+        [
+          "/api/search",
+          "search_api"
+        ]
+      ],
+      "description": "\nSearch functionality routes\n"
+    },
+    "Notification": {
+      "file": "routes/notification_routes.py",
+      "endpoints": [
+        [
+          "/api/notifications",
+          "notifications_list"
+        ]
+      ],
+      "description": "\nNotification system routes\n"
+    },
+    "Health Api": {
+      "file": "routes/health_api.py",
+      "endpoints": [
+        [
+          "/health",
+          "health_check"
+        ],
+        [
+          "/health/detailed",
+          "detailed_health"
+        ]
+      ],
+      "description": "\nHealth API routes for monitoring and diagnostics\n"
+    },
+    "Recovery": {
+      "file": "routes/recovery_routes.py",
+      "endpoints": [
+        [
+          "/recovery",
+          "recovery_main"
+        ],
+        [
+          "/api/recovery/resources",
+          "recovery_resources"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nRecovery and support routes"
+    },
+    "Setup": {
+      "file": "routes/setup_routes.py",
+      "endpoints": [
+        [
+          "/setup",
+          "setup_main"
+        ],
+        [
+          "/api/setup/progress",
+          "setup_progress"
+        ],
+        [
+          "/api/setup/complete",
+          "setup_complete"
+        ]
+      ],
+      "description": "\nfrom utils.auth_compat import get_demo_user\nSetup and onboarding routes\n"
+    },
+    "Nous Tech": {
+      "file": "routes/nous_tech_routes.py",
+      "endpoints": [
+        [
+          "/nous-tech",
+          "nous_tech_main"
+        ],
+        [
+          "/nous-tech/status",
+          "nous_tech_status"
+        ],
+        [
+          "/api/nous-tech/brain",
+          "nous_tech_brain"
+        ],
+        [
+          "/api/nous-tech/parallel",
+          "nous_tech_parallel"
+        ],
+        [
+          "/api/nous-tech/compress",
+          "nous_tech_compress"
+        ],
+        [
+          "/api/nous-tech/learn",
+          "nous_tech_learn"
+        ],
+        [
+          "/api/nous-tech/security",
+          "nous_tech_security"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nNOUS Tech advanced features routes"
+    },
+    "Index": {
+      "file": "routes/index.py",
+      "endpoints": [
+        [
+          "/",
+          "index"
+        ],
+        [
+          "/demo",
+          "demo"
+        ],
+        [
+          "/public",
+          "public"
+        ]
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nIndex Routes\nMain application landing page and public routes"
+    },
+    "Simple Auth Api": {
+      "file": "routes/simple_auth_api.py",
+      "endpoints": [
+        [
+          "/api/auth/login",
+          "api_login"
+        ],
+        [
+          "/api/auth/logout",
+          "api_logout"
+        ]
+      ],
+      "description": "\nSimple Authentication API\n"
+    },
+    "Main": {
+      "file": "routes/main.py",
+      "endpoints": [
+        [
+          "/",
+          "index"
+        ],
+        [
+          "/chat",
+          "chat"
+        ]
+      ],
+      "description": "\nMain application routes\n"
+    },
+    "Chat": {
+      "file": "routes/chat_routes.py",
+      "endpoints": [
+        [
+          "/chat",
+          "chat_page"
+        ],
+        [
+          "/api/chat",
+          "chat_api"
+        ]
+      ],
+      "description": "\nChat routes\n"
+    },
+    "Auth": {
+      "file": "routes/auth_routes.py",
+      "endpoints": [
+        [
+          "/login",
+          "login"
+        ],
+        [
+          "/google",
+          "google_login"
+        ],
+        [
+          "/google/callback",
+          "google_callback"
+        ],
+        [
+          "/logout",
+          "logout"
+        ],
+        [
+          "/demo-mode",
+          "demo_mode"
+        ],
+        [
+          "/status",
+          "auth_status"
+        ]
+      ],
+      "description": "\nAuthentication Routes - Google OAuth Implementation\nProvides secure Google login/logout functionality\n"
+    }
+  },
+  "models": {
+    "Ai": {
+      "file": "models/ai_models.py",
+      "classes": [
+        "UserAIUsage",
+        "AIServiceConfig",
+        "AIModelConfig",
+        "UserAIPreferences"
+      ],
+      "description": "\nAI Models\n\nThis module contains AI-related database models for tracking usage,\ncosts, and optimizing service selection.\n"
+    },
+    "Collaboration": {
+      "file": "models/collaboration_models.py",
+      "classes": [
+        "Family",
+        "FamilyMember",
+        "SharedTask",
+        "SharedEvent",
+        "SharedShoppingList",
+        "SharedShoppingItem",
+        "SupportGroup",
+        "SupportGroupMember"
+      ],
+      "description": "\nCollaboration Models\n\nThis module contains collaboration and family/team models for the NOUS application,\nsupporting shared features, family dashboards, and collaborative workspaces.\n"
+    },
+    "Financial": {
+      "file": "models/financial_models.py",
+      "classes": [
+        "BankAccount",
+        "Transaction",
+        "ExpenseCategory",
+        "Budget",
+        "BudgetCategory",
+        "Bill",
+        "Investment",
+        "FinancialGoal"
+      ],
+      "description": "\nFinancial Models\n\nThis module contains financial management models for the NOUS application,\nsupporting expense tracking, budgeting, and financial insights.\n"
+    },
+    "Product": {
+      "file": "models/product_models.py",
+      "classes": [
+        "ProductCategory",
+        "Product",
+        "PriceHistory",
+        "Wishlist",
+        "WishlistItem",
+        "PriceAlert",
+        "ProductReview",
+        "ShoppingSession",
+        "ShoppingSessionItem",
+        "DealAlert"
+      ],
+      "description": "\nProduct Models - E-commerce and Amazon Integration\nModels for product tracking, price monitoring, wishlists, and shopping management\n"
+    },
+    "Language Learning": {
+      "file": "models/language_learning_models.py",
+      "classes": [
+        "Language",
+        "LanguageLearningSession",
+        "LanguageProgress",
+        "Vocabulary",
+        "VocabularyProgress",
+        "LanguageGoal",
+        "LanguageAchievement",
+        "LanguageProfile",
+        "VocabularyItem",
+        "LearningSession",
+        "ConversationTemplate",
+        "ConversationPrompt"
+      ],
+      "description": "\nLanguage Learning Models\nModels for tracking language learning progress, sessions, and achievements\n"
+    },
+    "Setup": {
+      "file": "models/setup_models.py",
+      "classes": [
+        "SetupProgress",
+        "UserPreferences"
+      ],
+      "description": "\nSetup Wizard Models\n\nDatabase models for the initial user setup and onboarding process.\n"
+    },
+    "Aa Content": {
+      "file": "models/aa_content_models.py",
+      "classes": [
+        "AAContentCategory",
+        "AAContentItem",
+        "AAUserProgress",
+        "AAMilestone",
+        "AAMeeting",
+        "AAMeetingAttendance",
+        "AASponsorRelationship",
+        "AABigBook",
+        "AABigBookAudio",
+        "AASpeakerRecording"
+      ],
+      "description": "\nAA Content Management Models\nModels for managing AA (Alcoholics Anonymous) content, resources, and user progress\n"
+    },
+    "Analytics": {
+      "file": "models/analytics_models.py",
+      "classes": [
+        "UserActivity",
+        "UserMetrics",
+        "UserInsight",
+        "UserGoal",
+        "NotificationQueue",
+        "WorkflowAutomation",
+        "SearchIndex",
+        "Goal",
+        "Insight"
+      ],
+      "description": "\nAnalytics Models\n\nThis module contains analytics and insights models for the NOUS application,\nsupporting comprehensive user analytics, activity tracking, and AI-powered insights.\n"
+    },
+    "Beta": {
+      "file": "models/beta_models.py",
+      "classes": [
+        "BetaUser",
+        "BetaFeedback",
+        "FeatureFlag",
+        "SystemMetrics"
+      ],
+      "description": "\nBeta Testing System Models\nDatabase models for beta user management and feature flags\n"
+    },
+    "Health": {
+      "file": "models/health_models.py",
+      "classes": [
+        "DBTSkillRecommendation",
+        "DBTSkillLog",
+        "DBTCrisisResource",
+        "DBTSkillCategory",
+        "AAAchievement",
+        "DBTDiaryCard",
+        "DBTSkillChallenge",
+        "DBTEmotionTrack",
+        "AABigBook",
+        "AABigBookAudio",
+        "AASpeakerRecording",
+        "AAFavorite",
+        "CBTThoughtRecord",
+        "CBTCognitiveBias",
+        "CBTBehaviorExperiment",
+        "CBTActivitySchedule",
+        "CBTMoodLog",
+        "CBTCopingSkill",
+        "CBTSkillUsage",
+        "CBTGoal"
+      ],
+      "description": "\nHealth Models\n\nThis module contains health-related database models for the NOUS application,\nincluding DBT (Dialectical Behavior Therapy) and AA (Alcoholics Anonymous) models.\n"
+    },
+    "User": {
+      "file": "models/user.py",
+      "classes": [
+        "User"
+      ],
+      "description": "\nUser Models\n\nThis module defines user-related database models for the NOUS application,\nincluding user account data, preferences, and authentication.\n"
+    }
+  },
+  "services": {
+    "Language Learning": {
+      "file": "services/language_learning_service.py",
+      "functions": [
+        "__init__",
+        "get_user_language_profiles",
+        "get_language_profile_details",
+        "create_language_profile",
+        "get_vocabulary_for_review",
+        "get_all_vocabulary",
+        "add_vocabulary_item",
+        "update_vocabulary_after_review",
+        "start_learning_session",
+        "complete_learning_session",
+        "get_conversation_templates",
+        "get_template_with_prompts",
+        "translate_text",
+        "get_pronunciation_audio",
+        "generate_vocabulary_examples"
+      ],
+      "classes": [
+        "LanguageLearningService"
+      ],
+      "description": "\nLanguage Learning Service\n\nThis module provides services for language learning features including\nvocabulary management, learning sessions, translation, pronunciation,\nand conversation practice.\n"
+    },
+    "Enhanced Voice Interface": {
+      "file": "services/enhanced_voice_interface.py",
+      "functions": [
+        "__init__",
+        "_analyze_audio_emotion",
+        "_combine_emotion_analysis",
+        "_update_emotional_state",
+        "_build_context",
+        "_detect_intent",
+        "_determine_response_tone",
+        "_create_response",
+        "_store_conversation",
+        "get_emotional_insights"
+      ],
+      "classes": [
+        "EmotionAwareVoiceInterface"
+      ],
+      "description": "\nEnhanced Voice Interface with Emotion Recognition and Context Awareness\nLeverages existing voice interface + unified AI + emotion detection\nfor emotional state-aware responses and complete hands-free task management\n"
+    },
+    "Intelligent Automation": {
+      "file": "services/intelligent_automation.py",
+      "functions": [
+        "__init__",
+        "__init__",
+        "_create_automation_templates",
+        "create_rule",
+        "create_rule_from_template",
+        "_register_trigger",
+        "_evaluate_time_trigger",
+        "_evaluate_emotion_trigger",
+        "_evaluate_task_trigger",
+        "_evaluate_activity_trigger",
+        "_evaluate_prediction_trigger",
+        "_check_conditions",
+        "_evaluate_condition",
+        "_is_in_cooldown",
+        "_log_execution",
+        "get_user_rules",
+        "enable_rule",
+        "disable_rule",
+        "delete_rule",
+        "get_execution_history",
+        "get_available_templates"
+      ],
+      "classes": [
+        "TriggerType",
+        "ActionType",
+        "AutomationRule",
+        "IntelligentAutomationEngine"
+      ],
+      "description": "\nIntelligent Automation Workflows\nLeverages existing task management + notification system + plugin architecture\nto create if-this-then-that automation using existing features\n"
+    },
+    "Visual Intelligence": {
+      "file": "services/visual_intelligence.py",
+      "functions": [
+        "__init__",
+        "process_document_image",
+        "_enhance_image_for_ocr",
+        "_detect_document_type",
+        "_extract_structured_data",
+        "_extract_receipt_data",
+        "_extract_receipt_items",
+        "_extract_invoice_data",
+        "_extract_business_card_data",
+        "_extract_form_data",
+        "_ai_analyze_document",
+        "_calculate_confidence",
+        "__init__",
+        "create_tasks_from_image",
+        "_create_receipt_tasks",
+        "_create_invoice_tasks",
+        "_create_business_card_tasks",
+        "_create_general_tasks",
+        "__init__",
+        "analyze_image_collection",
+        "_analyze_single_image",
+        "_generate_image_insights",
+        "__init__",
+        "process_image_upload",
+        "_generate_processing_insights",
+        "get_processing_history",
+        "get_visual_analytics"
+      ],
+      "classes": [
+        "DocumentProcessor",
+        "VisualTaskCreator",
+        "ImageAnalytics",
+        "VisualIntelligenceService"
+      ],
+      "description": "\nVisual Intelligence Integration\nLeverages existing image processing routes + AI service + analytics\nfor document processing, receipt scanning, image analysis, and visual task creation\n"
+    },
+    "Context Aware Ai": {
+      "file": "services/context_aware_ai.py",
+      "functions": [
+        "__init__",
+        "add_interaction",
+        "_update_patterns",
+        "_classify_question",
+        "_extract_topics",
+        "get_relevant_context",
+        "__init__",
+        "update_from_interaction",
+        "get_response_style",
+        "__init__",
+        "init_database",
+        "get_user_context",
+        "get_user_personality",
+        "_load_user_context_from_db",
+        "_load_user_personality_from_db",
+        "_build_comprehensive_context",
+        "_summarize_conversation_history",
+        "_format_predictions",
+        "_store_interaction",
+        "_update_user_preferences",
+        "get_user_insights",
+        "reset_user_context",
+        "export_user_data"
+      ],
+      "classes": [
+        "ConversationContext",
+        "UserPersonality",
+        "ContextAwareAIAssistant"
+      ],
+      "description": "\nContext-Aware AI Assistant\nEnhances unified AI service with contextual memory across sessions\nfor natural, human-like interactions that remember user preferences\n"
+    },
+    "Predictive Analytics": {
+      "file": "services/predictive_analytics.py",
+      "functions": [
+        "__init__",
+        "init_analytics_service",
+        "init_database",
+        "analyze_user_patterns",
+        "_analyze_time_patterns",
+        "_analyze_feature_usage",
+        "_analyze_task_patterns",
+        "_detect_routines",
+        "_analyze_preferences",
+        "_store_patterns",
+        "generate_predictions",
+        "_predict_next_activity_time",
+        "_predict_next_feature",
+        "_predict_task_needs",
+        "_predict_routine_triggers",
+        "_store_predictions",
+        "get_active_predictions",
+        "record_prediction_feedback",
+        "get_prediction_accuracy"
+      ],
+      "classes": [
+        "PredictiveAnalyticsEngine"
+      ],
+      "description": "\nPredictive Analytics Engine\nLeverages existing analytics system + unified AI service + user behavior data\nto predict user needs and suggest actions before requested\n"
+    },
+    "Enhanced Voice": {
+      "file": "services/enhanced_voice.py",
+      "functions": [
+        "transcribe_voice",
+        "speak_text",
+        "process_voice_command",
+        "detect_emotion",
+        "__init__",
+        "_initialize_speech_recognition",
+        "_initialize_tts",
+        "transcribe_audio",
+        "text_to_speech",
+        "record_audio",
+        "__init__",
+        "detect_emotion_from_text",
+        "detect_emotion_from_audio",
+        "__init__",
+        "process_command",
+        "_extract_parameters",
+        "__init__",
+        "process_voice_input",
+        "generate_voice_response",
+        "_adjust_response_for_emotion",
+        "get_conversation_summary",
+        "__init__",
+        "__getattr__"
+      ],
+      "classes": [
+        "VoiceProcessor",
+        "EmotionDetector",
+        "VoiceCommandProcessor",
+        "EnhancedVoiceService",
+        "EnhancedVoice"
+      ],
+      "description": "\nEnhanced Voice Service - Advanced Voice Processing and Recognition\nHandles speech-to-text, text-to-speech, emotion detection, and voice commands\n"
+    },
+    "Memory": {
+      "file": "services/memory_service.py",
+      "functions": [
+        "get_memory_service",
+        "store_user_memory",
+        "retrieve_user_memories",
+        "store_user_memory",
+        "get_user_memories",
+        "search_user_memories",
+        "get_user_context",
+        "__init__",
+        "store_memory",
+        "retrieve_memories",
+        "search_memories",
+        "update_memory_importance",
+        "cleanup_expired_memories",
+        "get_user_memory_stats",
+        "__init__",
+        "initialize_memory_types",
+        "store_memory",
+        "retrieve_memories",
+        "search_memories",
+        "update_memory",
+        "delete_memory",
+        "create_memory_association",
+        "store_conversation_memory",
+        "get_user_preferences",
+        "update_user_preference",
+        "cleanup_expired_memories",
+        "get_memory_statistics"
+      ],
+      "classes": [
+        "MemoryType",
+        "UserMemory",
+        "MemoryService",
+        "MemoryAssociation",
+        "ConversationMemory",
+        "UserPreference",
+        "MemoryService"
+      ],
+      "description": "\nMemory Service - Comprehensive Memory Management System\nHandles user memory, context retention, learning patterns, and adaptive intelligence\n"
+    },
+    "Emotion Aware Therapeutic Assistant": {
+      "file": "services/emotion_aware_therapeutic_assistant.py",
+      "functions": [
+        "__init__",
+        "analyze_emotional_state",
+        "get_therapeutic_response",
+        "_analyze_context_factors",
+        "_get_user_therapeutic_profile",
+        "_select_therapeutic_approach",
+        "_get_contextual_skill_recommendations",
+        "_generate_adaptive_response",
+        "_create_therapeutic_prompt",
+        "_get_therapeutic_system_prompt",
+        "_format_skill_suggestions",
+        "_get_skill_description",
+        "_get_skill_quick_action",
+        "_get_immediate_actions",
+        "_generate_follow_up_suggestions",
+        "_log_therapeutic_interaction",
+        "_emotion_intensity_to_number",
+        "_generate_fallback_response",
+        "_generate_fallback_therapeutic_response",
+        "detect_emotion_from_text",
+        "transcribe_audio",
+        "chat_completion"
+      ],
+      "classes": [
+        "EmotionAwareTherapeuticAssistant",
+        "UnifiedAIService"
+      ],
+      "description": "\nEmotion-Aware Therapeutic Assistant\nIntegrates vocal/textual emotion understanding with DBT/CBT skills for adaptive therapeutic guidance\n"
+    },
+    "Setup": {
+      "file": "services/setup_service.py",
+      "functions": [
+        "__init__",
+        "get_or_create_setup_progress",
+        "get_or_create_user_preferences",
+        "update_setup_step",
+        "_save_step_data",
+        "get_setup_data",
+        "is_setup_completed",
+        "get_step_progress",
+        "_get_step_display_name"
+      ],
+      "classes": [
+        "SetupService"
+      ],
+      "description": "\nSetup Service\n\nBusiness logic for the user setup wizard and onboarding process.\n"
+    }
+  },
+  "utilities": {
+    "Scraper": {
+      "file": "utils/scraper.py",
+      "functions": [
+        "scrape_aa_reflection"
+      ],
+      "classes": [],
+      "description": "Scrape the AA Daily Reflection from the official website"
+    },
+    "Logger": {
+      "file": "utils/logger.py",
+      "functions": [
+        "ensure_directory",
+        "log_workout",
+        "log_mood",
+        "get_workout_entries",
+        "get_mood_entries"
+      ],
+      "classes": [],
+      "description": "Ensure a directory exists"
+    },
+    "Adaptive Conversation": {
+      "file": "utils/adaptive_conversation.py",
+      "functions": [
+        "set_difficulty",
+        "get_current_difficulty",
+        "get_difficulty_context",
+        "adapt_response",
+        "_simplify_sentences",
+        "_add_term_explanations"
+      ],
+      "classes": [],
+      "description": "from utils.auth_compat import get_demo_user\nAdaptive conversation module for adjusting response complexity based on user preferences.\nThis module helps customize AI responses to match the user's preferred difficulty level."
+    },
+    "Character Customization": {
+      "file": "utils/character_customization.py",
+      "functions": [
+        "get_character_settings",
+        "get_character_system_prompt",
+        "apply_character_style",
+        "has_emoji"
+      ],
+      "classes": [],
+      "description": "from utils.auth_compat import get_demo_user\nCharacter customization module for personalizing the AI assistant.\nThis module helps create a more engaging and personalized AI character\nbased on user preferences."
+    },
+    "Voice Interaction": {
+      "file": "utils/voice_interaction.py",
+      "functions": [
+        "transcribe_audio",
+        "text_to_speech",
+        "process_voice_command",
+        "process_user_message",
+        "analyze_voice_audio",
+        "get_character_settings"
+      ],
+      "classes": [],
+      "description": "\nVoice interaction module for processing speech input and providing voice responses.\nThis module handles speech recognition, speech synthesis, and voice emotion detection.\n"
+    },
+    "Knowledge Download": {
+      "file": "utils/knowledge_download.py",
+      "functions": [
+        "_load_static_json",
+        "_store_knowledge_entries",
+        "_download_basic_facts",
+        "_download_health_information",
+        "_download_aa_principles",
+        "_download_mindfulness_exercises",
+        "_download_dbt_skills",
+        "_download_grounding_exercises",
+        "download_and_store_knowledge",
+        "_add_from_json_file",
+        "_download_basic_facts",
+        "_download_health_information",
+        "_download_common_procedures",
+        "_download_medication_info",
+        "_download_emergency_protocols",
+        "_download_weather_patterns",
+        "_download_travel_guidelines",
+        "_download_shopping_tips",
+        "download_all_knowledge",
+        "search_knowledge_by_category"
+      ],
+      "classes": [],
+      "description": "\nKnowledge download utility to pre-fetch and store frequently accessed information.\nThis reduces API calls and improves response time for common queries.\n"
+    },
+    "Setup Wizard": {
+      "file": "utils/setup_wizard.py",
+      "functions": [
+        "get_assistant_profile",
+        "create_default_assistant_profile",
+        "customize_assistant",
+        "initialize_user_settings",
+        "delete_customization",
+        "get_personality_options",
+        "get_setup_progress",
+        "update_setup_progress"
+      ],
+      "classes": [],
+      "description": "\nSetup wizard module for NOUS assistant\nHandles customization and personalization of the assistant\n"
+    },
+    "Spotify Visualizer": {
+      "file": "utils/spotify_visualizer.py",
+      "functions": [
+        "generate_top_artists_chart",
+        "generate_top_tracks_chart",
+        "generate_genre_chart",
+        "generate_listening_history_chart",
+        "generate_audio_features_radar_chart",
+        "generate_playlist_mood_analysis",
+        "generate_spotify_listening_report",
+        "generate_audio_feature_comparison",
+        "io_to_base64"
+      ],
+      "classes": [],
+      "description": "Generate a horizontal bar chart of the user's top artists\n\n    Args:\n        spotify: Authenticated Spotify client\n        time_range: 'short_term', 'medium_term', or 'long_term'\n        limit: Number of artists to include\n\n    Returns:\n        base64 encoded PNG image"
+    },
+    "Api Key Manager": {
+      "file": "utils/api_key_manager.py",
+      "functions": [
+        "generate_api_key",
+        "hash_api_key",
+        "validate_api_key",
+        "check_api_key_scope",
+        "create_api_key",
+        "revoke_api_key",
+        "rotate_api_key",
+        "check_rate_limits",
+        "init_api_key_cleanup",
+        "api_key_required",
+        "get_request_info",
+        "cleanup_worker",
+        "decorated"
+      ],
+      "classes": [
+        "APIKeyError",
+        "APIKeyInvalidError",
+        "APIKeyExpiredError",
+        "APIKeyScopeError",
+        "APIKeyRotationError",
+        "APIKeyRateLimitError"
+      ],
+      "description": "\nAPI Key Management Module\n\nThis module provides utilities for API key generation, validation, rotation,\nand lifecycle management to enhance security through regular key rotation.\n\n@module: api_key_manager\n@author: NOUS Development Team\n"
+    },
+    "Template Filters": {
+      "file": "utils/template_filters.py",
+      "functions": [
+        "register_template_filters",
+        "format_date",
+        "format_datetime",
+        "time_ago",
+        "truncate_text",
+        "truncate_words",
+        "markdown_filter"
+      ],
+      "classes": [],
+      "description": "\nTemplate Filters Module\n\nThis module provides custom template filters for the application templates.\n\n@module utils.template_filters\n@description Custom template filters for Jinja templates\n"
+    },
+    "Spotify Health Integration": {
+      "file": "utils/spotify_health_integration.py",
+      "functions": [
+        "get_spotify_health",
+        "__init__",
+        "get_pain_management_playlist",
+        "get_mood_improvement_tracks",
+        "get_sleep_playlist"
+      ],
+      "classes": [
+        "SpotifyHealthIntegration"
+      ],
+      "description": "\nSpotify Health Integration\n\nThis module integrates Spotify music services with health-related features.\nIt provides functionality for mood-based music recommendations, pain management\nthrough music, and personalized playlists for health activities.\n\n@module utils.spotify_health_integration\n@description Health-related Spotify features and integrations\n"
+    },
+    "Two Factor Auth": {
+      "file": "utils/two_factor_auth.py",
+      "functions": [
+        "generate_totp_secret",
+        "get_totp_uri",
+        "generate_qr_code",
+        "generate_backup_codes",
+        "setup_2fa_session",
+        "confirm_2fa_setup",
+        "verify_totp",
+        "verify_backup_code"
+      ],
+      "classes": [
+        "TOTPVerificationError"
+      ],
+      "description": "\nTwo-Factor Authentication Utilities\n\nThis module provides functions for setting up and verifying two-factor authentication.\nIt uses the Time-based One-Time Password (TOTP) algorithm.\n\n@module utils.two_factor_auth\n@description Two-factor authentication utilities\n"
+    },
+    "Settings": {
+      "file": "utils/settings.py",
+      "functions": [
+        "get_setting",
+        "get_all_settings",
+        "set_setting",
+        "_convert_value_type"
+      ],
+      "classes": [],
+      "description": "\nSettings Utility\n\nThis module provides functions for retrieving and managing application settings.\nIt handles retrieving settings from the database with fallback to defaults.\n\n@module utils.settings\n@description System settings utility functions\n"
+    },
+    "Spotify Client": {
+      "file": "utils/spotify_client.py",
+      "functions": [
+        "__init__",
+        "is_authenticated",
+        "set_access_token",
+        "get_authorize_url",
+        "exchange_code",
+        "_make_api_request",
+        "get_demo_user",
+        "get_demo_user",
+        "get_demo_user",
+        "get_demo_user",
+        "get_demo_user",
+        "get_demo_user",
+        "get_demo_user",
+        "get_demo_user",
+        "search",
+        "search_tracks",
+        "search_artists",
+        "search_albums",
+        "search_playlists",
+        "user_playlist_create",
+        "user_playlist_add_tracks",
+        "playlist_add_items",
+        "track",
+        "audio_features",
+        "artist",
+        "artist_top_tracks",
+        "artist_related_artists",
+        "get_available_genre_seeds",
+        "get_recommendations",
+        "current_playback",
+        "devices",
+        "start_playback",
+        "pause_playback",
+        "next_track",
+        "previous_track",
+        "volume",
+        "shuffle",
+        "repeat",
+        "categories",
+        "category_playlists",
+        "featured_playlists",
+        "new_releases",
+        "recommendations"
+      ],
+      "classes": [
+        "SpotifyClient"
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nSpotify Client\n\nThis module provides a custom Spotify API client implementation.\nIt handles authentication and provides methods for interacting with the Spotify API.\n\n@module utils.spotify_client\n@description Custom Spotify API client implementation"
+    },
+    "Price Tracking": {
+      "file": "utils/price_tracking.py",
+      "functions": [
+        "track_product",
+        "get_user_tracked_products",
+        "update_product_price",
+        "get_price_history",
+        "create_price_alert",
+        "check_price_alerts",
+        "get_highest_price_since_last_alert",
+        "scrape_product_details",
+        "scrape_product_price",
+        "extract_source_from_url",
+        "scrape_amazon_product",
+        "scrape_amazon_price",
+        "scrape_walmart_product",
+        "scrape_walmart_price",
+        "scrape_generic_product",
+        "scrape_generic_price",
+        "extract_price",
+        "is_likely_deal",
+        "analyze_best_time_to_buy",
+        "find_seasonal_deals"
+      ],
+      "classes": [],
+      "description": "\nPrice tracking and management utilities\nSupports product price history tracking, price comparison, and alerts\n"
+    },
+    "Voice Interface": {
+      "file": "utils/voice_interface.py",
+      "functions": [
+        "get_voice_interface",
+        "__init__",
+        "transcribe_audio",
+        "generate_speech"
+      ],
+      "classes": [
+        "VoiceInterface"
+      ],
+      "description": "\nVoice Interface Module\n\nThis module provides the core functionality for the voice interface of NOUS.\nIt integrates local speech-to-text (Whisper.cpp) and text-to-speech (Piper) capabilities\nwithout requiring external API calls.\n\nThe module handles:\n1. Audio processing from browser/frontend\n2. Transcription of speech using Whisper.cpp\n3. Text-to-speech generation using Piper\n4. Audio format conversion and processing\n"
+    },
+    "Performance Middleware": {
+      "file": "utils/performance_middleware.py",
+      "functions": [
+        "setup_performance_middleware",
+        "should_compress",
+        "compress_response",
+        "add_cache_headers",
+        "start_timer",
+        "optimize_response"
+      ],
+      "classes": [],
+      "description": "\nPerformance Middleware\n\nThis module provides middleware for optimizing request processing and response time.\nIt includes request timing, response compression, and caching headers.\n\n@module utils.performance_middleware\n@description Performance optimization middleware\n"
+    },
+    "Voice Optimizer": {
+      "file": "utils/voice_optimizer.py",
+      "functions": [
+        "get_voice_optimizer",
+        "__init__",
+        "optimize_audio_for_api",
+        "_get_audio_info",
+        "_detect_speech",
+        "_get_pcm_samples",
+        "_get_optimal_sample_rate",
+        "_resample_audio",
+        "_compress_audio",
+        "_trim_silence",
+        "add_to_batch",
+        "process_batch"
+      ],
+      "classes": [
+        "VoiceOptimizer"
+      ],
+      "description": "\nVoice Optimization Module\n\nThis module provides optimizations for the voice interface to reduce costs\nwhile maintaining high quality. It implements:\n\n1. Audio compression before sending to cloud APIs\n2. Adaptive sampling rate based on speech detection\n3. Batch processing for non-real-time transcriptions\n4. Local voice processing when available\n5. Voice activity detection to avoid processing silence\n\n@module utils.voice_optimizer\n@description Voice processing optimizations for reduced API costs\n"
+    },
+    "Settings Cache": {
+      "file": "utils/settings_cache.py",
+      "functions": [
+        "get_system_setting",
+        "set_system_setting",
+        "clear_settings_cache",
+        "_get_from_cache",
+        "_add_to_cache",
+        "initialize_settings_cache",
+        "_ensure_default_settings_exist",
+        "_ensure_setting_exists"
+      ],
+      "classes": [],
+      "description": "\nSettings Cache Utility\n\nThis module provides caching functionality for system settings to reduce database load.\nIt caches frequently accessed system settings in memory for better performance.\n\n@module utils.settings_cache\n@description Cache utility for system settings\n"
+    },
+    "Create Default User": {
+      "file": "utils/create_default_user.py",
+      "functions": [
+        "create_default_admin"
+      ],
+      "classes": [],
+      "description": "\nDefault User Creator\n\nThis module creates a default admin user for the application\nwhen no users exist in the database.\n\n@module create_default_user\n@description Create default admin user for initial login\n"
+    },
+    "Two Factor": {
+      "file": "utils/two_factor.py",
+      "functions": [
+        "generate_totp_secret",
+        "create_totp_uri",
+        "generate_qr_code",
+        "verify_totp",
+        "generate_backup_codes",
+        "verify_backup_code",
+        "setup_2fa_session",
+        "clear_2fa_session",
+        "is_2fa_session_valid",
+        "is_trusted_device",
+        "add_trusted_device"
+      ],
+      "classes": [],
+      "description": "\nTwo-Factor Authentication Module\n\nThis module provides utilities for implementing two-factor authentication\nusing the TOTP (Time-based One-Time Password) standard.\n\n@module two_factor\n@description Two-factor authentication utilities\n"
+    },
+    "Deployment Logger": {
+      "file": "utils/deployment_logger.py",
+      "functions": [
+        "configure_deployment_logging",
+        "log_deployment_event",
+        "log_exception"
+      ],
+      "classes": [],
+      "description": "\nDeployment Logging Module\n\nThis module configures enhanced logging for deployment environments\nto ensure better visibility into application issues.\n"
+    },
+    "Memory Initializer": {
+      "file": "utils/memory_initializer.py",
+      "functions": [
+        "initialize_memory_system",
+        "initialize_memory_for_users"
+      ],
+      "classes": [],
+      "description": "\nMemory System Initializer\n\nThis module handles the initialization of the memory system during application startup,\nensuring that the database connection is properly set up for the memory service and\nthat any required initial data is loaded.\n\n@module utils.memory_initializer\n@description Memory system initialization\n"
+    },
+    "Enhanced Memory": {
+      "file": "utils/enhanced_memory.py",
+      "functions": [
+        "init_db",
+        "get_user_memory",
+        "__init__",
+        "_load_from_db",
+        "add_message",
+        "_analyze_message_for_entities_and_topics",
+        "_update_topic_interest",
+        "_update_entity_memory",
+        "get_recent_messages",
+        "get_topic_summary",
+        "get_entity_summary",
+        "get_memory_context"
+      ],
+      "classes": [
+        "UserMemory"
+      ],
+      "description": "\nEnhanced conversation memory management with personalization features.\nThis module provides improved memory persistence and recall capabilities.\n"
+    },
+    "Command Parser": {
+      "file": "utils/command_parser.py",
+      "functions": [
+        "parse_command"
+      ],
+      "classes": [],
+      "description": "Parse and execute user commands, with natural language support"
+    },
+    "Smart Shopping": {
+      "file": "utils/smart_shopping.py",
+      "functions": [
+        "generate_smart_shopping_list",
+        "save_smart_shopping_list",
+        "generate_medication_shopping_list",
+        "analyze_shopping_patterns",
+        "suggest_list_improvements"
+      ],
+      "classes": [],
+      "description": "\nSmart shopping list generation and management\nUses AI to generate and organize shopping lists based on user's needs\n"
+    },
+    "Route Standards": {
+      "file": "utils/route_standards.py",
+      "functions": [
+        "register_blueprint",
+        "verify_routes",
+        "validate_url_pattern",
+        "get_standardized_blueprint_name",
+        "standardize_url_prefix",
+        "__init__",
+        "register",
+        "verify_all_routes"
+      ],
+      "classes": [
+        "RouteValidator",
+        "BlueprintRegistry"
+      ],
+      "description": "\nRoute Standards Utility\n\nThis module provides standards and validation for route definitions.\nIt ensures consistent URL patterns and blueprint conventions across the application.\n"
+    },
+    "Url Utils": {
+      "file": "utils/url_utils.py",
+      "functions": [
+        "get_absolute_url",
+        "normalize_path",
+        "validate_url_path",
+        "append_query_params",
+        "get_absolute_url",
+        "normalize_path",
+        "validate_url_path",
+        "append_query_params",
+        "is_valid_blueprint_url_prefix"
+      ],
+      "classes": [
+        "URLStandardizer"
+      ],
+      "description": "\nURL Utilities\n\nThis module provides utilities for standardized URL handling in the application.\nIt ensures consistent URL generation and validation across features.\n"
+    },
+    "Route Validator": {
+      "file": "utils/route_validator.py",
+      "functions": [
+        "init_app",
+        "analyze_routes",
+        "__init__",
+        "init_app",
+        "_register_validation_middleware",
+        "_determine_route_type",
+        "_validate_api_route",
+        "_validate_web_route",
+        "_validate_auth_route",
+        "analyze_routes",
+        "validate_request_route"
+      ],
+      "classes": [
+        "RouteValidator"
+      ],
+      "description": "\nRoute Validator Module\n\nThis module provides validation and standardization for application routes.\nIt ensures proper URL formatting, path validation, and consistent naming conventions.\n"
+    },
+    "Route Diagnostics": {
+      "file": "utils/route_diagnostics.py",
+      "functions": [
+        "analyze_routes",
+        "__init__",
+        "analyze_routes",
+        "generate_report",
+        "check_url_compliance",
+        "check_endpoint_compliance",
+        "_get_all_routes",
+        "_determine_url_type",
+        "_categorize_routes",
+        "_check_compliance",
+        "_analyze_blueprints",
+        "_extract_blueprint_prefix",
+        "_get_route_details",
+        "_format_text_report"
+      ],
+      "classes": [
+        "RouteDiagnostics"
+      ],
+      "description": "\nRoute Diagnostics Tool\n\nThis module provides tools to diagnose and report on route standardization\nand compliance across the application.\n"
+    },
+    "Service Health Checker": {
+      "file": "utils/service_health_checker.py",
+      "functions": [
+        "__init__",
+        "check_google_oauth",
+        "check_openai_api",
+        "check_openrouter_api",
+        "check_huggingface_api",
+        "check_database_connection",
+        "run_full_health_check"
+      ],
+      "classes": [
+        "ServiceHealthChecker"
+      ],
+      "description": "\nService Health Checker\n\nThis module provides health check functionality for all external service integrations\nto verify authentication status and service availability.\n\n@module utils.service_health_checker\n@description Comprehensive health checking for external API integrations\n"
+    },
+    "Multilingual Voice": {
+      "file": "utils/multilingual_voice.py",
+      "functions": [
+        "generate_speech",
+        "transcribe_speech",
+        "get_pronunciation_feedback",
+        "get_available_languages"
+      ],
+      "classes": [],
+      "description": "\nMultilingual Voice Interface Utilities\n\nThis module provides text-to-speech and speech-to-text functions for multiple languages,\noptimized for language learning applications.\n"
+    },
+    "Voice Mindfulness": {
+      "file": "utils/voice_mindfulness.py",
+      "functions": [
+        "get_exercise_by_name",
+        "get_random_exercise",
+        "get_exercise_by_duration",
+        "generate_personalized_exercise",
+        "log_exercise_completion",
+        "prepare_exercise_for_tts"
+      ],
+      "classes": [],
+      "description": "\nMindfulness Voice Assistant Utilities\n\nThis module contains the core logic for the voice-guided mindfulness feature.\nIt manages a library of pre-defined exercises, generates personalized sessions\nusing AI, and handles logging user progress.\n\n@ai_prompt: This is the primary logic module for the mindfulness feature.\nTo add new exercises, modify the `MINDFULNESS_EXERCISES` list. To change\nthe AI generation prompt, see `generate_personalized_exercise`.\n\n@context_boundary: This module uses `utils.ai_service_manager` to interact\nwith AI models for personalized content. It is called by the routes in\n`routes.voice_mindfulness_routes`. It also interacts with the `MindfulnessLog`\nmodel in the database.\n"
+    },
+    "Spotify Ai Integration": {
+      "file": "utils/spotify_ai_integration.py",
+      "functions": [
+        "__init__",
+        "authenticate",
+        "is_authenticated",
+        "recommend_music_by_mood",
+        "_apply_diversity",
+        "_get_user_top_genres",
+        "get_playlist_for_activity",
+        "analyze_user_listening_history",
+        "_calculate_average_features",
+        "_analyze_listening_patterns",
+        "_analyze_mood_distribution",
+        "_get_recent_discoveries",
+        "_get_similar_artists",
+        "_suggest_new_genres",
+        "_extract_top_genres",
+        "generate_smart_playlist",
+        "compare_music_taste",
+        "get_concert_recommendations",
+        "classify_track_mood",
+        "get_spotify_ai"
+      ],
+      "classes": [
+        "SpotifyAIIntegration"
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nSpotify AI Integration\n\nThis module provides integration between AI features and Spotify music services.\nIt allows for intelligent music recommendations and playlist generation based on user preferences.\n\n@module utils.spotify_ai_integration\n@description AI-powered Spotify recommendation and assistant features"
+    },
+    "Health Monitor": {
+      "file": "utils/health_monitor.py",
+      "functions": [
+        "__init__",
+        "init_app",
+        "health_check",
+        "health_detailed"
+      ],
+      "classes": [
+        "HealthMonitor"
+      ],
+      "description": "\nHealth Monitor Module\nProvides system health monitoring and status endpoints\n"
+    },
+    "Messaging Status": {
+      "file": "utils/messaging_status.py",
+      "functions": [
+        "check_messaging_capability",
+        "get_available_messaging_methods",
+        "get_sms_error_response",
+        "handle_text_message_request",
+        "handle_sms_request",
+        "validate_notification_method",
+        "get_alternative_notification_methods",
+        "log_sms_attempt"
+      ],
+      "classes": [],
+      "description": "\nMessaging Status and Capability Handler\nDocuments what messaging features are and are not available\n"
+    },
+    "Aa Content Loader": {
+      "file": "utils/aa_content_loader.py",
+      "functions": [
+        "get_aa_content_loader",
+        "load_aa_content",
+        "__init__",
+        "load_big_book_text",
+        "load_big_book_audio",
+        "load_speaker_recordings",
+        "_download_file",
+        "_get_big_book_structure",
+        "_get_big_book_audio_files",
+        "_get_speaker_recordings",
+        "load_all_content"
+      ],
+      "classes": [
+        "AAContentLoader"
+      ],
+      "description": "\nAlcoholics Anonymous Content Loader\n\nThis module provides utilities for loading AA content into the database,\nincluding the Big Book text, audio versions, and speaker recordings.\nThe content is loaded from public domain sources and stored locally\nto reduce API costs and provide reliable access.\n"
+    },
+    "Chat Memory Integration": {
+      "file": "utils/chat_memory_integration.py",
+      "functions": [
+        "get_chat_memory_integration",
+        "__init__",
+        "process_user_message",
+        "process_voice_input",
+        "_get_memory_context"
+      ],
+      "classes": [
+        "ChatMemoryIntegration"
+      ],
+      "description": "\nChat Memory Integration Module\n\nThis module integrates the memory service with the chat processing system,\nensuring all user interactions via text and voice are stored, accumulated,\nand referenced during future conversations.\n\n@module utils.chat_memory_integration\n@description Integration between chat processing and memory systems\n"
+    },
+    "Chat Processor": {
+      "file": "utils/chat_processor.py",
+      "functions": [
+        "get_chat_processor",
+        "__init__",
+        "process_message",
+        "_get_user_context",
+        "_process_actions",
+        "_process_spotify_action",
+        "_process_google_docs_action",
+        "_process_gmail_action",
+        "_process_calendar_action",
+        "_process_sheets_action",
+        "_update_context"
+      ],
+      "classes": [
+        "ChatProcessor"
+      ],
+      "description": "\nChat Processor Module\n\nThis module processes user chat messages and handles integration with various services,\nincluding Spotify music services.\n\n@module utils.chat_processor\n@description Process chat messages and handle service integrations\n"
+    },
+    "Error Handler": {
+      "file": "utils/error_handler.py",
+      "functions": [
+        "register_error_handlers",
+        "bad_request",
+        "unauthorized",
+        "forbidden",
+        "not_found",
+        "internal_server_error",
+        "handle_exception"
+      ],
+      "classes": [],
+      "description": "\nError Handler Module\n\nThis module provides error handling functionality for the application.\n\n@module utils.error_handler\n@description Error handling and custom error pages\n"
+    },
+    "Error Handlers": {
+      "file": "utils/error_handlers.py",
+      "functions": [
+        "register_error_handlers",
+        "page_not_found",
+        "server_error",
+        "handle_exception"
+      ],
+      "classes": [],
+      "description": "\nError Handlers Module\n\nThis module contains error handlers for the NOUS application.\n"
+    },
+    "Analytics Service": {
+      "file": "utils/analytics_service.py",
+      "functions": [
+        "__init__",
+        "track_activity",
+        "get_user_analytics_dashboard",
+        "_get_activity_summary",
+        "_get_productivity_metrics",
+        "_get_health_metrics",
+        "_get_engagement_metrics",
+        "_get_trends",
+        "_get_recent_insights",
+        "_get_goals_progress",
+        "_calculate_trend",
+        "_calculate_wellness_score",
+        "_update_daily_metrics",
+        "generate_ai_insight"
+      ],
+      "classes": [
+        "AnalyticsService"
+      ],
+      "description": "\nAnalytics Service\n\nThis module provides analytics and insights functionality for the NOUS application,\nsupporting user activity tracking, metrics generation, and AI-powered insights.\n"
+    },
+    "Search Service": {
+      "file": "utils/search_service.py",
+      "functions": [
+        "__init__",
+        "search_all_content",
+        "search_by_type",
+        "get_search_suggestions",
+        "index_content",
+        "remove_from_index",
+        "get_popular_tags",
+        "get_content_type_summary",
+        "_prepare_search_terms",
+        "_group_results_by_type",
+        "_get_content_type_counts",
+        "_create_search_vector"
+      ],
+      "classes": [
+        "SearchService"
+      ],
+      "description": "\nSearch Service\n\nThis module provides global search functionality across all user content in the NOUS application.\nSupports semantic search, filtering, and indexing of user data.\n"
+    },
+    "Notification Service": {
+      "file": "utils/notification_service.py",
+      "functions": [
+        "__init__",
+        "create_notification",
+        "get_user_notifications",
+        "mark_as_read",
+        "mark_all_as_read",
+        "dismiss_notification",
+        "create_reminder_notification",
+        "create_achievement_notification",
+        "create_system_notification",
+        "create_health_reminder",
+        "create_goal_progress_notification",
+        "get_notification_summary",
+        "cleanup_expired_notifications",
+        "_group_by_priority",
+        "bulk_create_notifications"
+      ],
+      "classes": [
+        "NotificationService"
+      ],
+      "description": "\nNotification Service\n\nThis module provides notification management functionality for the NOUS application,\nsupporting user notifications, alerts, reminders, and notification center features.\n"
+    },
+    "Cost Optimized Ai": {
+      "file": "utils/cost_optimized_ai.py",
+      "functions": [
+        "get_cost_optimized_ai",
+        "generate_ai_response",
+        "generate_speech",
+        "transcribe_audio",
+        "__init__",
+        "chat_completion",
+        "_openrouter_chat",
+        "_local_chat_fallback",
+        "text_to_speech",
+        "speech_to_text",
+        "get_cost_summary"
+      ],
+      "classes": [
+        "TaskComplexity",
+        "CostOptimizedAI"
+      ],
+      "description": "\nCost-Optimized AI Provider Module - Redirects to Unified AI Service\n\nThis module now redirects to the unified AI service for optimization.\nAll original functions are preserved and work exactly the same.\n\n@module utils.cost_optimized_ai\n@description Unified cost-optimized AI provider interface\n"
+    },
+    "Unified Database Optimization": {
+      "file": "utils/unified_database_optimization.py",
+      "functions": [
+        "get_unified_db_optimizer",
+        "optimize_query",
+        "get_db_stats",
+        "clear_db_stats",
+        "generate_db_report",
+        "setup_performance_monitoring",
+        "__init__",
+        "init_app",
+        "_setup_query_monitoring",
+        "monitor_query",
+        "get_performance_stats",
+        "optimize_query",
+        "get_db_stats",
+        "clear_stats",
+        "get_query_report",
+        "_generate_recommendations",
+        "__init__",
+        "init_app",
+        "monitor_query",
+        "get_performance_stats",
+        "decorator",
+        "start_db_timer",
+        "log_db_performance",
+        "wrapper"
+      ],
+      "classes": [
+        "UnifiedDatabaseOptimizer",
+        "DatabaseOptimizer"
+      ],
+      "description": "\nUnified Database Optimization - Zero Functionality Loss Consolidation\n\nThis module consolidates database optimization utilities while maintaining 100% backward compatibility.\nCombines: database_optimizer.py, db_optimizations.py, performance_middleware.py (database parts)\n\nAll original function signatures and behavior are preserved.\n"
+    },
+    "Database Optimizer": {
+      "file": "utils/database_optimizer.py",
+      "functions": [
+        "__init__",
+        "init_app",
+        "monitor_query",
+        "get_performance_stats"
+      ],
+      "classes": [
+        "DatabaseOptimizer"
+      ],
+      "description": "\nDatabase Optimizer Module - Redirects to Unified Database Optimization\n\nThis module redirects to the unified database optimization service for zero functionality loss.\nAll original functions are preserved and work exactly the same.\n"
+    },
+    "Db Optimizations": {
+      "file": "utils/db_optimizations.py",
+      "functions": [
+        "optimize_query",
+        "get_db_stats",
+        "clear_db_stats",
+        "before_cursor_execute",
+        "after_cursor_execute",
+        "get_or_create",
+        "paginate_query",
+        "bulk_create",
+        "bulk_update",
+        "setup_db_optimizations",
+        "decorator",
+        "setup_db_context",
+        "log_db_stats",
+        "reset_db_stats",
+        "wrapper",
+        "view_db_stats",
+        "clear_db_stats_route"
+      ],
+      "classes": [],
+      "description": "\nDatabase Optimization Utilities - Redirects to Unified Database Optimization\n\nThis module redirects to the unified database optimization service for zero functionality loss.\nAll original functions are preserved and work exactly the same.\n"
+    },
+    "Unified Service": {
+      "file": "utils/unified_helper_service.py",
+      "functions": [
+        "get_user_preferences",
+        "update_user_preferences",
+        "get_cached_data",
+        "set_cached_data",
+        "validate_session",
+        "calculate_budget_status",
+        "get_weather_data",
+        "schedule_appointment",
+        "__init__",
+        "get_user_preferences",
+        "update_user_preferences",
+        "get_cached_data",
+        "set_cached_data",
+        "clear_cache",
+        "validate_session",
+        "generate_session_token",
+        "refresh_session",
+        "calculate_budget_status",
+        "add_expense",
+        "validate_form_data",
+        "sanitize_input",
+        "standardize_api_response",
+        "handle_api_error",
+        "paginate_results",
+        "get_weather_data",
+        "get_weather_recommendations",
+        "schedule_appointment",
+        "get_upcoming_appointments",
+        "cancel_appointment"
+      ],
+      "classes": [
+        "UnifiedHelperService"
+      ],
+      "description": "\nUnified Helper Service - Zero Functionality Loss Optimization\nConsolidates multiple helper utilities while maintaining all original functionality\n"
+    },
+    "Unified Security Services": {
+      "file": "utils/unified_security_services.py",
+      "functions": [
+        "generate_csrf_token",
+        "validate_csrf_token",
+        "require_csrf_token",
+        "log_security_event",
+        "is_password_strong",
+        "csrf_protect",
+        "admin_required",
+        "sanitize_input",
+        "set_admin_status",
+        "track_login_attempt",
+        "lock_account",
+        "is_account_locked",
+        "unlock_account",
+        "throttle_ip",
+        "apply_security_headers",
+        "__init__",
+        "generate_csrf_token",
+        "validate_csrf_token",
+        "require_csrf_token",
+        "log_security_event",
+        "is_password_strong",
+        "csrf_protect",
+        "admin_required",
+        "sanitize_input",
+        "set_admin_status",
+        "track_login_attempt",
+        "lock_account",
+        "is_account_locked",
+        "unlock_account",
+        "throttle_ip",
+        "is_ip_throttled",
+        "apply_security_headers",
+        "security_middleware",
+        "_check_rate_limit",
+        "get_client_ip",
+        "get_security_events",
+        "get_security_summary",
+        "decorated_function",
+        "decorated_function",
+        "before_request_security",
+        "after_request_security"
+      ],
+      "classes": [
+        "UnifiedSecurityServices"
+      ],
+      "description": "\nUnified Security Services - Zero Functionality Loss Consolidation\n\nThis module consolidates all security-related services while maintaining 100% backward compatibility.\nCombines: security.py, security_helper.py, security_headers.py, security_middleware.py, login_security.py\n\nAll original function signatures and behavior are preserved.\n"
+    },
+    "Import Optimizer": {
+      "file": "utils/import_optimizer.py",
+      "functions": [
+        "lazy_import_decorator",
+        "optimize_imports",
+        "__init__",
+        "__getattr__",
+        "decorator",
+        "wrapper"
+      ],
+      "classes": [
+        "LazyImport"
+      ],
+      "description": "\nImport Optimizer - Lazy Loading and Performance Enhancement\nReduces startup time by implementing lazy imports for heavy modules\n"
+    },
+    "Adaptive Ai System": {
+      "file": "utils/adaptive_ai_system.py",
+      "functions": [
+        "get_adaptive_ai",
+        "process_adaptive_request",
+        "provide_user_feedback",
+        "get_ai_insights",
+        "__init__",
+        "get_system_metrics",
+        "calculate_optimal_resources",
+        "__init__",
+        "store_experience",
+        "sample_experiences",
+        "_prioritized_sample",
+        "__init__",
+        "select_agent_for_task",
+        "update_agent_performance",
+        "__init__",
+        "_initialize_executors",
+        "get_user_profile",
+        "process_user_request",
+        "_analyze_request_complexity",
+        "_select_action",
+        "_execute_action",
+        "_create_tasks_from_request",
+        "_update_context",
+        "_optimize_resources",
+        "_update_learning",
+        "_calculate_reward",
+        "_optimize_system",
+        "get_learning_insights",
+        "update_from_user_feedback"
+      ],
+      "classes": [
+        "ActionType",
+        "RewardType",
+        "Experience",
+        "UserProfile",
+        "DynamicResourceManager",
+        "ExperienceReplaySystem",
+        "MultiAgentCoordinator",
+        "AdaptiveAISystem"
+      ],
+      "description": "\nAdaptive AI System - Enhanced Learning Architecture\nIncorporates experience replay, multi-agent coordination, and dynamic resource optimization\nBased on advanced ML concepts for continuous improvement and personalization\n"
+    },
+    "Jwt Auth": {
+      "file": "utils/jwt_auth.py",
+      "functions": [
+        "init_jwt_config",
+        "generate_jwt_token",
+        "validate_jwt_token",
+        "blacklist_token",
+        "extract_token_from_request",
+        "jwt_required",
+        "decorated_function",
+        "refresh_token_required",
+        "decorated_function",
+        "get_get_demo_user",
+        "is_authenticated_via_jwt",
+        "is_authenticated_via_session",
+        "is_authenticated",
+        "get_get_demo_user"
+      ],
+      "classes": [
+        "JWTConfig"
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nJWT Authentication Utilities\nProvides JWT token generation, validation, and management for API authentication"
+    },
+    "Schema Validation": {
+      "file": "utils/schema_validation.py",
+      "functions": [
+        "validate_data",
+        "_validate_field",
+        "validate_with_schema",
+        "validate_query_params",
+        "sanitize_and_validate",
+        "decorator",
+        "decorator",
+        "decorated_function",
+        "decorated_function"
+      ],
+      "classes": [],
+      "description": "\nSchema Validation Utilities\nProvides JSON schema validation for API endpoints and user input\n"
+    },
+    "Ai Integration": {
+      "file": "utils/ai_integration.py",
+      "functions": [
+        "generate_ai_text",
+        "analyze_document_content",
+        "_get_system_message_for_task",
+        "_build_analysis_prompt",
+        "_fallback_response",
+        "_fallback_document_analysis"
+      ],
+      "classes": [],
+      "description": "\nAI Integration Module - Cost-optimized AI processing with fallback handling\n\nThis module provides unified AI integration capabilities with cost optimization\nand fallback mechanisms for reliable AI processing.\n"
+    },
+    "Ai Service Manager": {
+      "file": "utils/ai_service_manager.py",
+      "functions": [
+        "get_ai_service_manager",
+        "process_ai_request",
+        "__init__",
+        "_initialize_providers",
+        "get_best_provider",
+        "process_request",
+        "_process_unified_request",
+        "_process_fallback_request",
+        "_generate_fallback_response",
+        "_track_usage",
+        "get_usage_stats",
+        "health_check"
+      ],
+      "classes": [
+        "AIProvider",
+        "TaskType",
+        "AIServiceManager"
+      ],
+      "description": "\nAI Service Manager - Centralized AI service coordination and management\n\nThis module provides centralized management of AI services with load balancing,\ncost optimization, and provider selection based on task requirements.\n"
+    },
+    "Plugin Registry": {
+      "file": "utils/plugin_registry.py",
+      "functions": [
+        "get_plugin_registry",
+        "load_plugin",
+        "get_plugin",
+        "register_plugin",
+        "get_plugin_status",
+        "__init__",
+        "_auto_discover_plugins",
+        "register_plugin",
+        "load_plugin",
+        "_create_plugin_instance",
+        "unload_plugin",
+        "reload_plugin",
+        "get_plugin",
+        "list_plugins",
+        "add_hook",
+        "_execute_hooks",
+        "get_plugin_status",
+        "enable_cross_service_communication"
+      ],
+      "classes": [
+        "PluginStatus",
+        "PluginInfo",
+        "PluginRegistry"
+      ],
+      "description": "\nNOUS Dynamic Plugin Registry System\nEnables hot-swappable features and modular component management for NOUS Personal Assistant\n"
+    },
+    "Nous Intelligence Hub": {
+      "file": "utils/nous_intelligence_hub.py",
+      "functions": [
+        "get_nous_intelligence_hub",
+        "process_unified_request",
+        "get_integration_status",
+        "__init__",
+        "_initialize_services",
+        "process_unified_request",
+        "_get_predictive_insights",
+        "_enhance_context_with_intelligence",
+        "_process_with_adaptive_ai",
+        "_integrate_all_services",
+        "_get_visual_insights",
+        "_update_learning_pipeline",
+        "_calculate_response_quality",
+        "get_integration_status",
+        "optimize_performance"
+      ],
+      "classes": [
+        "IntegrationContext",
+        "NOUSIntelligenceHub"
+      ],
+      "description": "\nNOUS Intelligence Hub - Comprehensive Cross-Service Intelligence\nOrchestrates all NOUS enhanced systems for maximum synergy and performance\n"
+    },
+    "Mtmce Integration Hub": {
+      "file": "utils/mtmce_integration_hub.py",
+      "functions": [
+        "get_mtmce_status",
+        "submit_mtmce_task",
+        "get_mtmce_insights",
+        "enhance_with_mtmce",
+        "__init__",
+        "_initialize_core_modules",
+        "_start_background_services",
+        "_health_monitor",
+        "_task_processor",
+        "_metrics_collector",
+        "_check_module_health",
+        "_check_dependencies",
+        "_is_dependency_available",
+        "_get_module_performance",
+        "_attempt_module_recovery",
+        "_execute_task",
+        "_process_cognitive_task",
+        "_process_coordination_task",
+        "_process_automation_task",
+        "_process_analytics_task",
+        "_get_memory_usage",
+        "_get_response_times",
+        "get_status",
+        "submit_task",
+        "get_insights",
+        "enhance_request",
+        "_analyze_user_patterns",
+        "_get_optimization_hints",
+        "_get_learning_insights",
+        "_get_cross_platform_data",
+        "_identify_sync_opportunities",
+        "_get_integration_suggestions",
+        "__init__",
+        "__getattr__"
+      ],
+      "classes": [
+        "MTMCEStatus",
+        "MTMCEModule",
+        "MTMCEIntegrationHub",
+        "MTMCEIntegrationManager"
+      ],
+      "description": "\nMTM-CE Integration Hub - Advanced Multi-Technology Management and Cognitive Enhancement\nComprehensive integration system for advanced AI capabilities and cross-platform coordination\n"
+    },
+    "Unified Google Services": {
+      "file": "utils/unified_google_services.py",
+      "functions": [
+        "get_gmail_service",
+        "get_drive_service",
+        "get_maps_client",
+        "send_gmail",
+        "upload_to_drive",
+        "create_google_doc",
+        "__init__",
+        "authenticate",
+        "get_service",
+        "send_email",
+        "get_emails",
+        "upload_file",
+        "download_file",
+        "list_files",
+        "create_document",
+        "update_document",
+        "create_spreadsheet",
+        "update_spreadsheet",
+        "read_spreadsheet",
+        "get_directions",
+        "search_places",
+        "upload_photo",
+        "create_album"
+      ],
+      "classes": [
+        "UnifiedGoogleService"
+      ],
+      "description": "\nPERFORMANCE OPTIMIZED: Enhanced with lazy loading and caching\n\nUnified Google Services\nConsolidated Google API integrations and utilities\n"
+    },
+    "Unified Spotify Services": {
+      "file": "utils/unified_spotify_services.py",
+      "functions": [
+        "__init__",
+        "setup_client",
+        "is_authenticated",
+        "get_current_playback",
+        "get_current_track",
+        "play_track",
+        "pause_playback",
+        "skip_track",
+        "previous_track",
+        "set_volume",
+        "shuffle",
+        "repeat",
+        "search_tracks",
+        "search_artists",
+        "search_albums",
+        "search_playlists",
+        "get_recommendations",
+        "get_featured_playlists",
+        "get_user_playlists",
+        "create_playlist",
+        "add_tracks_to_playlist",
+        "remove_tracks_from_playlist",
+        "get_playlist_tracks",
+        "get_saved_tracks",
+        "save_tracks",
+        "remove_saved_tracks",
+        "get_audio_features",
+        "get_audio_analysis",
+        "get_top_tracks",
+        "get_top_artists",
+        "get_recently_played",
+        "create_workout_playlist",
+        "get_mood_based_recommendations",
+        "generate_playlist_visualization",
+        "get_listening_stats",
+        "get_spotify_client",
+        "create_spotify_playlist",
+        "get_current_spotify_track",
+        "control_spotify_playback",
+        "search_spotify"
+      ],
+      "classes": [
+        "UnifiedSpotifyService"
+      ],
+      "description": "from utils.auth_compat import get_demo_user\nUnified Spotify Services\nConsolidated Spotify API integrations and utilities"
+    },
+    "Unified Ai Services": {
+      "file": "utils/unified_ai_services.py",
+      "functions": [
+        "get_ai_response",
+        "get_cost_optimized_response",
+        "analyze_text_sentiment",
+        "summarize_content",
+        "generate_ai_content",
+        "get_cheapest_provider",
+        "get_best_quality_provider",
+        "__init__",
+        "setup_providers",
+        "get_available_providers",
+        "estimate_tokens",
+        "get_cost_estimate",
+        "get_optimal_provider",
+        "_track_usage",
+        "get_usage_stats",
+        "reset_usage_stats",
+        "analyze_sentiment",
+        "summarize_text",
+        "extract_keywords",
+        "generate_embeddings",
+        "translate_text",
+        "generate_creative_content",
+        "answer_question"
+      ],
+      "classes": [
+        "UnifiedAIService"
+      ],
+      "description": "\nUnified AI Services\nConsolidated AI integrations and utilities for multiple providers\n"
+    },
+    "Pillow Fallback": {
+      "file": "utils/pillow_fallback.py",
+      "functions": [
+        "__init__",
+        "open",
+        "new",
+        "save",
+        "resize",
+        "convert"
+      ],
+      "classes": [
+        "Image",
+        "PIL"
+      ],
+      "description": "Pillow Fallback - Basic Image Processing"
+    },
+    "Gemini Fallback": {
+      "file": "utils/gemini_fallback.py",
+      "functions": [
+        "configure",
+        "__init__",
+        "generate_content",
+        "__init__",
+        "__init__",
+        "__init__",
+        "__init__"
+      ],
+      "classes": [
+        "GenerativeModel",
+        "MockResponse",
+        "MockCandidate",
+        "MockContent",
+        "MockPart"
+      ],
+      "description": "Google Generative AI Fallback"
+    },
+    "Celery Fallback": {
+      "file": "utils/celery_fallback.py",
+      "functions": [
+        "__init__",
+        "task",
+        "decorator",
+        "wrapper"
+      ],
+      "classes": [
+        "MockCelery"
+      ],
+      "description": "Celery Fallback - Synchronous Task Processing"
+    },
+    "Prometheus Fallback": {
+      "file": "utils/prometheus_fallback.py",
+      "functions": [
+        "generate_latest",
+        "start_http_server",
+        "__init__",
+        "inc",
+        "labels",
+        "__init__",
+        "observe",
+        "time",
+        "labels",
+        "__enter__",
+        "__exit__"
+      ],
+      "classes": [
+        "Counter",
+        "Histogram",
+        "MockTimer"
+      ],
+      "description": "Prometheus Client Fallback"
+    },
+    "Zstandard Fallback": {
+      "file": "utils/zstandard_fallback.py",
+      "functions": [
+        "compress",
+        "decompress",
+        "compress",
+        "decompress"
+      ],
+      "classes": [
+        "ZstdCompressor",
+        "ZstdDecompressor"
+      ],
+      "description": "Zstandard Compression Fallback"
+    },
+    "Emotion Detection": {
+      "file": "utils/emotion_detection.py",
+      "functions": [
+        "detect_emotion_from_text",
+        "__init__",
+        "analyze_text_emotion"
+      ],
+      "classes": [
+        "EmotionDetector"
+      ],
+      "description": "\nEmotion Detection Utility\nSimple emotion detection from text content for enhanced voice interface\n"
+    },
+    "Enhanced Unified Ai Service": {
+      "file": "utils/enhanced_unified_ai_service.py",
+      "functions": [
+        "generate_ai_response",
+        "get_ai_health",
+        "__init__",
+        "_initialize_providers",
+        "_load_openai_provider",
+        "_load_gemini_provider",
+        "_load_huggingface_provider",
+        "_enable_fallback_mode",
+        "generate_response",
+        "_select_optimal_provider",
+        "_generate_with_provider",
+        "_fallback_response",
+        "optimize_performance",
+        "get_health_status"
+      ],
+      "classes": [
+        "EnhancedUnifiedAIService"
+      ],
+      "description": "\nEnhanced Unified AI Service\nConsolidates all AI functionality with performance optimization and fallback handling\n"
+    },
+    "Ai Fallback Service": {
+      "file": "utils/ai_fallback_service.py",
+      "functions": [
+        "__init__",
+        "get_fallback_response",
+        "detect_emotion_fallback",
+        "analyze_sentiment_fallback"
+      ],
+      "classes": [
+        "AIFallbackService"
+      ],
+      "description": "\nAI Fallback Service\nProvides fallback implementations when AI services are unavailable\n"
+    },
+    "Enhanced Voice Service": {
+      "file": "utils/enhanced_voice_service.py",
+      "functions": [
+        "__init__",
+        "_initialize_voice_engines",
+        "_load_speech_recognition",
+        "_load_text_to_speech",
+        "transcribe_audio",
+        "synthesize_speech",
+        "_fallback_transcription",
+        "_fallback_synthesis",
+        "get_health_status"
+      ],
+      "classes": [
+        "EnhancedVoiceService"
+      ],
+      "description": "\nEnhanced Voice Service\nConsolidates all voice functionality with performance optimization\n"
+    },
+    "Enhanced Auth Service": {
+      "file": "utils/enhanced_auth_service.py",
+      "functions": [
+        "generate_user_token",
+        "verify_user_token",
+        "__init__",
+        "_initialize_security",
+        "generate_token",
+        "verify_token",
+        "hash_password",
+        "verify_password",
+        "track_failed_attempt",
+        "is_locked_out",
+        "clear_failed_attempts",
+        "get_security_status"
+      ],
+      "classes": [
+        "EnhancedAuthService"
+      ],
+      "description": "\nEnhanced Authentication Service\nConsolidates all authentication functionality with security optimization\n"
+    },
+    "Lazy Loading Manager": {
+      "file": "utils/lazy_loading_manager.py",
+      "functions": [
+        "lazy_import",
+        "__init__",
+        "lazy_import",
+        "get_module",
+        "preload_critical_modules",
+        "get_loading_stats",
+        "decorator",
+        "wrapper"
+      ],
+      "classes": [
+        "LazyLoadingManager"
+      ],
+      "description": "\nLazy Loading Manager\nImplements lazy loading for heavy dependencies to improve startup performance\n"
+    },
+    "Database Query Optimizer": {
+      "file": "utils/database_query_optimizer.py",
+      "functions": [
+        "monitor_query",
+        "optimize_pagination",
+        "__init__",
+        "monitor_query_performance",
+        "optimize_pagination_query",
+        "optimize_join_query",
+        "prevent_n_plus_one",
+        "get_query_statistics",
+        "get_slow_queries",
+        "decorator",
+        "wrapper"
+      ],
+      "classes": [
+        "DatabaseQueryOptimizer"
+      ],
+      "description": "\nDatabase Query Optimizer\nProvides optimized database query patterns and performance monitoring\n"
+    },
+    "Import Performance Optimizer": {
+      "file": "utils/import_performance_optimizer.py",
+      "functions": [
+        "track_import",
+        "defer_import",
+        "__init__",
+        "track_import_time",
+        "conditional_import",
+        "defer_heavy_imports",
+        "optimize_import_order",
+        "get_import_statistics",
+        "suggest_optimizations"
+      ],
+      "classes": [
+        "ImportPerformanceOptimizer"
+      ],
+      "description": "\nImport Performance Optimizer\nOptimizes import statements and module loading for better performance\n"
+    },
+    "Memory Optimizer": {
+      "file": "utils/memory_optimizer.py",
+      "functions": [
+        "monitor_memory",
+        "optimize_memory",
+        "auto_memory_check",
+        "__init__",
+        "monitor_memory_usage",
+        "get_memory_usage",
+        "get_memory_info",
+        "optimize_memory",
+        "auto_optimize_memory",
+        "clear_cache",
+        "get_memory_statistics",
+        "get_optimization_suggestions",
+        "decorator",
+        "wrapper"
+      ],
+      "classes": [
+        "MemoryOptimizer"
+      ],
+      "description": "\nMemory Optimizer\nProvides memory optimization utilities and monitoring\n"
+    },
+    "Api Validation Utility": {
+      "file": "utils/api_validation_utility.py",
+      "functions": [
+        "validate_not_none",
+        "validate_string",
+        "validate_bytes",
+        "safe_get",
+        "validate_not_none",
+        "validate_string_not_empty",
+        "validate_bytes_not_empty",
+        "safe_get",
+        "validate_request_data",
+        "decorator",
+        "wrapper"
+      ],
+      "classes": [
+        "APIValidationUtility"
+      ],
+      "description": "\nAPI Validation Utility\nProvides validation and None type checking for API endpoints\n"
+    },
+    "Auth Compat": {
+      "file": "utils/auth_compat.py",
+      "functions": [
+        "get_demo_user",
+        "is_authenticated",
+        "login_required",
+        "auth_not_required",
+        "ensure_demo_session",
+        "get_current_user",
+        "__init__",
+        "get_id",
+        "decorated_function"
+      ],
+      "classes": [
+        "DemoUser"
+      ],
+      "description": "\nComplete Authentication Compatibility Layer\nProvides full demo user support with zero authentication barriers\n"
+    },
+    "Maximum Cost Optimizer": {
+      "file": "utils/maximum_cost_optimizer.py",
+      "functions": [
+        "get_cost_optimizer",
+        "optimize_ai_request",
+        "track_request_cost",
+        "get_daily_cost_report",
+        "__init__",
+        "init_cache_database",
+        "_init_free_tier_limits",
+        "_init_local_templates",
+        "get_cached_response",
+        "cache_response",
+        "get_local_response",
+        "check_free_tier_availability",
+        "select_optimal_provider",
+        "_is_simple_request",
+        "batch_requests",
+        "_combine_batch",
+        "track_usage",
+        "get_cost_report",
+        "cleanup_old_cache"
+      ],
+      "classes": [
+        "MaximumCostOptimizer"
+      ],
+      "description": "\nMaximum Cost Optimizer - Aggressive Cost Reduction with Full Feature Preservation\nImplements extreme cost savings while maintaining 100% functionality\n"
+    },
+    "Enhanced Caching System": {
+      "file": "utils/enhanced_caching_system.py",
+      "functions": [
+        "get_caching_system",
+        "cache_ai_response",
+        "get_cached_ai_response",
+        "cache_database_query",
+        "get_cached_database_query",
+        "__init__",
+        "init_database",
+        "get_semantic_similarity",
+        "cache_ai_response",
+        "get_cached_ai_response",
+        "cache_database_query",
+        "get_cached_database_query",
+        "invalidate_cache_by_tables",
+        "cache_voice_processing",
+        "get_cached_voice_processing",
+        "_extract_semantic_tags",
+        "cleanup_expired_cache",
+        "get_cache_statistics"
+      ],
+      "classes": [
+        "EnhancedCachingSystem"
+      ],
+      "description": "\nEnhanced Caching System - Maximum Cost Reduction Through Intelligent Caching\nImplements multi-layer caching with semantic similarity and smart invalidation\n"
+    },
+    "Unified Ai Service": {
+      "file": "utils/unified_ai_service.py",
+      "functions": [
+        "get_unified_ai_service",
+        "get_cost_optimized_ai",
+        "initialize_ai",
+        "get_ai_response",
+        "generate_ai_text",
+        "analyze_document_content",
+        "parse_natural_language",
+        "generate_weekly_summary",
+        "get_motivation_quote",
+        "handle_conversation",
+        "get_ai_service_manager",
+        "optimize_prompt",
+        "count_tokens",
+        "get_ai_helper",
+        "__init__",
+        "chat_completion",
+        "text_to_speech",
+        "speech_to_text",
+        "get_ai_response",
+        "generate_ai_text",
+        "analyze_document_content",
+        "parse_natural_language",
+        "generate_weekly_summary",
+        "get_motivation_quote",
+        "handle_conversation",
+        "get_ai_service_manager",
+        "optimize_prompt",
+        "count_tokens",
+        "_select_provider_with_adaptation",
+        "_select_best_provider",
+        "_calculate_response_quality",
+        "get_plugin_integration_status",
+        "_openrouter_chat",
+        "_gemini_chat",
+        "_openai_chat",
+        "_huggingface_tts",
+        "_huggingface_stt",
+        "_fallback_response"
+      ],
+      "classes": [
+        "TaskComplexity",
+        "ServiceTier",
+        "UnifiedAIService"
+      ],
+      "description": "\nUnified AI Service - Zero Functionality Loss Consolidation\n\nThis module consolidates all AI services (ai_helper, ai_integration, ai_service_manager, cost_optimized_ai)\ninto a single, efficient service while maintaining 100% backward compatibility with all existing imports.\n\nAll original function signatures and behavior are preserved to ensure zero functionality loss.\n"
+    },
+    "Enhanced Voice Emotion": {
+      "file": "utils/enhanced_voice_emotion.py",
+      "functions": [
+        "analyze_text_emotion",
+        "analyze_voice_emotion",
+        "get_emotion_insights",
+        "__init__",
+        "init_cache_database",
+        "analyze_text_emotion",
+        "analyze_voice_emotion",
+        "_huggingface_text_emotion",
+        "_huggingface_audio_emotion",
+        "_fallback_text_emotion",
+        "_fallback_voice_emotion",
+        "_calculate_intensity",
+        "_get_cached_emotion",
+        "_cache_emotion_result",
+        "get_emotion_insights",
+        "_get_emotion_recommendations"
+      ],
+      "classes": [
+        "EnhancedVoiceEmotion"
+      ],
+      "description": "\nEnhanced Voice Emotion Detection - Real AI-Powered Analysis\nImplements actual emotion detection using HuggingFace and fallback systems\n"
+    },
+    "Enhanced Visual Intelligence": {
+      "file": "utils/enhanced_visual_intelligence.py",
+      "functions": [
+        "analyze_image",
+        "analyze_document",
+        "research_image_analysis",
+        "get_visual_cost_report",
+        "__init__",
+        "init_cache_database",
+        "analyze_image",
+        "_gpt4v_analysis",
+        "_fallback_visual_analysis",
+        "_basic_ocr",
+        "_no_analysis_fallback",
+        "_extract_tasks_from_analysis",
+        "_extract_tasks_from_text",
+        "_get_cached_analysis",
+        "_cache_visual_result",
+        "analyze_document",
+        "research_image_analysis",
+        "get_visual_cost_report"
+      ],
+      "classes": [
+        "EnhancedVisualIntelligence"
+      ],
+      "description": "\nEnhanced Visual Intelligence - GPT-4V Document Analysis and OCR\nImplements smart visual processing with cost optimization\n"
+    },
+    "Enhanced Therapeutic Ai": {
+      "file": "utils/enhanced_therapeutic_ai.py",
+      "functions": [
+        "get_therapeutic_response",
+        "get_cbt_response",
+        "get_dbt_response",
+        "get_aa_response",
+        "record_skill_effectiveness",
+        "get_therapeutic_cost_report",
+        "__init__",
+        "init_cache_database",
+        "_init_coping_skills",
+        "get_therapeutic_response",
+        "_gemini_therapeutic_response",
+        "_fallback_therapeutic_response",
+        "_recommend_skills",
+        "_get_user_effective_skills",
+        "record_skill_effectiveness",
+        "_get_cached_response",
+        "_cache_therapeutic_response",
+        "get_therapeutic_cost_report"
+      ],
+      "classes": [
+        "EnhancedTherapeuticAI"
+      ],
+      "description": "\nEnhanced Therapeutic AI - Real CBT/DBT/AA Support with AI Integration\nImplements personalized therapeutic responses using Gemini Pro and intelligent fallbacks\n"
+    },
+    "Ai Brain Cost Optimizer": {
+      "file": "utils/ai_brain_cost_optimizer.py",
+      "functions": [
+        "optimize_ai_request",
+        "record_ai_interaction",
+        "get_ai_optimization_report",
+        "__init__",
+        "init_database",
+        "_init_smart_templates",
+        "analyze_query",
+        "_assess_complexity",
+        "_detect_emotional_state",
+        "_assess_user_familiarity",
+        "_categorize_topic",
+        "_predict_response_length",
+        "_assess_cacheability",
+        "_assess_batch_potential",
+        "_determine_quality_threshold",
+        "optimize_request",
+        "_check_local_templates",
+        "_check_intelligent_cache",
+        "_check_predictive_cache",
+        "_select_optimal_provider",
+        "_calculate_similarity",
+        "_matches_predicted_flow",
+        "record_interaction",
+        "_estimate_baseline_cost",
+        "get_optimization_report"
+      ],
+      "classes": [
+        "QueryComplexity",
+        "UserEmotionalState",
+        "QueryAnalysis",
+        "CostOptimization",
+        "AIBrainCostOptimizer"
+      ],
+      "description": "\nAI Brain Cost Optimizer - Intelligent Cost Reduction System\nIntegrates AI brain reasoning for maximum cost efficiency\n"
+    },
+    "Enhanced Ai System": {
+      "file": "utils/enhanced_ai_system.py",
+      "functions": [
+        "get_enhanced_ai_response",
+        "research_query",
+        "therapeutic_response",
+        "get_ai_cost_report",
+        "__init__",
+        "init_cache_database",
+        "get_cached_response",
+        "cache_response",
+        "detect_task_type",
+        "get_optimal_provider",
+        "make_ai_request",
+        "_openai_request",
+        "_openrouter_request",
+        "_gemini_request",
+        "_fallback_response",
+        "_calculate_quality_score",
+        "_update_usage_stats",
+        "_generate_local_response",
+        "get_cost_report",
+        "research_query",
+        "therapeutic_response",
+        "analyze_emotion"
+      ],
+      "classes": [
+        "AITaskType",
+        "EnhancedAISystem"
+      ],
+      "description": "\nEnhanced AI System - Complete Implementation of GPT-4o Research + Advanced Features\nImplements all Tier 1-3 AI improvements with cost optimization\n"
+    },
+    "Consolidated Google Services": {
+      "file": "utils/consolidated_google_services.py",
+      "functions": [
+        "get_google_services",
+        "create_task",
+        "upload_file",
+        "get_directions",
+        "create_meeting",
+        "__init__",
+        "_initialize_services",
+        "_init_tasks_service",
+        "create_task",
+        "list_tasks",
+        "_init_drive_service",
+        "upload_file",
+        "list_files",
+        "_init_docs_service",
+        "create_document",
+        "create_spreadsheet",
+        "_init_maps_service",
+        "get_directions",
+        "search_places",
+        "_init_photos_service",
+        "upload_photo",
+        "list_albums",
+        "_init_meet_service",
+        "create_meeting",
+        "_create_fallback_service",
+        "health_check",
+        "__init__",
+        "__getattr__",
+        "fallback_method"
+      ],
+      "classes": [
+        "ConsolidatedGoogleServices",
+        "FallbackService"
+      ],
+      "description": "\nConsolidated Google Services Helper\nCombines Google Tasks, Drive, Docs/Sheets, Maps, Photos, and Meet functionality\n"
+    },
+    "Consolidated Ai Services": {
+      "file": "utils/consolidated_ai_services.py",
+      "functions": [
+        "get_ai_services",
+        "chat_completion",
+        "generate_content",
+        "analyze_text",
+        "text_to_speech",
+        "__init__",
+        "_initialize_services",
+        "_init_unified_ai",
+        "chat_completion",
+        "analyze_text",
+        "_init_gemini_service",
+        "generate_content",
+        "analyze_image",
+        "_init_huggingface_service",
+        "text_to_speech",
+        "speech_to_text",
+        "classify_text",
+        "_init_nlp_service",
+        "extract_entities",
+        "analyze_sentiment",
+        "summarize_text",
+        "_init_enhanced_ai",
+        "research_query",
+        "therapeutic_response",
+        "_create_fallback_service",
+        "health_check",
+        "get_cost_report",
+        "__init__",
+        "__getattr__",
+        "fallback_method"
+      ],
+      "classes": [
+        "ConsolidatedAIServices",
+        "FallbackService"
+      ],
+      "description": "\nConsolidated AI Services Helper\nCombines AI Helper, Gemini, HuggingFace, NLP, and unified AI functionality\n"
+    },
+    "Consolidated Therapeutic Services": {
+      "file": "utils/consolidated_therapeutic_services.py",
+      "functions": [
+        "get_therapeutic_services",
+        "get_dbt_skill",
+        "identify_cognitive_distortion",
+        "get_aa_content",
+        "crisis_intervention",
+        "__init__",
+        "_initialize_services",
+        "_init_dbt_service",
+        "get_dbt_skill",
+        "practice_distress_tolerance",
+        "emotion_regulation_skill",
+        "_init_cbt_service",
+        "identify_cognitive_distortion",
+        "challenge_thought",
+        "behavioral_activation",
+        "_init_aa_service",
+        "get_aa_content",
+        "daily_reflection",
+        "_init_crisis_service",
+        "crisis_intervention",
+        "_create_fallback_service",
+        "health_check",
+        "__init__",
+        "__getattr__",
+        "fallback_method"
+      ],
+      "classes": [
+        "ConsolidatedTherapeuticServices",
+        "FallbackService"
+      ],
+      "description": "\nConsolidated Therapeutic Services Helper\nCombines DBT, CBT, and AA therapeutic functionality\n"
+    },
+    "Google Api Manager": {
+      "file": "utils/google_api_manager.py",
+      "functions": [
+        "get_user_connection",
+        "get_google_oauth_client",
+        "get_user_profile",
+        "get_calendar_events",
+        "create_calendar_event",
+        "get_user_tasks",
+        "create_user_task",
+        "init_google_services",
+        "__init__",
+        "init_app",
+        "get_user_connection",
+        "create_service",
+        "get_oauth_client",
+        "get_user_info",
+        "get_calendar_events",
+        "create_calendar_event",
+        "get_tasks",
+        "create_task",
+        "__init__",
+        "__getattr__"
+      ],
+      "classes": [
+        "GoogleAPIManager",
+        "GoogleHelper"
+      ],
+      "description": "\nGoogle API Manager - Unified Google Services Integration\nHandles all Google API interactions including OAuth, Calendar, Tasks, Drive, etc.\n"
+    },
+    "Google Oauth": {
+      "file": "utils/google_oauth.py",
+      "functions": [
+        "init_oauth",
+        "user_loader",
+        "require_auth",
+        "__init__",
+        "init_app",
+        "get_authorization_url",
+        "handle_callback",
+        "logout",
+        "is_configured",
+        "_generate_unique_username",
+        "refresh_token"
+      ],
+      "classes": [
+        "GoogleOAuthService"
+      ],
+      "description": "\nGoogle OAuth 2.0 Authentication Service\nImplements secure Google OAuth flow for NOUS application\n"
+    },
+    "Rate Limiter": {
+      "file": "utils/rate_limiter.py",
+      "functions": [
+        "auth_rate_limit",
+        "login_rate_limit",
+        "oauth_rate_limit",
+        "__init__",
+        "is_rate_limited",
+        "get_client_ip",
+        "decorator",
+        "decorated_function"
+      ],
+      "classes": [
+        "RateLimiter"
+      ],
+      "description": "\nRate Limiting Utility for Authentication Endpoints\nProvides protection against brute force attacks\n"
+    }
+  },
+  "api_endpoints": {},
+  "templates": {
+    "Voice Interface": {
+      "file": "templates/voice_interface.html",
+      "title": "voice_interface",
+      "has_forms": false,
+      "has_js": true,
+      "has_ajax": true
+    },
+    "Image Gallery": {
+      "file": "templates/image_gallery.html",
+      "title": "image_gallery",
+      "has_forms": false,
+      "has_js": true,
+      "has_ajax": false
+    },
+    "Image Upload": {
+      "file": "templates/image_upload.html",
+      "title": "image_upload",
+      "has_forms": true,
+      "has_js": false,
+      "has_ajax": false
+    },
+    "Image Results": {
+      "file": "templates/image_results.html",
+      "title": "image_results",
+      "has_forms": false,
+      "has_js": true,
+      "has_ajax": false
+    },
+    "Maps": {
+      "file": "templates/maps.html",
+      "title": "maps",
+      "has_forms": true,
+      "has_js": true,
+      "has_ajax": true
+    },
+    "Weather": {
+      "file": "templates/weather.html",
+      "title": "weather",
+      "has_forms": false,
+      "has_js": false,
+      "has_ajax": false
+    },
+    "Weather Locations": {
+      "file": "templates/weather_locations.html",
+      "title": "weather_locations",
+      "has_forms": true,
+      "has_js": false,
+      "has_ajax": false
+    },
+    "Tasks": {
+      "file": "templates/tasks.html",
+      "title": "tasks",
+      "has_forms": true,
+      "has_js": false,
+      "has_ajax": false
+    },
+    "Recovery Insights": {
+      "file": "templates/recovery_insights.html",
+      "title": "recovery_insights",
+      "has_forms": false,
+      "has_js": true,
+      "has_ajax": false
+    },
+    "Analytics Dashboard": {
+      "file": "templates/analytics_dashboard.html",
+      "title": "Analytics Dashboard - NOUS",
+      "has_forms": false,
+      "has_js": true,
+      "has_ajax": true
+    },
+    "Intelligence Dashboard": {
+      "file": "templates/intelligence_dashboard.html",
+      "title": "NOUS Intelligence Dashboard",
+      "has_forms": false,
+      "has_js": true,
+      "has_ajax": true
+    },
+    "Emotion Aware Chat": {
+      "file": "templates/emotion_aware_chat.html",
+      "title": "NOUS - Emotion-Aware Therapeutic Chat",
+      "has_forms": false,
+      "has_js": true,
+      "has_ajax": true
+    },
+    "App": {
+      "file": "templates/app.html",
+      "title": "NOUS Chat - {{ user.name }}",
+      "has_forms": true,
+      "has_js": true,
+      "has_ajax": false
+    },
+    "Landing": {
+      "file": "templates/landing.html",
+      "title": "NOUS - Intelligent Personal Assistant",
+      "has_forms": false,
+      "has_js": false,
+      "has_ajax": false
+    },
+    "Beta Dashboard": {
+      "file": "templates/admin/beta_dashboard.html",
+      "title": "Beta Admin Dashboard - NOUS",
+      "has_forms": false,
+      "has_js": true,
+      "has_ajax": false
+    },
+    "Exercise": {
+      "file": "templates/voice_mindfulness/exercise.html",
+      "title": "exercise",
+      "has_forms": false,
+      "has_js": false,
+      "has_ajax": false
+    },
+    "Dashboard": {
+      "file": "templates/cbt/dashboard.html",
+      "title": "CBT Dashboard - NOUS",
+      "has_forms": true,
+      "has_js": true,
+      "has_ajax": true
+    },
+    "Thought Records": {
+      "file": "templates/cbt/thought_records.html",
+      "title": "Thought Records - CBT",
+      "has_forms": false,
+      "has_js": true,
+      "has_ajax": false
+    },
+    "New Thought Record": {
+      "file": "templates/cbt/new_thought_record.html",
+      "title": "New Thought Record - CBT",
+      "has_forms": true,
+      "has_js": true,
+      "has_ajax": true
+    },
+    "Coping Skills": {
+      "file": "templates/cbt/coping_skills.html",
+      "title": "Coping Skills - CBT",
+      "has_forms": true,
+      "has_js": true,
+      "has_ajax": true
+    },
+    "Mood Tracking": {
+      "file": "templates/cbt/mood_tracking.html",
+      "title": "Mood Tracking - CBT",
+      "has_forms": true,
+      "has_js": true,
+      "has_ajax": true
+    },
+    "View Thought Record": {
+      "file": "templates/cbt/view_thought_record.html",
+      "title": "Thought Record - CBT",
+      "has_forms": true,
+      "has_js": true,
+      "has_ajax": true
+    },
+    "Error": {
+      "file": "templates/cbt/error.html",
+      "title": "Error - CBT",
+      "has_forms": false,
+      "has_js": false,
+      "has_ajax": false
+    },
+    "Behavior Experiments": {
+      "file": "templates/cbt/behavior_experiments.html",
+      "title": "Behavioral Experiments - CBT",
+      "has_forms": false,
+      "has_js": true,
+      "has_ajax": false
+    },
+    "Activity Scheduling": {
+      "file": "templates/cbt/activity_scheduling.html",
+      "title": "Activity Scheduling - CBT",
+      "has_forms": false,
+      "has_js": true,
+      "has_ajax": false
+    },
+    "Goals": {
+      "file": "templates/cbt/goals.html",
+      "title": "CBT Goals - CBT",
+      "has_forms": false,
+      "has_js": true,
+      "has_ajax": false
+    },
+    "View Coping Skill": {
+      "file": "templates/cbt/view_coping_skill.html",
+      "title": "{{ skill.skill_name }} - CBT",
+      "has_forms": false,
+      "has_js": true,
+      "has_ajax": false
+    },
+    "Base": {
+      "file": "templates/setup/base.html",
+      "title": "{% block title %}Setup Wizard{% endblock %} - NOUS",
+      "has_forms": false,
+      "has_js": true,
+      "has_ajax": false
+    },
+    "Welcome": {
+      "file": "templates/setup/welcome.html",
+      "title": "welcome",
+      "has_forms": true,
+      "has_js": false,
+      "has_ajax": false
+    },
+    "Languages": {
+      "file": "templates/setup/languages.html",
+      "title": "languages",
+      "has_forms": true,
+      "has_js": false,
+      "has_ajax": false
+    },
+    "Mental Health": {
+      "file": "templates/setup/mental_health.html",
+      "title": "mental_health",
+      "has_forms": true,
+      "has_js": false,
+      "has_ajax": false
+    },
+    "Complete": {
+      "file": "templates/setup/complete.html",
+      "title": "complete",
+      "has_forms": false,
+      "has_js": false,
+      "has_ajax": false
+    },
+    "Neurodivergent": {
+      "file": "templates/setup/neurodivergent.html",
+      "title": "neurodivergent",
+      "has_forms": true,
+      "has_js": true,
+      "has_ajax": false
+    },
+    "Ai Assistant": {
+      "file": "templates/setup/ai_assistant.html",
+      "title": "ai_assistant",
+      "has_forms": true,
+      "has_js": false,
+      "has_ajax": false
+    },
+    "Completion": {
+      "file": "templates/setup/completion.html",
+      "title": "completion",
+      "has_forms": false,
+      "has_js": false,
+      "has_ajax": false
+    },
+    "Login": {
+      "file": "templates/auth/login.html",
+      "title": "Login - NOUS",
+      "has_forms": true,
+      "has_js": false,
+      "has_ajax": false
+    }
+  },
+  "special_features": {
+    "NOUS Tech Advanced Features": [
+      {
+        "name": "Parallel",
+        "file": "nous_tech/features/parallel.py",
+        "description": "\nNOUS Tech Parallel Processing Engine\nCelery-based async task processing for heavy computational workloads\n"
+      },
+      {
+        "name": "Compress",
+        "file": "nous_tech/features/compress.py",
+        "description": "\nNOUS Tech Compression Module\nHigh-performance data compression using zstandard for optimized data transfer\n"
+      },
+      {
+        "name": "Brain",
+        "file": "nous_tech/features/brain.py",
+        "description": "\nNOUS Tech AI Brain Module\nAdvanced AI reasoning and planning capabilities with TEE security\n"
+      },
+      {
+        "name": "Selflearn",
+        "file": "nous_tech/features/selflearn.py",
+        "description": "\nNOUS Tech Self-Learning Module\nContinuous learning system with user feedback integration and retraining capabilities\n"
+      },
+      {
+        "name": "Ai System Brain",
+        "file": "nous_tech/features/ai_system_brain.py",
+        "description": "\nNOUS Tech AI System Brain\nComprehensive AI reasoning, learning, and decision-making system with advanced capabilities\nBased on the full ai_system_brain.py specification from the original prompt\n"
+      },
+      {
+        "name": "Blockchain",
+        "file": "nous_tech/features/security/blockchain.py",
+        "description": "\nNOUS Tech Blockchain Audit Module\nPrivate, permissioned blockchain logging for secure audit trails\n"
+      },
+      {
+        "name": "Tee",
+        "file": "nous_tech/features/security/tee.py",
+        "description": "\nNOUS Tech TEE (Trusted Execution Environment) Module\nSecure computation in trusted enclaves for sensitive AI operations\n"
+      },
+      {
+        "name": "Monitor",
+        "file": "nous_tech/features/security/monitor.py",
+        "description": "\nNOUS Tech Security Monitor\nComprehensive security monitoring with blockchain logging, TEE integration, and threat detection\n"
+      }
+    ],
+    "Extension System": [
+      {
+        "name": "Plugins",
+        "file": "extensions/plugins.py",
+        "description": "\nNOUS Plugin System\nDynamic plugin loading and management system for extensible features\n"
+      },
+      {
+        "name": "Async Processor",
+        "file": "extensions/async_processor.py",
+        "description": "\nNOUS Async Processing Module\nHigh-performance asynchronous task processing for background operations\n"
+      },
+      {
+        "name": "Monitoring",
+        "file": "extensions/monitoring.py",
+        "description": "\nNOUS Monitoring & Metrics Module\nAdvanced monitoring, metrics collection, and performance tracking\n"
+      },
+      {
+        "name": "Learning",
+        "file": "extensions/learning.py",
+        "description": "\nNOUS Learning System Module\nSelf-learning feedback system for continuous AI improvement\n"
+      },
+      {
+        "name": "Compression",
+        "file": "extensions/compression.py",
+        "description": "\nNOUS Compression Module\nDynamic compression for improved performance and reduced bandwidth\n"
+      }
+    ],
+    "Voice Interface System": [
+      {
+        "name": "Text To Speech",
+        "file": "voice_interface/text_to_speech.py",
+        "description": "\nText-to-Speech Module\n\nThis module provides text-to-speech functionality for the NOUS personal assistant\nusing Piper TTS with a fallback to gTTS (Google Text-to-Speech) when local processing is unavailable.\n"
+      },
+      {
+        "name": "Speech To Text",
+        "file": "voice_interface/speech_to_text.py",
+        "description": "\nSpeech-to-Text Module\n\nThis module provides speech-to-text functionality for the NOUS personal assistant\nusing Python's speech_recognition library with a fallback to local Whisper model\nwhen available.\n"
+      }
+    ]
+  }
+}
