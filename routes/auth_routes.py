@@ -37,11 +37,13 @@ def login():
 def google_login():
     """Initiate Google OAuth login"""
     if not oauth_service.is_configured():
+        logger.warning("Google OAuth is not configured - missing credentials")
         flash('Google OAuth is not configured.', 'error')
         return redirect(url_for('auth.login'))
     
     try:
         redirect_uri = url_for('auth.google_callback', _external=True)
+        logger.info(f"Initiating OAuth with redirect URI: {redirect_uri}")
         return oauth_service.get_authorization_url(redirect_uri)
     except Exception as e:
         logger.error(f"OAuth initiation failed: {str(e)}")
@@ -71,7 +73,9 @@ def google_callback():
             return redirect(url_for('auth.login'))
             
     except Exception as e:
-        logger.error(f"Authentication callback failed for user")
+        logger.error(f"Authentication callback failed: {str(e)}")
+        logger.error(f"Request args: {request.args}")
+        logger.error(f"Session state: {session.get('oauth_state', 'No state found')}")
         flash('Authentication failed. Please try again.', 'error')
         return redirect(url_for('auth.login'))
 
