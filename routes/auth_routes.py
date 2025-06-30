@@ -3,12 +3,13 @@ Authentication Routes
 Secure Google OAuth 2.0 authentication system for NOUS application
 """
 
+import os
 from flask import Blueprint, redirect, url_for, request, flash, session, jsonify
 from flask_login import login_user, logout_user, current_user, login_required
 from utils.google_oauth import oauth_service
 from config.app_config import AppConfig
 
-auth_bp = Blueprint('google_auth', __name__, url_prefix='/auth')
+auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 
 @auth_bp.route('/login')
@@ -58,10 +59,10 @@ def callback():
         return redirect(url_for('main.landing'))
 
 
-@auth_bp.route('/logout')
+@auth_bp.route('/logout', methods=['POST'])
 @login_required
 def logout():
-    """Logout current user"""
+    """Logout current user - POST only to prevent CSRF"""
     username = current_user.username if current_user.is_authenticated else 'User'
     oauth_service.logout()
     flash(f'Goodbye, {username}!', 'info')
@@ -98,19 +99,20 @@ def status():
     })
 
 
-@auth_bp.route('/demo-mode')
+@auth_bp.route('/demo-mode', methods=['POST'])
 def demo_mode():
-    """Enable demo mode for testing without authentication"""
-    if AppConfig.DEBUG:
-        # In debug mode, allow demo mode for testing
+    """Enable demo mode for testing - POST only with additional security"""
+    # Restrict demo mode more strictly
+    if AppConfig.DEBUG and os.environ.get('ENABLE_DEMO_MODE') == 'true':
+        # Additional security: require specific environment variable
         session['user'] = {
             'id': 'demo_user_123',
             'username': 'Demo User',
             'email': 'demo@nous.app',
             'demo_mode': True
         }
-        flash('Demo mode enabled', 'info')
+        flash('Demo mode enabled for development', 'info')
         return redirect('/')
     else:
-        flash('Demo mode not available in production', 'error')
+        flash('Demo mode not available', 'error')
         return redirect('/')

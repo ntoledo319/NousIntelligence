@@ -25,14 +25,16 @@ class GoogleOAuthService:
         """Initialize OAuth with Flask app"""
         self.oauth.init_app(app)
         
-        # Configure Google OAuth client
+        # Configure Google OAuth client with refresh token support
         self.google = self.oauth.register(
             name='google',
             client_id=os.environ.get('GOOGLE_CLIENT_ID'),
             client_secret=os.environ.get('GOOGLE_CLIENT_SECRET'),
             server_metadata_url='https://accounts.google.com/.well-known/openid_configuration',
             client_kwargs={
-                'scope': 'openid email profile'
+                'scope': 'openid email profile https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/tasks',
+                'access_type': 'offline',  # Request refresh token
+                'prompt': 'consent'  # Force consent to get refresh token
             }
         )
     
@@ -78,12 +80,18 @@ class GoogleOAuthService:
                 else:
                     # Create new user
                     user = User()
-                    user.username = name or email.split('@')[0]
+                    user.username = self._generate_unique_username(name or email.split('@')[0])
                     user.email = email
                     user.google_id = google_id
                     user.active = True
                     user.created_at = datetime.utcnow()
                     db.session.add(user)
+            
+            # Store OAuth tokens securely
+            user.google_access_token = token.get('access_token')
+            user.google_refresh_token = token.get('refresh_token')
+            if token.get('expires_at'):
+                user.google_token_expires_at = datetime.fromtimestamp(token['expires_at'])
             
             # Update last login
             user.last_login = datetime.utcnow()
