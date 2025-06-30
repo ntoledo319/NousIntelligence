@@ -65,9 +65,31 @@ class GoogleOAuthService:
             logger.error(f"Failed to initialize Google OAuth: {e}")
             return False
     
+    def _extract_client_id(self, raw_client_id):
+        """Extract correct client ID from potentially malformed environment variable"""
+        if not raw_client_id:
+            return None
+            
+        # If it looks like a normal client ID, return as-is
+        if len(raw_client_id) < 100 and 'apps.googleusercontent.com' in raw_client_id:
+            return raw_client_id
+        
+        # Try to extract from malformed data
+        if 'apps.googleusercontent.com' in raw_client_id:
+            import re
+            # Look for the client ID pattern - more flexible regex
+            match = re.search(r'(\d{10,15}-[a-zA-Z0-9]+)\.apps\.googleusercontent\.com', raw_client_id)
+            if match:
+                return match.group(0)  # Return the full match including domain
+        
+        return None
+    
     def is_configured(self):
         """Check if OAuth is properly configured"""
-        return self.google is not None and os.environ.get('GOOGLE_CLIENT_ID') and os.environ.get('GOOGLE_CLIENT_SECRET')
+        raw_client_id = os.environ.get('GOOGLE_CLIENT_ID')
+        client_id = self._extract_client_id(raw_client_id)
+        client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')
+        return self.google is not None and client_id and client_secret
     
     def get_authorization_url(self, redirect_uri):
         """Get Google OAuth authorization URL with CSRF protection"""
