@@ -6,7 +6,7 @@ Fast startup with public access guarantees
 try:
     import os
     from datetime import datetime
-    from app import create_app
+    from app_working import app
 except Exception as e:
     print(f"Failed to import modules in main.py: {e}")
     raise
@@ -21,7 +21,7 @@ os.environ.setdefault('DATABASE_URL', 'sqlite:///instance/app.db')
 os.environ.setdefault('FAST_STARTUP', 'true')
 os.environ.setdefault('DISABLE_HEAVY_FEATURES', 'true')
 
-app = create_app()
+# app is imported from app_working
 
 if __name__ == "__main__":
     try:

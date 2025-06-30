@@ -41,7 +41,7 @@ def test_authentication_system():
         from routes.auth_routes import auth_bp
         print("   ✅ Authentication routes imported")
         
-        from app import create_app
+        from app_working import create_app
         print("   ✅ Flask app imported")
         
     except Exception as e:
