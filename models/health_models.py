@@ -14,7 +14,7 @@ class DBTSkillRecommendation(db.Model):
     __tablename__ = 'dbt_skill_recommendations'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     situation_type = db.Column(db.String(100))
     skill_name = db.Column(db.String(100))
     description = db.Column(db.Text)
@@ -43,7 +43,7 @@ class DBTSkillLog(db.Model):
     __tablename__ = 'dbt_skill_logs'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     skill_name = db.Column(db.String(100))
     category = db.Column(db.String(50))
     situation = db.Column(db.Text)
@@ -72,7 +72,7 @@ class DBTCrisisResource(db.Model):
     __tablename__ = 'dbt_crisis_resources'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     name = db.Column(db.String(100))
     contact_info = db.Column(db.String(255))
     resource_type = db.Column(db.String(50))
@@ -117,7 +117,7 @@ class AAAchievement(db.Model):
     __tablename__ = 'aa_achievements'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     badge_id = db.Column(db.String(50))
     badge_name = db.Column(db.String(100))
     badge_description = db.Column(db.Text)
@@ -142,7 +142,7 @@ class DBTDiaryCard(db.Model):
     __tablename__ = 'dbt_diary_cards'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     date = db.Column(db.Date, default=datetime.utcnow)
     mood_rating = db.Column(db.Integer)  # 1-10
     triggers = db.Column(db.Text)
@@ -173,7 +173,7 @@ class DBTSkillChallenge(db.Model):
     __tablename__ = 'dbt_skill_challenges'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     name = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text)
     category = db.Column(db.String(50))
@@ -211,7 +211,7 @@ class DBTEmotionTrack(db.Model):
     __tablename__ = 'dbt_emotion_tracks'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     emotion = db.Column(db.String(50))
     intensity = db.Column(db.Integer)  # 1-10
     trigger = db.Column(db.Text)
@@ -339,7 +339,7 @@ class AAFavorite(db.Model):
     __tablename__ = 'aa_favorites'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     content_type = db.Column(db.String(50))  # 'big_book', 'audio', 'speaker_recording'
     content_id = db.Column(db.Integer)  # ID of the favorited content
     notes = db.Column(db.Text)
@@ -366,7 +366,7 @@ class CBTThoughtRecord(db.Model):
     __tablename__ = 'cbt_thought_records'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     date = db.Column(db.Date, default=datetime.utcnow)
     situation = db.Column(db.Text, nullable=False)
     automatic_thought = db.Column(db.Text, nullable=False)
@@ -408,7 +408,7 @@ class CBTCognitiveBias(db.Model):
     __tablename__ = 'cbt_cognitive_biases'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     bias_type = db.Column(db.String(100), nullable=False)  # e.g., "catastrophizing", "all-or-nothing"
     description = db.Column(db.Text)
     example_thought = db.Column(db.Text)
@@ -438,7 +438,7 @@ class CBTBehaviorExperiment(db.Model):
     __tablename__ = 'cbt_behavior_experiments'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     belief_to_test = db.Column(db.Text, nullable=False)
     experiment_description = db.Column(db.Text, nullable=False)
     predicted_outcome = db.Column(db.Text)
@@ -476,7 +476,7 @@ class CBTActivitySchedule(db.Model):
     __tablename__ = 'cbt_activity_schedules'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     activity_name = db.Column(db.String(200), nullable=False)
     category = db.Column(db.String(100))  # mastery, pleasure, routine, social
     scheduled_date = db.Column(db.Date, nullable=False)
@@ -516,7 +516,7 @@ class CBTMoodLog(db.Model):
     __tablename__ = 'cbt_mood_logs'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     date = db.Column(db.Date, default=datetime.utcnow)
     time_of_day = db.Column(db.Time, default=datetime.utcnow)
     primary_emotion = db.Column(db.String(100))
@@ -562,7 +562,7 @@ class CBTCopingSkill(db.Model):
     __tablename__ = 'cbt_coping_skills'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=True)  # NULL for system skills
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # NULL for system skills
     skill_name = db.Column(db.String(200), nullable=False)
     category = db.Column(db.String(100))  # grounding, relaxation, cognitive, behavioral, social
     description = db.Column(db.Text, nullable=False)
@@ -602,7 +602,7 @@ class CBTSkillUsage(db.Model):
     __tablename__ = 'cbt_skill_usage'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     skill_id = db.Column(db.Integer, db.ForeignKey('cbt_coping_skills.id'), nullable=False)
     situation = db.Column(db.Text)
     mood_before = db.Column(db.Integer)  # 1-10
@@ -635,7 +635,7 @@ class CBTGoal(db.Model):
     __tablename__ = 'cbt_goals'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     goal_type = db.Column(db.String(100))  # behavioral, cognitive, emotional, social
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
