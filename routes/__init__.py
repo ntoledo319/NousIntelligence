@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 CORE_BLUEPRINTS = [
     {'name': 'main', 'module': 'routes.main', 'attr': 'main_bp', 'url_prefix': None},
     {'name': 'health_api', 'module': 'routes.health_api', 'attr': 'health_api_bp', 'url_prefix': '/api'},
+    {'name': 'callback', 'module': 'routes.callback_routes', 'attr': 'callback_bp', 'url_prefix': None},
     {'name': 'google_auth', 'module': 'routes.auth_routes', 'attr': 'auth_bp', 'url_prefix': None},
     {'name': 'auth_api', 'module': 'routes.simple_auth_api', 'attr': 'auth_bp', 'url_prefix': None},
     {'name': 'api', 'module': 'routes.api_routes', 'attr': 'api_bp', 'url_prefix': '/api/v1'},

@@ -51,6 +51,7 @@ def google_login():
         return redirect(url_for('auth.login'))
 
 @auth_bp.route('/google/callback')
+@auth_bp.route('/callback/google')  # Support existing Google Cloud Console configuration
 def google_callback():
     """Handle Google OAuth callback with enhanced error handling"""
     try:
@@ -119,19 +120,24 @@ def get_deployment_callback_uri():
         except:
             pass
     
-    # Fallback to common Replit patterns
+    # Fallback to common Replit patterns based on existing Google Cloud Console config
     if not deployment_url:
-        # Try common Replit URL patterns
-        possible_domains = [
-            "https://nous.replit.app",
-            "https://nous-assistant.replit.app", 
-            "https://workspace.replit.dev"
-        ]
-        # Use the first one as fallback
-        deployment_url = possible_domains[0]
-        logger.warning(f"Using fallback deployment URL: {deployment_url}")
+        # Check if we're on mynous.replit.app deployment
+        try:
+            from flask import request
+            if request and 'mynous' in request.host:
+                deployment_url = "https://mynous.replit.app"
+            elif request and 'worf.replit.dev' in request.host:
+                # Use the dynamic worf URL pattern
+                deployment_url = f"https://{request.host}"
+            else:
+                # Default fallback
+                deployment_url = "https://mynous.replit.app"
+        except:
+            deployment_url = "https://mynous.replit.app"
     
-    callback_uri = f"{deployment_url}/auth/google/callback"
+    # Use /callback/google format to match existing Google Cloud Console configuration
+    callback_uri = f"{deployment_url}/callback/google"
     logger.info(f"Using callback URI: {callback_uri}")
     
     return callback_uri
