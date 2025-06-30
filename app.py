@@ -119,11 +119,7 @@ def create_app():
         """Check if user is authenticated via session or JWT"""
         return 'user' in session and session['user'] is not None
     
-    # Core routes
-    @app.route('/')
-    def landing():
-        """Public landing page with demo functionality"""
-        return render_template('landing.html')
+    # Routes handled by blueprints
     
     @app.route('/demo')
     def public_demo():
