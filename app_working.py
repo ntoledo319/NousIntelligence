@@ -11,7 +11,7 @@ from pathlib import Path
 
 from flask import Flask, request, jsonify, session, render_template, redirect, url_for, flash
 from flask_login import LoginManager
-from flask_cors import CORS
+# CORS not needed for basic setup
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Configure logging
@@ -32,6 +32,11 @@ def create_app():
     try:
         from config.app_config import AppConfig
         app.config.from_object(AppConfig)
+        
+        # Ensure database URI is set
+        if not app.config.get('SQLALCHEMY_DATABASE_URI'):
+            app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+        
         logger.info("✅ App configuration loaded successfully")
     except Exception as e:
         logger.error(f"Configuration error: {e}")
