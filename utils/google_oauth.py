@@ -32,10 +32,11 @@ class GoogleOAuthService:
             
             # Check if OAuth credentials are available
             raw_client_id = os.environ.get('GOOGLE_CLIENT_ID')
-            client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')
+            raw_client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')
             
-            # Extract correct client ID from potentially malformed environment variable
+            # Extract correct credentials from potentially malformed environment variables
             client_id = self._extract_client_id(raw_client_id)
+            client_secret = self._extract_client_secret(raw_client_secret)
             
             if not client_id or not client_secret:
                 logger.warning("Google OAuth credentials not found in environment variables")
@@ -77,18 +78,38 @@ class GoogleOAuthService:
         # Try to extract from malformed data
         if 'apps.googleusercontent.com' in raw_client_id:
             import re
-            # Look for the client ID pattern - more flexible regex
-            match = re.search(r'(\d{10,15}-[a-zA-Z0-9]+)\.apps\.googleusercontent\.com', raw_client_id)
+            # Look for the client ID pattern - extract full domain
+            match = re.search(r'(\d{10,15}-[a-zA-Z0-9]+\.apps\.googleusercontent\.com)', raw_client_id)
             if match:
-                return match.group(0)  # Return the full match including domain
+                return match.group(1)  # Return the full match including domain
+        
+        return None
+    
+    def _extract_client_secret(self, raw_client_secret):
+        """Extract correct client secret from potentially malformed environment variable"""
+        if not raw_client_secret:
+            return None
+            
+        # If it looks like a normal client secret, return as-is
+        if len(raw_client_secret) < 50 and 'GOCSPX-' in raw_client_secret:
+            return raw_client_secret
+        
+        # Try to extract from malformed data
+        if 'GOCSPX-' in raw_client_secret:
+            import re
+            # Look for the client secret pattern
+            match = re.search(r'(GOCSPX-[a-zA-Z0-9_-]+)', raw_client_secret)
+            if match:
+                return match.group(1)
         
         return None
     
     def is_configured(self):
         """Check if OAuth is properly configured"""
         raw_client_id = os.environ.get('GOOGLE_CLIENT_ID')
+        raw_client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')
         client_id = self._extract_client_id(raw_client_id)
-        client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')
+        client_secret = self._extract_client_secret(raw_client_secret)
         return self.google is not None and client_id and client_secret
     
     def get_authorization_url(self, redirect_uri):
