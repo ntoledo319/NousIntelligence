@@ -17,6 +17,21 @@ except ImportError:
     oauth_service = None
 
 try:
+    from flask_login import login_user, logout_user, current_user
+except ImportError:
+    # Fallback functions for when Flask-Login is not available
+    def login_user(user, remember=False):
+        session['user_id'] = user.id
+        session['user'] = user.to_dict()
+        return True
+    
+    def logout_user():
+        session.pop('user_id', None)
+        session.pop('user', None)
+    
+    current_user = None
+
+try:
     from utils.rate_limiter import login_rate_limit, oauth_rate_limit
 except ImportError:
     # Fallback decorators
@@ -24,8 +39,6 @@ except ImportError:
         return f
     def oauth_rate_limit(f):
         return f
-
-logger = logging.getLogger(__name__)
 
 # Create auth blueprint with consistent naming
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
