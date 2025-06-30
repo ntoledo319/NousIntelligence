@@ -14,7 +14,7 @@ def chat_api():
     message = data.get('message', '')
     
     # Get user (demo or authenticated)
-    user = get_demo_user()()
+    user = get_demo_user()
     
     # Simple response for now
     response = {
@@ -28,5 +28,5 @@ def chat_api():
 @api_bp.route('/user')
 def api_user():
     """Get current user info"""
-    user = get_demo_user()()
+    user = get_demo_user()
     return jsonify(user)

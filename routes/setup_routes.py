@@ -4,20 +4,20 @@ Setup and onboarding routes
 """
 
 from flask import Blueprint, render_template, jsonify, request, redirect, url_for
-from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user()
+from utils.auth_compat import login_required, get_demo_user
 
 setup_bp = Blueprint('setup', __name__)
 
 @setup_bp.route('/setup')
 def setup_main():
     """Setup wizard main page"""
-    user = get_get_demo_user()()
+    user = get_demo_user()
     return render_template('setup/main.html', user=user)
 
 @setup_bp.route('/api/setup/progress')
 def setup_progress():
     """Setup progress API"""
-    user = get_get_demo_user()()
+    user = get_demo_user()
     return jsonify({
         'user_id': user['id'],
         'progress': {
@@ -30,7 +30,7 @@ def setup_progress():
 @setup_bp.route('/api/setup/complete', methods=['POST'])
 def setup_complete():
     """Complete setup process"""
-    user = get_get_demo_user()()
+    user = get_demo_user()
     return jsonify({
         'status': 'success',
         'redirect': '/dashboard'

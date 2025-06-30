@@ -26,7 +26,8 @@ def init_database(app):
                 AAAchievement
             )
         except ImportError as e:
-            print(f"Warning: Could not import some models: {e}")
+            print(f"Error: Could not import some models: {e}")
+            raise e
         
         # Create all tables
         db.create_all()

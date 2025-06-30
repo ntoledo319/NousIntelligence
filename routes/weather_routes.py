@@ -10,7 +10,7 @@ weather_bp = Blueprint('weather', __name__)
 @weather_bp.route('/weather')
 def weather_main():
     """Weather main page"""
-    user = get_demo_user()()
+    user = get_demo_user()
     return render_template('weather/main.html', user=user)
 
 @weather_bp.route('/api/weather/current')

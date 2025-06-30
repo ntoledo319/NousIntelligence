@@ -2,16 +2,20 @@
 Backend Stability + Beta Suite Overhaul
 Professional-Grade Chat Interface with Health Monitoring & Beta Management
 """
-import os
-import json
-import logging
-import urllib.parse
-import urllib.request
-from datetime import datetime
-from flask import Flask, render_template, redirect, url_for, session, request, jsonify, flash, Response
-from werkzeug.middleware.proxy_fix import ProxyFix
-from config import AppConfig, PORT, HOST, DEBUG
-from database import db, init_database
+try:
+    import os
+    import json
+    import logging
+    import urllib.parse
+    import urllib.request
+    from datetime import datetime
+    from flask import Flask, render_template, redirect, url_for, session, request, jsonify, flash, Response
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    from config import AppConfig, PORT, HOST, DEBUG
+    from database import db, init_database
+except Exception as e:
+    print(f"Failed to import modules in app.py: {e}")
+    raise
 
 # Configure comprehensive logging first
 import os
@@ -33,7 +37,10 @@ def create_app():
     
     # Core Flask configuration
     app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-key-change-in-production')
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+    database_url = os.environ.get('DATABASE_URL')
+    if not database_url:
+        raise ValueError("No DATABASE_URL set for Flask application")
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
         "pool_recycle": 300,
         "pool_pre_ping": True,
@@ -50,14 +57,15 @@ def create_app():
         init_database(app)
         logger.info("✅ Database initialized successfully")
     except Exception as e:
-        logger.error(f"Database initialization failed: {e}")
+        logger.error(f"Database initialization failed: {e}", exc_info=True)
+        raise e
     
     # Security headers for public deployment
     @app.after_request
     def add_security_headers(response):
         """Add security headers for public deployment"""
         response.headers['X-Content-Type-Options'] = 'nosniff'
-        response.headers['X-Frame-Options'] = 'ALLOWALL'  # Allow embedding for public demo
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         response.headers['X-XSS-Protection'] = '1; mode=block'
         response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
         return response
@@ -200,11 +208,7 @@ def create_app():
         register_all_blueprints(app)
         logger.info("✅ All blueprints registered successfully")
     except Exception as e:
-        logger.warning(f"⚠️ Blueprint registration issue: {e}")
-        # Continue without blueprints for basic functionality
+        logger.error(f"⚠️ Blueprint registration failed: {e}", exc_info=True)
+        raise e
 
     return app
-
-if __name__ == "__main__":
-    app = create_app()
-    app.run(host='0.0.0.0', port=5000, debug=True)

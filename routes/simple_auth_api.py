@@ -3,8 +3,7 @@ Simple Authentication API
 """
 
 from flask import Blueprint, request, jsonify, session
-from utils.auth_compat import login_required, get_demo_user, is_authenticated
-import jwt
+from utils.auth_compat import get_demo_user
 import datetime
 
 auth_bp = Blueprint('auth', __name__)
@@ -12,21 +11,16 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/api/auth/login', methods=['POST'])
 def api_login():
     """API login endpoint"""
-    user_data = {
-        'id': 'api_user',
-        'name': 'API User',
-        'email': 'api@nous.app'
+    user = get_demo_user()
+    session['user'] = {
+        'id': user.id,
+        'name': user.name,
+        'email': user.email
     }
-    session['user'] = user_data
-    return jsonify({'status': 'success', 'user': user_data})
+    return jsonify({'status': 'success', 'user': session['user']})
 
 @auth_bp.route('/api/auth/logout', methods=['POST'])
 def api_logout():
     """API logout endpoint"""
     session.clear()
     return jsonify({'status': 'success'})
-
-def validate_api_token(token):
-    """Validate API token"""
-    # Simple validation for now
-    return {'valid': True} if token else None
