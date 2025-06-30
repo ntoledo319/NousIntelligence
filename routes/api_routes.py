@@ -34,4 +34,11 @@ def chat_api():
 def api_user():
     """Get current user info"""
     user = get_demo_user()
-    return jsonify(user)
+    return jsonify({
+        'id': user.id,
+        'name': user.name,
+        'email': user.email,
+        'demo_mode': user.demo_mode,
+        'is_authenticated': user.is_authenticated,
+        'login_time': user.login_time
+    })
