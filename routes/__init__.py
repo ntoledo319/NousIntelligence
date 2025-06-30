@@ -50,7 +50,7 @@ def register_all_blueprints(app: Flask) -> Flask:
             blueprint = getattr(module, bp_config['attr'])
             
             # Check if blueprint is already registered
-            if blueprint.name in registered_blueprints:
+            if blueprint.name in registered_blueprints or blueprint.name in app.blueprints:
                 logger.warning(f"⚠️  Blueprint {blueprint.name} already registered, skipping")
                 continue
                 
@@ -80,7 +80,7 @@ def register_all_blueprints(app: Flask) -> Flask:
             blueprint = getattr(module, bp_config['attr'])
             
             # Check if blueprint is already registered
-            if blueprint.name in registered_blueprints:
+            if blueprint.name in registered_blueprints or blueprint.name in app.blueprints:
                 logger.warning(f"⚠️  Blueprint {blueprint.name} already registered, skipping")
                 continue
             
