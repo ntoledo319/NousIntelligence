@@ -15,6 +15,7 @@ CORE_BLUEPRINTS = [
     {'name': 'main', 'module': 'routes.main', 'attr': 'main_bp', 'url_prefix': None},
     {'name': 'index', 'module': 'routes.index', 'attr': 'index_bp', 'url_prefix': None},
     {'name': 'health_api', 'module': 'routes.health_api', 'attr': 'health_api_bp', 'url_prefix': '/api'},
+    {'name': 'health_root', 'module': 'routes.health_api', 'attr': 'health_api_bp', 'url_prefix': None},
     {'name': 'callback', 'module': 'routes.callback_routes', 'attr': 'callback_bp', 'url_prefix': None},
     {'name': 'google_auth', 'module': 'routes.auth_routes', 'attr': 'auth_bp', 'url_prefix': None},
     {'name': 'auth_api', 'module': 'routes.simple_auth_api', 'attr': 'auth_bp', 'url_prefix': None},
