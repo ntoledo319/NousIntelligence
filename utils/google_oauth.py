@@ -223,6 +223,25 @@ def init_oauth(app):
         return None
 
 
+
+    def get_deployment_url(self):
+        """Get the current deployment URL"""
+        import os
+        from flask import request, has_request_context
+        
+        # Try environment variables first
+        for env_var in ['REPL_URL', 'REPLIT_DOMAIN']:
+            if os.environ.get(env_var):
+                return os.environ.get(env_var)
+        
+        # Try to get from request context
+        if has_request_context() and request:
+            scheme = 'https' if request.is_secure else 'http'
+            return f"{scheme}://{request.host}"
+        
+        # Fallback to common Replit URL
+        return "https://nous.replit.app"
+
 def user_loader(user_id):
     """Load user by ID for Flask-Login"""
     return User.query.get(int(user_id))
