@@ -1,3 +1,4 @@
+
 """
 Google OAuth 2.0 Authentication Service
 Implements secure Google OAuth flow for NOUS application
@@ -99,9 +100,6 @@ class GoogleOAuthService:
             # Update last login
             user.last_login = datetime.utcnow()
             db.session.commit()
-            
-            # Log in user
-            login_user(user, remember=True)
             
             return user
             
