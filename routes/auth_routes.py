@@ -1,3 +1,4 @@
+from utils.auth_compat import require_authentication, is_authenticated, get_current_user
 #!/usr/bin/env python3
 """
 Authentication Routes - Google OAuth Implementation
@@ -78,7 +79,7 @@ def google_callback():
         return redirect(url_for('auth.login'))
 
 @auth_bp.route('/logout', methods=['POST'])
-@login_required
+@require_authentication
 def logout():
     """Logout current user with CSRF protection"""
     try:
@@ -91,7 +92,7 @@ def logout():
         return redirect(url_for('main.index'))
 
 @auth_bp.route('/profile')
-@login_required
+@require_authentication
 def profile():
     """Display user profile"""
     return render_template('auth/profile.html', user=current_user)
