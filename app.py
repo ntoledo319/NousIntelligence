@@ -10,9 +10,11 @@ try:
     import urllib.request
     from datetime import datetime
     from flask import Flask, render_template, redirect, url_for, session, request, jsonify, flash, Response
+    from flask_login import LoginManager, current_user
     from werkzeug.middleware.proxy_fix import ProxyFix
     from config import AppConfig, PORT, HOST, DEBUG
     from database import db, init_database
+    from utils.google_oauth import init_oauth, user_loader
 except Exception as e:
     print(f"Failed to import modules in app.py: {e}")
     raise
@@ -35,12 +37,27 @@ def create_app():
     """Create Flask application with comprehensive backend stability features"""
     app = Flask(__name__)
     
-    # Core Flask configuration
-    app.secret_key = os.environ.get('SESSION_SECRET', 'dev-secret-key-change-in-production')
-    database_url = os.environ.get('DATABASE_URL')
-    if not database_url:
-        raise ValueError("No DATABASE_URL set for Flask application")
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    # Core Flask configuration with security validation
+    secret_key = AppConfig.SECRET_KEY
+    if not secret_key:
+        if AppConfig.DEBUG:
+            logger.warning("⚠️  No SESSION_SECRET environment variable set - using development key")
+            secret_key = 'dev-secret-key-change-in-production'
+        else:
+            raise ValueError("SESSION_SECRET environment variable is required in production")
+    elif len(secret_key) < 16:
+        raise ValueError("SESSION_SECRET must be at least 16 characters long")
+    
+    app.secret_key = secret_key
+    
+    # Database configuration with security checks
+    try:
+        database_url = AppConfig.get_database_url()
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+        logger.info("✅ Database URL configured successfully")
+    except ValueError as e:
+        logger.error(f"Database configuration error: {e}")
+        raise e
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
         "pool_recycle": 300,
         "pool_pre_ping": True,
@@ -59,6 +76,33 @@ def create_app():
     except Exception as e:
         logger.error(f"Database initialization failed: {e}", exc_info=True)
         raise e
+    
+    # Initialize Flask-Login
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+    login_manager.login_view = 'auth.login'
+    login_manager.login_message = 'Please log in to access this page.'
+    login_manager.user_loader(user_loader)
+    
+    # Initialize Google OAuth
+    try:
+        init_oauth(app)
+        logger.info("✅ Google OAuth initialized successfully")
+    except Exception as e:
+        logger.warning(f"Google OAuth initialization failed: {e}")
+        # Continue without OAuth for development
+    
+    # Register all application blueprints
+    try:
+        from routes import register_all_blueprints
+        register_all_blueprints(app)
+        logger.info("✅ All blueprints registered successfully")
+    except Exception as e:
+        logger.error(f"Blueprint registration failed: {e}")
+        # Register essential routes manually as fallback
+        from routes.auth_routes import auth_bp
+        app.register_blueprint(auth_bp)
+        logger.info("✅ Authentication blueprint registered as fallback")
     
     # Security headers for public deployment
     @app.after_request
