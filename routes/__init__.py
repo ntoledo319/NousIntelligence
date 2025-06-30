@@ -41,19 +41,37 @@ def register_all_blueprints(app: Flask) -> Flask:
     
     registered_count = 0
     failed_count = 0
+    registered_blueprints = set()
     
     # Register core blueprints
     for bp_config in CORE_BLUEPRINTS:
-        module = importlib.import_module(bp_config['module'])
-        blueprint = getattr(module, bp_config['attr'])
-        
-        if bp_config['url_prefix']:
-            app.register_blueprint(blueprint, url_prefix=bp_config['url_prefix'])
-        else:
-            app.register_blueprint(blueprint)
-        
-        logger.info(f"✅ Registered core blueprint: {bp_config['name']}")
-        registered_count += 1
+        try:
+            module = importlib.import_module(bp_config['module'])
+            blueprint = getattr(module, bp_config['attr'])
+            
+            # Check if blueprint is already registered
+            if blueprint.name in registered_blueprints:
+                logger.warning(f"⚠️  Blueprint {blueprint.name} already registered, skipping")
+                continue
+                
+            if bp_config['url_prefix']:
+                app.register_blueprint(blueprint, url_prefix=bp_config['url_prefix'])
+            else:
+                app.register_blueprint(blueprint)
+            
+            registered_blueprints.add(blueprint.name)
+            logger.info(f"✅ Registered core blueprint: {bp_config['name']}")
+            registered_count += 1
+            
+        except ValueError as e:
+            if 'already registered' in str(e):
+                logger.warning(f"⚠️  Blueprint {bp_config['name']} already registered, skipping")
+            else:
+                logger.error(f"❌ Failed to register core blueprint {bp_config['name']}: {e}")
+                failed_count += 1
+        except Exception as e:
+            logger.error(f"❌ Failed to register core blueprint {bp_config['name']}: {e}")
+            failed_count += 1
 
     # Register optional blueprints
     for bp_config in OPTIONAL_BLUEPRINTS:
@@ -61,14 +79,25 @@ def register_all_blueprints(app: Flask) -> Flask:
             module = importlib.import_module(bp_config['module'])
             blueprint = getattr(module, bp_config['attr'])
             
+            # Check if blueprint is already registered
+            if blueprint.name in registered_blueprints:
+                logger.warning(f"⚠️  Blueprint {blueprint.name} already registered, skipping")
+                continue
+            
             if bp_config['url_prefix']:
                 app.register_blueprint(blueprint, url_prefix=bp_config['url_prefix'])
             else:
                 app.register_blueprint(blueprint)
             
+            registered_blueprints.add(blueprint.name)
             logger.info(f"✅ Registered optional blueprint: {bp_config['name']}")
             registered_count += 1
             
+        except ValueError as e:
+            if 'already registered' in str(e):
+                logger.warning(f"⚠️  Blueprint {bp_config['name']} already registered, skipping")
+            else:
+                logger.warning(f"⚠️  Optional blueprint {bp_config['name']} not available: {e}")
         except Exception as e:
             logger.warning(f"⚠️  Optional blueprint {bp_config['name']} not available: {e}")
     
