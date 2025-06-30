@@ -1,0 +1,125 @@
+{
+  "test_timestamp": "2025-06-30T23:03:01.134895",
+  "summary": {
+    "total_tests": 18,
+    "passed": 17,
+    "failed": 1,
+    "success_rate": 94.44444444444444
+  },
+  "test_results": [
+    {
+      "test": "GOOGLE_CLIENT_ID format",
+      "passed": true,
+      "details": "Valid format: 1015094007473-337qm1ofr5htlodjmsf2p6r3fcht6pg2.app...",
+      "timestamp": "2025-06-30T23:02:59.146919"
+    },
+    {
+      "test": "GOOGLE_CLIENT_SECRET format",
+      "passed": true,
+      "details": "Valid GOCSPX format",
+      "timestamp": "2025-06-30T23:02:59.147278"
+    },
+    {
+      "test": "SESSION_SECRET",
+      "passed": true,
+      "details": "Valid length: 88 chars",
+      "timestamp": "2025-06-30T23:02:59.147542"
+    },
+    {
+      "test": "OAuth service import",
+      "passed": true,
+      "details": "Successfully imported oauth_service",
+      "timestamp": "2025-06-30T23:03:00.962867"
+    },
+    {
+      "test": "OAuth service initialization",
+      "passed": true,
+      "details": "oauth_service instance exists",
+      "timestamp": "2025-06-30T23:03:00.963636"
+    },
+    {
+      "test": "OAuth credential extraction methods",
+      "passed": true,
+      "details": "Extraction methods available",
+      "timestamp": "2025-06-30T23:03:00.963968"
+    },
+    {
+      "test": "OAuth configuration check",
+      "passed": true,
+      "details": "Configuration status: False",
+      "timestamp": "2025-06-30T23:03:00.964780"
+    },
+    {
+      "test": "Auth routes import",
+      "passed": true,
+      "details": "Successfully imported auth_bp",
+      "timestamp": "2025-06-30T23:03:00.976959"
+    },
+    {
+      "test": "Auth routes import",
+      "passed": false,
+      "details": "Import error: 'Blueprint' object has no attribute 'url_map'",
+      "timestamp": "2025-06-30T23:03:00.977251"
+    },
+    {
+      "test": "User model import",
+      "passed": true,
+      "details": "Successfully imported User model",
+      "timestamp": "2025-06-30T23:03:00.977726"
+    },
+    {
+      "test": "User model OAuth fields",
+      "passed": true,
+      "details": "All OAuth fields present",
+      "timestamp": "2025-06-30T23:03:00.978513"
+    },
+    {
+      "test": "App creation",
+      "passed": true,
+      "details": "App created successfully",
+      "timestamp": "2025-06-30T23:03:01.103055"
+    },
+    {
+      "test": "OAuth enabled in app",
+      "passed": true,
+      "details": "OAUTH_ENABLED: True",
+      "timestamp": "2025-06-30T23:03:01.104062"
+    },
+    {
+      "test": "Flask-Login configuration",
+      "passed": true,
+      "details": "LoginManager found",
+      "timestamp": "2025-06-30T23:03:01.105004"
+    },
+    {
+      "test": "Client ID extraction",
+      "passed": true,
+      "details": "Extracted: 1015094007473-337qm1ofr5htlodjmsf2p6r3fcht6pg2.apps.googleusercontent.com",
+      "timestamp": "2025-06-30T23:03:01.106812"
+    },
+    {
+      "test": "Client secret extraction",
+      "passed": true,
+      "details": "Extracted: GOCSPX-CstRiRMtA5JIb...",
+      "timestamp": "2025-06-30T23:03:01.107981"
+    },
+    {
+      "test": "Auth status endpoint",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2025-06-30T23:03:01.120058"
+    },
+    {
+      "test": "Google login endpoint",
+      "passed": true,
+      "details": "Status: 302",
+      "timestamp": "2025-06-30T23:03:01.129541"
+    }
+  ],
+  "issues_found": [
+    {
+      "issue": "Auth routes import",
+      "details": "Import error: 'Blueprint' object has no attribute 'url_map'"
+    }
+  ]
+}
