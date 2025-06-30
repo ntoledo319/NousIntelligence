@@ -215,76 +215,43 @@
         </div>
     </div>
 
-    <!-- Onboarding Overlay -->
-    <div class="onboarding-overlay" id="onboarding-overlay" style="display: none;">
-        <div class="onboarding-modal">
-            <div class="onboarding-header">
-                <h2>Welcome to NOUS! 🧠</h2>
-                <button class="close-onboarding" id="close-onboarding">×</button>
-            </div>
-            <div class="onboarding-content">
-                <div class="onboarding-step" data-step="1">
-                    <h3>🎯 Set Your Goals</h3>
-                    <p>Start by setting some personal goals to track your progress.</p>
-                    <button class="onboarding-btn" data-action="set-goals">Set Goals</button>
-                </div>
-                <div class="onboarding-step" data-step="2" style="display: none;">
-                    <h3>🔍 Discover Features</h3>
-                    <p>Explore our powerful features for productivity, health, and life management.</p>
-                    <button class="onboarding-btn" data-action="explore-features">Explore Features</button>
-                </div>
-                <div class="onboarding-step" data-step="3" style="display: none;">
-                    <h3>⚡ Quick Actions</h3>
-                    <p>Use the floating action button for quick access to common tasks.</p>
-                    <button class="onboarding-btn" data-action="finish-onboarding">Get Started</button>
-                </div>
-            </div>
-            <div class="onboarding-progress">
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 33.33%;"></div>
-                </div>
-                <span class="progress-text">1 of 3</span>
-            </div>
-        </div>
-    </div>
-
     <!-- Help System -->
-    <div class="help-system" id="help-system">
-        <button class="help-toggle" id="help-toggle">?</button>
-        <div class="help-panel" id="help-panel" style="display: none;">
-            <div class="help-header">
-                <h3>Help & Shortcuts</h3>
-                <button class="close-help" id="close-help">×</button>
+    <div class="fixed bottom-6 left-6 z-40">
+        <button id="help-toggle" class="w-12 h-12 bg-gray-600 dark:bg-gray-700 text-white rounded-full shadow-lg hover:bg-gray-700 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors flex items-center justify-center">
+            <span class="text-lg font-semibold">?</span>
+        </button>
+        <div id="help-panel" class="absolute bottom-14 left-0 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl border dark:border-gray-700 p-6 hidden">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Help & Shortcuts</h3>
+                <button id="close-help" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl">&times;</button>
             </div>
-            <div class="help-content">
-                <div class="help-section">
-                    <h4>⌨️ Keyboard Shortcuts</h4>
-                    <div class="shortcut-list">
-                        <div class="shortcut-item">
-                            <kbd>Ctrl</kbd> + <kbd>/</kbd> <span>Open search</span>
+            
+            <div class="space-y-4">
+                <div>
+                    <h4 class="font-medium text-gray-900 dark:text-white mb-2">⌨️ Keyboard Shortcuts</h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span><kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">Ctrl</kbd> + <kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">/</kbd></span>
+                            <span class="text-gray-600 dark:text-gray-400">Open search</span>
                         </div>
-                        <div class="shortcut-item">
-                            <kbd>Ctrl</kbd> + <kbd>K</kbd> <span>Quick actions</span>
+                        <div class="flex justify-between">
+                            <span><kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">Ctrl</kbd> + <kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">K</kbd></span>
+                            <span class="text-gray-600 dark:text-gray-400">Quick actions</span>
                         </div>
-                        <div class="shortcut-item">
-                            <kbd>Ctrl</kbd> + <kbd>N</kbd> <span>New task</span>
-                        </div>
-                        <div class="shortcut-item">
-                            <kbd>Enter</kbd> <span>Send message</span>
-                        </div>
-                        <div class="shortcut-item">
-                            <kbd>Shift</kbd> + <kbd>Enter</kbd> <span>New line</span>
+                        <div class="flex justify-between">
+                            <span><kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">Enter</kbd></span>
+                            <span class="text-gray-600 dark:text-gray-400">Send message</span>
                         </div>
                     </div>
                 </div>
-                <div class="help-section">
-                    <h4>🎯 Quick Tips</h4>
-                    <ul class="tips-list">
-                        <li>Use natural language for all commands</li>
-                        <li>Search across all your content with the search bar</li>
-                        <li>Track your progress with the analytics dashboard</li>
-                        <li>Set up goals to stay motivated</li>
-                        <li>Use voice features for hands-free interaction</li>
+                
+                <div>
+                    <h4 class="font-medium text-gray-900 dark:text-white mb-2">🎯 Quick Tips</h4>
+                    <ul class="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                        <li>• Use natural language for all commands</li>
+                        <li>• Search across all your content</li>
+                        <li>• Track progress with analytics dashboard</li>
+                        <li>• Use voice features for hands-free interaction</li>
                     </ul>
                 </div>
             </div>
@@ -292,22 +259,50 @@
     </div>
 
     <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/modern-chat.js') }}"></script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
     <script>
-        // Initialize chat app with user data
-        window.chatApp = new ChatApp({
+        // Initialize modern chat with user data
+        window.chatConfig = {
             userName: {{ user.name | tojson }},
             userAvatar: {{ user.avatar | tojson }},
             apiEndpoint: '/api/v1/chat',
             userEndpoint: '/api/v1/user',
-            legacyApiEndpoint: '/api/chat',  // Fallback support
+            legacyApiEndpoint: '/api/chat',
             legacyUserEndpoint: '/api/user'
-        });
+        };
 
-        // Initialize enhanced features after DOM is ready
+        // Initialize legacy chat app for backward compatibility
+        if (typeof ChatApp !== 'undefined') {
+            window.chatApp = new ChatApp(window.chatConfig);
+        }
+
+        // Character counter for textarea
         document.addEventListener('DOMContentLoaded', function() {
-            if (window.chatApp) {
-                window.chatApp.initEnhancedFeatures();
+            const messageInput = document.getElementById('message-input');
+            const charCount = document.getElementById('char-count');
+            
+            if (messageInput && charCount) {
+                messageInput.addEventListener('input', function() {
+                    charCount.textContent = this.value.length;
+                });
+            }
+
+            // Help system toggle
+            const helpToggle = document.getElementById('help-toggle');
+            const helpPanel = document.getElementById('help-panel');
+            const closeHelp = document.getElementById('close-help');
+            
+            if (helpToggle && helpPanel) {
+                helpToggle.addEventListener('click', () => {
+                    helpPanel.classList.toggle('hidden');
+                });
+            }
+            
+            if (closeHelp && helpPanel) {
+                closeHelp.addEventListener('click', () => {
+                    helpPanel.classList.add('hidden');
+                });
             }
         });
     </script>

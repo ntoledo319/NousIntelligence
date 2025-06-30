@@ -49,7 +49,7 @@ localPort = 8080
 externalPort = 8080
 
 [workflows]
-runButton = "Run App"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Run App"
@@ -79,3 +79,12 @@ args = "export FLASK_ENV=production"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "gunicorn --config gunicorn.conf.py main:app"
+
+[[workflows.workflow]]
+name = "Run App"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "curl -s http://localhost:8080/demo"
