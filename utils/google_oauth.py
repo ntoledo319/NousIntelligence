@@ -4,12 +4,15 @@ Implements secure Google OAuth flow for NOUS application
 """
 
 import os
+import logging
 from authlib.integrations.flask_client import OAuth
 from flask import session, redirect, url_for, request, flash
 from flask_login import login_user, logout_user, current_user
 from models.user import User
 from database import db
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 
 class GoogleOAuthService:
@@ -117,6 +120,40 @@ class GoogleOAuthService:
             os.environ.get('GOOGLE_CLIENT_ID') and 
             os.environ.get('GOOGLE_CLIENT_SECRET')
         )
+    
+    def _generate_unique_username(self, base_username):
+        """Generate a unique username to handle collisions"""
+        username = base_username
+        counter = 1
+        
+        while User.query.filter_by(username=username).first():
+            username = f"{base_username}_{counter}"
+            counter += 1
+            
+        return username
+    
+    def refresh_token(self, user):
+        """Refresh user's Google OAuth token"""
+        if not user.google_refresh_token:
+            return None
+            
+        try:
+            # Use the refresh token to get a new access token
+            refresh_response = self.google.refresh_token(user.google_refresh_token)
+            
+            if refresh_response and refresh_response.get('access_token'):
+                user.google_access_token = refresh_response['access_token']
+                if refresh_response.get('expires_at'):
+                    user.google_token_expires_at = datetime.fromtimestamp(refresh_response['expires_at'])
+                db.session.commit()
+                return refresh_response['access_token']
+                
+        except Exception as e:
+            # Log error without exposing sensitive information
+            logger.error(f"Token refresh failed for user {user.id}")
+            return None
+        
+        return None
 
 
 # Global OAuth service instance

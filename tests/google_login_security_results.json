@@ -1,0 +1,66 @@
+{
+  "timestamp": "2025-06-30T03:47:55.772062",
+  "tests_passed": 10,
+  "tests_failed": 1,
+  "critical_issues_resolved": [
+    {
+      "test": "Blueprint naming consistency",
+      "status": "RESOLVED",
+      "description": "auth_bp correctly named 'auth'"
+    },
+    {
+      "test": "Login view configuration",
+      "status": "RESOLVED",
+      "description": "Flask-Login correctly configured with 'auth.login'"
+    },
+    {
+      "test": "OAuth refresh token",
+      "status": "RESOLVED",
+      "description": "Refresh token method implemented"
+    },
+    {
+      "test": "OAuth configuration check",
+      "status": "RESOLVED",
+      "description": "Configuration validation method exists"
+    },
+    {
+      "test": "Demo mode security",
+      "status": "RESOLVED",
+      "description": "Demo mode restricted to POST method"
+    },
+    {
+      "test": "Demo mode environment check",
+      "status": "RESOLVED",
+      "description": "Demo mode requires environment variable"
+    },
+    {
+      "test": "Error handling security",
+      "status": "RESOLVED",
+      "description": "Generic error messages implemented"
+    },
+    {
+      "test": "Secure logging",
+      "status": "RESOLVED",
+      "description": "Error logging doesn't expose sensitive data"
+    },
+    {
+      "test": "CSRF protection",
+      "status": "RESOLVED",
+      "description": "Logout restricted to POST method (CSRF protected)"
+    },
+    {
+      "test": "Username collision handling",
+      "status": "RESOLVED",
+      "description": "Unique username generation implemented"
+    }
+  ],
+  "remaining_issues": [
+    {
+      "test": "Token storage",
+      "status": "FAILED",
+      "description": "Model test error: Could not determine join condition between parent/child tables on relationship Language.learning_sessions - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.",
+      "severity": "HIGH"
+    }
+  ],
+  "security_score": 90.9
+}
