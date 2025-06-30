@@ -24,27 +24,27 @@ logger = logging.getLogger(__name__)
 def create_app():
     """Create Flask application with comprehensive backend stability features"""
     logger.info("🚀 Starting NOUS application creation...")
-    
+
     # Initialize Flask app
     app = Flask(__name__)
-    
+
     # Configure app from environment and config
     try:
         from config.app_config import AppConfig
         app.config.from_object(AppConfig)
-        
+
         # Ensure database URI is set
         if not app.config.get('SQLALCHEMY_DATABASE_URI'):
             app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
-        
+
         logger.info("✅ App configuration loaded successfully")
     except Exception as e:
         logger.error(f"Configuration error: {e}")
         raise
-    
+
     # ProxyFix for deployment
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
-    
+
     # Database initialization
     try:
         from database import init_database
@@ -53,7 +53,7 @@ def create_app():
     except Exception as e:
         logger.error(f"Database initialization error: {e}")
         raise
-    
+
     # User loader for Flask-Login
     def user_loader(user_id):
         """Load user by ID for Flask-Login"""
@@ -63,14 +63,14 @@ def create_app():
         except Exception as e:
             logger.error(f"User loading error: {e}")
             return None
-    
-    # Initialize Flask-Login
+
+    # Configure Flask-Login
     login_manager = LoginManager()
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Please log in to access this page.'
     login_manager.user_loader(user_loader)
-    
+
     # Initialize Google OAuth
     try:
         from utils.google_oauth import init_oauth
@@ -78,7 +78,7 @@ def create_app():
         logger.info("✅ Google OAuth initialized successfully")
     except Exception as e:
         logger.warning(f"Google OAuth initialization failed: {e}")
-    
+
     # Register all application blueprints
     try:
         from routes import register_all_blueprints
@@ -87,7 +87,7 @@ def create_app():
     except Exception as e:
         logger.error(f"Blueprint registration failed: {e}")
         raise
-    
+
     # Security headers for public deployment
     @app.after_request
     def add_security_headers(response):
@@ -97,7 +97,7 @@ def create_app():
         response.headers['X-XSS-Protection'] = '1; mode=block'
         response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
         return response
-    
+
     logger.info("✅ NOUS application created successfully")
     return app
 

@@ -1,122 +1,119 @@
+
+#!/usr/bin/env python3
 """
-Authentication Routes
-Secure Google OAuth 2.0 authentication system for NOUS application
+Authentication Routes - Google OAuth Implementation
+Provides secure Google login/logout functionality
 """
 
 import os
-from flask import Blueprint, redirect, url_for, request, flash, session, jsonify
+import logging
+from flask import Blueprint, render_template, redirect, request, session, url_for, flash, jsonify
 from flask_login import login_user, logout_user, current_user, login_required
 from utils.google_oauth import oauth_service
-from config.app_config import AppConfig
+from models.user import User
+from database import db
 
+logger = logging.getLogger(__name__)
+
+# Create auth blueprint with consistent naming
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
-
 
 @auth_bp.route('/login')
 def login():
-    """Initiate Google OAuth login"""
+    """Display login page with Google OAuth option"""
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
     
+    # Check if OAuth is configured
     if not oauth_service.is_configured():
         flash('Google OAuth is not configured. Please contact administrator.', 'error')
-        return redirect(url_for('main.landing'))
+        return render_template('auth/login.html', oauth_available=False)
     
-    # Store the next URL for redirect after login
-    next_url = request.args.get('next')
-    if next_url:
-        session['next'] = next_url
-    
-    # Create callback URL
-    redirect_uri = url_for('auth.callback', _external=True)
-    
-    return oauth_service.get_authorization_url(redirect_uri)
+    return render_template('auth/login.html', oauth_available=True)
 
-
-@auth_bp.route('/callback')
-def callback():
-    """Handle Google OAuth callback"""
-    if current_user.is_authenticated:
-        return redirect(url_for('main.dashboard'))
+@auth_bp.route('/google')
+def google_login():
+    """Initiate Google OAuth login"""
+    if not oauth_service.is_configured():
+        flash('Google OAuth is not configured.', 'error')
+        return redirect(url_for('auth.login'))
     
     try:
-        # Handle OAuth callback
-        redirect_uri = url_for('auth.callback', _external=True)
+        redirect_uri = url_for('auth.google_callback', _external=True)
+        return oauth_service.get_authorization_url(redirect_uri)
+    except Exception as e:
+        logger.error(f"OAuth initiation failed: {str(e)}")
+        flash('Authentication failed. Please try again.', 'error')
+        return redirect(url_for('auth.login'))
+
+@auth_bp.route('/google/callback')
+def google_callback():
+    """Handle Google OAuth callback"""
+    try:
+        redirect_uri = url_for('auth.google_callback', _external=True)
         user = oauth_service.handle_callback(redirect_uri)
         
         if user:
-            flash(f'Welcome, {user.username}!', 'success')
+            login_user(user, remember=True)
+            flash('Successfully logged in with Google!', 'success')
             
             # Redirect to originally requested page or dashboard
-            next_url = session.pop('next', None)
-            return redirect(next_url or url_for('main.dashboard'))
+            next_page = session.get('next')
+            if next_page:
+                session.pop('next', None)
+                return redirect(next_page)
+            return redirect(url_for('main.dashboard'))
         else:
-            flash('Login failed. Please try again.', 'error')
-            return redirect(url_for('main.landing'))
+            flash('Authentication failed. Please try again.', 'error')
+            return redirect(url_for('auth.login'))
             
     except Exception as e:
-        # Log error securely without exposing sensitive information
-        import logging
-        logger = logging.getLogger(__name__)
         logger.error(f"Authentication callback failed for user")
         flash('Authentication failed. Please try again.', 'error')
-        return redirect(url_for('main.landing'))
-
+        return redirect(url_for('auth.login'))
 
 @auth_bp.route('/logout', methods=['POST'])
 @login_required
 def logout():
-    """Logout current user - POST only to prevent CSRF"""
-    username = current_user.username if current_user.is_authenticated else 'User'
-    oauth_service.logout()
-    flash(f'Goodbye, {username}!', 'info')
-    return redirect(url_for('main.landing'))
-
-
-@auth_bp.route('/profile')
-@login_required
-def profile():
-    """User profile page"""
-    return jsonify({
-        'user': {
-            'id': current_user.id,
-            'username': current_user.username,
-            'email': current_user.email,
-            'created_at': current_user.created_at.isoformat() if current_user.created_at else None,
-            'last_login': current_user.last_login.isoformat() if current_user.last_login else None,
-            'google_connected': bool(current_user.google_id)
-        }
-    })
-
-
-@auth_bp.route('/status')
-def status():
-    """Authentication status check"""
-    return jsonify({
-        'authenticated': current_user.is_authenticated,
-        'oauth_configured': oauth_service.is_configured(),
-        'user': {
-            'id': current_user.id,
-            'username': current_user.username,
-            'email': current_user.email
-        } if current_user.is_authenticated else None
-    })
-
+    """Logout current user - POST only for CSRF protection"""
+    try:
+        logout_user()
+        session.clear()
+        flash('You have been logged out.', 'info')
+        return redirect(url_for('main.index'))
+    except Exception as e:
+        logger.error(f"Logout error: {str(e)}")
+        flash('Logout failed. Please try again.', 'error')
+        return redirect(url_for('main.dashboard'))
 
 @auth_bp.route('/demo-mode', methods=['POST'])
 def demo_mode():
-    """Enable demo mode for testing - POST only with additional security"""
-    # Restrict demo mode more strictly
-    if AppConfig.DEBUG and os.environ.get('ENABLE_DEMO_MODE') == 'true':
-        # Additional security: require specific environment variable
-        session['user'] = {
-            'id': 'demo_user_123',
-            'username': 'Demo User',
-            'email': 'demo@nous.app',
-            'demo_mode': True
+    """Enable demo mode - POST only and requires environment variable"""
+    # Check if demo mode is enabled via environment variable
+    if not os.environ.get('ENABLE_DEMO_MODE') == 'true':
+        flash('Demo mode is not available.', 'error')
+        return redirect(url_for('auth.login'))
+    
+    try:
+        # Create demo session
+        session['demo_user'] = {
+            'id': 'demo_user',
+            'name': 'Demo User',
+            'email': 'demo@example.com',
+            'is_demo': True
         }
-        flash('Demo mode enabled for development', 'info')
-        return redirect('/')
-    else:
-        flash('Demo mode not available', 'error')
-        return redirect('/')
+        flash('Demo mode activated. Some features may be limited.', 'info')
+        return redirect(url_for('main.dashboard'))
+    except Exception as e:
+        logger.error(f"Demo mode activation failed: {str(e)}")
+        flash('Demo mode failed. Please try again.', 'error')
+        return redirect(url_for('auth.login'))
+
+@auth_bp.route('/status')
+def auth_status():
+    """Get authentication status - API endpoint"""
+    return jsonify({
+        'authenticated': current_user.is_authenticated,
+        'oauth_configured': oauth_service.is_configured(),
+        'demo_available': os.environ.get('ENABLE_DEMO_MODE') == 'true'
+    })
