@@ -96,5 +96,5 @@ def login_rate_limit(f):
     return auth_rate_limit(max_requests=3, window_minutes=10, block_minutes=60)(f)
 
 def oauth_rate_limit(f):
-    """Rate limiter for OAuth endpoints - moderate limits"""
-    return auth_rate_limit(max_requests=10, window_minutes=15, block_minutes=30)(f)
+    """Rate limiter for OAuth endpoints - more permissive for development"""
+    return auth_rate_limit(max_requests=50, window_minutes=15, block_minutes=5)(f)
