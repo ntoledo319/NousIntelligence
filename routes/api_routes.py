@@ -16,7 +16,14 @@ api_bp = Blueprint('api', __name__)
 def chat_api():
     """Chat API endpoint with fallback responses"""
     try:
-        data = request.get_json()
+        data = request.get_json(force=True)
+        if not data:
+            return jsonify({
+                "error": "Invalid JSON data",
+                "message": "Please provide valid JSON with a 'message' field",
+                "timestamp": datetime.now().isoformat()
+            }), 400
+            
         message = data.get('message', '').strip()
         demo_mode = data.get('demo_mode', True)  # Default to demo mode
         
