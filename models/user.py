@@ -22,6 +22,11 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime, nullable=True)
     
+    # OAuth token storage for secure API access
+    google_access_token = db.Column(db.Text, nullable=True)
+    google_refresh_token = db.Column(db.Text, nullable=True)
+    google_token_expires_at = db.Column(db.DateTime, nullable=True)
+    
     def get_id(self):
         """Required for Flask-Login"""
         return str(self.id)
