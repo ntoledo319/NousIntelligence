@@ -154,7 +154,15 @@ def logout():
 def auth_status():
     """Get authentication status"""
     user_data = session.get('user')
-    oauth_configured = oauth_service.is_configured() if oauth_service else False
+    
+    # Properly check OAuth configuration
+    oauth_configured = False
+    if oauth_service:
+        try:
+            oauth_configured = oauth_service.is_configured()
+        except Exception as e:
+            logger.error(f"Error checking OAuth configuration: {e}")
+            oauth_configured = False
     
     return jsonify({
         'authenticated': user_data is not None,
