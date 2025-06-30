@@ -4,24 +4,21 @@ Database models for beta user management and feature flags
 """
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, JSON, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+from database import db
 
-Base = declarative_base()
-
-class BetaUser(Base):
+class BetaUser(db.Model):
     """Beta user registration and management"""
     __tablename__ = 'beta_users'
     
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    email = Column(String(120), unique=True, nullable=False, index=True)
-    invite_code = Column(String(32), unique=True, nullable=False, index=True)
-    flag_set = Column(JSON, default=dict)  # User-specific feature flags
-    joined_at = Column(DateTime, default=datetime.utcnow)
-    is_active = Column(Boolean, default=True)
-    role = Column(String(20), default='TESTER')  # TESTER, ADMIN, OWNER
-    notes = Column(Text)
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    invite_code = db.Column(db.String(32), unique=True, nullable=False, index=True)
+    flag_set = db.Column(db.JSON, default=dict)  # User-specific feature flags
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_active = db.Column(db.Boolean, default=True)
+    role = db.Column(db.String(20), default='TESTER')  # TESTER, ADMIN, OWNER
+    notes = db.Column(db.Text)
     
     # Relationships
     feedback = relationship("BetaFeedback", back_populates="user", cascade="all, delete-orphan")
@@ -59,21 +56,21 @@ class BetaUser(Base):
         """Check if user has admin privileges"""
         return self.role in ['ADMIN', 'OWNER']
 
-class BetaFeedback(Base):
+class BetaFeedback(db.Model):
     """Beta tester feedback storage"""
     __tablename__ = 'beta_feedback'
     
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String(36), ForeignKey('beta_users.id'), nullable=False)
-    feature_name = Column(String(100))
-    rating = Column(Integer)  # 1-5 rating
-    feedback_text = Column(Text)
-    feedback_data = Column(JSON)  # Structured feedback data
-    page_url = Column(String(500))
-    user_agent = Column(String(500))
-    submitted_at = Column(DateTime, default=datetime.utcnow)
-    status = Column(String(20), default='NEW')  # NEW, REVIEWED, RESOLVED, CLOSED
-    admin_notes = Column(Text)
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = db.Column(db.String(36), db.ForeignKey('beta_users.id'), nullable=False)
+    feature_name = db.Column(db.String(100))
+    rating = db.Column(db.Integer)  # 1-5 rating
+    feedback_text = db.Column(db.Text)
+    feedback_data = db.Column(db.JSON)  # Structured feedback data
+    page_url = db.Column(db.String(500))
+    user_agent = db.Column(db.String(500))
+    submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='NEW')  # NEW, REVIEWED, RESOLVED, CLOSED
+    admin_notes = db.Column(db.Text)
     
     # Relationships
     user = relationship("BetaUser", back_populates="feedback")
@@ -97,20 +94,20 @@ class BetaFeedback(Base):
             'admin_notes': self.admin_notes
         }
 
-class FeatureFlag(Base):
+class FeatureFlag(db.Model):
     """Global feature flags configuration"""
     __tablename__ = 'feature_flags'
     
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    name = Column(String(100), unique=True, nullable=False, index=True)
-    description = Column(Text)
-    is_enabled = Column(Boolean, default=False)
-    rollout_percentage = Column(Integer, default=0)  # 0-100
-    target_users = Column(JSON)  # List of specific user IDs/emails
-    conditions = Column(JSON)  # Conditions for flag activation
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, onupdate=datetime.utcnow)
-    created_by = Column(String(120))  # Admin email who created it
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    description = db.Column(db.Text)
+    is_enabled = db.Column(db.Boolean, default=False)
+    rollout_percentage = db.Column(db.Integer, default=0)  # 0-100
+    target_users = db.Column(db.JSON)  # List of specific user IDs/emails
+    conditions = db.Column(db.JSON)  # Conditions for flag activation
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    created_by = db.Column(db.String(120))  # Admin email who created it
     
     def __repr__(self):
         return f"<FeatureFlag {self.name}>"
@@ -148,15 +145,15 @@ class FeatureFlag(Base):
         
         return self.rollout_percentage == 100
 
-class SystemMetrics(Base):
+class SystemMetrics(db.Model):
     """System performance metrics storage"""
     __tablename__ = 'system_metrics'
     
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    timestamp = Column(DateTime, default=datetime.utcnow, index=True)
-    metric_type = Column(String(50), nullable=False)  # cpu, memory, db_query, response_time
-    metric_value = Column(Integer)  # Value in appropriate units
-    extra_data = Column(JSON)  # Additional context
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    metric_type = db.Column(db.String(50), nullable=False)  # cpu, memory, db_query, response_time
+    metric_value = db.Column(db.Integer)  # Value in appropriate units
+    extra_data = db.Column(db.JSON)  # Additional context
     
     def __repr__(self):
         return f"<SystemMetrics {self.metric_type}={self.metric_value}>"
