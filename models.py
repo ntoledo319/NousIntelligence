@@ -18,7 +18,10 @@ from models.product_models import *
 from models.enhanced_health_models import *
 
 # Database instance
-from models.database import db
+try:
+    from models.database import db
+except ImportError:
+    from database import db
 
 # Make sure all models are properly registered
 __all__ = [

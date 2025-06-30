@@ -12,6 +12,17 @@ def index():
     """Main landing page"""
     return render_template('landing.html')
 
+@main_bp.route('/health')
+def health_check():
+    """Root level health check"""
+    from flask import jsonify
+    import datetime
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.datetime.now().isoformat(),
+        'version': '1.0.0'
+    })
+
 @main_bp.route('/chat')
 def chat():
     """Main chat interface"""
