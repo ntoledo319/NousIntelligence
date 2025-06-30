@@ -1,8 +1,7 @@
-
 #!/usr/bin/env python3
 """
 Authentication Routes - Google OAuth Implementation
-Provides secure Google login/logout functionality
+Provides secure Google login/logout functionality with deployment fixes
 """
 
 import os
@@ -35,14 +34,15 @@ def login():
 @auth_bp.route('/google')
 @oauth_rate_limit
 def google_login():
-    """Initiate Google OAuth login"""
+    """Initiate Google OAuth login with deployment-aware redirect URI"""
     if not oauth_service.is_configured():
         logger.warning("Google OAuth is not configured - missing credentials")
         flash('Google OAuth is not configured.', 'error')
         return redirect(url_for('auth.login'))
     
     try:
-        redirect_uri = url_for('auth.google_callback', _external=True)
+        # Get deployment-aware redirect URI
+        redirect_uri = get_deployment_callback_uri()
         logger.info(f"Initiating OAuth with redirect URI: {redirect_uri}")
         return oauth_service.get_authorization_url(redirect_uri)
     except Exception as e:
@@ -51,76 +51,90 @@ def google_login():
         return redirect(url_for('auth.login'))
 
 @auth_bp.route('/google/callback')
-@oauth_rate_limit
 def google_callback():
-    """Handle Google OAuth callback"""
+    """Handle Google OAuth callback with enhanced error handling"""
     try:
-        redirect_uri = url_for('auth.google_callback', _external=True)
+        # Get deployment-aware redirect URI for token exchange
+        redirect_uri = get_deployment_callback_uri()
+        
+        # Handle OAuth callback
         user = oauth_service.handle_callback(redirect_uri)
         
         if user:
             login_user(user, remember=True)
             flash('Successfully logged in with Google!', 'success')
             
-            # Redirect to originally requested page or dashboard
-            next_page = session.get('next')
-            if next_page:
-                session.pop('next', None)
-                return redirect(next_page)
-            return redirect(url_for('main.dashboard'))
+            # Redirect to intended page or dashboard
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('main.dashboard'))
         else:
             flash('Authentication failed. Please try again.', 'error')
             return redirect(url_for('auth.login'))
             
     except Exception as e:
-        logger.error(f"Authentication callback failed: {str(e)}")
-        logger.error(f"Request args: {request.args}")
-        logger.error(f"Session state: {session.get('oauth_state', 'No state found')}")
+        logger.error(f"OAuth callback failed: {str(e)}")
         flash('Authentication failed. Please try again.', 'error')
         return redirect(url_for('auth.login'))
 
 @auth_bp.route('/logout', methods=['POST'])
 @login_required
 def logout():
-    """Logout current user - POST only for CSRF protection"""
+    """Logout current user with CSRF protection"""
     try:
-        logout_user()
-        session.clear()
+        oauth_service.logout()
         flash('You have been logged out.', 'info')
         return redirect(url_for('main.index'))
     except Exception as e:
-        logger.error(f"Logout error: {str(e)}")
+        logger.error(f"Logout failed: {str(e)}")
         flash('Logout failed. Please try again.', 'error')
-        return redirect(url_for('main.dashboard'))
+        return redirect(url_for('main.index'))
 
-@auth_bp.route('/demo-mode', methods=['POST'])
-def demo_mode():
-    """Enable demo mode - POST only and requires environment variable"""
-    # Check if demo mode is enabled via environment variable
-    if not os.environ.get('ENABLE_DEMO_MODE') == 'true':
-        flash('Demo mode is not available.', 'error')
-        return redirect(url_for('auth.login'))
+@auth_bp.route('/profile')
+@login_required
+def profile():
+    """Display user profile"""
+    return render_template('auth/profile.html', user=current_user)
+
+def get_deployment_callback_uri():
+    """Get the correct callback URI for the current deployment environment"""
     
-    try:
-        # Create demo session
-        session['demo_user'] = {
-            'id': 'demo_user',
-            'name': 'Demo User',
-            'email': 'demo@example.com',
-            'is_demo': True
-        }
-        flash('Demo mode activated. Some features may be limited.', 'info')
-        return redirect(url_for('main.dashboard'))
-    except Exception as e:
-        logger.error(f"Demo mode activation failed: {str(e)}")
-        flash('Demo mode failed. Please try again.', 'error')
-        return redirect(url_for('auth.login'))
+    # Try to get the deployment URL from various sources
+    deployment_url = None
+    
+    # Check environment variables
+    for env_var in ['REPL_URL', 'REPLIT_DOMAIN', 'REPL_SLUG']:
+        if os.environ.get(env_var):
+            deployment_url = os.environ.get(env_var)
+            break
+    
+    # If no environment variable, try to construct from request
+    if not deployment_url:
+        try:
+            from flask import request
+            if request:
+                # Get the host from the current request
+                scheme = 'https' if request.is_secure else 'http'
+                host = request.host
+                deployment_url = f"{scheme}://{host}"
+        except:
+            pass
+    
+    # Fallback to common Replit patterns
+    if not deployment_url:
+        # Try common Replit URL patterns
+        possible_domains = [
+            "https://nous.replit.app",
+            "https://nous-assistant.replit.app", 
+            "https://workspace.replit.dev"
+        ]
+        # Use the first one as fallback
+        deployment_url = possible_domains[0]
+        logger.warning(f"Using fallback deployment URL: {deployment_url}")
+    
+    callback_uri = f"{deployment_url}/auth/google/callback"
+    logger.info(f"Using callback URI: {callback_uri}")
+    
+    return callback_uri
 
-@auth_bp.route('/status')
-def auth_status():
-    """Get authentication status - API endpoint"""
-    return jsonify({
-        'authenticated': current_user.is_authenticated,
-        'oauth_configured': oauth_service.is_configured(),
-        'demo_available': os.environ.get('ENABLE_DEMO_MODE') == 'true'
-    })
+# Export the blueprint
+__all__ = ['auth_bp']
