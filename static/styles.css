@@ -287,10 +287,12 @@ body {
 .hero {
     padding: 3rem 0; /* Mobile: 48px */
     text-align: center;
-    color: white;
+    color: white; /* White text works with gradient backgrounds */
     min-height: 60vh;
     display: flex;
     align-items: center;
+    /* Ensure text is readable with background gradient */
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .hero-content {
