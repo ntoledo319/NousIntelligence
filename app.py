@@ -19,19 +19,11 @@ except Exception as e:
     print(f"Failed to import modules in app.py: {e}")
     raise
 
-# Configure comprehensive logging first
-import os
-os.makedirs('logs', exist_ok=True)
+# Import logging configuration first
+from config.logging_config import setup_logging
 
-logging.basicConfig(
-    level=logging.DEBUG, 
-    format='[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-    handlers=[
-        logging.FileHandler('logs/app.log'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
+# Setup logging with production-appropriate settings
+logger = setup_logging(environment='production' if not DEBUG else 'development')
 
 def create_app():
     """Create Flask application with comprehensive backend stability features"""
@@ -80,17 +72,25 @@ def create_app():
     # Initialize Flask-Login
     login_manager = LoginManager()
     login_manager.init_app(app)
-    login_manager.login_view = 'google_auth.login'
+    login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Please log in to access this page.'
     login_manager.user_loader(user_loader)
     
-    # Initialize Google OAuth
+    # Initialize Google OAuth with proper error handling
+    oauth_initialized = False
     try:
-        init_oauth(app)
-        logger.info("✅ Google OAuth initialized successfully")
+        oauth_service = init_oauth(app)
+        if oauth_service and oauth_service.is_configured():
+            logger.info("✅ Google OAuth initialized successfully")
+            oauth_initialized = True
+        else:
+            logger.warning("⚠️  Google OAuth credentials not configured - OAuth login disabled")
     except Exception as e:
-        logger.warning(f"Google OAuth initialization failed: {e}")
-        # Continue without OAuth for development
+        logger.warning(f"⚠️  Google OAuth initialization failed: {e}")
+        logger.info("Application will continue with demo mode only")
+    
+    # Store OAuth status for templates
+    app.config['OAUTH_ENABLED'] = oauth_initialized
     
     # Register all application blueprints
     try:

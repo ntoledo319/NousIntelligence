@@ -27,25 +27,46 @@ class GoogleOAuthService:
     
     def init_app(self, app):
         """Initialize OAuth with Flask app"""
-        self.oauth.init_app(app)
-        
-        # Configure Google OAuth client with refresh token support
-        self.google = self.oauth.register(
-            name='google',
-            client_id=os.environ.get('GOOGLE_CLIENT_ID'),
-            client_secret=os.environ.get('GOOGLE_CLIENT_SECRET'),
-            server_metadata_url='https://accounts.google.com/.well-known/openid_configuration',
-            client_kwargs={
-                'scope': 'openid email profile https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/tasks',
-                'access_type': 'offline',  # Request refresh token
-                'prompt': 'consent'  # Force consent to get refresh token
-            }
-        )
+        try:
+            self.oauth.init_app(app)
+            
+            # Check if OAuth credentials are available
+            client_id = os.environ.get('GOOGLE_CLIENT_ID')
+            client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')
+            
+            if not client_id or not client_secret:
+                logger.warning("Google OAuth credentials not found in environment variables")
+                logger.warning("OAuth login will not be available. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET")
+                return False
+            
+            # Configure Google OAuth client with refresh token support
+            self.google = self.oauth.register(
+                name='google',
+                client_id=client_id,
+                client_secret=client_secret,
+                server_metadata_url='https://accounts.google.com/.well-known/openid_configuration',
+                client_kwargs={
+                    'scope': 'openid email profile https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/tasks',
+                    'access_type': 'offline',  # Request refresh token
+                    'prompt': 'consent'  # Force consent to get refresh token
+                }
+            )
+            
+            logger.info("Google OAuth initialized successfully")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize Google OAuth: {e}")
+            return False
+    
+    def is_configured(self):
+        """Check if OAuth is properly configured"""
+        return self.google is not None
     
     def get_authorization_url(self, redirect_uri):
         """Get Google OAuth authorization URL with CSRF protection"""
         if not self.google:
-            raise ValueError("OAuth not initialized")
+            raise ValueError("OAuth not initialized - missing credentials")
         
         # Generate and store state parameter for CSRF protection
         import secrets
