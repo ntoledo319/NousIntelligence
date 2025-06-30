@@ -6,7 +6,7 @@ from flask import Blueprint, request, jsonify, session
 from utils.auth_compat import get_demo_user
 import datetime
 
-auth_bp = Blueprint('auth', __name__)
+auth_bp = Blueprint('simple_auth_api', __name__)
 
 @auth_bp.route('/api/auth/login', methods=['POST'])
 def api_login():
