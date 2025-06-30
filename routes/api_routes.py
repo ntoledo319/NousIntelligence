@@ -18,9 +18,14 @@ def chat_api():
     
     # Simple response for now
     response = {
-        'response': f"Hello {user['name']}! You said: {message}",
-        'user': user,
-        'demo_mode': user.get('demo', False)
+        'response': f"Hello {user.name}! You said: {message}",
+        'user': {
+            'id': user.id,
+            'name': user.name,
+            'email': user.email,
+            'demo_mode': user.demo_mode
+        },
+        'demo_mode': getattr(user, 'demo_mode', False)
     }
     
     return jsonify(response)
