@@ -13,6 +13,7 @@ class DemoUser:
         self.id = 'demo_user_123'
         self.name = 'Demo User'
         self.email = 'demo@nous.app'
+        self.avatar = '/static/images/default-avatar.png'
         self.is_authenticated = True
         self.is_active = True
         self.is_anonymous = False
