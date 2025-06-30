@@ -1,35 +1,53 @@
 """
-Chat routes
+Chat Routes - Chat Interface and Related Endpoints
+Provides web interface for the chat functionality
 """
 
-from flask import Blueprint, render_template, jsonify, request
-from utils.auth_compat import login_required, get_demo_user, is_authenticated
-import datetime
+import logging
+from datetime import datetime
+from flask import Blueprint, render_template, session
 
+logger = logging.getLogger(__name__)
+
+# Create chat blueprint
 chat_bp = Blueprint('chat', __name__)
 
 @chat_bp.route('/chat')
-def chat_page():
-    """Chat interface"""
-    user = get_demo_user()
-    return render_template('chat.html', user=user)
+def chat_interface():
+    """Main chat interface page"""
+    try:
+        # Ensure demo user is in session
+        if 'user' not in session:
+            session['user'] = {
+                'id': 'demo_user_123',
+                'name': 'Demo User',
+                'email': 'demo@nous.app',
+                'demo_mode': True
+            }
+        
+        return render_template('chat.html', user=session['user'])
+    except Exception as e:
+        logger.error(f"Chat interface error: {e}")
+        # Fallback to basic chat interface
+        demo_user = {
+            'id': 'demo_user_123',
+            'name': 'Demo User',
+            'email': 'demo@nous.app',
+            'demo_mode': True
+        }
+        return render_template('chat.html', user=demo_user)
 
-@chat_bp.route('/api/chat', methods=['POST'])
-def chat_api():
-    """Chat API endpoint"""
-    data = request.get_json() or {}
-    message = data.get('message', '')
-    user = get_demo_user()
-    
-    response = {
-        'response': f"Hello {user.name}! You said: {message}",
-        'user': {
-            'id': user.id,
-            'name': user.name,
-            'email': user.email,
-            'demo_mode': user.demo_mode
-        },
-        'timestamp': datetime.datetime.now().isoformat()
+@chat_bp.route('/chat/demo')
+def demo_chat():
+    """Demo chat interface"""
+    demo_user = {
+        'id': 'demo_user_123',
+        'name': 'Demo User',
+        'email': 'demo@nous.app',
+        'demo_mode': True,
+        'login_time': datetime.now().isoformat()
     }
-    
-    return jsonify(response)
+    return render_template('chat.html', user=demo_user, demo_mode=True)
+
+# Export the blueprint
+__all__ = ['chat_bp']
