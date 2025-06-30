@@ -10,6 +10,7 @@ import logging
 from flask import Blueprint, render_template, redirect, request, session, url_for, flash, jsonify
 from flask_login import login_user, logout_user, current_user, login_required
 from utils.google_oauth import oauth_service
+from utils.rate_limiter import login_rate_limit, oauth_rate_limit
 from models.user import User
 from database import db
 
@@ -32,6 +33,7 @@ def login():
     return render_template('auth/login.html', oauth_available=True)
 
 @auth_bp.route('/google')
+@oauth_rate_limit
 def google_login():
     """Initiate Google OAuth login"""
     if not oauth_service.is_configured():
@@ -47,6 +49,7 @@ def google_login():
         return redirect(url_for('auth.login'))
 
 @auth_bp.route('/google/callback')
+@oauth_rate_limit
 def google_callback():
     """Handle Google OAuth callback"""
     try:
