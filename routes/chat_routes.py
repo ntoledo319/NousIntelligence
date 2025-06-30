@@ -22,8 +22,13 @@ def chat_api():
     user = get_demo_user()
     
     response = {
-        'response': f"Hello {user['name']}! You said: {message}",
-        'user': user,
+        'response': f"Hello {user.name}! You said: {message}",
+        'user': {
+            'id': user.id,
+            'name': user.name,
+            'email': user.email,
+            'demo_mode': user.demo_mode
+        },
         'timestamp': datetime.datetime.now().isoformat()
     }
     
