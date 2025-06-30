@@ -1,30 +1,62 @@
 """
-Main application routes
+Main Routes - Landing Page and Core Application Routes
+Handles the main application landing page and core routing
 """
 
-from flask import Blueprint, render_template, redirect, url_for, request, session
-from utils.auth_compat import get_current_user
+import os
+import logging
+from datetime import datetime
+from flask import Blueprint, render_template, redirect, url_for, session, request, jsonify
 
+logger = logging.getLogger(__name__)
+
+# Create main blueprint
 main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def index():
-    """Main landing page"""
-    return render_template('landing.html')
+    """Landing page for NOUS application"""
+    try:
+        # Check if user is authenticated
+        user_authenticated = 'user' in session and session['user'] is not None
+        
+        # Get OAuth availability from app config
+        from flask import current_app
+        oauth_available = current_app.config.get('OAUTH_ENABLED', False)
+        
+        return render_template('landing.html', 
+                             user_authenticated=user_authenticated,
+                             oauth_available=oauth_available)
+    except Exception as e:
+        logger.error(f"Landing page error: {e}")
+        return render_template('landing.html', 
+                             user_authenticated=False,
+                             oauth_available=False)
 
-@main_bp.route('/health')
-def health_check():
-    """Root level health check"""
-    from flask import jsonify
-    import datetime
-    return jsonify({
-        'status': 'healthy',
-        'timestamp': datetime.datetime.now().isoformat(),
-        'version': '1.0.0'
-    })
+@main_bp.route('/dashboard')
+def dashboard():
+    """Main dashboard - redirects to demo for now"""
+    return redirect(url_for('public_demo'))
 
-@main_bp.route('/chat')
-def chat():
-    """Main chat interface"""
-    user = get_current_user()
-    return render_template('chat.html', user=user)
+@main_bp.route('/about')
+def about():
+    """About page"""
+    return render_template('about.html')
+
+@main_bp.route('/features')
+def features():
+    """Features page"""
+    return render_template('features.html')
+
+@main_bp.route('/privacy')
+def privacy():
+    """Privacy policy page"""
+    return render_template('privacy.html')
+
+@main_bp.route('/terms')
+def terms():
+    """Terms of service page"""
+    return render_template('terms.html')
+
+# Export the blueprint
+__all__ = ['main_bp']
