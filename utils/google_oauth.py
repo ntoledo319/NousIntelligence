@@ -199,8 +199,11 @@ oauth_service = GoogleOAuthService()
 
 def init_oauth(app):
     """Initialize OAuth service with app"""
-    oauth_service.init_app(app)
-    return oauth_service
+    success = oauth_service.init_app(app)
+    if success:
+        return oauth_service
+    else:
+        return None
 
 
 def user_loader(user_id):
