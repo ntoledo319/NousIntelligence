@@ -35,8 +35,15 @@ def index():
 
 @main_bp.route('/dashboard')
 def dashboard():
-    """Main dashboard - redirects to demo for now"""
-    return redirect(url_for('public_demo'))
+    """Main dashboard - redirects to chat for demo"""
+    # Set demo user in session
+    session['user'] = {
+        'id': 'demo_user_123',
+        'name': 'Demo User',
+        'email': 'demo@nous.app',
+        'demo_mode': True
+    }
+    return redirect('/chat')
 
 @main_bp.route('/about')
 def about():
@@ -57,6 +64,24 @@ def privacy():
 def terms():
     """Terms of service page"""
     return render_template('terms.html')
+
+@main_bp.route('/demo')
+def demo():
+    """Demo page for NOUS"""
+    try:
+        # Create demo user session
+        session['user'] = {
+            'id': 'demo_user_123',
+            'name': 'Demo User',
+            'email': 'demo@nous.app',
+            'demo_mode': True
+        }
+        
+        # Redirect to chat with demo mode
+        return redirect('/chat')
+    except Exception as e:
+        logger.error(f"Demo page error: {e}")
+        return "Demo mode temporarily unavailable", 500
 
 # Export the blueprint
 __all__ = ['main_bp']
