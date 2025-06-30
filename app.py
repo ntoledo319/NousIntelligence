@@ -240,15 +240,5 @@ def create_app():
     logger.info("✅ NOUS application created successfully")
     logger.info("🚀 Public access enabled - no authentication barriers")
     logger.info("💀 OPERATION PUBLIC-OR-BUST: Complete")
-    
-    
-    # Register all application blueprints
-    try:
-        from routes import register_all_blueprints
-        register_all_blueprints(app)
-        logger.info("✅ All blueprints registered successfully")
-    except Exception as e:
-        logger.error(f"⚠️ Blueprint registration failed: {e}", exc_info=True)
-        raise e
 
     return app
