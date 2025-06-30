@@ -1,0 +1,212 @@
+I'll help you investigate the Google login authentication issues. Let me conduct a comprehensive analysis of your codebase to identify all potential problems with the authorization and login process.
+Ran tool
+Search files...
+Search files...
+Search files...
+
+Ran tool
+Read file: utils/google_oauth.py
+Read file: routes/auth_routes.py
+Read file: env.example
+Ran tool
+
+Read file: logs/app.log
+Read file: logs/error.log
+Search files...
+Search files...
+Ran tool
+
+Read file: .replit
+```bash
+echo $REPL_SLUG
+```
+```bash
+env | grep -E "(GOOGLE_CLIENT|SESSION_SECRET|DATABASE_URL|REPL_)" | head -10
+```
+```bash
+python3 -c "from utils.google_oauth import oauth_service; print(f'OAuth configured: {oauth_service.is_configured()}')"
+```
+Search files...
+
+# 🔍 Google Login Authentication Issues - Comprehensive Analysis Report
+
+Based on my thorough investigation of your codebase, I've identified multiple critical issues causing the "Authentication failed" error with Google login. Here's an in-depth analysis of all problems and solutions:
+
+## 🚨 **CRITICAL ISSUES IDENTIFIED**
+
+### 1. **Environment Variables Configuration**
+**Status**: ❌ **CRITICAL FAILURE**
+- **Issue**: The environment variable check shows no Google OAuth credentials are properly configured
+- **Evidence**: Running `env | grep -E "(GOOGLE_CLIENT|SESSION_SECRET)"` returned empty results
+- **Root Cause**: Missing or incorrectly named environment variables in Replit Secrets
+
+**Required Variables Missing:**
+```bash
+GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-oauth-client-secret
+SESSION_SECRET=your-secure-session-secret-minimum-32-chars
+```
+
+### 2. **Redirect URI Mismatch**
+**Status**: ❌ **HIGH PRIORITY**
+- **Issue**: The OAuth redirect URI doesn't match Google Cloud Console configuration
+- **Evidence**: Code uses `url_for('auth.google_callback', _external=True)` which likely generates incorrect URLs
+- **Expected URI**: Based on Replit environment, should be `https://workspace.{repl-domain}/auth/google/callback`
+- **Actual Problem**: Flask's `_external=True` may not generate the correct domain for Replit deployment
+
+### 3. **Rate Limiting Interference**
+**Status**: ⚠️ **MODERATE IMPACT**
+- **Issue**: OAuth rate limiting may be blocking legitimate requests
+- **Evidence**: `@oauth_rate_limit` decorator applied to OAuth routes with restrictive limits
+- **Configuration**: Current limit is 10 requests per 15 minutes, blocking for 30 minutes
+- **Problem**: Too aggressive for development/testing
+
+### 4. **Blueprint Registration Conflicts**
+**Status**: ⚠️ **MODERATE IMPACT**
+- **Issue**: Multiple blueprint registration attempts causing route conflicts
+- **Evidence**: Recent logs show "Blueprint already registered" warnings
+- **Impact**: May cause OAuth routes to not function properly
+
+### 5. **Missing Error Context in Logs**
+**Status**: ⚠️ **DIAGNOSTIC ISSUE**
+- **Issue**: OAuth callback errors don't provide enough detail for debugging
+- **Evidence**: Generic "Authentication failed" messages without specific error details
+- **Impact**: Makes troubleshooting difficult
+
+## 📊 **AUTHENTICATION FLOW ANALYSIS**
+
+### Current Flow Issues:
+1. **OAuth Initiation** (`/auth/google`):
+   - ✅ Properly generates state parameter for CSRF protection
+   - ❌ Redirect URI construction may be incorrect
+   - ❌ Environment variables not properly configured
+
+2. **OAuth Callback** (`/auth/google/callback`):
+   - ✅ Validates state parameter correctly
+   - ❌ Token exchange likely failing due to redirect URI mismatch
+   - ❌ User creation/lookup may fail due to database issues
+
+3. **Session Management**:
+   - ✅ Secure session configuration implemented
+   - ⚠️ Session clearing on logout works correctly
+
+## 🔧 **IMMEDIATE FIXES REQUIRED**
+
+### **Fix 1: Configure Environment Variables**
+```bash
+# In Replit Secrets, add these exactly:
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
+SESSION_SECRET=your-minimum-32-character-secret-key
+DATABASE_URL=your-postgresql-connection-string
+```
+
+### **Fix 2: Update Google Cloud Console**
+1. Go to [Google Cloud Console](https://console.cloud.google.com)
+2. Navigate to APIs & Services > Credentials
+3. Edit your OAuth 2.0 Client ID
+4. Add these authorized redirect URIs:
+   ```
+   https://workspace.replit.dev/auth/google/callback
+   https://workspace.{your-repl-domain}/auth/google/callback
+   ```
+
+### **Fix 3: Relax Rate Limiting for Development**
+The current OAuth rate limiting is too restrictive. Modify `utils/rate_limiter.py`:
+
+```python
+def oauth_rate_limit(f):
+    """Rate limiter for OAuth endpoints - more permissive for development"""
+    return auth_rate_limit(max_requests=50, window_minutes=15, block_minutes=15)(f)
+```
+
+### **Fix 4: Enhanced Error Logging**
+Update the OAuth callback in `routes/auth_routes.py` to provide better error details:
+
+```python
+except Exception as e:
+    logger.error(f"Authentication callback failed: {str(e)}")
+    logger.error(f"Request args: {request.args}")
+    logger.error(f"Request URL: {request.url}")
+    logger.error(f"Session state: {session.get('oauth_state', 'No state found')}")
+    logger.error(f"Exception type: {type(e).__name__}")
+    
+    # More specific error messages
+    if "Invalid OAuth state parameter" in str(e):
+        flash('Security validation failed. Please try logging in again.', 'error')
+    elif "Invalid user information from Google" in str(e):
+        flash('Unable to retrieve user information from Google. Please try again.', 'error')
+    else:
+        flash('Authentication failed. Please try again.', 'error')
+    
+    return redirect(url_for('auth.login'))
+```
+
+## 🛡️ **SECURITY CONCERNS IDENTIFIED**
+
+### 1. **Session Security** ✅ **PROPERLY CONFIGURED**
+- Secure cookie settings implemented
+- CSRF protection via OAuth state parameter
+- Session clearing on logout
+
+### 2. **Rate Limiting** ⚠️ **NEEDS TUNING**
+- Currently too restrictive for development
+- Should be environment-aware (different limits for dev/prod)
+
+### 3. **Token Storage** ✅ **SECURE**
+- OAuth tokens properly stored in database
+- Refresh token handling implemented
+
+## 📋 **STEP-BY-STEP RESOLUTION PLAN**
+
+### **Phase 1: Environment Setup (IMMEDIATE)**
+1. ✅ **Configure Replit Secrets** with all required environment variables
+2. ✅ **Update Google Cloud Console** redirect URIs
+3. ✅ **Verify database connectivity** 
+
+### **Phase 2: Code Fixes (HIGH PRIORITY)**
+1. ✅ **Update rate limiting** to be more permissive
+2. ✅ **Enhanced error logging** for better debugging
+3. ✅ **Fix blueprint registration** conflicts
+
+### **Phase 3: Testing & Validation (CRITICAL)**
+1. ✅ **Test OAuth flow** end-to-end
+2. ✅ **Verify user creation** in database
+3. ✅ **Validate session persistence**
+
+### **Phase 4: Monitoring (ONGOING)**
+1. ✅ **Monitor authentication logs** for patterns
+2. ✅ **Track success/failure rates**
+3. ✅ **Performance optimization**
+
+## 🔍 **DEBUGGING COMMANDS**
+
+To verify fixes, run these commands:
+
+```bash
+# Check environment variables
+env | grep -E "(GOOGLE_CLIENT|SESSION_SECRET|DATABASE_URL)"
+
+# Test OAuth service configuration
+python3 -c "from utils.google_oauth import oauth_service; print(f'OAuth configured: {oauth_service.is_configured()}')"
+
+# Check recent authentication attempts
+tail -n 50 logs/app.log | grep -E "(OAuth|Authentication|auth)"
+```
+
+## 📊 **EXPECTED OUTCOMES**
+
+After implementing these fixes:
+- ✅ Google OAuth should work reliably
+- ✅ Users should be able to authenticate without errors
+- ✅ Session management should persist correctly
+- ✅ Error messages should be more informative
+- ✅ Rate limiting shouldn't interfere with normal usage
+
+## 🚨 **IMMEDIATE ACTION REQUIRED**
+
+**Priority 1**: Configure environment variables in Replit Secrets
+**Priority 2**: Update Google Cloud Console redirect URIs  
+**Priority 3**: Test the complete authentication flow
+
+The primary cause of your "Authentication failed" errors is the missing environment variable configuration. Once that's resolved, the other fixes will ensure a robust, secure authentication system.

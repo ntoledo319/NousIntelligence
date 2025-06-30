@@ -68,6 +68,10 @@ class GoogleOAuthService:
         if not self.google:
             raise ValueError("OAuth not initialized - missing credentials")
         
+        # Fix redirect URI for Replit deployment
+        redirect_uri = self._fix_redirect_uri(redirect_uri)
+        logger.info(f"Using redirect URI: {redirect_uri}")
+        
         # Generate and store state parameter for CSRF protection
         import secrets
         state = secrets.token_urlsafe(32)
@@ -75,10 +79,28 @@ class GoogleOAuthService:
         
         return self.google.authorize_redirect(redirect_uri, state=state)
     
+    def _fix_redirect_uri(self, redirect_uri):
+        """Fix redirect URI for Replit deployment"""
+        # If we're on Replit, ensure we use the correct domain
+        if 'replit.dev' in redirect_uri or 'replit.app' in redirect_uri:
+            return redirect_uri
+            
+        # Check for common Replit patterns in environment
+        repl_url = os.environ.get('REPL_URL')
+        if repl_url:
+            return f"{repl_url}/auth/google/callback"
+            
+        # For local development or other deployments, use as-is
+        return redirect_uri
+    
     def handle_callback(self, redirect_uri):
         """Handle OAuth callback and create/login user"""
         if not self.google:
             raise ValueError("OAuth not initialized")
+        
+        # Fix redirect URI for consistency
+        redirect_uri = self._fix_redirect_uri(redirect_uri)
+        logger.info(f"Processing callback with redirect URI: {redirect_uri}")
         
         # Validate state parameter for CSRF protection
         received_state = request.args.get('state')
