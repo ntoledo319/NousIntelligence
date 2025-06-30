@@ -77,13 +77,12 @@ class GoogleOAuthService:
                     user.google_id = google_id
                 else:
                     # Create new user
-                    user = User(
-                        username=name or email.split('@')[0],
-                        email=email,
-                        google_id=google_id,
-                        active=True,
-                        created_at=datetime.utcnow()
-                    )
+                    user = User()
+                    user.username = name or email.split('@')[0]
+                    user.email = email
+                    user.google_id = google_id
+                    user.active = True
+                    user.created_at = datetime.utcnow()
                     db.session.add(user)
             
             # Update last login
