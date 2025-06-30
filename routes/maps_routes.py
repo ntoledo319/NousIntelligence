@@ -10,7 +10,7 @@ maps_bp = Blueprint('maps', __name__)
 @maps_bp.route('/maps')
 def maps_main():
     """Maps main page"""
-    user = get_demo_user()()
+    user = get_demo_user()
     return render_template('maps/main.html', user=user)
 
 @maps_bp.route('/api/maps/location')

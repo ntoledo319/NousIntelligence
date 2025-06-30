@@ -10,7 +10,7 @@ aa_bp = Blueprint('aa', __name__)
 @aa_bp.route('/aa')
 def aa_main():
     """AA main page"""
-    user = get_demo_user()()
+    user = get_demo_user()
     return render_template('aa/main.html', user=user)
 
 @aa_bp.route('/api/aa/steps')

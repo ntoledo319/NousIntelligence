@@ -3,13 +3,18 @@
 Optimized main.py for OPERATION PUBLIC-OR-BUST
 Fast startup with public access guarantees
 """
-import os
-from datetime import datetime
+try:
+    import os
+    from datetime import datetime
+except Exception as e:
+    print(f"Failed to import os or datetime: {e}")
+    raise
 
 # Set critical environment variables for public deployment
-os.environ.setdefault('PORT', '5000')
+os.environ.setdefault('PORT', '8080')
 os.environ.setdefault('HOST', '0.0.0.0')
 os.environ.setdefault('FLASK_ENV', 'production')
+os.environ.setdefault('DATABASE_URL', 'sqlite:///instance/app.db')
 
 # Enable fast startup for deployment
 os.environ.setdefault('FAST_STARTUP', 'true')
@@ -18,10 +23,11 @@ os.environ.setdefault('DISABLE_HEAVY_FEATURES', 'true')
 if __name__ == "__main__":
     try:
         from app import create_app
+        
         app = create_app()
         
         # Get port from environment
-        port = int(os.environ.get('PORT', 5000))
+        port = int(os.environ.get('PORT', 8080))
         host = os.environ.get('HOST', '0.0.0.0')
         
         print(f"🚀 NOUS starting on {host}:{port}")
@@ -41,8 +47,12 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"❌ Startup error: {e}")
         # Fallback: create minimal Flask app for public access
-        from flask import Flask, jsonify, render_template_string
-        
+        try:
+            from flask import Flask, jsonify, render_template_string
+        except Exception as fallback_e:
+            print(f"Failed to import flask for fallback: {fallback_e}")
+            raise
+
         fallback_app = Flask(__name__)
         
         @fallback_app.route('/')
@@ -69,7 +79,7 @@ if __name__ == "__main__":
                 'timestamp': datetime.now().isoformat()
             })
             
-        port = int(os.environ.get('PORT', 5000))
+        port = int(os.environ.get('PORT', 8080))
         host = os.environ.get('HOST', '0.0.0.0')
         
         print("🔧 Running fallback server for public access")

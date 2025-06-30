@@ -10,7 +10,7 @@ analytics_bp = Blueprint('analytics', __name__)
 @analytics_bp.route('/analytics')
 def analytics_main():
     """Analytics main page"""
-    user = get_demo_user()()
+    user = get_demo_user()
     return render_template('analytics/main.html', user=user)
 
 @analytics_bp.route('/api/analytics/summary')

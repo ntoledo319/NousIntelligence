@@ -10,7 +10,7 @@ dbt_bp = Blueprint('dbt', __name__)
 @dbt_bp.route('/dbt')
 def dbt_main():
     """DBT main page"""
-    user = get_demo_user()()
+    user = get_demo_user()
     return render_template('dbt/main.html', user=user)
 
 @dbt_bp.route('/api/dbt/skills')

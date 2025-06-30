@@ -10,7 +10,7 @@ financial_bp = Blueprint('financial', __name__)
 @financial_bp.route('/financial')
 def financial_main():
     """Financial main page"""
-    user = get_demo_user()()
+    user = get_demo_user()
     return render_template('financial/main.html', user=user)
 
 @financial_bp.route('/api/financial/accounts')

@@ -10,7 +10,7 @@ cbt_bp = Blueprint('cbt', __name__)
 @cbt_bp.route('/cbt')
 def cbt_main():
     """CBT main page"""
-    user = get_demo_user()()
+    user = get_demo_user()
     return render_template('cbt/main.html', user=user)
 
 @cbt_bp.route('/api/cbt/exercises')

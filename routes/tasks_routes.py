@@ -10,7 +10,7 @@ tasks_bp = Blueprint('tasks', __name__)
 @tasks_bp.route('/tasks')
 def tasks_main():
     """Tasks main page"""
-    user = get_demo_user()()
+    user = get_demo_user()
     return render_template('tasks/main.html', user=user)
 
 @tasks_bp.route('/api/tasks')

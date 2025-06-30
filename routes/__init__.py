@@ -43,22 +43,17 @@ def register_all_blueprints(app: Flask) -> Flask:
     
     # Register core blueprints
     for bp_config in CORE_BLUEPRINTS:
-        try:
-            module = importlib.import_module(bp_config['module'])
-            blueprint = getattr(module, bp_config['attr'])
-            
-            if bp_config['url_prefix']:
-                app.register_blueprint(blueprint, url_prefix=bp_config['url_prefix'])
-            else:
-                app.register_blueprint(blueprint)
-            
-            logger.info(f"✅ Registered core blueprint: {bp_config['name']}")
-            registered_count += 1
-            
-        except Exception as e:
-            logger.warning(f"❌ Failed to register core blueprint {bp_config['name']}: {e}")
-            failed_count += 1
-    
+        module = importlib.import_module(bp_config['module'])
+        blueprint = getattr(module, bp_config['attr'])
+        
+        if bp_config['url_prefix']:
+            app.register_blueprint(blueprint, url_prefix=bp_config['url_prefix'])
+        else:
+            app.register_blueprint(blueprint)
+        
+        logger.info(f"✅ Registered core blueprint: {bp_config['name']}")
+        registered_count += 1
+
     # Register optional blueprints
     for bp_config in OPTIONAL_BLUEPRINTS:
         try:
