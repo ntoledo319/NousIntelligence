@@ -61,7 +61,7 @@ class GoogleOAuthService:
     
     def is_configured(self):
         """Check if OAuth is properly configured"""
-        return self.google is not None
+        return self.google is not None and os.environ.get('GOOGLE_CLIENT_ID') and os.environ.get('GOOGLE_CLIENT_SECRET')
     
     def get_authorization_url(self, redirect_uri):
         """Get Google OAuth authorization URL with CSRF protection"""
@@ -167,12 +167,7 @@ class GoogleOAuthService:
         logout_user()
         session.clear()
     
-    def is_configured(self):
-        """Check if OAuth is properly configured"""
-        return (
-            os.environ.get('GOOGLE_CLIENT_ID') and 
-            os.environ.get('GOOGLE_CLIENT_SECRET')
-        )
+
     
     def _generate_unique_username(self, base_username):
         """Generate a unique username to handle collisions"""
