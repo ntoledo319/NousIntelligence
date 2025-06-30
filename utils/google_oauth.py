@@ -31,8 +31,11 @@ class GoogleOAuthService:
             self.oauth.init_app(app)
             
             # Check if OAuth credentials are available
-            client_id = os.environ.get('GOOGLE_CLIENT_ID')
+            raw_client_id = os.environ.get('GOOGLE_CLIENT_ID')
             client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')
+            
+            # Extract correct client ID from potentially malformed environment variable
+            client_id = self._extract_client_id(raw_client_id)
             
             if not client_id or not client_secret:
                 logger.warning("Google OAuth credentials not found in environment variables")
