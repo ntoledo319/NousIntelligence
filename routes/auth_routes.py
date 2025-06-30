@@ -121,46 +121,41 @@ def profile():
 def get_deployment_callback_uri():
     """Get the correct callback URI for the current deployment environment"""
     
-    # Try to get the deployment URL from various sources
     deployment_url = None
     
-    # Check environment variables
-    for env_var in ['REPL_URL', 'REPLIT_DOMAIN', 'REPL_SLUG']:
-        if os.environ.get(env_var):
-            deployment_url = os.environ.get(env_var)
-            break
+    # First try to get from Flask request context
+    try:
+        from flask import request, has_request_context
+        if has_request_context() and request:
+            # Get the host from the current request
+            scheme = 'https' if request.is_secure else 'http'
+            host = request.host
+            deployment_url = f"{scheme}://{host}"
+            logger.info(f"Got deployment URL from request: {deployment_url}")
+    except Exception as e:
+        logger.debug(f"Could not get URL from request: {e}")
     
-    # If no environment variable, try to construct from request
+    # If no request context, check environment variables
     if not deployment_url:
-        try:
-            from flask import request
-            if request:
-                # Get the host from the current request
-                scheme = 'https' if request.is_secure else 'http'
-                host = request.host
-                deployment_url = f"{scheme}://{host}"
-        except:
-            pass
+        for env_var in ['REPL_URL', 'REPLIT_DOMAIN']:
+            env_value = os.environ.get(env_var)
+            if env_value:
+                # Ensure it starts with https://
+                if not env_value.startswith('http'):
+                    deployment_url = f"https://{env_value}"
+                else:
+                    deployment_url = env_value
+                logger.info(f"Got deployment URL from {env_var}: {deployment_url}")
+                break
     
-    # Fallback to common Replit patterns based on existing Google Cloud Console config
+    # Final fallback - use localhost for testing
     if not deployment_url:
-        # Check if we're on mynous.replit.app deployment
-        try:
-            from flask import request
-            if request and 'mynous' in request.host:
-                deployment_url = "https://mynous.replit.app"
-            elif request and 'worf.replit.dev' in request.host:
-                # Use the dynamic worf URL pattern
-                deployment_url = f"https://{request.host}"
-            else:
-                # Default fallback
-                deployment_url = "https://mynous.replit.app"
-        except:
-            deployment_url = "https://mynous.replit.app"
+        deployment_url = "http://localhost:8080"
+        logger.warning(f"Using fallback deployment URL: {deployment_url}")
     
     # Use /callback/google format to match existing Google Cloud Console configuration
     callback_uri = f"{deployment_url}/callback/google"
-    logger.info(f"Using callback URI: {callback_uri}")
+    logger.info(f"Final callback URI: {callback_uri}")
     
     return callback_uri
 
