@@ -11,10 +11,10 @@ index_bp = Blueprint('index', __name__)
 def demo():
     """Demo chat interface with modern UI"""
     user = get_demo_user()
-    return render_template('app.html', user=user)
+    return render_template('app.html', user=user, demo_mode=True)
 
 @index_bp.route('/public')
 def public():
     """Public access page"""
     user = get_demo_user()
-    return render_template('app.html', user=user)
+    return render_template('app.html', user=user, demo_mode=True)
