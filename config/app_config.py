@@ -47,10 +47,10 @@ class AppConfig:
     STATIC_FOLDER = 'static'
     
     # ===== SECURITY CONFIGURATION =====
-    SECRET_KEY = os.environ.get('SESSION_SECRET', 'nous-unified-config-2025')
+    SECRET_KEY = os.environ.get('SESSION_SECRET')
     
     # CORS configuration
-    CORS_ORIGINS = os.environ.get('CORS_ORIGINS', '*').split(',')
+    CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'https://nous.app,https://www.nous.app').split(',')
     
     # ===== EXTERNAL SERVICES =====
     # Third-party service base URLs
@@ -105,8 +105,13 @@ class AppConfig:
         if not (1 <= cls.PORT <= 65535):
             issues.append(f"Invalid port {cls.PORT}: must be between 1-65535")
         
-        if not cls.SECRET_KEY or len(cls.SECRET_KEY) < 16:
-            issues.append("SECRET_KEY is too short or missing")
+        if not cls.SECRET_KEY:
+            if not cls.DEBUG:
+                issues.append("SESSION_SECRET environment variable is required in production")
+            else:
+                issues.append("SESSION_SECRET environment variable should be set for security")
+        elif len(cls.SECRET_KEY) < 16:
+            issues.append("SESSION_SECRET is too short (minimum 16 characters)")
         
         # Validate database configuration
         try:

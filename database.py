@@ -29,7 +29,7 @@ def init_database(app):
             print(f"Error: Could not import some models: {e}")
             raise e
         
-        # Create all tables
-        db.create_all()
+        # Note: Database tables are now managed through Flask-Migrate
+        # Use 'flask db upgrade' to create/update database schema
         
         return db
