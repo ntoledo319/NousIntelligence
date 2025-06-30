@@ -10,7 +10,7 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 def index():
     """Main landing page"""
-    return redirect(url_for('public_demo'))
+    return render_template('landing.html')
 
 @main_bp.route('/chat')
 def chat():
