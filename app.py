@@ -143,7 +143,7 @@ def create_app():
     @app.route(f'{AppConfig.API_BASE_PATH}/chat', methods=['POST'])
     @app.route(f'{AppConfig.API_LEGACY_PATH}/chat', methods=['POST'])
     def api_chat():
-        """Chat API endpoint with fallback responses"""
+        """Chat API endpoint with AI integration"""
         try:
             data = request.get_json()
             message = data.get('message', '').strip()
@@ -152,14 +152,42 @@ def create_app():
             if not message:
                 return jsonify({'error': 'Message cannot be empty'}), 400
             
-            # Simple fallback response system
-            response_text = f"I understand your message: '{message}'. This is the demo version of NOUS. Full AI features will be available with proper API configuration."
+            # Try to use the unified AI service
+            try:
+                from utils.unified_ai_service import get_unified_ai_service
+                ai_service = get_unified_ai_service()
+                
+                # Generate AI response
+                ai_response = ai_service.generate_response(message, max_tokens=150)
+                
+                if ai_response and ai_response.get('success'):
+                    response_text = ai_response.get('content', ai_response.get('response', 'No response generated'))
+                    provider = ai_response.get('provider', 'unknown')
+                    
+                    return jsonify({
+                        "response": response_text,
+                        "user": "Guest User",
+                        "timestamp": datetime.now().isoformat(),
+                        "demo": demo_mode,
+                        "provider": provider,
+                        "ai_enabled": True
+                    })
+                else:
+                    # AI service failed, use fallback
+                    response_text = f"I understand your message: '{message}'. I'm having trouble connecting to AI services right now, but I'm here to help!"
+                    
+            except ImportError as e:
+                logger.warning(f"AI service import failed: {e}")
+                response_text = f"I understand your message: '{message}'. AI services are being initialized - please try again in a moment."
+            except Exception as e:
+                logger.error(f"AI service error: {e}")
+                response_text = f"I understand your message: '{message}'. I'm having some trouble with AI processing right now, but I'm still here to assist you."
             
             return jsonify({
                 "response": response_text,
                 "user": "Guest User",
                 "timestamp": datetime.now().isoformat(),
-                "demo": True,
+                "demo": demo_mode,
                 "fallback": "basic"
             })
             
