@@ -15,6 +15,7 @@ try:
     from config import AppConfig, PORT, HOST, DEBUG
     from database import db, init_database
     from utils.google_oauth import init_oauth, user_loader
+from utils.unified_auth import init_auth
 except Exception as e:
     import logging
     logging.error(f"Failed to import modules in app.py: {e}")
@@ -62,6 +63,7 @@ def create_app():
     # Initialize database
     try:
         init_database(app)
+    init_auth(app)
         logger.info("✅ Database initialized successfully")
     except Exception as e:
         logger.error(f"Database initialization failed: {e}", exc_info=True)

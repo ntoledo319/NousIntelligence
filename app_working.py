@@ -49,6 +49,7 @@ def create_app():
     try:
         from database import init_database
         init_database(app)
+    init_auth(app)
         logger.info("✅ Database initialized successfully")
     except Exception as e:
         logger.error(f"Database initialization error: {e}")
