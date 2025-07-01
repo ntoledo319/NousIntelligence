@@ -44,19 +44,20 @@ NOUS is an advanced Cognitive Behavioral Therapy (CBT) support system and compre
 
 ### 1. Prerequisites
 - Python 3.11+
-- PostgreSQL database (or SQLite for development)
+- PostgreSQL database (configured via DATABASE_URL)
+- Google OAuth 2.0 credentials for secure authentication
 
 ### 2. Environment Setup
-Create a `.env` file using the `ENV_VARS.md` guide. Essential variables include:
-- `DATABASE_URL` - Database connection string
-- `GOOGLE_CLIENT_ID` & `GOOGLE_CLIENT_SECRET` - OAuth authentication
-- `OPENROUTER_API_KEY` - Primary AI service
-- `SESSION_SECRET` - Session security
+Configure these environment variables in Replit Secrets or `.env` file:
+- `DATABASE_URL` - PostgreSQL connection string
+- `GOOGLE_CLIENT_ID` & `GOOGLE_CLIENT_SECRET` - Google OAuth authentication
+- `SESSION_SECRET` - Secure session encryption key
+- `OPENROUTER_API_KEY` - AI service for therapeutic recommendations (optional)
 
 ### 3. Installation & Setup
 ```bash
 # Install dependencies
-pip install -r requirements.txt
+pip install -e .
 
 # Database tables are created automatically on startup
 ```
@@ -65,106 +66,121 @@ pip install -r requirements.txt
 ```bash
 python main.py
 ```
-Open `http://localhost:5000` and sign in with Google to start using NOUS.
+Open `http://localhost:8080` and sign in with Google to access your therapeutic support platform.
 
-### 5. Initial Setup
-1. Complete the guided onboarding tour
-2. Connect your Google and Spotify accounts
-3. Explore the analytics dashboard
-4. Set up your first goals and tasks
+### 5. Initial CBT Setup
+1. Complete the mental health onboarding questionnaire
+2. Set your therapeutic goals (CBT, DBT, or AA recovery)
+3. Configure your privacy and data handling preferences
+4. Explore the SEED optimization dashboard
+5. Begin your first thought record or mood tracking session
 
 ## 🏗️ Architecture
 
-- **Backend**: Flask with SQLAlchemy ORM, modular blueprint architecture
-- **Frontend**: Progressive Web App with vanilla JavaScript, responsive CSS Grid/Flexbox
-- **Database**: PostgreSQL (production) / SQLite (development) with 20+ models
-- **Authentication**: Google OAuth 2.0 with secure session management
-- **AI Services**: OpenRouter (Gemini Pro), HuggingFace Inference API
-- **Deployment**: Replit Cloud with automatic HTTPS and scaling
+- **Backend**: Flask with SQLAlchemy ORM, 21 modular blueprints for microservices architecture
+- **Database**: PostgreSQL with comprehensive mental health data models (CBT, DBT, AA, User Analytics)
+- **Authentication**: Google OAuth 2.0 with encrypted session management and HIPAA compliance
+- **AI Services**: Unified AI service with OpenRouter, HuggingFace, and intelligent provider selection
+- **SEED Engine**: Self-learning optimization system with pattern recognition and adaptive recommendations
+- **Drone Swarm**: Autonomous software agents for continuous system monitoring and optimization
+- **Security**: Enterprise-grade security compliance with comprehensive audit framework
+- **Deployment**: Replit Cloud with automatic scaling and health monitoring
 
 ## 📡 API Endpoints
 
 ### Core Application
 - `GET /` - Landing page
-- `GET /app` - Main application interface
-- `POST /api/chat` - Chat message processing
-- `GET /health` - System health check
-- `GET /healthz` - Detailed system metrics
-
-### Analytics & Insights
-- `GET /api/analytics/dashboard` - Analytics dashboard data
-- `GET /api/analytics/activity` - User activity metrics
-- `GET /api/analytics/insights` - AI-generated insights
-- `POST /api/analytics/goals` - Goal management
-
-### Search & Navigation
-- `GET /api/search` - Global search with real-time suggestions
-- `POST /api/search/index` - Content indexing
-- `GET /api/search/suggestions` - Search suggestions
-
-### Notifications
-- `GET /api/notifications` - Get user notifications
-- `POST /api/notifications` - Create notifications
-- `PUT /api/notifications/<id>/read` - Mark as read
-- `DELETE /api/notifications/<id>` - Delete notification
-
-### Financial Management
-- `GET /api/financial/accounts` - Bank account management
-- `GET /api/financial/transactions` - Transaction history
-- `POST /api/financial/transactions` - Log transactions
-- `GET /api/financial/budgets` - Budget tracking
-
-### Collaboration
-- `GET /api/collaboration/families` - Family management
-- `POST /api/collaboration/families` - Create family
-- `GET /api/collaboration/shared-tasks` - Shared task management
+- `GET /health` - System health monitoring
+- `POST /api/chat` - AI-powered therapeutic chat interface
 
 ### Authentication
-- `GET /login` - Initiate Google OAuth
-- `GET /oauth/callback` - OAuth callback handler
-- `GET /logout` - End user session
+- `GET /auth/login` - Google OAuth login initiation
+- `GET /auth/callback` - OAuth callback handler
+- `POST /auth/logout` - Secure session termination
+
+### CBT (Cognitive Behavioral Therapy)
+- `POST /api/cbt/thought-record` - Create thought records
+- `GET /api/cbt/cognitive-biases` - Bias detection and analysis
+- `POST /api/cbt/mood-log` - Mood tracking and pattern analysis
+- `GET /api/cbt/coping-skills` - Evidence-based coping strategies
+
+### DBT (Dialectical Behavior Therapy)
+- `POST /api/dbt/skill-usage` - Track DBT skill utilization
+- `GET /api/dbt/diary-card` - Daily diary card interface
+- `POST /api/dbt/distress-tolerance` - Distress tolerance exercises
+
+### AA (Alcoholics Anonymous) Recovery
+- `GET /api/aa/big-book` - Big Book chapter access
+- `POST /api/aa/sobriety-tracker` - Track sobriety milestones
+- `GET /api/aa/meetings` - Meeting finder and resources
+
+### SEED Optimization Engine
+- `POST /api/seed/optimize-therapeutic` - Personalized therapeutic optimization
+- `GET /api/seed/dashboard-data` - Optimization analytics and insights
+- `POST /api/seed/user-feedback` - User effectiveness feedback
+
+### Drone Swarm System
+- `GET /api/drone-swarm/status` - Swarm health and performance
+- `POST /api/drone-swarm/trigger-optimization` - Manual optimization trigger
+- `GET /api/drone-swarm/performance-metrics` - Autonomous agent analytics
+### System Health & Monitoring
+- `GET /health` - Basic system health check
+- `GET /healthz` - Detailed system metrics and dependencies
+- `GET /api/health` - Comprehensive health status with security monitoring
+
+### Analytics & Progress Tracking
+- `GET /api/analytics/dashboard` - Therapeutic progress analytics
+- `GET /api/analytics/insights` - AI-generated mental health insights
+- `POST /api/analytics/goals` - Mental health goal management
+- `GET /api/analytics/patterns` - Behavioral pattern analysis
 
 ## 💻 Development
 
 ### Project Structure
 ```
 /
-├── app.py                 # Main Flask application factory
+├── app.py                 # Main Flask application with 21 blueprint registrations
 ├── main.py               # Application entry point
-├── models/               # Database models (20+ models)
-│   ├── analytics_models.py
-│   ├── financial_models.py
-│   ├── collaboration_models.py
-│   └── enhanced_health_models.py
-├── routes/               # Route handlers (25+ endpoints)
-│   ├── analytics_routes.py
-│   ├── search_routes.py
-│   ├── notification_routes.py
-│   ├── financial_routes.py
-│   └── collaboration_routes.py
-├── utils/                # Business logic services
-│   ├── analytics_service.py
-│   ├── search_service.py
-│   ├── notification_service.py
-│   └── 60+ utility modules
-├── templates/            # Jinja2 templates
+├── models/               # Mental health database models
+│   ├── cbt_models.py     # CBT thought records, cognitive biases, mood tracking
+│   ├── dbt_models.py     # DBT skills, diary cards, distress tolerance
+│   ├── aa_models.py      # AA recovery tracking, sobriety milestones
+│   └── user_models.py    # User profiles, analytics, insights
+├── routes/               # Blueprint route handlers (21 registered)
+│   ├── cbt_routes.py     # CBT therapeutic endpoints
+│   ├── dbt_routes.py     # DBT skill management
+│   ├── aa_routes.py      # AA recovery support
+│   ├── seed_routes.py    # SEED optimization engine
+│   ├── drone_swarm_routes.py # Autonomous drone management
+│   └── auth_routes.py    # Google OAuth authentication
+├── services/             # Core business logic
+│   ├── seed_optimization_engine.py # AI learning and optimization
+│   ├── seed_drone_swarm.py         # Autonomous agent system
+│   └── seed_integration_layer.py   # Integration with therapeutic models
+├── utils/                # Support utilities
+│   ├── unified_ai_service.py    # AI provider management
+│   ├── google_oauth.py          # Google OAuth implementation
+│   ├── health_monitor.py        # System health monitoring
+│   └── comprehensive_security/  # Security framework utilities
+├── templates/            # Jinja2 templates (CBT/DBT/AA interfaces)
 ├── static/               # Progressive Web App assets
 └── docs/                 # Comprehensive documentation
 ```
 
 ### Database Models
-- **Analytics**: UserActivity, UserMetrics, UserInsight, UserGoal
-- **Financial**: BankAccount, Transaction, Budget, ExpenseCategory
-- **Collaboration**: Family, FamilyMember, SharedTask, ActivityLog
-- **Health**: HealthMetric, HealthGoal, WellnessInsight
-- **Core**: User, BetaUser, NotificationQueue
+- **CBT Models**: CBTThoughtRecord, CBTCognitiveBias, CBTMoodLog, CBTCopingSkill, CBTBehaviorExperiment, CBTActivitySchedule, CBTSkillUsage, CBTGoal
+- **DBT Models**: DBTSkill, DBTSkillUsage, DBTDiaryCard, DBTDistressTolerance, DBTEmotionRegulation, DBTMindfulness, DBTInterpersonal
+- **AA Models**: AAMeeting, AABigBookChapter, AASobrietyTracker, AAStep, AAStepProgress, AABigBookAudio, AASponsor
+- **User Models**: User, UserActivity, UserMetrics, UserInsight, UserGoal, UserPreference, SetupProgress
+- **SEED Models**: OptimizationCycle, UserFeedback, SystemMetrics, LearningPattern
 
-### New Features Architecture
-- **Modular Design**: Each feature as self-contained blueprint
-- **Service Layer**: Dedicated services for complex business logic
-- **Real-time Updates**: Live data updates with polling mechanisms
-- **Mobile Optimization**: Progressive Web App capabilities
-- **Accessibility**: Full ARIA compliance and keyboard navigation
+### Advanced System Architecture
+- **SEED Engine**: Self-learning optimization system with pattern recognition and adaptive therapeutic recommendations
+- **Drone Swarm**: Autonomous software agents for continuous system monitoring, verification, and optimization
+- **Unified AI Service**: Intelligent provider selection across OpenRouter, HuggingFace, and Google Gemini
+- **Therapeutic Integration**: Seamless integration between CBT, DBT, and AA recovery methodologies
+- **Security Framework**: Enterprise-grade HIPAA compliance with comprehensive audit systems
+- **Real-time Analytics**: Advanced pattern recognition and personalized mental health insights
 
 ## 🧪 Testing
 
@@ -172,14 +188,23 @@ Open `http://localhost:5000` and sign in with Google to start using NOUS.
 # Run comprehensive test suite
 python -m pytest tests/
 
-# Test specific features
-pytest tests/test_analytics.py
-pytest tests/test_search.py
-pytest tests/test_notifications.py
+# Test specific therapeutic modules
+pytest tests/test_cbt_integration.py
+pytest tests/test_dbt_functionality.py
+pytest tests/test_aa_recovery.py
 
-# Health checks
-curl http://localhost:5000/health
-curl http://localhost:5000/healthz
+# Test advanced systems
+pytest tests/test_seed_integration.py
+pytest tests/test_drone_swarm_validation.py
+
+# System health checks
+curl http://localhost:8080/health
+curl http://localhost:8080/healthz
+curl http://localhost:8080/api/health
+
+# Therapeutic endpoint validation
+curl -X POST http://localhost:8080/api/cbt/thought-record
+curl -X GET http://localhost:8080/api/seed/dashboard-data
 ```
 
 ## 🚀 Deployment
