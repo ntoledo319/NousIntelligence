@@ -20,11 +20,21 @@ from typing import Dict, List, Any, Optional, Tuple, Union
 from dataclasses import dataclass
 from enum import Enum
 
-# Import existing NOUS services
-from utils.unified_ai_service import UnifiedAIService
-from utils.ai_brain_cost_optimizer import get_ai_optimization_report
-from services.predictive_analytics import PredictiveAnalyticsEngine
-from services.emotion_aware_therapeutic_assistant import EmotionAwareTherapeuticAssistant
+# Import existing NOUS services (with fallbacks)
+try:
+    from utils.unified_ai_service import UnifiedAIService
+except ImportError:
+    UnifiedAIService = None
+
+try:
+    from utils.ai_brain_cost_optimizer import get_ai_optimization_report
+except ImportError:
+    get_ai_optimization_report = None
+
+try:
+    from services.predictive_analytics import PredictiveAnalyticsEngine
+except ImportError:
+    PredictiveAnalyticsEngine = None
 
 logger = logging.getLogger(__name__)
 
@@ -69,10 +79,10 @@ class NOUSSeedEngine:
         self.db_path = Path("instance/seed_optimization.db")
         self.init_database()
         
-        # Initialize connections to existing services
-        self.ai_service = UnifiedAIService()
-        self.predictive_engine = PredictiveAnalyticsEngine()
-        self.therapeutic_assistant = EmotionAwareTherapeuticAssistant()
+        # Initialize connections to existing services with fallbacks
+        self.ai_service = UnifiedAIService() if UnifiedAIService else None
+        self.predictive_engine = PredictiveAnalyticsEngine() if PredictiveAnalyticsEngine else None
+        self.therapeutic_assistant = None  # Will be initialized when needed
         
         # Optimization history
         self.optimization_history = []
