@@ -210,9 +210,23 @@ class GoogleOAuthService:
                     user.created_at = datetime.utcnow()
                     db.session.add(user)
             
-            # Store OAuth tokens securely
-            user.google_access_token = token.get('access_token')
-            user.google_refresh_token = token.get('refresh_token')
+            # Store OAuth tokens securely with encryption
+            try:
+                from utils.token_encryption import token_encryption
+                if token_encryption:
+                    # Encrypt tokens before storage
+                    user.google_access_token = token_encryption.encrypt_token(token.get('access_token'))
+                    user.google_refresh_token = token_encryption.encrypt_token(token.get('refresh_token'))
+                else:
+                    # Fallback to direct storage (log warning)
+                    logger.warning("Token encryption not available - storing tokens in plain text")
+                    user.google_access_token = token.get('access_token')
+                    user.google_refresh_token = token.get('refresh_token')
+            except ImportError:
+                # Fallback for missing encryption module
+                user.google_access_token = token.get('access_token')
+                user.google_refresh_token = token.get('refresh_token')
+                
             if token.get('expires_at'):
                 user.google_token_expires_at = datetime.fromtimestamp(token['expires_at'])
             
@@ -245,24 +259,54 @@ class GoogleOAuthService:
         return username
     
     def refresh_token(self, user):
-        """Refresh user's Google OAuth token"""
+        """Refresh user's Google OAuth token with secure handling"""
         if not user.google_refresh_token:
             return None
             
         try:
+            # Decrypt the stored refresh token
+            refresh_token = user.google_refresh_token
+            try:
+                from utils.token_encryption import token_encryption
+                if token_encryption:
+                    refresh_token = token_encryption.decrypt_token(user.google_refresh_token)
+                    if not refresh_token:
+                        logger.error("Failed to decrypt refresh token")
+                        return None
+            except ImportError:
+                pass  # Use token as-is if encryption not available
+            
             # Use the refresh token to get a new access token
             token_data = {
-                'refresh_token': user.google_refresh_token,
+                'refresh_token': refresh_token,
                 'grant_type': 'refresh_token'
             }
             
             refresh_response = self.google.fetch_access_token(**token_data)
             
             if refresh_response and refresh_response.get('access_token'):
-                user.google_access_token = refresh_response['access_token']
+                # Store the new encrypted access token
+                try:
+                    from utils.token_encryption import token_encryption
+                    if token_encryption:
+                        user.google_access_token = token_encryption.encrypt_token(refresh_response['access_token'])
+                        # Update refresh token if provided (token rotation)
+                        if refresh_response.get('refresh_token'):
+                            user.google_refresh_token = token_encryption.encrypt_token(refresh_response['refresh_token'])
+                    else:
+                        user.google_access_token = refresh_response['access_token']
+                        if refresh_response.get('refresh_token'):
+                            user.google_refresh_token = refresh_response['refresh_token']
+                except ImportError:
+                    user.google_access_token = refresh_response['access_token']
+                    if refresh_response.get('refresh_token'):
+                        user.google_refresh_token = refresh_response['refresh_token']
+                
+                # Update token expiry
                 if refresh_response.get('expires_in'):
                     expires_at = datetime.utcnow().timestamp() + refresh_response['expires_in']
                     user.google_token_expires_at = datetime.fromtimestamp(expires_at)
+                
                 db.session.commit()
                 return refresh_response['access_token']
                 

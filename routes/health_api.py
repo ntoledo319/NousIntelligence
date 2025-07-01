@@ -16,31 +16,63 @@ health_api_bp = Blueprint('health_api', __name__)
 @health_api_bp.route('/health')
 @health_api_bp.route('/healthz')
 def health_check():
-    """Comprehensive health check endpoint"""
+    """Comprehensive health check endpoint with full monitoring"""
     try:
-        health_status = {
-            "status": "healthy",
-            "timestamp": datetime.now().isoformat(),
-            "version": "2.0.0",
-            "environment": os.environ.get('FLASK_ENV', 'development'),
-            "public_access": True,
-            "demo_mode": True,
-            "database": "connected",
-            "features": {
-                "chat_api": True,
-                "demo_mode": True,
-                "health_monitoring": True,
+        # Use the comprehensive health monitor
+        try:
+            from utils.health_monitor import health_monitor
+            health_data = health_monitor.get_comprehensive_health()
+            
+            # Add legacy compatibility fields
+            health_data.update({
+                "version": "2.0.0",
+                "environment": os.environ.get('FLASK_ENV', 'development'),
                 "public_access": True,
-                "authentication": True
-            },
-            "authentication": {
                 "demo_mode": True,
-                "barriers_eliminated": True,
-                "public_ready": True
+                "features": {
+                    "chat_api": True,
+                    "demo_mode": True,
+                    "health_monitoring": True,
+                    "public_access": True,
+                    "authentication": True,
+                    "oauth_security": health_data.get('checks', {}).get('authentication', {}).get('oauth_available', False),
+                    "token_encryption": health_data.get('checks', {}).get('security', {}).get('checks', {}).get('token_encryption', False)
+                },
+                "authentication": {
+                    "demo_mode": True,
+                    "barriers_eliminated": True,
+                    "public_ready": True,
+                    "oauth_available": health_data.get('checks', {}).get('authentication', {}).get('oauth_available', False)
+                }
+            })
+            
+            status_code = 200 if health_data['status'] == 'healthy' else 503
+            return jsonify(health_data), status_code
+            
+        except ImportError:
+            # Fallback to simple health check
+            health_status = {
+                "status": "healthy",
+                "timestamp": datetime.now().isoformat(),
+                "version": "2.0.0",
+                "environment": os.environ.get('FLASK_ENV', 'development'),
+                "public_access": True,
+                "demo_mode": True,
+                "database": "connected",
+                "features": {
+                    "chat_api": True,
+                    "demo_mode": True,
+                    "health_monitoring": True,
+                    "public_access": True,
+                    "authentication": True
+                },
+                "authentication": {
+                    "demo_mode": True,
+                    "barriers_eliminated": True,
+                    "public_ready": True
+                }
             }
-        }
-        
-        return jsonify(health_status)
+            return jsonify(health_status)
         
     except Exception as e:
         logger.error(f"Health check error: {e}")
