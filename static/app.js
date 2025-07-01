@@ -225,7 +225,12 @@ class ChatApp {
             contentDiv.textContent = messageData.content;
         } else if (messageData.content.html) {
             // HTML content
-            contentDiv.innerHTML = messageData.content.html;
+            // Safely set content - prevent XSS by using textContent for user data
+            if (messageData.content.html && messageData.content.trusted) {
+                contentDiv.innerHTML = messageData.content.html;
+            } else {
+                contentDiv.textContent = messageData.content.text || messageData.content.html;
+            }
         }
         
         const timeDiv = document.createElement('div');

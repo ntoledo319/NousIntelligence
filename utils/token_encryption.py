@@ -6,6 +6,7 @@ Provides secure encryption for OAuth tokens using Fernet symmetric encryption
 import os
 import base64
 import logging
+from typing import Optional, Union, bytes
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 class TokenEncryption:
     """Handles encryption/decryption of sensitive tokens"""
     
-    def __init__(self, master_key=None):
+    def __init__(self, master_key: Optional[bytes] = None) -> None:
         if master_key:
             self.cipher = Fernet(master_key)
         else:
@@ -34,24 +35,42 @@ class TokenEncryption:
             key = base64.urlsafe_b64encode(kdf.derive(secret.encode()))
             self.cipher = Fernet(key)
     
-    def encrypt_token(self, token):
-        """Encrypt a token string"""
+    def encrypt_token(self, token: str) -> Optional[str]:
+        """
+        Encrypt a token using the provided key.
+        
+        Args:
+            token: The token string to encrypt
+            
+        Returns:
+            Encrypted token as string, or None if input is invalid
+        """
         if not token:
             return None
         
         try:
-            return self.cipher.encrypt(token.encode()).decode()
+            encrypted_bytes: bytes = self.cipher.encrypt(token.encode())
+            return encrypted_bytes.decode()
         except Exception as e:
             logger.error(f"Token encryption failed: {e}")
             raise
     
-    def decrypt_token(self, encrypted_token):
-        """Decrypt a token string"""
+    def decrypt_token(self, encrypted_token: str) -> Optional[str]:
+        """
+        Decrypt a token string.
+        
+        Args:
+            encrypted_token: The encrypted token string to decrypt
+            
+        Returns:
+            Decrypted token as string, or None if decryption fails
+        """
         if not encrypted_token:
             return None
         
         try:
-            return self.cipher.decrypt(encrypted_token.encode()).decode()
+            decrypted_bytes: bytes = self.cipher.decrypt(encrypted_token.encode())
+            return decrypted_bytes.decode()
         except Exception as e:
             logger.error(f"Token decryption failed: {e}")
             return None  # Return None for invalid tokens instead of raising
