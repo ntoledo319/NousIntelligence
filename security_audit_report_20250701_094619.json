@@ -1,0 +1,84 @@
+{
+  "security_score": 30,
+  "security_level": "POOR",
+  "level_color": "\u274c",
+  "total_issues": 10,
+  "critical_issues": [],
+  "high_issues": [
+    "Missing CSRF protection"
+  ],
+  "medium_issues": [
+    "nous-personal-assistant",
+    "0.2.0",
+    "AI-powered personal assistant with comprehensive life management",
+    "README.md",
+    "LICENSE",
+    "Missing CSP",
+    "Missing HTTPS enforcement",
+    "Insecure session cookies",
+    "Session cookies not HTTPOnly"
+  ],
+  "low_issues": [],
+  "recommendations": [
+    "HIGH PRIORITY: Fix high-severity security issues",
+    "Implement comprehensive input validation for all endpoints",
+    "Add rate limiting to prevent abuse and DoS attacks",
+    "Enable security headers (CSP, HSTS, X-Frame-Options)",
+    "Configure secure session cookies (Secure, HTTPOnly, SameSite)",
+    "Implement proper error handling without information disclosure",
+    "Regular security audits and dependency updates",
+    "Use HTTPS in production with proper SSL configuration",
+    "Implement comprehensive logging for security monitoring",
+    "Add CSRF protection for all state-changing operations"
+  ],
+  "audit_results": {
+    "environment": {
+      "issues": [],
+      "missing_critical": [],
+      "weak_secrets": [],
+      "score_impact": 0
+    },
+    "code_security": {
+      "issues": [],
+      "files_checked": [
+        "app.py",
+        "main.py",
+        "models.py"
+      ],
+      "score_impact": 0
+    },
+    "dependencies": {
+      "issues": [
+        "Unpinned dependencies: nous-personal-assistant, 0.2.0, AI-powered personal assistant with comprehensive life management, README.md, LICENSE"
+      ],
+      "recommendations": [
+        "Pin all dependency versions",
+        "Regular security updates"
+      ]
+    },
+    "configuration": {
+      "issues": [
+        "Content Security Policy not configured",
+        "HTTPS enforcement not configured"
+      ],
+      "recommendations": [
+        "Enable HTTPS enforcement",
+        "Configure CSP headers",
+        "Disable debug in production"
+      ]
+    },
+    "authentication": {
+      "issues": [
+        "Session cookies not configured as secure",
+        "Session cookies not HTTPOnly",
+        "CSRF protection not implemented for OAuth"
+      ],
+      "recommendations": [
+        "Configure secure session cookies",
+        "Implement CSRF protection",
+        "Add rate limiting"
+      ]
+    }
+  },
+  "timestamp": "2025-07-01T09:46:19.161811"
+}

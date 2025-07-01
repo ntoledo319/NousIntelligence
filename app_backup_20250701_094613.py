@@ -23,13 +23,10 @@ except ImportError:
     logger.warning("Config module not found, using defaults")
     PORT = int(os.environ.get('PORT', 5000))
     HOST = '0.0.0.0'
-    DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    DEBUG = True
     
     class AppConfig:
-        SECRET_KEY = os.environ.get('SESSION_SECRET')
-        
-        if not SECRET_KEY:
-            raise RuntimeError("SESSION_SECRET environment variable is required for security")
+        SECRET_KEY = os.environ.get('SESSION_SECRET', 'dev-secret-key')
         DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///nous.db')
 
 # Import database with fallbacks
@@ -67,16 +64,6 @@ try:
 except ImportError:
     logger.warning("Unified auth not available")
     def init_auth(app): pass
-
-
-# Security headers middleware
-@app.after_request
-def add_security_headers(response):
-    """Add basic security headers"""
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
-    response.headers['X-XSS-Protection'] = '1; mode=block'
-    return response
 
 def create_app():
     """Create Flask application with comprehensive backend stability features"""
