@@ -88,6 +88,99 @@ def create_app():
         logger.error(f"Blueprint registration failed: {e}")
         raise
 
+    # Direct demo route to bypass blueprint conflicts
+    @app.route('/demo')
+    def demo():
+        """Demo route for NOUS application"""
+        try:
+            # Create demo user session
+            demo_user = {
+                'id': 'demo_user_123',
+                'name': 'Demo User',
+                'email': 'demo@nous.app',
+                'demo_mode': True,
+                'is_guest': True,
+                'login_time': datetime.now().isoformat()
+            }
+            session['user'] = demo_user
+            
+            # Try to render the main app template
+            try:
+                return render_template('app.html', user=demo_user, demo_mode=True)
+            except Exception as template_error:
+                logger.warning(f"Template error: {template_error}")
+                # Return simple HTML demo interface
+                return f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>NOUS Demo</title>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style>
+                        body {{ font-family: 'Inter', Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background: #f8fafc; }}
+                        .header {{ text-align: center; margin-bottom: 30px; }}
+                        .chat-container {{ border: 1px solid #e2e8f0; padding: 20px; margin: 20px 0; height: 400px; overflow-y: auto; background: white; border-radius: 8px; }}
+                        .chat-form {{ display: flex; gap: 10px; }}
+                        input {{ flex: 1; padding: 12px; border: 1px solid #cbd5e0; border-radius: 6px; }}
+                        button {{ padding: 12px 24px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; }}
+                        button:hover {{ background: #1d4ed8; }}
+                        .message {{ margin: 10px 0; padding: 8px; border-radius: 4px; }}
+                        .user-message {{ background: #eff6ff; border-left: 3px solid #2563eb; }}
+                        .bot-message {{ background: #f0fdf4; border-left: 3px solid #10b981; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>🧠 NOUS Demo Mode</h1>
+                        <p>Welcome, {demo_user['name']}! You're experiencing NOUS in demo mode.</p>
+                    </div>
+                    <div id="chat-container" class="chat-container">
+                        <div class="message bot-message">
+                            <strong>NOUS:</strong> Hello! I'm NOUS, your intelligent personal assistant. Try asking me a question or just start a conversation!
+                        </div>
+                    </div>
+                    <form id="chat-form" class="chat-form">
+                        <input type="text" id="message-input" placeholder="Type your message here..." required>
+                        <button type="submit">Send</button>
+                    </form>
+                    <script>
+                        document.getElementById('chat-form').addEventListener('submit', function(e) {{
+                            e.preventDefault();
+                            const messageInput = document.getElementById('message-input');
+                            const message = messageInput.value.trim();
+                            if (message) {{
+                                // Add user message to chat
+                                const container = document.getElementById('chat-container');
+                                container.innerHTML += '<div class="message user-message"><strong>You:</strong> ' + message + '</div>';
+                                container.scrollTop = container.scrollHeight;
+                                messageInput.value = '';
+                                
+                                // Send to API
+                                fetch('/api/v1/chat', {{
+                                    method: 'POST',
+                                    headers: {{'Content-Type': 'application/json'}},
+                                    body: JSON.stringify({{message: message, demo_mode: true}})
+                                }})
+                                .then(response => response.json())
+                                .then(data => {{
+                                    container.innerHTML += '<div class="message bot-message"><strong>NOUS:</strong> ' + data.response + '</div>';
+                                    container.scrollTop = container.scrollHeight;
+                                }})
+                                .catch(error => {{
+                                    container.innerHTML += '<div class="message bot-message"><strong>NOUS:</strong> I apologize, but I\'m having trouble connecting right now. Please try again.</div>';
+                                    container.scrollTop = container.scrollHeight;
+                                }});
+                            }}
+                        }});
+                    </script>
+                </body>
+                </html>
+                """
+        except Exception as e:
+            logger.error(f"Demo route error: {e}")
+            return f"Demo mode error: {str(e)}", 500
+
     # Security headers for public deployment
     @app.after_request
     def add_security_headers(response):
