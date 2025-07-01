@@ -1,0 +1,44 @@
+{
+  "timestamp": "/home/runner/workspace",
+  "total_issues": 5,
+  "critical_issues": [],
+  "high_issues": 0,
+  "medium_issues": 5,
+  "issues": [
+    {
+      "type": "session_security",
+      "file": "app.py",
+      "message": "Session cookies not marked as secure",
+      "severity": "MEDIUM"
+    },
+    {
+      "type": "session_security",
+      "file": "app.py",
+      "message": "Session cookies not HTTPOnly",
+      "severity": "MEDIUM"
+    },
+    {
+      "type": "session_security",
+      "file": "app_working.py",
+      "message": "Session cookies not marked as secure",
+      "severity": "MEDIUM"
+    },
+    {
+      "type": "session_security",
+      "file": "app_working.py",
+      "message": "Session cookies not HTTPOnly",
+      "severity": "MEDIUM"
+    },
+    {
+      "type": "session_security",
+      "file": "app_working.py",
+      "message": "No SECRET_KEY configuration found",
+      "severity": "MEDIUM"
+    }
+  ],
+  "status": "FAIL",
+  "security_score": 75,
+  "recommendations": [
+    "Authentication system appears secure"
+  ]
+}
