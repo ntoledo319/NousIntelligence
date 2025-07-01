@@ -117,15 +117,46 @@ def create_app():
         app.register_blueprint(auth_bp)
         logger.info("✅ Authentication blueprint registered as fallback")
     
-    # Security headers for public deployment
+    # Enhanced security headers for public deployment
     @app.after_request
     def add_security_headers(response):
-        """Add security headers for public deployment"""
+        """Add comprehensive security headers for public deployment"""
+        # Basic security headers
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         response.headers['X-XSS-Protection'] = '1; mode=block'
         response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        
+        # HTTPS enforcement (production only)
+        if not DEBUG and request.is_secure:
+            response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        
+        # Content Security Policy
+        csp_policy = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://apis.google.com https://accounts.google.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com data:; "
+            "img-src 'self' data: https://lh3.googleusercontent.com https://*.googleusercontent.com; "
+            "connect-src 'self' https://oauth2.googleapis.com https://www.googleapis.com https://accounts.google.com; "
+            "frame-src https://accounts.google.com; "
+            "object-src 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self' https://accounts.google.com;"
+        )
+        response.headers['Content-Security-Policy'] = csp_policy
+        
+        # Additional security headers
+        response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+        
         return response
+    
+    # HTTPS redirect for production
+    @app.before_request
+    def force_https():
+        """Force HTTPS in production"""
+        if not DEBUG and not request.is_secure and request.headers.get('X-Forwarded-Proto') != 'https':
+            return redirect(request.url.replace('http://', 'https://'), code=301)
     
     # Authentication helper functions
     def is_authenticated():
