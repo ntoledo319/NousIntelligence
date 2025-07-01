@@ -9,17 +9,27 @@
     <meta property="og:description" content="Your AI-powered companion for productivity, creativity, and mental wellness. Features CBT tools, smart automation, and personalized assistance.">
     <meta property="og:type" content="website">
     <meta property="og:image" content="/static/favicon.ico">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://apis.google.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://lh3.googleusercontent.com https://*.googleusercontent.com; connect-src 'self' https://oauth2.googleapis.com https://www.googleapis.com https://accounts.google.com; frame-src https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self' https://accounts.google.com;">
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="NOUS">
     <title>NOUS - Intelligent Personal Assistant</title>
+    <!-- Preload critical resources -->
+    <link rel="preconnect" href="https://accounts.google.com" crossorigin>
+    <link rel="preconnect" href="https://oauth2.googleapis.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.googleapis.com">
+    <link rel="preload" href="/static/css/main.css" as="style">
+    <link rel="preload" href="/static/js/oauth-handler.js" as="script">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="/static/css/style.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/styles.css">
+    <!-- Load fonts asynchronously -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
+    <!-- Primary styles -->
+    <link rel="stylesheet" href="/static/css/main.css">
+    <!-- Page-specific styles -->
+    <link rel="stylesheet" href="/static/css/landing.css">
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="manifest" href="/static/manifest.json">
     <link rel="apple-touch-icon" href="/static/favicon.ico">
@@ -94,9 +104,12 @@
                         </svg>
                         {% if oauth_available %}Sign in with Google{% else %}Get Started{% endif %}
                     </a>
-                    <a href="/demo" class="demo-btn secondary">
-                        🚀 Try Demo
-                    </a>
+                    <form method="POST" action="{{ url_for('auth.demo_mode') }}" style="display: inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="demo-btn secondary">
+                            🚀 Try Demo
+                        </button>
+                    </form>
                 </div>
                 
                 <p class="signin-note">
