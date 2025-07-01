@@ -33,11 +33,11 @@ def get_character_settings():
 
     # Try to get settings from current user if authenticated
     try:
-        from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user()
+        from utils.auth_compat import login_required, get_demo_user
         if get_demo_user() and is_authenticated():
             # Check if user has settings
             from models import UserSettings
-            user_settings = UserSettings.query.filter_by(user_id=get_get_demo_user()().get("id") if get_get_demo_user()() else None).first()
+            user_settings = UserSettings.query.filter_by(user_id=get_demo_user().get("id") if get_demo_user() else None).first()
 
             if user_settings:
                 # Extract character settings
