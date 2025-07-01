@@ -1,0 +1,171 @@
+# Replit AI Agent Fix Instructions - NOUS Codebase Critical Issues
+
+## PRIORITY 1: CRITICAL SECURITY FIXES (Complete ALL immediately)
+
+### Fix Hardcoded Secrets
+1. **Replace ALL hardcoded secrets** in these files:
+   - `app.py:35`: Replace `'dev-secret-key-change-in-production'` with `os.environ.get('SESSION_SECRET')` and add proper error handling
+   - `utils/jwt_auth.py:29`: Remove `'fallback-secret-key'`, require environment variable
+   - `utils/enhanced_auth_service.py:19`: Remove `'fallback-secret-key'`, require environment variable  
+   - `config/production.py:10`: Remove `'production-secret-key'` fallback
+   - Update ALL files using weak/hardcoded secrets to use environment variables with NO fallbacks
+
+### Fix SQL Injection Vulnerabilities
+2. **Audit and fix ALL database queries**:
+   - Search entire codebase for SQL query construction
+   - Replace ALL string concatenation/formatting in SQL with parameterized queries
+   - Use SQLAlchemy ORM methods instead of raw SQL where possible
+   - Add input sanitization for all user inputs going to database
+
+### Remove Authentication Bypasses
+3. **Secure authentication flows**:
+   - Remove or properly secure demo mode in `app.py` and `app_working.py`
+   - Ensure ALL routes check authentication properly
+   - Add CSRF protection to all forms
+   - Implement proper session validation
+
+## PRIORITY 2: CODE QUALITY & ERROR HANDLING
+
+### Fix Empty/Incomplete Files
+4. **Complete or remove these files**:
+   - DELETE `models/enhanced_health_models.py` (empty file)
+   - DELETE `utils/automation_service.py` (empty file)
+   - Find ALL files with only `pass` statements and either implement or remove them
+
+### Fix Exception Handling
+5. **Replace ALL broad exception handlers**:
+   - Find ALL `except Exception as e:` and replace with specific exceptions
+   - Remove ALL bare `except:` clauses
+   - Add proper logging for exceptions with full context
+   - Ensure errors are properly propagated, not silently caught
+
+### Replace Print Statements
+6. **Convert ALL print() to proper logging**:
+   - Search for ALL `print(` statements (100+ occurrences)
+   - Replace with appropriate logger calls (info, warning, error, debug)
+   - Remove any sensitive information from logs
+   - Ensure consistent logging format
+
+## PRIORITY 3: IMPORT & DEPENDENCY FIXES
+
+### Fix Import Issues
+7. **Clean up ALL imports**:
+   - Remove ALL wildcard imports (`from X import *`) in all 17 files
+   - Fix circular imports between `models.py` and `database.py`
+   - Add proper error handling for optional imports
+   - Use lazy loading for heavy dependencies
+
+### Clean Up Multiple Entry Points
+8. **Establish single entry point**:
+   - Keep ONLY `main.py` as the entry point
+   - Delete or move `app_working.py` to archive
+   - Update `app.py` to be imported by `main.py` only
+   - Update all deployment configs to use `main.py`
+
+## PRIORITY 4: PERFORMANCE & CLEANUP
+
+### Remove Dead Code
+9. **Clean up codebase**:
+   - Delete ALL test files from root (move to `tests/` directory)
+   - Archive or delete duplicate implementations
+   - Remove commented-out code blocks
+   - Clean up the archive directory (keep only essential backups)
+
+### Fix Database Performance
+10. **Optimize database operations**:
+    - Add connection pooling with proper limits
+    - Add indexes to frequently queried fields
+    - Fix N+1 queries in model relationships
+    - Implement query result caching
+
+### Fix Memory Issues
+11. **Prevent memory leaks**:
+    - Add cleanup methods for all services
+    - Implement proper garbage collection
+    - Clear temporary files after use
+    - Limit in-memory object sizes
+
+## PRIORITY 5: CONFIGURATION & DEPLOYMENT
+
+### Fix Configuration
+12. **Standardize configuration**:
+    - Use ONLY `config/` directory for all configuration
+    - Validate ALL required environment variables at startup
+    - Add `.env.example` with ALL required variables documented
+    - Remove configuration from individual files
+
+### Fix Static Files & Templates
+13. **Fix path issues**:
+    - Use relative paths for all static files and templates
+    - Add error handling for missing templates
+    - Implement static file versioning for cache busting
+    - Test all paths work in different deployment scenarios
+
+## PRIORITY 6: TESTING & DOCUMENTATION
+
+### Organize Tests
+14. **Create proper test structure**:
+    - Create `tests/` directory with subdirectories for unit/integration/e2e
+    - Move ALL test files from root to appropriate test directories
+    - Delete one-off test scripts or convert to proper tests
+    - Add `__init__.py` files to test directories
+
+### Add Missing Tests
+15. **Create comprehensive test suite**:
+    - Add unit tests for ALL authentication flows
+    - Add integration tests for OAuth
+    - Add tests for all API endpoints
+    - Add performance/load tests
+
+### Fix Documentation
+16. **Update all documentation**:
+    - Add docstrings to ALL functions and classes
+    - Document ALL API endpoints with request/response examples
+    - Create architecture documentation
+    - Update or remove ALL TODO/FIXME comments
+
+## PRIORITY 7: SPECIFIC FILE FIXES
+
+### Fix Route Registration
+17. **Simplify `routes/__init__.py`**:
+    - Remove complex duplicate checking logic
+    - Add route conflict validation
+    - Ensure all routes register correctly
+    - Add error recovery for failed registrations
+
+### Fix OAuth Implementation  
+18. **Clean up `utils/google_oauth.py`**:
+    - Simplify credential extraction logic
+    - Remove hardcoded patterns
+    - Add proper error recovery
+    - Add comprehensive logging
+
+### Fix Model Definitions
+19. **Standardize all models**:
+    - Ensure consistent model inheritance
+    - Add database constraints at model level
+    - Add validation for all model fields
+    - Fix relationships to prevent circular references
+
+## PRIORITY 8: FINAL CLEANUP
+
+### Remove Development Artifacts
+20. **Final cleanup tasks**:
+    - Remove ALL debug code from production files
+    - Update `pyproject.toml` with correct GitHub URLs
+    - Ensure `requirements.txt` matches `pyproject.toml`
+    - Remove unused dependencies
+    - Add `.gitignore` entries for all generated files
+
+## EXECUTION REQUIREMENTS
+
+**IMPORTANT**: 
+- Fix issues in the EXACT order listed above
+- Do NOT skip any item
+- Test each fix before moving to the next
+- Commit changes after each priority level
+- Ensure 100% of issues are addressed
+- Add logging for all changes made
+- Create a fix report documenting all changes
+
+**START WITH PRIORITY 1 IMMEDIATELY** - These are critical security vulnerabilities that must be fixed first.
