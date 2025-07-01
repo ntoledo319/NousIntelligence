@@ -85,12 +85,51 @@ def health_check():
 
 @health_api_bp.route('/ready')
 def readiness_check():
-    """Readiness check for deployment"""
-    return jsonify({
-        "status": "ready",
-        "timestamp": datetime.now().isoformat(),
-        "deployment_ready": True
-    }), 200
+    """Readiness check for deployment with security validation"""
+    try:
+        from utils.secret_manager import validate_all_secrets
+        from database import db
+        from sqlalchemy import text
+        
+        security_status = validate_all_secrets()
+        
+        # Test database connection
+        db_healthy = False
+        try:
+            db.session.execute(text('SELECT 1')).scalar()
+            db_healthy = True
+        except Exception as e:
+            logger.warning(f"Database check failed: {e}")
+        
+        # Check critical security requirements
+        security_score = sum(1 for result in security_status.values() 
+                           if result.get('is_valid', False))
+        total_checks = len(security_status)
+        security_percentage = (security_score / total_checks) * 100 if total_checks > 0 else 0
+        
+        deployment_ready = db_healthy and security_percentage >= 90
+        
+        return jsonify({
+            "status": "ready" if deployment_ready else "not_ready",
+            "timestamp": datetime.now().isoformat(),
+            "deployment_ready": deployment_ready,
+            "security_score": f"{security_percentage:.1f}%",
+            "database_healthy": db_healthy,
+            "security_checks": {
+                "passed": security_score,
+                "total": total_checks,
+                "details": security_status
+            }
+        }), 200 if deployment_ready else 503
+        
+    except Exception as e:
+        logger.error(f"Readiness check failed: {e}")
+        return jsonify({
+            "status": "error",
+            "timestamp": datetime.now().isoformat(),
+            "deployment_ready": False,
+            "error": str(e)
+        }), 500
 
 @health_api_bp.route('/live')
 def liveness_check():
