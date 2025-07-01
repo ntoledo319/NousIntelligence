@@ -28,7 +28,7 @@ def init_database(app):
                 AAAchievement
             )
         except ImportError as e:
-            logger.error(Error: Could not import some models: {e})
+            logger.error(f"Error: Could not import some models: {e}")
             raise e
         
         # Note: Database tables are now managed through Flask-Migrate
