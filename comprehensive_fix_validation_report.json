@@ -1,0 +1,32 @@
+{
+  "validation_start": "2025-07-01T07:30:26.223994",
+  "fixes_completed": 0,
+  "critical_systems": {
+    "oauth": {
+      "status": "secure",
+      "features": {
+        "service_available": true,
+        "token_encryption": true
+      },
+      "issues": [
+        "State validation unavailable"
+      ]
+    },
+    "health": {
+      "operational": false,
+      "systems": {
+        "health_monitor": true,
+        "environment_validator": true
+      },
+      "issues": [
+        "Health endpoint failed: cannot import name 'app' from 'app' (/home/runner/workspace/app.py)"
+      ]
+    }
+  },
+  "deployment_readiness": false,
+  "security_score": 100,
+  "issues_found": [],
+  "recommendations": [],
+  "final_score": 100,
+  "validation_end": "2025-07-01T07:30:28.786438"
+}
