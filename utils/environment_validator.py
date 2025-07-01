@@ -83,24 +83,74 @@ class EnvironmentValidator:
         errors = []
         warnings = []
         
-        client_id = os.environ.get('GOOGLE_CLIENT_ID')
-        client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')
+        raw_client_id = os.environ.get('GOOGLE_CLIENT_ID')
+        raw_client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')
         
-        if client_id and client_secret:
-            # Validate client ID format
-            if not client_id.endswith('.apps.googleusercontent.com'):
+        if raw_client_id and raw_client_secret:
+            # Extract and validate client ID format
+            client_id = self._extract_client_id(raw_client_id)
+            if not client_id or not client_id.endswith('.apps.googleusercontent.com'):
                 errors.append("GOOGLE_CLIENT_ID format appears invalid")
             
-            # Validate client secret format
-            if not client_secret.startswith('GOCSPX-'):
+            # Extract and validate client secret format
+            client_secret = self._extract_client_secret(raw_client_secret)
+            if not client_secret or not client_secret.startswith('GOCSPX-'):
                 errors.append("GOOGLE_CLIENT_SECRET format appears invalid")
-        elif client_id or client_secret:
+        elif raw_client_id or raw_client_secret:
             # Only one is set
             errors.append("Both GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set together")
         else:
             warnings.append("Google OAuth not configured - authentication will be limited to demo mode")
         
         return {'errors': errors, 'warnings': warnings}
+    
+    def _extract_client_id(self, raw_client_id):
+        """Extract correct client ID from potentially malformed environment variable"""
+        if not raw_client_id:
+            return None
+            
+        # If it looks like a normal client ID, return as-is
+        if len(raw_client_id) < 100 and '.apps.googleusercontent.com' in raw_client_id:
+            return raw_client_id
+        
+        # Try to extract from JSON data
+        if '{' in raw_client_id and '"client_id"' in raw_client_id:
+            import json
+            import re
+            try:
+                # Find the client_id in the JSON-like data
+                match = re.search(r'"client_id":"([^"]+)"', raw_client_id)
+                if match:
+                    return match.group(1)
+            except Exception:
+                pass
+        
+        # Try to extract from malformed data with domain pattern
+        if '.apps.googleusercontent.com' in raw_client_id:
+            import re
+            match = re.search(r'(\d{10,15}-[a-zA-Z0-9]+\.apps\.googleusercontent\.com)', raw_client_id)
+            if match:
+                return match.group(1)
+        
+        return None
+    
+    def _extract_client_secret(self, raw_client_secret):
+        """Extract correct client secret from potentially malformed environment variable"""
+        if not raw_client_secret:
+            return None
+            
+        # If it looks like a normal client secret, return as-is
+        if len(raw_client_secret) < 50 and 'GOCSPX-' in raw_client_secret:
+            return raw_client_secret
+        
+        # Try to extract from malformed data
+        if 'GOCSPX-' in raw_client_secret:
+            import re
+            match = re.search(r'(GOCSPX-[a-zA-Z0-9_-]+)', raw_client_secret)
+            if match:
+                return match.group(1)
+        
+        return None
     
     def _validate_database_config(self) -> Dict[str, List[str]]:
         """Validate database configuration"""
