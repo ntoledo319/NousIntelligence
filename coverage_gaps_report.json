@@ -1,0 +1,63 @@
+{
+  "coverage_percent": 16.611842105263158,
+  "total_items": 608,
+  "tested_items": 101,
+  "untested_functions": [
+    "app::init_database",
+    "app::init_oauth",
+    "app::user_loader",
+    "app::init_security_headers",
+    "app::init_auth",
+    "app::add_security_headers",
+    "app::register_basic_routes",
+    "app::index",
+    "app::api_health",
+    "database::init_db",
+    "database::get_db_health",
+    "ai_models::to_dict",
+    "collaboration_models::to_dict",
+    "financial_models::to_dict",
+    "financial_models::spent_amount",
+    "financial_models::remaining_amount",
+    "financial_models::total_value",
+    "financial_models::total_cost",
+    "financial_models::gain_loss",
+    "financial_models::gain_loss_percentage"
+  ],
+  "untested_routes": [
+    "/settings/profile",
+    "/settings/appearance",
+    "/settings/assistant",
+    "/settings/password",
+    "/settings/delete-account",
+    "/api/dashboard/stats",
+    "/api/data",
+    "/finance",
+    "/users",
+    "/users/add"
+  ],
+  "untested_classes": [
+    "ai_models::UserAIUsage",
+    "ai_models::AIServiceConfig",
+    "ai_models::AIModelConfig",
+    "ai_models::UserAIPreferences",
+    "collaboration_models::Family",
+    "collaboration_models::FamilyMember",
+    "collaboration_models::SharedTask",
+    "collaboration_models::SharedEvent",
+    "collaboration_models::SharedShoppingList",
+    "collaboration_models::SharedShoppingItem"
+  ],
+  "priority_items": [
+    "API Route: /api/dashboard/stats",
+    "API Route: /api/data",
+    "API Route: /api/dbt/skills",
+    "API Route: /api/aa/steps",
+    "API Route: /api/create",
+    "Core Function: app::init_database",
+    "Core Function: app::init_oauth",
+    "Core Function: app::user_loader",
+    "Core Function: app::init_security_headers",
+    "Core Function: app::init_auth"
+  ]
+}
