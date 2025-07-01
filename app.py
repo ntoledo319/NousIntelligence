@@ -16,7 +16,9 @@ try:
     from database import db, init_database
     from utils.google_oauth import init_oauth, user_loader
 except Exception as e:
-    print(f"Failed to import modules in app.py: {e}")
+    import logging
+    logging.error(f"Failed to import modules in app.py: {e}")
+    logger = logging.getLogger(__name__)
     raise
 
 # Import logging configuration first
@@ -32,13 +34,9 @@ def create_app():
     # Core Flask configuration with security validation
     secret_key = AppConfig.SECRET_KEY
     if not secret_key:
-        if AppConfig.DEBUG:
-            logger.warning("⚠️  No SESSION_SECRET environment variable set - using development key")
-            secret_key = 'dev-secret-key-change-in-production'
-        else:
-            raise ValueError("SESSION_SECRET environment variable is required in production")
-    elif len(secret_key) < 16:
-        raise ValueError("SESSION_SECRET must be at least 16 characters long")
+        raise ValueError("SESSION_SECRET environment variable is required. Please set it in your environment.")
+    elif len(secret_key) < 32:
+        raise ValueError("SESSION_SECRET must be at least 32 characters long for security")
     
     app.secret_key = secret_key
     

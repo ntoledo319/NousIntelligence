@@ -16,7 +16,11 @@ class EnhancedAuthService:
     """Enhanced authentication service with security optimization"""
     
     def __init__(self):
-        self.secret_key = os.environ.get('SESSION_SECRET', 'fallback-secret-key')
+        self.secret_key = os.environ.get('SESSION_SECRET')
+        if not self.secret_key:
+            raise ValueError("SESSION_SECRET environment variable is required for authentication service")
+        if len(self.secret_key) < 32:
+            raise ValueError("SESSION_SECRET must be at least 32 characters long for security")
         self.token_expiry = timedelta(hours=24)
         self.failed_attempts = {}
         self._initialize_security()

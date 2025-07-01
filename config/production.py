@@ -8,7 +8,9 @@ class ProductionConfig:
     # Core Flask settings
     DEBUG = False
     TESTING = False
-    SECRET_KEY = os.environ.get('SESSION_SECRET', 'production-secret-key')
+    SECRET_KEY = os.environ.get('SESSION_SECRET')
+    if not SECRET_KEY:
+        raise ValueError("SESSION_SECRET environment variable is required in production")
     
     # Session configuration
     SESSION_TYPE = 'filesystem'

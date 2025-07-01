@@ -9,7 +9,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from flask import request, jsonify, current_app, session
-from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user(), is_authenticated
+from utils.auth_compat import login_required, get_demo_user, is_authenticated
 from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,10 @@ class JWTConfig:
 
 def init_jwt_config(app):
     """Initialize JWT configuration from Flask app"""
-    JWTConfig.SECRET_KEY = app.config.get('SECRET_KEY', 'fallback-secret-key')
+    secret_key = app.config.get('SECRET_KEY')
+    if not secret_key:
+        raise ValueError("SECRET_KEY is required for JWT authentication")
+    JWTConfig.SECRET_KEY = secret_key
 
 def generate_jwt_token(user_data: Dict[str, Any], token_type: str = 'access') -> str:
     """
