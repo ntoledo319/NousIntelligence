@@ -45,6 +45,20 @@ def dashboard():
     }
     return redirect('/chat')
 
+@main_bp.route('/seed-dashboard')
+def seed_dashboard():
+    """SEED Optimization Dashboard"""
+    try:
+        # Check if user is authenticated
+        user_authenticated = 'user' in session and session['user'] is not None
+        
+        return render_template('seed_dashboard.html', 
+                             user_authenticated=user_authenticated)
+    except Exception as e:
+        logger.error(f"SEED dashboard error: {e}")
+        return render_template('seed_dashboard.html', 
+                             user_authenticated=False)
+
 @main_bp.route('/about')
 def about():
     """About page"""

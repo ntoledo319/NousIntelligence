@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEED Optimization Dashboard - NOUS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        .optimization-card {
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 20px;
+        }
+        .optimization-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        .improvement-badge {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .recommendation-item {
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            border-radius: 0 8px 8px 0;
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-active { background-color: #28a745; }
+        .status-warning { background-color: #ffc107; }
+        .status-error { background-color: #dc3545; }
+        .optimization-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .optimization-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+        .demo-banner {
+            background: linear-gradient(135deg, #ff9a56 0%, #ffad56 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .progress-ring {
+            width: 120px;
+            height: 120px;
+        }
+        .progress-ring-circle {
+            stroke: #667eea;
+            stroke-width: 8;
+            fill: transparent;
+            stroke-linecap: round;
+            stroke-dasharray: 283;
+            stroke-dashoffset: 283;
+            transition: stroke-dashoffset 1s ease-in-out;
+        }
+        .chart-container {
+            height: 300px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-brain"></i> NOUS SEED
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/dashboard">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Demo Banner (shows when not authenticated) -->
+        <div id="demo-banner" class="demo-banner" style="display: none;">
+            <h5><i class="fas fa-star"></i> SEED Optimization Demo</h5>
+            <p class="mb-0">This is a preview of SEED's learning capabilities. Sign up to unlock personalized optimization for your mental health journey.</p>
+        </div>
+
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1><i class="fas fa-seedling text-success"></i> SEED Optimization Dashboard</h1>
+                <p class="lead">Self-Optimization and Learning Engine for Personalized Mental Health Support</p>
+            </div>
+        </div>
+
+        <!-- Status Overview -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="metric-card text-center">
+                    <h3 id="optimization-score">--</h3>
+                    <p class="mb-0">Optimization Score</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card text-center">
+                    <h3 id="total-optimizations">--</h3>
+                    <p class="mb-0">Total Optimizations</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card text-center">
+                    <h3 id="avg-improvement">--%</h3>
+                    <p class="mb-0">Average Improvement</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card text-center">
+                    <div id="engine-status" class="mb-2">
+                        <span class="status-indicator status-active"></span>
+                        <span>Active</span>
+                    </div>
+                    <p class="mb-0">Engine Status</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card optimization-card">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-rocket"></i> Quick Optimizations</h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <button class="btn optimization-button w-100" onclick="runTherapeuticOptimization()">
+                                    <i class="fas fa-heart"></i> Optimize Therapy
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn optimization-button w-100" onclick="runEngagementOptimization()">
+                                    <i class="fas fa-chart-line"></i> Optimize Engagement
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn optimization-button w-100" onclick="runComprehensiveOptimization()">
+                                    <i class="fas fa-magic"></i> Full Optimization
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn optimization-button w-100" onclick="runAICostOptimization()">
+                                    <i class="fas fa-dollar-sign"></i> Optimize Costs
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Optimizations -->
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card optimization-card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-cogs"></i> Active Optimizations</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="optimization-results">
+                            <div class="text-center text-muted p-4">
+                                <i class="fas fa-seedling fa-3x mb-3"></i>
+                                <p>Run an optimization to see results here</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommendations -->
+                <div class="card optimization-card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-lightbulb"></i> Personalized Recommendations</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="recommendations-list">
+                            <div class="text-center text-muted p-4">
+                                <i class="fas fa-brain fa-3x mb-3"></i>
+                                <p>Loading personalized recommendations...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <!-- Optimization Progress -->
+                <div class="card optimization-card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-chart-pie"></i> Optimization Progress</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <svg class="progress-ring" viewBox="0 0 100 100">
+                            <circle class="progress-ring-circle" cx="50" cy="50" r="45"></circle>
+                            <text x="50" y="50" text-anchor="middle" dy="7" font-size="16" fill="#667eea" id="progress-text">0%</text>
+                        </svg>
+                        <p class="mt-3" id="progress-description">Overall optimization progress</p>
+                    </div>
+                </div>
+
+                <!-- Domain Status -->
+                <div class="card optimization-card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-list-check"></i> Optimization Domains</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="domain-status">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span><i class="fas fa-heart text-danger"></i> Therapeutic</span>
+                                <span class="improvement-badge">--</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span><i class="fas fa-chart-line text-primary"></i> Engagement</span>
+                                <span class="improvement-badge">--</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span><i class="fas fa-robot text-info"></i> AI Services</span>
+                                <span class="improvement-badge">--</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-dollar-sign text-success"></i> Cost Savings</span>
+                                <span class="improvement-badge">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card optimization-card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-clock"></i> Recent Activity</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="recent-activity">
+                            <div class="text-center text-muted p-3">
+                                <p>No recent optimizations</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Optimization Modal -->
+    <div class="modal fade" id="optimizationModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-seedling"></i> 
+                        <span id="modal-title">Running Optimization</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="optimization-progress" class="text-center">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p id="progress-message">Analyzing your patterns...</p>
+                    </div>
+                    <div id="optimization-result" style="display: none;">
+                        <!-- Results will be inserted here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="apply-optimization" style="display: none;">Apply Optimization</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        let currentUser = null;
+        let dashboardData = {};
+        let optimizationModal = null;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            optimizationModal = new bootstrap.Modal(document.getElementById('optimizationModal'));
+            loadDashboardData();
+            loadRecommendations();
+            
+            // Refresh data every 30 seconds
+            setInterval(loadDashboardData, 30000);
+        });
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('/api/seed/dashboard');
+                const data = await response.json();
+                
+                if (data.success) {
+                    dashboardData = data.dashboard_data;
+                    currentUser = data.user_authenticated;
+                    
+                    updateDashboardMetrics(data);
+                    
+                    // Show demo banner if not authenticated
+                    if (!currentUser) {
+                        document.getElementById('demo-banner').style.display = 'block';
+                    }
+                } else {
+                    console.error('Failed to load dashboard data:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        // Update dashboard metrics
+        function updateDashboardMetrics(data) {
+            const engineStatus = data.dashboard_data.engine_status || {};
+            
+            // Update metrics
+            document.getElementById('optimization-score').textContent = 
+                Math.round((engineStatus.avg_improvement || 0) * 100);
+            document.getElementById('total-optimizations').textContent = 
+                engineStatus.total_optimizations || 0;
+            document.getElementById('avg-improvement').textContent = 
+                Math.round((engineStatus.avg_improvement || 0) * 100) + '%';
+            
+            // Update engine status
+            const statusElement = document.getElementById('engine-status');
+            const status = engineStatus.engine_status || 'unknown';
+            const statusSpan = statusElement.querySelector('.status-indicator');
+            
+            statusSpan.className = 'status-indicator';
+            if (status === 'active') {
+                statusSpan.classList.add('status-active');
+                statusElement.querySelector('span:last-child').textContent = 'Active';
+            } else if (status === 'error') {
+                statusSpan.classList.add('status-error');
+                statusElement.querySelector('span:last-child').textContent = 'Error';
+            } else {
+                statusSpan.classList.add('status-warning');
+                statusElement.querySelector('span:last-child').textContent = 'Unknown';
+            }
+
+            // Update domain status
+            updateDomainStatus(engineStatus.domains || {});
+            
+            // Update progress ring
+            updateProgressRing(engineStatus.avg_improvement || 0);
+        }
+
+        // Update domain status
+        function updateDomainStatus(domains) {
+            const domainMapping = {
+                'therapeutic': 0,
+                'user_engagement': 1,
+                'ai_services': 2,
+                'ai_costs': 3
+            };
+
+            const badges = document.querySelectorAll('#domain-status .improvement-badge');
+            
+            Object.entries(domains).forEach(([domain, data]) => {
+                const index = domainMapping[domain];
+                if (index !== undefined && badges[index]) {
+                    const improvement = Math.round((data.avg_improvement || 0) * 100);
+                    badges[index].textContent = improvement > 0 ? `+${improvement}%` : '--';
+                }
+            });
+        }
+
+        // Update progress ring
+        function updateProgressRing(progress) {
+            const circle = document.querySelector('.progress-ring-circle');
+            const text = document.getElementById('progress-text');
+            
+            const percentage = Math.round(progress * 100);
+            const offset = 283 - (283 * progress);
+            
+            circle.style.strokeDashoffset = offset;
+            text.textContent = percentage + '%';
+            
+            document.getElementById('progress-description').textContent = 
+                `${percentage}% optimization achieved`;
+        }
+
+        // Load recommendations
+        async function loadRecommendations() {
+            try {
+                const response = await fetch('/api/seed/recommendations');
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayRecommendations(data.recommendations);
+                } else {
+                    console.error('Failed to load recommendations:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading recommendations:', error);
+            }
+        }
+
+        // Display recommendations
+        function displayRecommendations(recommendations) {
+            const container = document.getElementById('recommendations-list');
+            
+            if (recommendations.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-muted p-4">
+                        <i class="fas fa-check-circle fa-3x mb-3"></i>
+                        <p>All optimizations are up to date!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = recommendations.map(rec => `
+                <div class="recommendation-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">${rec.title || 'Optimization Recommendation'}</h6>
+                            <p class="mb-2 text-muted">${rec.description || rec.data?.recommendations?.join(', ') || 'No description available'}</p>
+                            ${rec.action ? `<small class="text-primary"><i class="fas fa-arrow-right"></i> ${rec.action}</small>` : ''}
+                        </div>
+                        <span class="badge bg-${getPriorityColor(rec.priority || rec.confidence)} ms-2">
+                            ${rec.type || 'recommendation'}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Get priority color
+        function getPriorityColor(priority) {
+            if (typeof priority === 'number') {
+                return priority > 0.8 ? 'success' : priority > 0.6 ? 'warning' : 'secondary';
+            }
+            switch (priority) {
+                case 'high': return 'danger';
+                case 'medium': return 'warning';
+                case 'low': return 'secondary';
+                default: return 'primary';
+            }
+        }
+
+        // Optimization functions
+        async function runTherapeuticOptimization() {
+            await runOptimization('therapeutic', 'Therapeutic Optimization', 
+                'Analyzing your therapeutic interaction patterns...');
+        }
+
+        async function runEngagementOptimization() {
+            await runOptimization('engagement', 'Engagement Optimization', 
+                'Analyzing your platform usage patterns...');
+        }
+
+        async function runComprehensiveOptimization() {
+            await runOptimization('comprehensive', 'Comprehensive Optimization', 
+                'Running full optimization across all domains...');
+        }
+
+        async function runAICostOptimization() {
+            await runOptimization('ai-costs', 'AI Cost Optimization', 
+                'Analyzing AI usage patterns for cost optimization...');
+        }
+
+        // Generic optimization runner
+        async function runOptimization(type, title, message) {
+            // Show modal
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('progress-message').textContent = message;
+            document.getElementById('optimization-progress').style.display = 'block';
+            document.getElementById('optimization-result').style.display = 'none';
+            document.getElementById('apply-optimization').style.display = 'none';
+            
+            optimizationModal.show();
+            
+            try {
+                const response = await fetch(`/api/seed/optimize/${type}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                // Hide progress, show results
+                document.getElementById('optimization-progress').style.display = 'none';
+                document.getElementById('optimization-result').style.display = 'block';
+                
+                if (data.success) {
+                    displayOptimizationResult(data);
+                    document.getElementById('apply-optimization').style.display = 'inline-block';
+                } else {
+                    displayOptimizationError(data);
+                }
+                
+                // Refresh dashboard data
+                loadDashboardData();
+                loadRecommendations();
+                
+            } catch (error) {
+                console.error('Optimization error:', error);
+                document.getElementById('optimization-progress').style.display = 'none';
+                document.getElementById('optimization-result').style.display = 'block';
+                document.getElementById('optimization-result').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Optimization service temporarily unavailable. Please try again later.
+                    </div>
+                `;
+            }
+        }
+
+        // Display optimization result
+        function displayOptimizationResult(data) {
+            const result = data.result;
+            const optimizationResult = result.optimization_result;
+            
+            const html = `
+                <div class="alert alert-success">
+                    <h6><i class="fas fa-check-circle"></i> Optimization Complete!</h6>
+                    <p class="mb-0">
+                        ${optimizationResult?.metric_improved ? 
+                            `Improvement detected: ${optimizationResult.improvement_percentage?.toFixed(1)}% potential enhancement` :
+                            'Analysis complete - current optimization is already effective'
+                        }
+                    </p>
+                </div>
+                
+                ${result.recommendations?.length > 0 ? `
+                    <h6>Recommendations:</h6>
+                    <ul class="list-unstyled">
+                        ${result.recommendations.map(rec => `
+                            <li class="mb-2">
+                                <i class="fas fa-arrow-right text-primary"></i>
+                                <strong>${rec.title}</strong><br>
+                                <small class="text-muted">${rec.description}</small>
+                            </li>
+                        `).join('')}
+                    </ul>
+                ` : ''}
+                
+                ${data.demo_mode ? `
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle"></i>
+                        This is a demo. Sign up to get real personalized optimizations!
+                    </div>
+                ` : ''}
+            `;
+            
+            document.getElementById('optimization-result').innerHTML = html;
+        }
+
+        // Display optimization error
+        function displayOptimizationError(data) {
+            document.getElementById('optimization-result').innerHTML = `
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle"></i> ${data.error || 'Optimization not available'}</h6>
+                    ${data.demo_mode ? `
+                        <p class="mb-0">This feature requires authentication. Sign up to unlock SEED optimization!</p>
+                    ` : `
+                        <p class="mb-0">Try using the platform more to generate optimization data, then run optimization again.</p>
+                    `}
+                </div>
+            `;
+        }
+
+        // Apply optimization (placeholder)
+        document.getElementById('apply-optimization').addEventListener('click', function() {
+            // This would implement the optimization recommendations
+            alert('Optimization settings have been applied!');
+            optimizationModal.hide();
+        });
+    </script>
+</body>
+</html>
