@@ -2,29 +2,29 @@
 
 ## Introduction
 
-Welcome to NOUS, a sophisticated AI-powered personal assistant and life management platform. This comprehensive guide will help you understand and utilize all the advanced features available to optimize your productivity, health, finances, and collaboration.
+Welcome to NOUS, a comprehensive AI-powered mental health and therapeutic support platform. This guide will help you understand and utilize all the evidence-based CBT (Cognitive Behavioral Therapy), DBT (Dialectical Behavior Therapy), and AA (Alcoholics Anonymous) features designed to support your mental health journey with HIPAA-compliant security.
 
 ## Quick Start
 
-1. **Login**: Sign in with your Google account for secure authentication
-2. **Onboarding**: Complete the guided 3-step tour to set up your account
-3. **Connect Services**: Link your Google Workspace and Spotify accounts
-4. **Explore**: Use the analytics dashboard and global search to discover features
+1. **Login**: Sign in with your Google account for HIPAA-compliant secure authentication
+2. **Setup Wizard**: Complete therapeutic preference setup (CBT/DBT/AA focus, triggers, coping skills)
+3. **Therapeutic Dashboard**: Access your personalized mental health tracking dashboard
+4. **Explore Features**: Use CBT thought records, DBT skills tracker, AA meeting management, and crisis support tools
 
 ## Core Interface
 
-### Main Application Layout
-- **Header Navigation**: Access all major features and your profile
-- **Global Search**: Use `Ctrl+K` (or `Cmd+K` on Mac) to search anything instantly
-- **Notification Center**: Click the bell icon to view priority-based alerts
-- **Quick Actions**: Use the floating action button (bottom-right) for instant access
-- **Chat Interface**: Central AI assistant for natural language interactions
+### Main Therapeutic Dashboard
+- **Therapeutic Menu**: Access CBT, DBT, and AA tools from main navigation
+- **Crisis Support**: Emergency button for immediate therapeutic interventions
+- **AI Therapeutic Assistant**: Specialized AI trained in evidence-based therapeutic techniques
+- **Progress Tracking**: Visual charts showing mental health trends and therapeutic progress
+- **Skills Library**: Quick access to coping skills, mindfulness exercises, and therapeutic techniques
 
-### Keyboard Shortcuts
-- `Ctrl+K` / `Cmd+K` - Global search
-- `Ctrl+/` / `Cmd+/` - Help system
-- `Ctrl+N` / `Cmd+N` - Quick actions menu
-- `Escape` - Close modals and overlays
+### Therapeutic Navigation
+- **CBT Toolkit**: Thought records, cognitive bias detection, behavioral experiments
+- **DBT Skills**: Mindfulness, emotion regulation, distress tolerance, interpersonal effectiveness
+- **AA Recovery**: Meeting tracker, sobriety counter, sponsor communication, step work
+- **Crisis Tools**: Emergency contact, grounding techniques, safety planning
 
 ## 📊 Analytics Dashboard
 

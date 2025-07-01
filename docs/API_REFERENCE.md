@@ -1,10 +1,10 @@
-# NOUS Complete API Reference
+# NOUS Therapeutic API Reference
 
-*Generated: June 28, 2025 - 100% Accurate & Complete*
+*Generated: July 1, 2025 - 100% Accurate & Complete*
 
 ## 📊 API Overview
 
-NOUS provides **48 REST API endpoints** across multiple categories, offering comprehensive access to all platform features including AI services, analytics, health tracking, financial management, and collaboration tools.
+NOUS provides **48 REST API endpoints** across multiple therapeutic categories, offering comprehensive access to evidence-based mental health features including CBT/DBT/AA therapeutic tools, AI-powered therapeutic assistance, crisis support, and HIPAA-compliant health tracking.
 
 ### API Statistics
 - **Total Endpoints**: 48
