@@ -102,8 +102,8 @@ def create_app():
     
     # Register routes with fallbacks
     try:
-        from routes import register_all_routes
-        register_all_routes(app)
+        from routes import register_all_blueprints
+        register_all_blueprints(app)
         logger.info("All routes registered successfully")
     except ImportError:
         logger.warning("Routes module not found, registering basic routes")
