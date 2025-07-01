@@ -69,15 +69,6 @@ except ImportError:
     def init_auth(app): pass
 
 
-# Security headers middleware
-@app.after_request
-def add_security_headers(response):
-    """Add basic security headers"""
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
-    response.headers['X-XSS-Protection'] = '1; mode=block'
-    return response
-
 def create_app():
     """Create Flask application with comprehensive backend stability features"""
     app = Flask(__name__)
@@ -92,6 +83,15 @@ def create_app():
     
     # Initialize ProxyFix for deployment
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+    
+    # Add security headers middleware
+    @app.after_request
+    def add_security_headers(response):
+        """Add basic security headers"""
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        return response
     
     # Initialize database
     init_database(app)
@@ -115,8 +115,8 @@ def create_app():
     
     # Register routes with fallbacks
     try:
-        from routes import register_all_routes
-        register_all_routes(app)
+        from routes import register_all_blueprints
+        register_all_blueprints(app)
         logger.info("All routes registered successfully")
     except ImportError:
         logger.warning("Routes module not found, registering basic routes")

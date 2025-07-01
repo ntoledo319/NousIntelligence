@@ -1,49 +1,44 @@
-# NOUS: The AI-Powered Personal Assistant & Life-Management Platform
+# NOUS: Advanced CBT Support & Mental Health Platform
 
-[![CI Status](https://img.shields.io/badge/CI-Passing-brightgreen?style=for-the-badge)](https://github.com/features/actions)
-[![Docs](https://img.shields.io/badge/Docs-MkDocs-blue?style=for-the-badge)](./docs/index.md)
+[![Health Status](https://img.shields.io/badge/Health-Operational-brightgreen?style=for-the-badge)](./health)
+[![Security](https://img.shields.io/badge/Security-Compliant-blue?style=for-the-badge)](./docs/SECURITY_FEATURES.md)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](./LICENSE)
 
-NOUS is a sophisticated, enterprise-grade AI-powered personal assistant and life management platform that helps you organize, optimize, and enhance every aspect of your daily life. Built with Flask and powered by cost-optimized AI services, NOUS provides a comprehensive suite of productivity, health, financial, and collaborative tools through an intuitive chat interface and dedicated dashboards.
+NOUS is an advanced Cognitive Behavioral Therapy (CBT) support system and comprehensive mental health platform that provides innovative technology-driven therapeutic interventions, monitoring, and scalable mental health resource infrastructure. Built with Flask and featuring AI-powered cognitive bias detection, dynamic intervention generation, and adaptive user experiences.
 
-**Latest Enhancement:** NOUS has been transformed into a comprehensive life management platform with advanced analytics, real-time search, smart notifications, financial tracking, collaborative features, and enhanced mobile experience.
+**Current Focus:** Advanced CBT therapeutic support with secure mental health data management, SEED optimization engine, autonomous drone swarm systems, and comprehensive authentication via Google OAuth.
 
 ## 🌟 Core Capabilities
 
-- **🤖 Advanced AI Integration:** Powered by OpenRouter, HuggingFace, and Gemini Pro for cost-effective (~$0.49/month) intelligent assistance
-- **🗣️ Natural Language Processing:** Communicate in plain English - no rigid commands needed
-- **📊 Real-Time Analytics:** Comprehensive dashboard tracking productivity, health, engagement, and goal progress
-- **🔍 Universal Search:** Global search across all content with real-time suggestions and smart indexing
-- **🔔 Smart Notifications:** Priority-based notification center with intelligent categorization
-- **⚡ Quick Actions:** Floating action button with keyboard shortcuts for instant access
-- **👥 Collaborative Features:** Family and team management with shared tasks and responsibilities
-- **💰 Financial Integration:** Banking, transaction tracking, budgeting, and expense analysis
-- **🏥 Enhanced Health Tracking:** Comprehensive wellness monitoring with goal setting and insights
-- **📱 Mobile PWA:** Progressive Web App with offline capabilities and mobile optimization
+- **🧠 Advanced CBT Support:** Comprehensive Cognitive Behavioral Therapy tools with AI-powered cognitive bias detection and personalized interventions
+- **🤖 SEED Optimization Engine:** Self-learning optimization system that adapts therapeutic approaches based on user responses and effectiveness patterns
+- **🚁 Autonomous Drone Swarm:** Intelligent software agents that continuously monitor, optimize, and maintain system performance
+- **🔐 Enterprise Security:** Google OAuth 2.0 authentication with comprehensive security compliance and encrypted data management
+- **🧬 Therapeutic Integration:** Combined DBT (Dialectical Behavior Therapy), CBT, and AA (Alcoholics Anonymous) support systems
+- **📊 Real-Time Health Monitoring:** Advanced analytics and insights for mental health progress tracking
+- **🎯 Dynamic Intervention Generation:** AI-powered personalized therapeutic recommendations based on current emotional state and progress
+- **🔄 Adaptive User Experience:** System learns from user interactions to provide increasingly personalized support
+- **💾 Scalable Infrastructure:** Microservices architecture with Flask blueprints supporting modular mental health resource expansion
+- **📱 Secure Privacy-First Design:** HIPAA-compliant data handling with local processing and minimal data transmission
 
 ## ✨ Feature Matrix
 
-| Category | Features | Commands & Capabilities |
+| Category | Features | Therapeutic Capabilities |
 |:---------|:---------|:------------------------|
-| **📊 Analytics & Insights** | Real-time dashboard, Activity tracking, Goal monitoring, Performance metrics | View productivity stats, track habits, monitor engagement patterns |
-| **🔍 Search & Navigation** | Global search, Real-time suggestions, Content indexing | `Ctrl+K` for quick search, find any content instantly |
-| **🔔 Notifications** | Smart notification center, Priority-based alerts, Action buttons | Manage all notifications from one central hub |
-| **⚡ Quick Actions** | Floating action button, Keyboard shortcuts, Instant access | `Ctrl+/` help, `Ctrl+K` search, `Ctrl+N` new items |
-| **🗓️ Calendar & Scheduling** | Event management, Appointment scheduling, Meeting coordination | `add event party at 8pm tomorrow`, `what's my day?` |
-| **✅ Task Management** | Google Tasks integration, Priority levels, Due date tracking | `add task: buy milk`, `show my tasks` |
-| **📝 Note Management** | Google Keep integration, Voice notes, Smart organization | `add note: remember to call mom` |
-| **💰 Financial Management** | Bank account linking, Transaction tracking, Budget management, Expense analysis | Track spending, set budgets, monitor financial goals |
-| **👥 Collaboration** | Family management, Shared tasks, Member roles, Group activities | Create families, assign tasks, collaborate on goals |
-| **🏥 Health & Wellness** | Comprehensive tracking, Goal setting, Progress monitoring, AI insights | `log workout: 5k run`, `track sleep: 8 hours` |
-| **🧠 Mental Health** | **DBT:** Skills logging, diary cards. **AA:** Big Book access, speaker recordings | Comprehensive mental health support tools |
-| **🗣️ Voice Features** | Emotion analysis, Mindfulness assistant, Voice notes | Analyze emotional tone, guided meditation |
-| **🌦️ Weather Intelligence** | AI-powered recommendations, Health insights, Activity suggestions | Smart weather-based activity recommendations |
-| **🎵 AI Music Integration** | Spotify control, Mood-based recommendations, Smart playlists | `play focus music`, personalized music suggestions |
-| **🛒 Smart Shopping** | AI-powered lists, Budget integration, Meal planning | Generate shopping lists based on meals and budget |
-| **👨‍⚕️ Medical Management** | Doctor database, Appointment tracking, Medication reminders | `add doctor Dr. Jones`, `refill medication aspirin` |
-| **🎓 Language Learning** | Multi-language support, Vocabulary management, AI practice sessions | Create language profiles, practice conversations |
-| **🎨 Creative Tools** | Image analysis, Gallery organization, Content generation | Upload and analyze images, organize visual content |
-| **🗺️ Navigation** | Interactive maps, Directions, Place discovery | Plan routes, find nearby locations |
+| **🧠 CBT Support** | Thought records, Cognitive bias detection, Behavioral experiments, Mood tracking | Advanced cognitive restructuring, bias identification, evidence-based interventions |
+| **🌱 DBT Skills** | Distress tolerance, Emotion regulation, Mindfulness practice, Interpersonal effectiveness | Comprehensive DBT skills library with usage tracking and effectiveness monitoring |
+| **🍃 AA Recovery** | Big Book access, Speaker recordings, Step work guidance, Achievement tracking | Digital sobriety tools, meeting resources, sponsorship support |
+| **🤖 SEED Engine** | Therapeutic optimization, Personalized recommendations, Effectiveness analysis | AI learns user response patterns to optimize intervention timing and type |
+| **🚁 Drone Swarm** | System monitoring, Performance optimization, Self-healing capabilities | Autonomous agents for continuous platform improvement and health checks |
+| **🔐 Security & Privacy** | Google OAuth 2.0, Encrypted data storage, HIPAA compliance, Privacy controls | Enterprise-grade security for sensitive mental health information |
+| **📊 Analytics & Insights** | Progress tracking, Pattern recognition, Goal monitoring, Outcome measurement | Real-time therapeutic progress analysis and personalized insights |
+| **🎯 Dynamic Interventions** | Context-aware suggestions, Crisis support, Skill recommendations | AI-powered therapeutic interventions based on current emotional state |
+| **💭 Emotion Monitoring** | Mood tracking, Trigger identification, Pattern analysis, Early warning systems | Advanced emotional intelligence with predictive capabilities |
+| **📱 User Experience** | Responsive design, Accessibility features, Multi-device sync, Offline capabilities | Seamless mental health support across all platforms and situations |
+| **🔄 Adaptive Learning** | User preference learning, Effectiveness tracking, Personalization, Continuous improvement | System evolves to provide increasingly personalized therapeutic support |
+| **📋 Assessment Tools** | Standardized assessments, Progress measurements, Outcome tracking, Clinical insights | Evidence-based evaluation tools integrated with therapeutic workflows |
+| **⚡ Crisis Support** | 24/7 availability, Emergency protocols, Resource connections, Safety planning | Immediate access to crisis resources and emergency intervention capabilities |
+| **🏥 Healthcare Integration** | Provider communication, Appointment tracking, Medication management, Care coordination | Seamless integration with existing healthcare systems and providers |
 
 ## 🚀 Quick Start
 
