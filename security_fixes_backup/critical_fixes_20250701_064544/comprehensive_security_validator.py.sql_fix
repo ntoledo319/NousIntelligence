@@ -597,7 +597,7 @@ query = text("SELECT * FROM users WHERE id = :user_id")
 result = db.session.execute(query, {{"user_id": user_id}})
 
 # ❌ Bad: String concatenation
-query = "SELECT * FROM users WHERE id = {%s}", (user_id,)
+query = f"SELECT * FROM users WHERE id = {{user_id}}"
 ```
 """
         
