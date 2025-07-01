@@ -94,7 +94,8 @@ class SimpleAuth:
                 # For web requests, redirect to login
                 try:
                     return redirect(url_for('auth.login'))
-                except:
+                except Exception as e:
+                    logger.warning(f"Failed to redirect to auth.login: {e}")
                     return redirect('/login')
             
             return f(*args, **kwargs)

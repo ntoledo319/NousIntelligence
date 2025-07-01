@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger(__name__)
+
 """
 Operation Zero-Redirect: Smoke Test Suite
 Tests authentication flow to prevent redirect loops
@@ -111,7 +114,8 @@ class AuthLoopTester:
                 try:
                     data = response.json()
                     user_info = f"User: {data.get('user', {}).get('username', 'unknown')}"
-                except:
+                except Exception as e:
+                    logger.error(f"Error: {e}")
                     user_info = "JSON parse error"
             else:
                 user_info = "No JSON response"
@@ -166,7 +170,8 @@ class AuthLoopTester:
                 try:
                     data = response.json()
                     health_status = data.get('status', 'unknown')
-                except:
+                except Exception as e:
+                    logger.error(f"Error: {e}")
                     health_status = 'JSON parse error'
             else:
                 health_status = 'No response'

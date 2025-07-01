@@ -306,7 +306,8 @@ class DocumentProcessor:
             # Try to parse AI response as JSON
             try:
                 return json.loads(ai_response.get('content', '{}'))
-            except:
+            except Exception as e:
+                logger.error(f"Error: {e}")
                 return {'summary': ai_response.get('content', 'AI analysis unavailable')}
                 
         except Exception as e:

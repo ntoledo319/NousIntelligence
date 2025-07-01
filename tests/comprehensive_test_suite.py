@@ -356,7 +356,8 @@ class ComprehensiveTestSuite:
                     try:
                         response.json()
                         self._record_pass(f"API {method} {endpoint} working")
-                    except:
+                    except Exception as e:
+                        logger.error(f"Error: {e}")
                         self._record_warning(f"API {method} {endpoint} not returning JSON")
                 elif response.status_code in [400, 401, 404, 405]:
                     self._record_warning(f"API {method} {endpoint} returned {response.status_code}")
@@ -453,7 +454,8 @@ class ComprehensiveTestSuite:
                             self._record_warning("Database connectivity issues detected")
                     else:
                         self._record_warning("Database status not reported in health check")
-                except:
+                except Exception as e:
+                    logger.error(f"Error: {e}")
                     self._record_warning("Health endpoint not returning JSON")
             else:
                 self._record_error(f"Health check failed: {response.status_code}")
@@ -605,7 +607,8 @@ class ComprehensiveTestSuite:
             try:
                 response = requests.get(f"{self.base_url}/health", timeout=10)
                 return response.status_code == 200
-            except:
+            except Exception as e:
+                logger.error(f"Error: {e}")
                 return False
         
         try:
@@ -642,7 +645,8 @@ class ComprehensiveTestSuite:
                         self._record_pass("Database integration working")
                     else:
                         self._record_error("Database integration issues")
-                except:
+                except Exception as e:
+                    logger.error(f"Error: {e}")
                     self._record_warning("Could not parse health check response")
             else:
                 self._record_error(f"Health check failed: {response.status_code}")
@@ -667,7 +671,9 @@ class ComprehensiveTestSuite:
                         else:
                             self._record_warning(f"Third-party service {service} issues")
                             
-                except:
+                except Exception as e:
+                            
+                    logger.error(f"Error: {e}")
                     self._record_warning("Could not parse third-party services status")
             else:
                 self._record_warning("Could not check third-party services")

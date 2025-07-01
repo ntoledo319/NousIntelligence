@@ -501,7 +501,8 @@ class MemoryService:
                 # Try to parse JSON values
                 try:
                     value = json.loads(pref.preference_value)
-                except:
+                except Exception as e:
+                    logger.error(f"Error: {e}")
                     value = pref.preference_value
                 
                 result[pref.category][pref.preference_key] = {

@@ -53,7 +53,8 @@ def login():
     # Check if OAuth is configured
     try:
         oauth_configured = oauth_service.is_configured() if oauth_service else False
-    except:
+    except Exception as e:
+        logger.error(f"Error checking OAuth configuration: {e}")
         oauth_configured = False
     
     if not oauth_configured:

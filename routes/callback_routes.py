@@ -53,7 +53,8 @@ def google_callback():
                 try:
                     from flask import url_for
                     return redirect(url_for('main.dashboard'))
-                except:
+                except Exception as e:
+                    logger.error(f"Failed to update user settings: {e}")
                     return redirect('/')
         else:
             logger.error("OAuth callback failed - no user returned")

@@ -17,8 +17,7 @@ class ChatApp {
         this.setupIntersectionObserver();
         this.initFeaturesMenu();
         
-        console.log('NOUS Chat App initialized');
-    }
+        }
     
     initializeElements() {
         // Chat elements
@@ -35,7 +34,6 @@ class ChatApp {
         
         // Validation
         if (!this.chatMessages || !this.messageInput || !this.sendBtn) {
-            console.error('Required chat elements not found');
             return;
         }
     }
@@ -146,8 +144,6 @@ class ChatApp {
             }
             
         } catch (error) {
-            console.error('Error sending message:', error);
-            
             // Add error message
             this.addMessage({
                 content: 'Sorry, I encountered an error processing your message. Please try again.',
@@ -188,7 +184,6 @@ class ChatApp {
                     return response;
                 }
             } catch (error) {
-                console.warn(`API endpoint ${endpoint} failed:`, error);
                 continue;
             }
         }
@@ -304,8 +299,7 @@ class ChatApp {
             // Clear stored messages
             this.messages = this.messages.filter(msg => msg.sender === 'system');
             
-            console.log('Chat cleared');
-        }
+            }
     }
     
     // Theme Management
@@ -314,8 +308,7 @@ class ChatApp {
         document.body.setAttribute('data-theme', themeName);
         this.saveTheme(themeName);
         
-        console.log(`Theme changed to: ${themeName}`);
-    }
+        }
     
     loadTheme() {
         return localStorage.getItem('nous-theme') || 'light';
@@ -360,8 +353,6 @@ class ChatApp {
         if ('serviceWorker' in navigator) {
             try {
                 const registration = await navigator.serviceWorker.register('/static/sw.js');
-                console.log('Service Worker registered successfully:', registration);
-                
                 registration.addEventListener('updatefound', () => {
                     const newWorker = registration.installing;
                     newWorker.addEventListener('statechange', () => {
@@ -371,8 +362,7 @@ class ChatApp {
                     });
                 });
             } catch (error) {
-                console.log('Service Worker registration failed:', error);
-            }
+                }
         }
     }
     
@@ -452,7 +442,6 @@ class ChatApp {
     initErrorHandling() {
         // Global error handler for unhandled promises
         window.addEventListener('unhandledrejection', (event) => {
-            console.error('Unhandled promise rejection:', event.reason);
             event.preventDefault();
         });
     }
@@ -518,7 +507,6 @@ class ChatApp {
                 this.displaySearchResults({ results: [], total_count: 0 });
             }
         } catch (error) {
-            console.error('Search error:', error);
             this.displaySearchResults({ results: [], total_count: 0 });
         }
     }
@@ -630,8 +618,7 @@ class ChatApp {
                 this.displayNotifications(data.data.notifications);
             }
         } catch (error) {
-            console.error('Error loading notifications:', error);
-        }
+            }
     }
 
     async loadNotificationSummary() {
@@ -645,8 +632,7 @@ class ChatApp {
                 this.updateNotificationBadge(data.data.total_unread);
             }
         } catch (error) {
-            console.error('Error loading notification summary:', error);
-        }
+            }
     }
 
     updateNotificationBadge(count) {
@@ -711,8 +697,7 @@ class ChatApp {
             this.loadNotifications();
             this.loadNotificationSummary();
         } catch (error) {
-            console.error('Error marking notification as read:', error);
-        }
+            }
     }
 
     async markAllNotificationsRead() {
@@ -725,8 +710,7 @@ class ChatApp {
             this.loadNotifications();
             this.loadNotificationSummary();
         } catch (error) {
-            console.error('Error marking all notifications as read:', error);
-        }
+            }
     }
 
     initQuickActions() {
@@ -989,8 +973,7 @@ class ChatApp {
                 session_id: this.sessionId || 'default'
             })
         }).catch(error => {
-            console.warn('Activity tracking failed:', error);
-        });
+            });
     }
 
     // Enhanced initialization
@@ -1012,8 +995,7 @@ class ChatApp {
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, waiting for chat app initialization...');
-});
+    });
 
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
@@ -1031,7 +1013,6 @@ function validateTheme(themeName) {
 
 // Global error handler for unhandled promises
 window.addEventListener('unhandledrejection', (event) => {
-    console.error('Unhandled promise rejection:', event.reason);
     event.preventDefault();
 });
 
@@ -1112,7 +1093,6 @@ ChatApp.prototype.performSearch = async function(query) {
             this.displaySearchResults({ results: [], total_count: 0 });
         }
     } catch (error) {
-        console.error('Search error:', error);
         this.displaySearchResults({ results: [], total_count: 0 });
     }
 };
@@ -1311,8 +1291,7 @@ ChatApp.prototype.trackActivity = function(activityType, activityCategory = null
             session_id: this.sessionId || 'default'
         })
     }).catch(error => {
-        console.warn('Activity tracking failed:', error);
-    });
+        });
 };
 
 // Service worker registration for PWA capabilities (future enhancement)
@@ -1320,10 +1299,8 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/static/sw.js')
             .then((registration) => {
-                console.log('SW registered: ', registration);
-            })
+                })
             .catch((registrationError) => {
-                console.log('SW registration failed: ', registrationError);
-            });
+                });
     });
 }

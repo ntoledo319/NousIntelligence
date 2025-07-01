@@ -298,7 +298,8 @@ class IntelligentAutomationEngine:
             target_time = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
             time_diff = abs((now - target_time).total_seconds())
             return time_diff <= 60  # 1-minute window
-        except:
+        except Exception as e:
+            logger.error(f"Error: {e}")
             return False
     
     async def _evaluate_weather_trigger(self, trigger: Dict[str, Any]) -> bool:

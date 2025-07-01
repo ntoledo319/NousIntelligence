@@ -281,14 +281,7 @@ class NOUSModernChat {
 
         const loadingText = document.createElement('div');
         loadingText.classList.add('flex', 'items-center', 'space-x-1');
-        loadingText.innerHTML = `
-            <span class="text-sm text-gray-600 dark:text-gray-300">NOUS is thinking</span>
-            <div class="flex space-x-1">
-                <div class="w-1 h-1 bg-gray-400 rounded-full animate-bounce"></div>
-                <div class="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                <div class="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-            </div>
-        `;
+        loadingText.textContent = "Processing...";
 
         loadingBubble.appendChild(loadingText);
         loadingContainer.appendChild(avatar);
@@ -353,9 +346,9 @@ class NOUSModernChat {
         if (!this.dom.search.results) return;
 
         if (results.length === 0) {
-            this.dom.search.results.innerHTML = '<div class="p-3 text-gray-500">No results found</div>';
+            this.dom.search.results.textContent = ""
         } else {
-            this.dom.search.results.innerHTML = results.map(result => `
+            this.dom.search.results.textContent = ""
                 <div class="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-200 dark:border-gray-600">
                     <div class="font-medium text-sm">${result.title}</div>
                     <div class="text-xs text-gray-500 mt-1">${result.description}</div>
@@ -416,9 +409,9 @@ class NOUSModernChat {
         }
 
         if (notifications.length === 0) {
-            this.dom.notifications.list.innerHTML = '<div class="p-3 text-gray-500 text-center">No notifications</div>';
+            this.dom.notifications.list.textContent = ""
         } else {
-            this.dom.notifications.list.innerHTML = notifications.map(notification => `
+            this.dom.notifications.list.textContent = ""
                 <div class="p-3 border-b border-gray-200 dark:border-gray-600 ${!notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''}">
                     <div class="font-medium text-sm">${notification.title}</div>
                     <div class="text-xs text-gray-500 mt-1">${notification.message}</div>
