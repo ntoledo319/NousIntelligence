@@ -41,6 +41,19 @@ def create_app():
     
     app.secret_key = secret_key
     
+    # Enhanced session security configuration
+    app.config.update(
+        SESSION_COOKIE_SECURE=True,  # HTTPS only
+        SESSION_COOKIE_HTTPONLY=True,  # No JavaScript access
+        SESSION_COOKIE_SAMESITE='Lax',  # CSRF protection
+        PERMANENT_SESSION_LIFETIME=3600,  # 1 hour timeout
+        SESSION_COOKIE_NAME='nous_session'  # Custom cookie name
+    )
+    
+    # Override HTTPS requirement for development
+    if DEBUG:
+        app.config['SESSION_COOKIE_SECURE'] = False
+    
     # Database configuration with security checks
     try:
         database_url = AppConfig.get_database_url()

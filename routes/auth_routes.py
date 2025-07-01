@@ -71,48 +71,108 @@ def login():
 @auth_bp.route('/google')
 @oauth_rate_limit
 def google_login():
-    """Initiate Google OAuth login with deployment-aware redirect URI"""
-    if not oauth_service.is_configured():
+    """Initiate Google OAuth login with enhanced error handling"""
+    if not oauth_service or not oauth_service.is_configured():
         logger.warning("Google OAuth is not configured - missing credentials")
-        flash('Google OAuth is not configured.', 'error')
-        return redirect(url_for('auth.login'))
+        # Redirect back with specific error code
+        return redirect(url_for('main.index', oauth_error='not_configured'))
     
     try:
+        # Store the original referrer for post-login redirect
+        session['oauth_referrer'] = request.referrer or url_for('main.index')
+        
         # Get deployment-aware redirect URI
         redirect_uri = get_deployment_callback_uri()
         logger.info(f"Initiating OAuth with redirect URI: {redirect_uri}")
-        return oauth_service.get_authorization_url(redirect_uri)
+        
+        # Add login hint if user provided email
+        auth_url = oauth_service.get_authorization_url(redirect_uri)
+        
+        return auth_url
+        
     except Exception as e:
         logger.error(f"OAuth initiation failed: {str(e)}")
-        flash('Authentication failed. Please try again.', 'error')
-        return redirect(url_for('auth.login'))
+        error_code = 'server_error'
+        
+        # Provide more specific error codes based on exception type
+        if 'network' in str(e).lower():
+            error_code = 'network_error'
+        elif 'timeout' in str(e).lower():
+            error_code = 'timeout_error'
+            
+        return redirect(url_for('main.index', oauth_error=error_code))
 
 @auth_bp.route('/google/callback')
 @auth_bp.route('/callback/google')  # Support existing Google Cloud Console configuration
 def google_callback():
     """Handle Google OAuth callback with enhanced error handling"""
     try:
+        # Check for OAuth errors from Google
+        error = request.args.get('error')
+        if error:
+            error_description = request.args.get('error_description', 'Unknown error')
+            logger.warning(f"OAuth error from Google: {error} - {error_description}")
+            
+            # Map Google errors to user-friendly messages
+            if error == 'access_denied':
+                return redirect(url_for('main.index', oauth_error='access_denied'))
+            else:
+                return redirect(url_for('main.index', oauth_error='oauth_error'))
+        
+        # Enhanced state validation
+        state = request.args.get('state')
+        stored_state = session.pop('oauth_state', None)
+        
+        if not state or not stored_state or state != stored_state:
+            logger.warning("OAuth state mismatch - possible CSRF attack")
+            return redirect(url_for('main.index', oauth_error='invalid_state'))
+        
+        # Validate state timestamp (should be within 10 minutes)
+        state_timestamp = session.pop('oauth_state_timestamp', None)
+        if state_timestamp:
+            from datetime import datetime
+            if datetime.utcnow().timestamp() - state_timestamp > 600:
+                logger.warning("OAuth state expired")
+                return redirect(url_for('main.index', oauth_error='state_expired'))
+        
         # Get deployment-aware redirect URI for token exchange
         redirect_uri = get_deployment_callback_uri()
         
-        # Handle OAuth callback
+        # Handle OAuth callback with enhanced error tracking
         user = oauth_service.handle_callback(redirect_uri)
         
         if user:
             login_user(user, remember=True)
-            flash('Successfully logged in with Google!', 'success')
+            logger.info(f"User {user.email} successfully authenticated via Google OAuth")
+            
+            # Clear any OAuth error flags
+            session.pop('oauth_error', None)
             
             # Redirect to intended page or dashboard
+            referrer = session.pop('oauth_referrer', None)
             next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('main.dashboard'))
+            
+            if next_page:
+                return redirect(next_page)
+            elif referrer and 'login' not in referrer:
+                return redirect(referrer)
+            else:
+                return redirect(url_for('main.dashboard'))
         else:
-            flash('Authentication failed. Please try again.', 'error')
-            return redirect(url_for('auth.login'))
+            logger.error("OAuth callback succeeded but no user was created")
+            return redirect(url_for('main.index', oauth_error='user_creation_failed'))
             
     except Exception as e:
         logger.error(f"OAuth callback failed: {str(e)}")
-        flash('Authentication failed. Please try again.', 'error')
-        return redirect(url_for('auth.login'))
+        
+        # Map specific exceptions to error codes
+        error_code = 'callback_error'
+        if 'network' in str(e).lower():
+            error_code = 'network_error'
+        elif 'token' in str(e).lower():
+            error_code = 'token_error'
+            
+        return redirect(url_for('main.index', oauth_error=error_code))
 
 @auth_bp.route('/demo-mode', methods=['POST'])
 def demo_mode():
