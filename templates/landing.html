@@ -15,12 +15,15 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="NOUS">
     <title>NOUS - Intelligent Personal Assistant</title>
-    <!-- Preload critical resources -->
+    <!-- Enhanced resource preloading -->
     <link rel="preconnect" href="https://accounts.google.com" crossorigin>
     <link rel="preconnect" href="https://oauth2.googleapis.com" crossorigin>
     <link rel="dns-prefetch" href="https://www.googleapis.com">
     <link rel="preload" href="/static/css/main.css" as="style">
     <link rel="preload" href="/static/js/oauth-handler.js" as="script">
+    <link rel="preload" href="/static/js/main.js" as="script">
+    <link rel="prefetch" href="/api/health">
+    <link rel="prefetch" href="/auth/status">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Load fonts asynchronously -->
@@ -35,6 +38,20 @@
     <link rel="apple-touch-icon" href="/static/favicon.ico">
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 font-sans">
+    <!-- Efficient Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}" data-category="{{ category }}">
+                        {{ message }}
+                        <button type="button" class="flash-close" onclick="this.parentElement.remove()" aria-label="Close">×</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
     <div class="container">
         <!-- Hero Section -->
         <header class="hero">
@@ -85,6 +102,32 @@
                 <p>Join thousands of users who have discovered the power of intelligent assistance.</p>
                 
 
+                
+                <!-- OAuth Error Handling -->
+                {% set oauth_error = request.args.get('oauth_error') %}
+                {% if oauth_error %}
+                    <div class="oauth-error-notice">
+                        {% if oauth_error == 'not_configured' %}
+                            <p class="error-text">🔧 Google Sign-in is temporarily unavailable. Please try demo mode or contact support.</p>
+                        {% elif oauth_error == 'access_denied' %}
+                            <p class="error-text">🚫 Sign-in was cancelled. You can try again or use demo mode.</p>
+                        {% elif oauth_error == 'invalid_state' %}
+                            <p class="error-text">🔒 Security validation failed. Please try signing in again.</p>
+                        {% elif oauth_error == 'state_expired' %}
+                            <p class="error-text">⏰ Sign-in session expired. Please try again.</p>
+                        {% elif oauth_error == 'network_error' %}
+                            <p class="error-text">🌐 Network error occurred. Please check your connection and try again.</p>
+                        {% elif oauth_error == 'timeout_error' %}
+                            <p class="error-text">⏱️ Sign-in timed out. Please try again.</p>
+                        {% elif oauth_error == 'token_error' %}
+                            <p class="error-text">🔑 Authentication token error. Please try signing in again.</p>
+                        {% elif oauth_error == 'user_creation_failed' %}
+                            <p class="error-text">👤 Account creation failed. Please try again or contact support.</p>
+                        {% else %}
+                            <p class="error-text">❌ Sign-in failed. Please try again or use demo mode.</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
                 
                 <div class="cta-buttons">
                     {% if oauth_available %}
