@@ -57,20 +57,7 @@ function showOAuthError(errorCode) {
     // Create error notification
     const notification = document.createElement('div');
     notification.className = 'oauth-error-notification';
-    notification.innerHTML = `
-        <div class="notification-content">
-            <svg class="error-icon" width="24" height="24" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-            </svg>
-            <div class="notification-text">
-                <strong>Sign-in Failed</strong>
-                <p>${message}</p>
-            </div>
-            <button class="notification-close" onclick="this.closest('.oauth-error-notification').remove()">
-                <span>&times;</span>
-            </button>
-        </div>
-    `;
+    notification.textContent = "OAuth notification";
     
     document.body.appendChild(notification);
     

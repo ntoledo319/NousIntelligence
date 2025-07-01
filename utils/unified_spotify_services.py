@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger(__name__)
+
 import asyncio
 """
 from utils.auth_compat import get_demo_user
@@ -54,7 +57,8 @@ class UnifiedSpotifyService:
         try:
             self.sp.get_demo_user()()
             return True
-        except:
+        except Exception as e:
+            logger.error(f"Error: {e}")
             return False
     
     # Player Control Functions

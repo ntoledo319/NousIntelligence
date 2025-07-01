@@ -15,6 +15,7 @@ try:
     from config import AppConfig, PORT, HOST, DEBUG
     from database import db, init_database
     from utils.google_oauth import init_oauth, user_loader
+from utils.security_middleware import init_security_headers
     from utils.unified_auth import init_auth
 except Exception as e:
     import logging
@@ -72,6 +73,9 @@ def create_app():
     
     # Setup ProxyFix for reverse proxy deployment
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+    
+    # Initialize security headers
+    init_security_headers(app)
     
     # Initialize database
     try:
