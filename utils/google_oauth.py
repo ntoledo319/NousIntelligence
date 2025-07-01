@@ -12,6 +12,7 @@ from flask_login import login_user, logout_user, current_user
 from models.user import User
 from database import db
 from datetime import datetime
+from utils.secret_manager import SecretManager
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,14 @@ class GoogleOAuthService:
             
             # Check if OAuth credentials are available
             raw_client_id = os.environ.get('GOOGLE_CLIENT_ID')
-            raw_client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')
+            raw_client_secret = os.environ.get('GOOGLE_CLIENT_SECRET', '')
+            
+            # Validate client secret strength using SecretManager
+            if raw_client_secret:
+                is_valid, msg = SecretManager.validate_secret_strength(raw_client_secret)
+                if not is_valid:
+                    logger.warning(f"Weak GOOGLE_CLIENT_SECRET: {msg}")
+                    # Continue anyway for backward compatibility but log warning
             
             # Extract correct credentials from potentially malformed environment variables
             client_id = self._extract_client_id(raw_client_id)
