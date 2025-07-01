@@ -13,35 +13,35 @@ sys.path.insert(0, '.')
 
 def main():
     """Apply OAuth fixes"""
-    print("=== Final OAuth System Fix ===")
+    logger.info(=== Final OAuth System Fix ===)
     
     # Test current OAuth service
     try:
         from utils.google_oauth import oauth_service
-        print("✅ OAuth service imported")
+        logger.info(✅ OAuth service imported)
         
         # Test credential extraction
         raw_client_id = os.environ.get('GOOGLE_CLIENT_ID')
         raw_client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')
         
-        print(f"Raw Client ID length: {len(raw_client_id) if raw_client_id else 0}")
-        print(f"Raw Client Secret length: {len(raw_client_secret) if raw_client_secret else 0}")
+        logger.info(Raw Client ID length: {len(raw_client_id) if raw_client_id else 0})
+        logger.info(Raw Client Secret length: {len(raw_client_secret) if raw_client_secret else 0})
         
         # Extract clean credentials
         clean_client_id = oauth_service._extract_client_id(raw_client_id)
         clean_client_secret = oauth_service._extract_client_secret(raw_client_secret)
         
-        print(f"Clean Client ID: {clean_client_id}")
-        print(f"Clean Client Secret: {clean_client_secret[:20]}..." if clean_client_secret else "None")
+        logger.info(Clean Client ID: {clean_client_id})
+        logger.info(Clean Client Secret: {clean_client_secret[:20]}...)
         
         # Test OAuth configuration
         is_configured = oauth_service.is_configured()
-        print(f"OAuth Configured: {is_configured}")
+        logger.info(OAuth Configured: {is_configured})
         
         if is_configured:
-            print("✅ OAuth system is working correctly!")
+            logger.info(✅ OAuth system is working correctly!)
         else:
-            print("❌ OAuth system needs initialization")
+            logger.info(❌ OAuth system needs initialization)
             
         # Test with a minimal Flask app
         from flask import Flask
@@ -51,17 +51,17 @@ def main():
         # Test initialization
         with test_app.app_context():
             result = oauth_service.init_app(test_app)
-            print(f"OAuth init result: {result}")
+            logger.info(OAuth init result: {result})
             
             if result:
-                print("✅ OAuth initialization successful!")
+                logger.info(✅ OAuth initialization successful!)
                 configured = oauth_service.is_configured()
-                print(f"✅ OAuth configured after init: {configured}")
+                logger.info(✅ OAuth configured after init: {configured})
             else:
-                print("❌ OAuth initialization failed")
+                logger.info(❌ OAuth initialization failed)
                 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        logger.error(❌ Error: {e})
         import traceback
         traceback.print_exc()
 

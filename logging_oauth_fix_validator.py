@@ -30,8 +30,8 @@ class LoggingOAuthFixValidator:
     
     def validate_all_fixes(self):
         """Run all validation tests"""
-        print("🔍 LOGGING & OAUTH FIXES VALIDATION")
-        print("=" * 50)
+        logger.info(🔍 LOGGING & OAUTH FIXES VALIDATION)
+        logger.info(=)
         
         # Test 1: Logging Configuration
         self.test_logging_configuration()
@@ -61,7 +61,7 @@ class LoggingOAuthFixValidator:
     
     def test_logging_configuration(self):
         """Test logging configuration improvements"""
-        print("\n📝 Testing Logging Configuration...")
+        logger.info(\n📝 Testing Logging Configuration...)
         
         try:
             # Test 1: Check if new logging config exists
@@ -114,7 +114,7 @@ class LoggingOAuthFixValidator:
     
     def test_oauth_configuration(self):
         """Test OAuth configuration and error handling"""
-        print("\n🔐 Testing OAuth Configuration...")
+        logger.info(\n🔐 Testing OAuth Configuration...)
         
         try:
             # Test 1: OAuth service improvements
@@ -172,7 +172,7 @@ class LoggingOAuthFixValidator:
     
     def test_blueprint_registration(self):
         """Test blueprint registration conflict resolution"""
-        print("\n📋 Testing Blueprint Registration...")
+        logger.info(\n📋 Testing Blueprint Registration...)
         
         try:
             # Test routes initialization module
@@ -201,7 +201,7 @@ class LoggingOAuthFixValidator:
     
     def test_environment_variables(self):
         """Test environment variable configuration"""
-        print("\n🌍 Testing Environment Variables...")
+        logger.info(\n🌍 Testing Environment Variables...)
         
         # Check critical environment variables
         required_vars = ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'SESSION_SECRET', 'DATABASE_URL']
@@ -228,7 +228,7 @@ class LoggingOAuthFixValidator:
     
     def test_application_startup(self):
         """Test application startup with fixes"""
-        print("\n🚀 Testing Application Startup...")
+        logger.info(\n🚀 Testing Application Startup...)
         
         try:
             # Test app creation
@@ -278,7 +278,7 @@ class LoggingOAuthFixValidator:
     
     def test_authentication_barriers(self):
         """Test that authentication barriers have been eliminated"""
-        print("\n🔓 Testing Authentication Barriers...")
+        logger.info(\n🔓 Testing Authentication Barriers...)
         
         try:
             # Test auth compatibility layer
@@ -320,23 +320,23 @@ class LoggingOAuthFixValidator:
     
     def log_success(self, message):
         """Log a successful test"""
-        print(f"  ✅ {message}")
+        logger.info(  ✅ {message})
         self.results['tests_passed'] += 1
         self.results['issues_resolved'].append(message)
     
     def log_failure(self, message):
         """Log a failed test"""
-        print(f"  ❌ {message}")
+        logger.info(  ❌ {message})
         self.results['tests_failed'] += 1
         self.results['remaining_issues'].append(message)
     
     def log_warning(self, message):
         """Log a warning"""
-        print(f"  ⚠️  {message}")
+        logger.info(  ⚠️  {message})
     
     def log_info(self, message):
         """Log informational message"""
-        print(f"  ℹ️  {message}")
+        logger.info(  ℹ️  {message})
     
     def calculate_overall_status(self):
         """Calculate overall validation status"""
@@ -353,46 +353,46 @@ class LoggingOAuthFixValidator:
     
     def generate_final_report(self):
         """Generate final validation report"""
-        print("\n" + "=" * 50)
-        print("📊 VALIDATION SUMMARY")
-        print("=" * 50)
+        logger.info(\n)
+        logger.info(📊 VALIDATION SUMMARY)
+        logger.info(=)
         
         total_tests = self.results['tests_passed'] + self.results['tests_failed']
         pass_rate = (self.results['tests_passed'] / total_tests * 100) if total_tests > 0 else 0
         
-        print(f"Total Tests: {total_tests}")
-        print(f"Passed: {self.results['tests_passed']}")
-        print(f"Failed: {self.results['tests_failed']}")
-        print(f"Pass Rate: {pass_rate:.1f}%")
-        print(f"Overall Status: {self.results['overall_status'].upper()}")
+        logger.info(Total Tests: {total_tests})
+        logger.info(Passed: {self.results['tests_passed']})
+        logger.info(Failed: {self.results['tests_failed']})
+        logger.info(Pass Rate: {pass_rate:.1f}%)
+        logger.info(Overall Status: {self.results['overall_status'].upper()})
         
         if self.results['issues_resolved']:
-            print(f"\n✅ ISSUES RESOLVED ({len(self.results['issues_resolved'])}):")
+            logger.info(\n✅ ISSUES RESOLVED ({len(self.results['issues_resolved'])}):)
             for issue in self.results['issues_resolved']:
-                print(f"  • {issue}")
+                logger.info(  • {issue})
         
         if self.results['remaining_issues']:
-            print(f"\n❌ REMAINING ISSUES ({len(self.results['remaining_issues'])}):")
+            logger.info(\n❌ REMAINING ISSUES ({len(self.results['remaining_issues'])}):)
             for issue in self.results['remaining_issues']:
-                print(f"  • {issue}")
+                logger.info(  • {issue})
         
         # Save detailed results
         results_file = f"logging_oauth_fix_validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         with open(results_file, 'w') as f:
             json.dump(self.results, f, indent=2)
         
-        print(f"\n📁 Detailed results saved to: {results_file}")
+        logger.info(\n📁 Detailed results saved to: {results_file})
         
         # Final recommendation
         if self.results['overall_status'] == 'all_passed':
-            print("\n🎉 ALL LOGGING AND OAUTH ISSUES HAVE BEEN RESOLVED!")
-            print("The application is ready for deployment.")
+            logger.info(\n🎉 ALL LOGGING AND OAUTH ISSUES HAVE BEEN RESOLVED!)
+            logger.info(The application is ready for deployment.)
         elif self.results['overall_status'] == 'mostly_passed':
-            print("\n✅ MOST ISSUES RESOLVED - Minor issues remain")
-            print("The application should work correctly with graceful fallbacks.")
+            logger.info(\n✅ MOST ISSUES RESOLVED - Minor issues remain)
+            logger.info(The application should work correctly with graceful fallbacks.)
         else:
-            print("\n⚠️  SIGNIFICANT ISSUES REMAIN")
-            print("Additional fixes may be needed before deployment.")
+            logger.info(\n⚠️  SIGNIFICANT ISSUES REMAIN)
+            logger.info(Additional fixes may be needed before deployment.)
 
 
 def main():

@@ -10,11 +10,11 @@ import sys
 def fix_deployment_oauth():
     """Fix common OAuth deployment issues"""
     
-    print("🔧 Fixing Deployment OAuth Issues")
-    print("=" * 50)
+    logger.info(🔧 Fixing Deployment OAuth Issues)
+    logger.info(=)
     
     # Fix 1: Ensure OAuth route is properly configured for deployment
-    print("\n1. Updating OAuth routes for deployment...")
+    logger.info(\n1. Updating OAuth routes for deployment...)
     
     auth_routes_content = '''#!/usr/bin/env python3
 """
@@ -134,8 +134,8 @@ def get_deployment_callback_uri():
                 scheme = 'https' if request.is_secure else 'http'
                 host = request.host
                 deployment_url = f"{scheme}://{host}"
-        except:
-            pass
+        except Exception as e:
+    logger.error(f"Unexpected error: {e}")
     
     # Fallback to common Replit patterns
     if not deployment_url:
@@ -162,10 +162,10 @@ __all__ = ['auth_bp']
     with open('routes/auth_routes.py', 'w') as f:
         f.write(auth_routes_content)
     
-    print("   ✅ Updated auth routes with deployment-aware redirect URIs")
+    logger.info(   ✅ Updated auth routes with deployment-aware redirect URIs)
     
     # Fix 2: Update OAuth service to handle deployment URLs
-    print("\n2. Updating OAuth service for deployment compatibility...")
+    logger.info(\n2. Updating OAuth service for deployment compatibility...)
     
     # Read current OAuth service
     with open('utils/google_oauth.py', 'r') as f:
@@ -206,10 +206,10 @@ __all__ = ['auth_bp']
         with open('utils/google_oauth.py', 'w') as f:
             f.write(oauth_content)
         
-        print("   ✅ Added deployment URL detection to OAuth service")
+        logger.info(   ✅ Added deployment URL detection to OAuth service)
     
     # Fix 3: Create a comprehensive redirect URI guide
-    print("\n3. Creating redirect URI configuration guide...")
+    logger.info(\n3. Creating redirect URI configuration guide...)
     
     redirect_guide = '''# Google Cloud Console Redirect URI Configuration
 
@@ -257,10 +257,10 @@ To find your exact deployment URL:
     with open('GOOGLE_OAUTH_SETUP.md', 'w') as f:
         f.write(redirect_guide)
     
-    print("   ✅ Created Google OAuth setup guide")
+    logger.info(   ✅ Created Google OAuth setup guide)
     
     # Fix 4: Test the OAuth configuration
-    print("\n4. Testing OAuth configuration...")
+    logger.info(\n4. Testing OAuth configuration...)
     
     try:
         from utils.google_oauth import oauth_service
@@ -271,40 +271,40 @@ To find your exact deployment URL:
         
         with app.app_context():
             if oauth_service.init_app(app):
-                print("   ✅ OAuth service initializes correctly")
+                logger.info(   ✅ OAuth service initializes correctly)
                 
                 if oauth_service.is_configured():
-                    print("   ✅ OAuth service is properly configured")
+                    logger.info(   ✅ OAuth service is properly configured)
                 else:
-                    print("   ❌ OAuth service configuration failed")
+                    logger.info(   ❌ OAuth service configuration failed)
             else:
-                print("   ❌ OAuth service initialization failed")
+                logger.info(   ❌ OAuth service initialization failed)
                 
     except Exception as e:
-        print(f"   ❌ OAuth test failed: {e}")
+        logger.info(   ❌ OAuth test failed: {e})
     
-    print("\n" + "=" * 50)
-    print("🎯 DEPLOYMENT OAUTH FIXES COMPLETE")
-    print("=" * 50)
+    logger.info(\n)
+    logger.info(🎯 DEPLOYMENT OAUTH FIXES COMPLETE)
+    logger.info(=)
     
-    print("\n✅ Applied Fixes:")
-    print("   • Updated auth routes with deployment-aware redirect URIs")
-    print("   • Enhanced OAuth service with deployment URL detection")
-    print("   • Created comprehensive redirect URI configuration guide")
-    print("   • Tested OAuth configuration")
+    logger.info(\n✅ Applied Fixes:)
+    logger.info(   • Updated auth routes with deployment-aware redirect URIs)
+    logger.info(   • Enhanced OAuth service with deployment URL detection)
+    logger.info(   • Created comprehensive redirect URI configuration guide)
+    logger.info(   • Tested OAuth configuration)
     
-    print("\n🚀 Next Steps:")
-    print("   1. Redeploy your application")
-    print("   2. Find your exact deployment URL")
-    print("   3. Add the callback URI to Google Cloud Console:")
-    print("      [YOUR-DEPLOYMENT-URL]/auth/google/callback")
-    print("   4. Test the 'Sign in with Google' button")
+    logger.info(\n🚀 Next Steps:)
+    logger.info(   1. Redeploy your application)
+    logger.info(   2. Find your exact deployment URL)
+    logger.info(   3. Add the callback URI to Google Cloud Console:)
+    logger.info(      [YOUR-DEPLOYMENT-URL]/auth/google/callback)
+    logger.info(   4. Test the 'Sign in with Google' button)
     
-    print("\n📋 Quick Checklist:")
-    print("   □ Deployment URL found")
-    print("   □ Redirect URI added to Google Cloud Console")
-    print("   □ Application redeployed")
-    print("   □ OAuth tested and working")
+    logger.info(\n📋 Quick Checklist:)
+    logger.info(   □ Deployment URL found)
+    logger.info(   □ Redirect URI added to Google Cloud Console)
+    logger.info(   □ Application redeployed)
+    logger.info(   □ OAuth tested and working)
 
 if __name__ == "__main__":
     fix_deployment_oauth()

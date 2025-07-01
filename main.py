@@ -5,11 +5,17 @@ Fast startup with public access guarantees
 """
 try:
     import os
+    import logging
     from datetime import datetime
     from app_working import app
 except Exception as e:
-    print(f"Failed to import modules in main.py: {e}")
+    import logging
+    logging.error(f"Failed to import modules in main.py: {e}")
     raise
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 # Set critical environment variables for public deployment
 os.environ.setdefault('PORT', '8080')
@@ -29,10 +35,10 @@ if __name__ == "__main__":
         port = int(os.environ.get('PORT', 8080))
         host = os.environ.get('HOST', '0.0.0.0')
         
-        print(f"🚀 NOUS starting on {host}:{port}")
-        print("⚡ FAST STARTUP: Core functionality active")
-        print("🔧 Heavy features will load in background after startup")
-        print("💀 OPERATION PUBLIC-OR-BUST: Public access enabled")
+        logger.info(f"🚀 NOUS starting on {host}:{port}")
+        logger.info("⚡ FAST STARTUP: Core functionality active")
+        logger.info("🔧 Heavy features will load in background after startup")
+        logger.info("💀 OPERATION PUBLIC-OR-BUST: Public access enabled")
         
         # Start with optimized settings for public deployment
         app.run(
@@ -44,12 +50,12 @@ if __name__ == "__main__":
         )
         
     except Exception as e:
-        print(f"❌ Startup error: {e}")
+        logger.error(f"❌ Startup error: {e}")
         # Fallback: create minimal Flask app for public access
         try:
             from flask import Flask, jsonify, render_template_string
         except Exception as fallback_e:
-            print(f"Failed to import flask for fallback: {fallback_e}")
+            logger.error(f"Failed to import flask for fallback: {fallback_e}")
             raise
 
         fallback_app = Flask(__name__)
@@ -81,5 +87,5 @@ if __name__ == "__main__":
         port = int(os.environ.get('PORT', 8080))
         host = os.environ.get('HOST', '0.0.0.0')
         
-        print("🔧 Running fallback server for public access")
+        logger.info("🔧 Running fallback server for public access")
         fallback_app.run(host=host, port=port, debug=False)

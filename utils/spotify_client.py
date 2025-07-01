@@ -186,8 +186,8 @@ class SpotifyClient:
                             error_msg = error_data['error']['message']
                         else:
                             error_msg = str(error_data['error'])
-                except:
-                    pass
+                except Exception as e:
+    logger.error(f"Unexpected error: {e}")
                 raise Exception(f"Spotify API error: {error_msg}")
 
             # Parse response

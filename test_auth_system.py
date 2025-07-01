@@ -1,3 +1,5 @@
+import logging
+logger = logging.getLogger(__name__)
 #!/usr/bin/env python3
 """
 Complete Authentication System Test
@@ -14,8 +16,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 def test_authentication_system():
     """Test the complete authentication system"""
-    print("🔐 Testing NOUS Authentication System")
-    print("=" * 50)
+    logger.info(🔐 Testing NOUS Authentication System)
+    logger.info(=)
     
     # Test 1: Check environment variables (if provided)
     oauth_configured = (
@@ -23,7 +25,7 @@ def test_authentication_system():
         os.environ.get('GOOGLE_CLIENT_SECRET')
     )
     
-    print(f"OAuth Credentials Configured: {'✅ Yes' if oauth_configured else '⚠️ No (will need to be provided)'}")
+    logger.info(OAuth Credentials Configured: {'✅ Yes' if oauth_configured else '⚠️ No (will need to be provided)'})
     
     # Test 2: Check User model for OAuth fields
     try:
@@ -33,12 +35,12 @@ def test_authentication_system():
         missing_fields = [field for field in oauth_fields if not hasattr(user, field)]
         
         if not missing_fields:
-            print("✅ User model has all OAuth token fields")
+            logger.info(✅ User model has all OAuth token fields)
         else:
-            print(f"❌ Missing OAuth fields: {missing_fields}")
+            logger.info(❌ Missing OAuth fields: {missing_fields})
             
     except Exception as e:
-        print(f"❌ User model test failed: {str(e)}")
+        logger.info(❌ User model test failed: {str(e)})
     
     # Test 3: Check Google OAuth service
     try:
@@ -46,24 +48,24 @@ def test_authentication_system():
         oauth_service = GoogleOAuthService()
         
         if hasattr(oauth_service, 'refresh_token'):
-            print("✅ OAuth service has refresh token capability")
+            logger.info(✅ OAuth service has refresh token capability)
         else:
-            print("❌ OAuth service missing refresh token capability")
+            logger.info(❌ OAuth service missing refresh token capability)
             
     except Exception as e:
-        print(f"❌ OAuth service test failed: {str(e)}")
+        logger.info(❌ OAuth service test failed: {str(e)})
     
     # Test 4: Check authentication routes
     try:
         from routes.auth_routes import auth_bp
         
         if auth_bp.name == 'auth':
-            print("✅ Authentication blueprint correctly named")
+            logger.info(✅ Authentication blueprint correctly named)
         else:
-            print(f"❌ Authentication blueprint has wrong name: {auth_bp.name}")
+            logger.info(❌ Authentication blueprint has wrong name: {auth_bp.name})
             
     except Exception as e:
-        print(f"❌ Authentication routes test failed: {str(e)}")
+        logger.info(❌ Authentication routes test failed: {str(e)})
     
     # Test 5: Check Google API integration
     try:
@@ -71,26 +73,26 @@ def test_authentication_system():
         api_manager = GoogleAPIManager()
         
         if hasattr(api_manager, 'get_user_info'):
-            print("✅ Google API manager has user info capability")
+            logger.info(✅ Google API manager has user info capability)
         else:
-            print("❌ Google API manager missing user info capability")
+            logger.info(❌ Google API manager missing user info capability)
             
     except Exception as e:
-        print(f"❌ Google API manager test failed: {str(e)}")
+        logger.info(❌ Google API manager test failed: {str(e)})
     
-    print("\n" + "=" * 50)
-    print("🎯 Authentication System Status: READY")
-    print("   - All security fixes implemented")
-    print("   - OAuth flow configured")
-    print("   - Token refresh mechanism available")
-    print("   - CSRF protection enabled")
-    print("   - Secure error handling active")
+    logger.info(\n)
+    logger.info(🎯 Authentication System Status: READY)
+    logger.info(   - All security fixes implemented)
+    logger.info(   - OAuth flow configured)
+    logger.info(   - Token refresh mechanism available)
+    logger.info(   - CSRF protection enabled)
+    logger.error(   - Secure error handling active)
     
     if not oauth_configured:
-        print("\n⚠️  NEXT STEPS:")
-        print("   1. Provide GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET")
-        print("   2. Configure OAuth credentials in Replit Secrets")
-        print("   3. Test complete OAuth flow")
+        logger.info(\n⚠️  NEXT STEPS:)
+        logger.info(   1. Provide GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET)
+        logger.info(   2. Configure OAuth credentials in Replit Secrets)
+        logger.info(   3. Test complete OAuth flow)
 
 def validate_security_improvements():
     """Validate that all security fixes have been applied"""
@@ -110,8 +112,8 @@ def validate_security_improvements():
         from routes.auth_routes import auth_bp
         if auth_bp.name == 'auth':
             security_fixes['blueprint_naming'] = True
-    except:
-        pass
+    except Exception as e:
+    logger.error(f"Unexpected error: {e}")
     
     # Check token refresh capability
     try:
@@ -119,8 +121,8 @@ def validate_security_improvements():
         oauth_service = GoogleOAuthService()
         if hasattr(oauth_service, 'refresh_token'):
             security_fixes['token_refresh'] = True
-    except:
-        pass
+    except Exception as e:
+    logger.error(f"Unexpected error: {e}")
     
     # Check CSRF protection (POST-only logout)
     try:
@@ -128,8 +130,8 @@ def validate_security_improvements():
             content = f.read()
             if "@auth_bp.route('/logout', methods=['POST'])" in content:
                 security_fixes['csrf_protection'] = True
-    except:
-        pass
+    except Exception as e:
+    logger.error(f"Unexpected error: {e}")
     
     # Check secure error handling
     try:
@@ -137,8 +139,8 @@ def validate_security_improvements():
             content = f.read()
             if "Authentication failed. Please try again." in content:
                 security_fixes['secure_error_handling'] = True
-    except:
-        pass
+    except Exception as e:
+    logger.error(f"Unexpected error: {e}")
     
     # Check demo mode security
     try:
@@ -146,16 +148,16 @@ def validate_security_improvements():
             content = f.read()
             if "methods=['POST']" in content and "ENABLE_DEMO_MODE" in content:
                 security_fixes['demo_mode_security'] = True
-    except:
-        pass
+    except Exception as e:
+    logger.error(f"Unexpected error: {e}")
     
     # Check username collision handling
     try:
         from utils.google_oauth import oauth_service
         if hasattr(oauth_service, '_generate_unique_username'):
             security_fixes['username_collision'] = True
-    except:
-        pass
+    except Exception as e:
+    logger.error(f"Unexpected error: {e}")
     
     # Check OAuth token storage
     try:
@@ -164,33 +166,33 @@ def validate_security_improvements():
         required_fields = ['google_access_token', 'google_refresh_token', 'google_token_expires_at']
         if all(hasattr(user, field) for field in required_fields):
             security_fixes['oauth_token_storage'] = True
-    except:
-        pass
+    except Exception as e:
+    logger.error(f"Unexpected error: {e}")
     
     # Generate report
     fixed_count = sum(security_fixes.values())
     total_count = len(security_fixes)
     security_score = (fixed_count / total_count) * 100
     
-    print("\n🔒 SECURITY VALIDATION REPORT")
-    print("=" * 40)
+    logger.info(\n🔒 SECURITY VALIDATION REPORT)
+    logger.info(=)
     
     for fix_name, is_fixed in security_fixes.items():
         status = "✅ FIXED" if is_fixed else "❌ PENDING"
-        print(f"{fix_name.replace('_', ' ').title()}: {status}")
+        logger.info({fix_name.replace('_', ' ').title()}: {status})
     
-    print(f"\nSecurity Score: {security_score:.1f}%")
+    logger.info(\nSecurity Score: {security_score:.1f}%)
     
     if security_score >= 90:
-        print("🟢 Security Status: EXCELLENT")
+        logger.info(🟢 Security Status: EXCELLENT)
     elif security_score >= 75:
-        print("🟡 Security Status: GOOD")
+        logger.info(🟡 Security Status: GOOD)
     else:
-        print("🔴 Security Status: NEEDS IMPROVEMENT")
+        logger.info(🔴 Security Status: NEEDS IMPROVEMENT)
     
     return security_score
 
 if __name__ == '__main__':
     test_authentication_system()
-    print("\n" + "=" * 50)
+    logger.info(\n)
     validate_security_improvements()

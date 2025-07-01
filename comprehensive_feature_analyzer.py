@@ -355,8 +355,8 @@ class ComprehensiveFeatureAnalyzer:
             if (isinstance(tree.body[0], ast.Expr) and 
                 isinstance(tree.body[0].value, ast.Str)):
                 return tree.body[0].value.s
-        except:
-            pass
+        except Exception as e:
+    logger.error(f"Unexpected error: {e}")
         
         # Fallback to regex
         docstring_pattern = r'"""([^"]+)"""'
@@ -558,15 +558,15 @@ def main():
     logger.info("✅ Features documentation updated successfully!")
     
     # Print summary
-    print(f"\n🎉 COMPREHENSIVE FEATURE ANALYSIS COMPLETE!")
-    print(f"📊 Total Features Documented: {report['summary']['total_routes'] + report['summary']['total_models'] + report['summary']['total_services'] + report['summary']['total_utilities']}")
-    print(f"📁 Route Files: {report['summary']['total_route_files']}")
-    print(f"🌐 Web Routes: {report['summary']['total_routes']}")
-    print(f"🗄️ Database Models: {report['summary']['total_models']}")
-    print(f"⚙️ Business Services: {report['summary']['total_services']}")
-    print(f"🛠️ Utility Modules: {report['summary']['total_utilities']}")
-    print(f"🎨 UI Templates: {report['summary']['total_templates']}")
-    print(f"🔌 API Endpoints: {report['summary']['total_api_endpoints']}")
+    logger.info(\n🎉 COMPREHENSIVE FEATURE ANALYSIS COMPLETE!)
+    logger.info(📊 Total Features Documented: {report['summary']['total_routes'] + report['summary']['total_models'] + report['summary']['total_services'] + report['summary']['total_utilities']})
+    logger.info(📁 Route Files: {report['summary']['total_route_files']})
+    logger.info(🌐 Web Routes: {report['summary']['total_routes']})
+    logger.info(🗄️ Database Models: {report['summary']['total_models']})
+    logger.info(⚙️ Business Services: {report['summary']['total_services']})
+    logger.info(🛠️ Utility Modules: {report['summary']['total_utilities']})
+    logger.info(🎨 UI Templates: {report['summary']['total_templates']})
+    logger.info(🔌 API Endpoints: {report['summary']['total_api_endpoints']})
 
 if __name__ == "__main__":
     main()

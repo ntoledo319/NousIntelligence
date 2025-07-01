@@ -1,3 +1,5 @@
+import logging
+logger = logging.getLogger(__name__)
 #!/usr/bin/env python3
 """
 NOUS API Documentation Generator
@@ -91,8 +93,8 @@ def generate_flask_routes_docs():
                     if view_func:
                         route_doc['docstring'] = inspect.getdoc(view_func)
                         route_doc['source_file'] = inspect.getfile(view_func)
-                except:
-                    pass
+                except Exception as e:
+    logger.error(f"Unexpected error: {e}")
                 
                 routes_docs['routes'].append(route_doc)
         

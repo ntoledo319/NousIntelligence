@@ -217,8 +217,8 @@ def get_system_metrics() -> Dict[str, Any]:
                 'bytes_sent': net_io.bytes_sent,
                 'bytes_recv': net_io.bytes_recv
             }
-        except:
-            pass
+        except Exception as e:
+    logger.error(f"Unexpected error: {e}")
             
         return metrics
         

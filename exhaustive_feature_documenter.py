@@ -1,3 +1,5 @@
+import logging
+logger = logging.getLogger(__name__)
 #!/usr/bin/env python3
 """
 Exhaustive Feature Documenter
@@ -633,14 +635,14 @@ NOUS provides a **complete personal assistant ecosystem** with:
 
 def main():
     """Generate exhaustive feature documentation"""
-    print("🔍 Loading comprehensive analysis data...")
+    logger.info(🔍 Loading comprehensive analysis data...)
     
     data = load_analysis_data()
     if not data:
-        print("❌ No analysis data found. Please run comprehensive_feature_analyzer.py first.")
+        logger.info(❌ No analysis data found. Please run comprehensive_feature_analyzer.py first.)
         return
     
-    print("📝 Generating exhaustive feature documentation...")
+    logger.info(📝 Generating exhaustive feature documentation...)
     
     doc_content = generate_exhaustive_documentation(data)
     
@@ -652,9 +654,9 @@ def main():
     with open('docs/FEATURES.md', 'w') as f:
         f.write(doc_content)
     
-    print("✅ Exhaustive feature documentation completed!")
-    print(f"📊 Documented {data['summary']['total_routes'] + data['summary']['total_models'] + data['summary']['total_services'] + data['summary']['total_utilities']} total features")
-    print(f"📁 Files: docs/FEATURES.md and docs/FEATURES_EXHAUSTIVE.md")
+    logger.info(✅ Exhaustive feature documentation completed!)
+    logger.info(📊 Documented {data['summary']['total_routes'] + data['summary']['total_models'] + data['summary']['total_services'] + data['summary']['total_utilities']} total features)
+    logger.info(📁 Files: docs/FEATURES.md and docs/FEATURES_EXHAUSTIVE.md)
 
 if __name__ == "__main__":
     main()
