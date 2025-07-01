@@ -105,6 +105,35 @@ def create_app():
     # Store OAuth status for templates
     app.config['OAUTH_ENABLED'] = oauth_initialized
     
+    # Setup CSRF protection
+    import secrets
+    
+    @app.context_processor
+    def inject_csrf_token():
+        """Inject CSRF token into all templates"""
+        if 'csrf_token' not in session:
+            session['csrf_token'] = secrets.token_hex(32)
+        return {'csrf_token': lambda: session.get('csrf_token', '')}
+    
+    @app.before_request
+    def csrf_protect():
+        """CSRF protection for state-changing requests"""
+        if request.method in ['POST', 'PUT', 'DELETE', 'PATCH']:
+            # Skip CSRF for API endpoints (they use different auth)
+            if request.path.startswith('/api/'):
+                return
+            
+            token = request.form.get('csrf_token') or request.headers.get('X-CSRF-Token')
+            session_token = session.get('csrf_token')
+            
+            if not token or not session_token or not secrets.compare_digest(token, session_token):
+                logger.warning(f"CSRF token validation failed for {request.path}")
+                if request.content_type == 'application/json':
+                    return jsonify({'error': 'CSRF token validation failed'}), 403
+                else:
+                    flash('Security validation failed. Please try again.', 'danger')
+                    return redirect(url_for('main.index'))
+    
     # Register all application blueprints
     try:
         from routes import register_all_blueprints
@@ -151,11 +180,20 @@ def create_app():
         
         return response
     
-    # HTTPS redirect for production
+    # HTTPS redirect for production (only for real production deployments)
     @app.before_request
     def force_https():
         """Force HTTPS in production"""
-        if not DEBUG and not request.is_secure and request.headers.get('X-Forwarded-Proto') != 'https':
+        # Only redirect to HTTPS if:
+        # 1. Not in DEBUG mode AND
+        # 2. Not running on localhost/127.0.0.1 AND 
+        # 3. Request is not already secure AND
+        # 4. Not already forwarded through HTTPS proxy
+        is_localhost = request.host.startswith(('localhost:', '127.0.0.1:', '0.0.0.0:'))
+        if (not DEBUG and 
+            not is_localhost and 
+            not request.is_secure and 
+            request.headers.get('X-Forwarded-Proto') != 'https'):
             return redirect(request.url.replace('http://', 'https://'), code=301)
     
     # Authentication helper functions
