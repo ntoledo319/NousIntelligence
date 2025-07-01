@@ -239,13 +239,21 @@ class NOUSSeedEngine:
         domain = OptimizationDomain.AI_SERVICES
         
         try:
-            # Get current AI cost metrics
-            cost_report = self.ai_service.get_cost_report()
-            current_metrics = {
-                'cost_per_request': cost_report.get('cost_per_user', 0.5),
-                'quality_score': self._calculate_ai_quality_score(usage_history),
-                'response_time': self._calculate_avg_response_time(usage_history)
-            }
+            # Get current AI cost metrics with fallbacks
+            if self.ai_service and hasattr(self.ai_service, 'get_cost_report'):
+                cost_report = self.ai_service.get_cost_report()
+                current_metrics = {
+                    'cost_per_request': cost_report.get('cost_per_user', 0.5),
+                    'quality_score': self._calculate_ai_quality_score(usage_history),
+                    'response_time': self._calculate_avg_response_time(usage_history)
+                }
+            else:
+                # Fallback metrics when service unavailable
+                current_metrics = {
+                    'cost_per_request': 0.5,
+                    'quality_score': 0.7,
+                    'response_time': 2.0
+                }
             
             # Analyze provider performance patterns
             provider_effectiveness = self._analyze_provider_effectiveness(usage_history)
