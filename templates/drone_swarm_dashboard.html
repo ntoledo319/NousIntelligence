@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEED Drone Swarm Dashboard - NOUS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --nous-primary: #2563eb;
+            --nous-secondary: #1e40af;
+            --nous-success: #059669;
+            --nous-warning: #d97706;
+            --nous-danger: #dc2626;
+            --nous-dark: #1f2937;
+            --nous-light: #f8fafc;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--nous-light) 0%, #e2e8f0 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--nous-primary) 0%, var(--nous-secondary) 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.2);
+        }
+
+        .dashboard-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .status-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .status-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-running { background-color: var(--nous-success); }
+        .status-stopped { background-color: var(--nous-danger); }
+        .status-warning { background-color: var(--nous-warning); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .drone-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            border-left: 4px solid var(--nous-primary);
+            transition: all 0.3s ease;
+        }
+
+        .drone-card:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+        }
+
+        .task-item {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-left: 3px solid var(--nous-primary);
+        }
+
+        .task-success {
+            border-left-color: var(--nous-success);
+            background: #f0fdf4;
+        }
+
+        .task-failed {
+            border-left-color: var(--nous-danger);
+            background: #fef2f2;
+        }
+
+        .btn-action {
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary-action {
+            background: linear-gradient(135deg, var(--nous-primary) 0%, var(--nous-secondary) 100%);
+            color: white;
+        }
+
+        .btn-primary-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-success-action {
+            background: linear-gradient(135deg, var(--nous-success) 0%, #047857 100%);
+            color: white;
+        }
+
+        .btn-warning-action {
+            background: linear-gradient(135deg, var(--nous-warning) 0%, #b45309 100%);
+            color: white;
+        }
+
+        .btn-danger-action {
+            background: linear-gradient(135deg, var(--nous-danger) 0%, #b91c1c 100%);
+            color: white;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--nous-primary);
+        }
+
+        .metric-label {
+            font-size: 0.875rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--nous-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .control-panel {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+
+        .alert-custom {
+            border-radius: 12px;
+            border: none;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .progress-custom {
+            height: 8px;
+            border-radius: 4px;
+            background-color: #e2e8f0;
+        }
+
+        .progress-bar-custom {
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .refresh-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .refresh-icon.spinning {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="dashboard-title">
+                        <i class="fas fa-robot me-3"></i>
+                        SEED Drone Swarm
+                    </h1>
+                    <p class="mb-0 fs-5 opacity-90">Autonomous System Management & Optimization</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-light btn-lg" onclick="refreshDashboard()">
+                        <i class="fas fa-sync-alt refresh-icon" id="refreshIcon"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- System Status Overview -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="status-card">
+                    <h3 class="mb-4"><i class="fas fa-tachometer-alt text-primary me-2"></i>System Status</h3>
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <div class="metric-value" id="swarmStatus">
+                                <span class="status-indicator status-stopped"></span>Unknown
+                            </div>
+                            <div class="metric-label">Swarm Status</div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="metric-value" id="activeDrones">0</div>
+                            <div class="metric-label">Active Drones</div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="metric-value" id="pendingTasks">0</div>
+                            <div class="metric-label">Pending Tasks</div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="metric-value" id="completedTasks">0</div>
+                            <div class="metric-label">Completed Tasks</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <h3 class="mb-4"><i class="fas fa-cogs text-primary me-2"></i>Swarm Control</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="mb-3">System Control</h5>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary-action btn-action" onclick="startSwarm()">
+                            <i class="fas fa-play me-2"></i>Start Swarm
+                        </button>
+                        <button class="btn btn-danger-action btn-action" onclick="stopSwarm()">
+                            <i class="fas fa-stop me-2"></i>Stop Swarm
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="mb-3">Manual Tasks</h5>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success-action btn-action" onclick="triggerVerification()">
+                            <i class="fas fa-search me-2"></i>System Verification
+                        </button>
+                        <button class="btn btn-warning-action btn-action" onclick="triggerOptimization()">
+                            <i class="fas fa-cog me-2"></i>Optimization Cycle
+                        </button>
+                        <button class="btn btn-primary-action btn-action" onclick="triggerDataCollection()">
+                            <i class="fas fa-database me-2"></i>Data Collection
+                        </button>
+                        <button class="btn btn-danger-action btn-action" onclick="triggerHealing()">
+                            <i class="fas fa-wrench me-2"></i>System Healing
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Active Drones -->
+            <div class="col-lg-6 mb-4">
+                <div class="status-card">
+                    <h4 class="mb-4"><i class="fas fa-robot text-primary me-2"></i>Active Drones</h4>
+                    <div id="dronesContainer">
+                        <div class="text-center text-muted py-4">
+                            <div class="loading-spinner mx-auto mb-3"></div>
+                            <p>Loading drone information...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Tasks -->
+            <div class="col-lg-6 mb-4">
+                <div class="status-card">
+                    <h4 class="mb-4"><i class="fas fa-tasks text-primary me-2"></i>Recent Tasks</h4>
+                    <div id="tasksContainer">
+                        <div class="text-center text-muted py-4">
+                            <div class="loading-spinner mx-auto mb-3"></div>
+                            <p>Loading task history...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Alerts -->
+        <div class="row">
+            <div class="col-12">
+                <div id="alertsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let refreshInterval;
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshDashboard();
+            // Auto-refresh every 30 seconds
+            refreshInterval = setInterval(refreshDashboard, 30000);
+        });
+
+        async function refreshDashboard() {
+            const refreshIcon = document.getElementById('refreshIcon');
+            refreshIcon.classList.add('spinning');
+            
+            try {
+                await Promise.all([
+                    updateSwarmStatus(),
+                    updateDroneList(),
+                    updateTaskHistory()
+                ]);
+            } catch (error) {
+                console.error('Dashboard refresh error:', error);
+                showAlert('Error refreshing dashboard data', 'danger');
+            } finally {
+                refreshIcon.classList.remove('spinning');
+            }
+        }
+
+        async function updateSwarmStatus() {
+            try {
+                const response = await fetch('/api/drone-swarm/status');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const status = data.swarm_status;
+                    const swarmStatusEl = document.getElementById('swarmStatus');
+                    const isRunning = status.swarm_running;
+                    
+                    swarmStatusEl.innerHTML = `
+                        <span class="status-indicator ${isRunning ? 'status-running' : 'status-stopped'}"></span>
+                        ${isRunning ? 'Running' : 'Stopped'}
+                    `;
+                    
+                    document.getElementById('activeDrones').textContent = status.total_active_drones || 0;
+                    document.getElementById('pendingTasks').textContent = status.pending_tasks || 0;
+                    document.getElementById('completedTasks').textContent = status.completed_tasks || 0;
+                } else {
+                    throw new Error(data.error || 'Failed to get swarm status');
+                }
+            } catch (error) {
+                console.error('Status update error:', error);
+                document.getElementById('swarmStatus').innerHTML = `
+                    <span class="status-indicator status-warning"></span>Error
+                `;
+            }
+        }
+
+        async function updateDroneList() {
+            try {
+                const response = await fetch('/api/drone-swarm/drones');
+                const data = await response.json();
+                
+                const container = document.getElementById('dronesContainer');
+                
+                if (data.success && data.drones.length > 0) {
+                    container.innerHTML = data.drones.map(drone => `
+                        <div class="drone-card">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">${drone.drone_id}</h6>
+                                    <p class="text-muted mb-2">${drone.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
+                                    <small class="text-success">
+                                        <i class="fas fa-check-circle me-1"></i>
+                                        ${drone.tasks_completed} completed
+                                    </small>
+                                    ${drone.tasks_failed > 0 ? `
+                                        <small class="text-danger ms-3">
+                                            <i class="fas fa-times-circle me-1"></i>
+                                            ${drone.tasks_failed} failed
+                                        </small>
+                                    ` : ''}
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge ${getStatusBadgeClass(drone.status)} mb-2">${drone.status}</span>
+                                    <div class="small text-muted">
+                                        Success: ${Math.round(drone.success_rate * 100)}%
+                                    </div>
+                                    <div class="small text-muted">
+                                        Avg Time: ${drone.avg_execution_time.toFixed(2)}s
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-robot fa-3x mb-3 opacity-25"></i>
+                            <p>No active drones</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Drone list update error:', error);
+                document.getElementById('dronesContainer').innerHTML = `
+                    <div class="text-center text-danger py-4">
+                        <i class="fas fa-exclamation-triangle mb-2"></i>
+                        <p>Error loading drone information</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function updateTaskHistory() {
+            try {
+                const response = await fetch('/api/drone-swarm/tasks?limit=10');
+                const data = await response.json();
+                
+                const container = document.getElementById('tasksContainer');
+                
+                if (data.success && data.results.length > 0) {
+                    container.innerHTML = data.results.map(task => `
+                        <div class="task-item ${task.success ? 'task-success' : 'task-failed'}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">${task.task_id}</h6>
+                                    <p class="mb-1 small">${task.drone_id}</p>
+                                    <div class="small text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        ${new Date(task.completed_at).toLocaleString()}
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge ${task.success ? 'bg-success' : 'bg-danger'} mb-1">
+                                        ${task.success ? 'Success' : 'Failed'}
+                                    </span>
+                                    <div class="small text-muted">
+                                        ${task.execution_time.toFixed(2)}s
+                                    </div>
+                                </div>
+                            </div>
+                            ${task.recommendations && task.recommendations.length > 0 ? `
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-lightbulb me-1"></i>
+                                        ${task.recommendations[0]}
+                                    </small>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-tasks fa-3x mb-3 opacity-25"></i>
+                            <p>No recent tasks</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Task history update error:', error);
+                document.getElementById('tasksContainer').innerHTML = `
+                    <div class="text-center text-danger py-4">
+                        <i class="fas fa-exclamation-triangle mb-2"></i>
+                        <p>Error loading task history</p>
+                    </div>
+                `;
+            }
+        }
+
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'active': return 'bg-success';
+                case 'working': return 'bg-primary';
+                case 'completed': return 'bg-info';
+                case 'failed': return 'bg-danger';
+                case 'idle': return 'bg-secondary';
+                default: return 'bg-secondary';
+            }
+        }
+
+        async function startSwarm() {
+            try {
+                const response = await fetch('/api/drone-swarm/start', { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Drone swarm started successfully', 'success');
+                    setTimeout(refreshDashboard, 2000);
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                console.error('Start swarm error:', error);
+                showAlert('Failed to start drone swarm: ' + error.message, 'danger');
+            }
+        }
+
+        async function stopSwarm() {
+            if (!confirm('Are you sure you want to stop the drone swarm?')) return;
+            
+            try {
+                const response = await fetch('/api/drone-swarm/stop', { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Drone swarm stopped successfully', 'warning');
+                    setTimeout(refreshDashboard, 2000);
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                console.error('Stop swarm error:', error);
+                showAlert('Failed to stop drone swarm: ' + error.message, 'danger');
+            }
+        }
+
+        async function triggerVerification() {
+            try {
+                const response = await fetch('/api/drone-swarm/verification/trigger', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ verification_type: 'full_system' })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(`Verification task queued: ${data.task_id}`, 'success');
+                    setTimeout(refreshDashboard, 2000);
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                console.error('Trigger verification error:', error);
+                showAlert('Failed to trigger verification: ' + error.message, 'danger');
+            }
+        }
+
+        async function triggerOptimization() {
+            try {
+                const response = await fetch('/api/drone-swarm/optimization/trigger', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ optimization_type: 'general' })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(`Optimization task queued: ${data.task_id}`, 'success');
+                    setTimeout(refreshDashboard, 2000);
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                console.error('Trigger optimization error:', error);
+                showAlert('Failed to trigger optimization: ' + error.message, 'danger');
+            }
+        }
+
+        async function triggerDataCollection() {
+            try {
+                const response = await fetch('/api/drone-swarm/data-collection/trigger', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ collection_type: 'system_metrics' })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(`Data collection task queued: ${data.task_id}`, 'success');
+                    setTimeout(refreshDashboard, 2000);
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                console.error('Trigger data collection error:', error);
+                showAlert('Failed to trigger data collection: ' + error.message, 'danger');
+            }
+        }
+
+        async function triggerHealing() {
+            try {
+                const response = await fetch('/api/drone-swarm/healing/trigger', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ healing_type: 'general' })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(`Healing task queued: ${data.task_id}`, 'success');
+                    setTimeout(refreshDashboard, 2000);
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                console.error('Trigger healing error:', error);
+                showAlert('Failed to trigger healing: ' + error.message, 'danger');
+            }
+        }
+
+        function showAlert(message, type) {
+            const alertsContainer = document.getElementById('alertsContainer');
+            const alertId = 'alert-' + Date.now();
+            
+            const alertHtml = `
+                <div id="${alertId}" class="alert alert-${type} alert-custom alert-dismissible fade show" role="alert">
+                    <i class="fas fa-${getAlertIcon(type)} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            alertsContainer.insertAdjacentHTML('afterbegin', alertHtml);
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                const alert = document.getElementById(alertId);
+                if (alert) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            }, 5000);
+        }
+
+        function getAlertIcon(type) {
+            switch(type) {
+                case 'success': return 'check-circle';
+                case 'danger': return 'exclamation-triangle';
+                case 'warning': return 'exclamation-circle';
+                case 'info': return 'info-circle';
+                default: return 'info-circle';
+            }
+        }
+
+        // Cleanup interval on page unload
+        window.addEventListener('beforeunload', function() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
+    </script>
+</body>
+</html>

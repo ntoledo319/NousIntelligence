@@ -35,6 +35,7 @@ OPTIONAL_BLUEPRINTS = [
     {'name': 'weather', 'module': 'routes.weather_routes', 'attr': 'weather_bp', 'url_prefix': None},
     {'name': 'tasks', 'module': 'routes.tasks_routes', 'attr': 'tasks_bp', 'url_prefix': None},
     {'name': 'seed', 'module': 'routes.seed_routes', 'attr': 'seed_bp', 'url_prefix': None},
+    {'name': 'drone_swarm', 'module': 'routes.drone_swarm_routes', 'attr': 'drone_swarm_bp', 'url_prefix': None},
 ]
 
 def register_all_blueprints(app: Flask) -> Flask:
