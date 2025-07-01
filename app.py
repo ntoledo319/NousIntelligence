@@ -160,18 +160,19 @@ def create_app():
         if not DEBUG and request.is_secure:
             response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
         
-        # Content Security Policy
+        # Enhanced Content Security Policy
         csp_policy = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' https://apis.google.com https://accounts.google.com; "
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-            "font-src 'self' https://fonts.gstatic.com data:; "
-            "img-src 'self' data: https://lh3.googleusercontent.com https://*.googleusercontent.com; "
-            "connect-src 'self' https://oauth2.googleapis.com https://www.googleapis.com https://accounts.google.com; "
-            "frame-src https://accounts.google.com; "
+            "script-src 'self' 'unsafe-inline' https://apis.google.com https://accounts.google.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; "
+            "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; "
+            "img-src 'self' data: https: blob:; "
+            "connect-src 'self' https://oauth2.googleapis.com https://www.googleapis.com https://accounts.google.com https://openrouter.ai https://api.openai.com; "
+            "frame-src 'self' https://accounts.google.com; "
             "object-src 'none'; "
             "base-uri 'self'; "
-            "form-action 'self' https://accounts.google.com;"
+            "form-action 'self' https://accounts.google.com; "
+            "upgrade-insecure-requests;"
         )
         response.headers['Content-Security-Policy'] = csp_policy
         
