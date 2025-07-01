@@ -26,8 +26,11 @@ except ImportError:
     DEBUG = True
     
     class AppConfig:
-        SECRET_KEY = os.environ.get('SESSION_SECRET', 'dev-secret-key')
+        SECRET_KEY = os.environ.get('SESSION_SECRET')
         DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///nous.db')
+        
+        if not SECRET_KEY:
+            raise RuntimeError("SESSION_SECRET environment variable is required for security")
 
 # Import database with fallbacks
 try:
