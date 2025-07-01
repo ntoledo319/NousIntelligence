@@ -1,0 +1,2863 @@
+# Comprehensive Fix Request for Replit Agent: Landing Page & Google OAuth System
+
+## CRITICAL INSTRUCTION TO REPLIT AGENT
+
+You must fix ALL 49 issues identified in this comprehensive audit of the landing page and Google OAuth login system. Each fix must be implemented, tested, and verified. Do not skip any issue. Create a verification checklist and ensure 100% completion.
+
+---
+
+## SECTION 1: LANDING PAGE FIXES (15 Issues)
+
+### 1.1 Security Vulnerabilities in Landing Page
+
+#### Issue 1: Content Security Policy Blocking Google Fonts
+**File**: `templates/landing.html`, Line 12
+**Current Code**:
+```html
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
+```
+
+**Problem**: This CSP blocks Google Fonts from loading
+**Required Fix**:
+```html
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://lh3.googleusercontent.com; connect-src 'self' https://oauth2.googleapis.com https://www.googleapis.com;">
+```
+
+#### Issue 2: Missing CSRF Token on Demo Form
+**File**: `templates/landing.html`, Lines 85-93
+**Current Code**:
+```html
+<a href="/demo" class="demo-btn secondary">
+    🚀 Try Demo
+</a>
+```
+
+**Required Fix**: Add CSRF-protected form for demo access:
+```html
+<form method="POST" action="{{ url_for('auth.demo_mode') }}" style="display: inline;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="demo-btn secondary">
+        🚀 Try Demo
+    </button>
+</form>
+```
+
+#### Issue 3: Security Headers Inconsistency
+**Required**: Create new file `utils/security_headers.py`:
+```python
+"""
+Unified Security Headers Module
+Ensures consistent security headers across all pages
+"""
+
+from flask import make_response
+from functools import wraps
+
+def apply_security_headers(response):
+    """Apply consistent security headers to response"""
+    # Comprehensive CSP that allows necessary external resources
+    csp = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://apis.google.com https://accounts.google.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com data:; "
+        "img-src 'self' data: https://lh3.googleusercontent.com https://*.googleusercontent.com; "
+        "connect-src 'self' https://oauth2.googleapis.com https://www.googleapis.com https://accounts.google.com; "
+        "frame-src https://accounts.google.com; "
+        "object-src 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self' https://accounts.google.com"
+    )
+    
+    response.headers['Content-Security-Policy'] = csp
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+    
+    # Add STS header for HTTPS deployments
+    if response.headers.get('X-Forwarded-Proto') == 'https':
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    
+    return response
+
+def secure_headers(f):
+    """Decorator to apply security headers"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        response = make_response(f(*args, **kwargs))
+        return apply_security_headers(response)
+    return decorated_function
+```
+
+### 1.2 Performance Issues in Landing Page
+
+#### Issue 4: Duplicate CSS Files
+**File**: `templates/landing.html`, Lines 21-22
+**Current Code**:
+```html
+<link href="/static/css/style.css" rel="stylesheet">
+<link rel="stylesheet" href="/static/styles.css">
+```
+
+**Required Fix**: Remove duplicate and consolidate:
+```html
+<!-- Primary styles -->
+<link rel="stylesheet" href="/static/css/main.css">
+<!-- Page-specific styles -->
+<link rel="stylesheet" href="/static/css/landing.css">
+```
+
+**Also create**: `static/css/landing.css` with landing-specific styles extracted from inline styles
+
+#### Issue 5: Missing Resource Preloading
+**File**: `templates/landing.html`, After line 17
+**Add**:
+```html
+<!-- Preload critical resources -->
+<link rel="preconnect" href="https://accounts.google.com" crossorigin>
+<link rel="preconnect" href="https://oauth2.googleapis.com" crossorigin>
+<link rel="dns-prefetch" href="https://www.googleapis.com">
+<link rel="preload" href="/static/css/main.css" as="style">
+<link rel="preload" href="/static/js/oauth-handler.js" as="script">
+```
+
+#### Issue 6: Blocking Font Loading
+**File**: `templates/landing.html`, Lines 18-20
+**Current Code**:
+```html
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+```
+
+**Required Fix**:
+```html
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Load fonts asynchronously -->
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
+```
+
+### 1.3 User Experience Problems
+
+#### Issue 7: Confusing CTA Logic
+**File**: `templates/landing.html`, Lines 75-82
+**Current Code**:
+```html
+<a href="{{ url_for('auth.google_login') if oauth_available else '/auth/login' }}" class="google-signin-btn primary">
+    <svg class="google-icon" viewBox="0 0 24 24">
+        <!-- SVG paths -->
+    </svg>
+    {% if oauth_available %}Sign in with Google{% else %}Get Started{% endif %}
+</a>
+```
+
+**Required Fix**:
+```html
+{% if oauth_available %}
+    <a href="{{ url_for('auth.google_login') }}" class="google-signin-btn primary" id="google-signin-btn">
+        <svg class="google-icon" viewBox="0 0 24 24">
+            <!-- SVG paths -->
+        </svg>
+        <span class="btn-text">Sign in with Google</span>
+        <span class="btn-loading" style="display: none;">
+            <svg class="spinner" width="20" height="20" viewBox="0 0 50 50">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+            </svg>
+            Signing in...
+        </span>
+    </a>
+{% else %}
+    <div class="oauth-unavailable-notice">
+        <p class="warning-text">
+            <svg class="warning-icon" width="20" height="20" viewBox="0 0 20 20">
+                <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm1 15H9v-2h2v2zm0-4H9V5h2v6z"/>
+            </svg>
+            Google Sign-in is currently unavailable
+        </p>
+        <form method="POST" action="{{ url_for('auth.demo_mode') }}" class="demo-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="demo-btn primary">
+                Try Demo Mode Instead
+            </button>
+        </form>
+    </div>
+{% endif %}
+```
+
+#### Issue 8: Flash Messages Breaking Layout
+**File**: `templates/landing.html`, Lines 69-77
+**Current Code placement is wrong. Move to top of page**:
+```html
+<body class="bg-gray-50 dark:bg-gray-900 font-sans">
+    <!-- Flash messages at top of page -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages-container" id="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}" role="alert">
+                        <span class="flash-message-text">{{ message }}</span>
+                        <button type="button" class="flash-close" onclick="this.parentElement.remove()">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+    <div class="container">
+        <!-- Rest of content -->
+```
+
+#### Issue 9: No Loading States
+**Create new file**: `static/js/oauth-handler.js`
+```javascript
+/**
+ * OAuth Handler - Manages OAuth flow UX
+ */
+
+document.addEventListener('DOMContentLoaded', function() {
+    const googleSignInBtn = document.getElementById('google-signin-btn');
+    
+    if (googleSignInBtn) {
+        googleSignInBtn.addEventListener('click', function(e) {
+            // Don't prevent default - let the link work
+            // Just add loading state
+            const btnText = this.querySelector('.btn-text');
+            const btnLoading = this.querySelector('.btn-loading');
+            
+            if (btnText && btnLoading) {
+                btnText.style.display = 'none';
+                btnLoading.style.display = 'inline-flex';
+                
+                // Disable button to prevent double-clicks
+                this.style.pointerEvents = 'none';
+                this.style.opacity = '0.7';
+                
+                // Store state in sessionStorage for recovery
+                sessionStorage.setItem('oauth_redirect_initiated', Date.now());
+            }
+        });
+    }
+    
+    // Check if we're returning from OAuth redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('oauth_error') || urlParams.has('error')) {
+        // Clear loading state
+        sessionStorage.removeItem('oauth_redirect_initiated');
+        
+        // Show user-friendly error
+        const errorCode = urlParams.get('error') || 'unknown_error';
+        showOAuthError(errorCode);
+    }
+    
+    // Clear stale loading states (older than 1 minute)
+    const redirectTime = sessionStorage.getItem('oauth_redirect_initiated');
+    if (redirectTime && (Date.now() - parseInt(redirectTime)) > 60000) {
+        sessionStorage.removeItem('oauth_redirect_initiated');
+    }
+});
+
+function showOAuthError(errorCode) {
+    const errorMessages = {
+        'access_denied': 'You cancelled the sign-in process. Please try again when you\'re ready.',
+        'temporarily_unavailable': 'Google Sign-in is temporarily unavailable. Please try again later.',
+        'server_error': 'We encountered an error connecting to Google. Please try again.',
+        'unknown_error': 'An unexpected error occurred. Please try again or use Demo mode.'
+    };
+    
+    const message = errorMessages[errorCode] || errorMessages['unknown_error'];
+    
+    // Create error notification
+    const notification = document.createElement('div');
+    notification.className = 'oauth-error-notification';
+    notification.innerHTML = `
+        <div class="notification-content">
+            <svg class="error-icon" width="24" height="24" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <div class="notification-text">
+                <strong>Sign-in Failed</strong>
+                <p>${message}</p>
+            </div>
+            <button class="notification-close" onclick="this.closest('.oauth-error-notification').remove()">
+                <span>&times;</span>
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 10 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 10000);
+}
+```
+
+#### Issue 10: Poor Error Messaging
+**Update** `routes/auth_routes.py` to provide specific error codes:
+```python
+@auth_bp.route('/google')
+@oauth_rate_limit
+def google_login():
+    """Initiate Google OAuth login with enhanced error handling"""
+    if not oauth_service.is_configured():
+        logger.warning("Google OAuth is not configured - missing credentials")
+        # Redirect back with specific error code
+        return redirect(url_for('main.index', oauth_error='not_configured'))
+    
+    try:
+        # Store the original referrer for post-login redirect
+        session['oauth_referrer'] = request.referrer or url_for('main.index')
+        
+        # Get deployment-aware redirect URI
+        redirect_uri = get_deployment_callback_uri()
+        logger.info(f"Initiating OAuth with redirect URI: {redirect_uri}")
+        
+        # Add login hint if user provided email
+        auth_url = oauth_service.get_authorization_url(redirect_uri)
+        
+        return auth_url
+        
+    except Exception as e:
+        logger.error(f"OAuth initiation failed: {str(e)}")
+        error_code = 'server_error'
+        
+        # Provide more specific error codes based on exception type
+        if 'network' in str(e).lower():
+            error_code = 'network_error'
+        elif 'timeout' in str(e).lower():
+            error_code = 'timeout_error'
+            
+        return redirect(url_for('main.index', oauth_error=error_code))
+```
+
+### 1.4 Code Quality Issues
+
+#### Issue 11: Template Variable Inconsistency
+**Fix in** `routes/main.py`, lines 23-33:
+```python
+@main_bp.route('/')
+def index():
+    """Landing page for NOUS application"""
+    try:
+        # Check if user is authenticated
+        user_authenticated = 'user' in session and session['user'] is not None
+        
+        # Get OAuth availability with consistent naming
+        from flask import current_app
+        oauth_configured = current_app.config.get('OAUTH_ENABLED', False)
+        
+        # Check if OAuth service is actually working
+        try:
+            from utils.google_oauth import oauth_service
+            oauth_available = oauth_configured and oauth_service.is_configured()
+        except:
+            oauth_available = False
+        
+        return render_template('landing.html', 
+                             user_authenticated=user_authenticated,
+                             oauth_available=oauth_available,
+                             oauth_configured=oauth_configured)
+    except Exception as e:
+        logger.error(f"Landing page error: {e}", exc_info=True)
+        return render_template('landing.html', 
+                             user_authenticated=False,
+                             oauth_available=False,
+                             oauth_configured=False)
+```
+
+#### Issue 12: Dead Code - Non-existent `/auth/login` route
+**Create** `templates/auth/login_fallback.html`:
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - NOUS</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/auth.css">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1 class="auth-logo">🧠 NOUS</h1>
+                <p class="auth-tagline">Your Intelligent Assistant</p>
+            </div>
+            
+            <div class="auth-content">
+                <div class="auth-message warning">
+                    <svg class="warning-icon" width="24" height="24" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                    </svg>
+                    <div>
+                        <strong>Google Sign-in Unavailable</strong>
+                        <p>The Google authentication service is currently not configured. Please contact your administrator or try Demo mode.</p>
+                    </div>
+                </div>
+                
+                <div class="auth-actions">
+                    <form method="POST" action="{{ url_for('auth.demo_mode') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-primary btn-full">
+                            <svg class="btn-icon" width="20" height="20" viewBox="0 0 20 20">
+                                <path d="M10 20a10 10 0 1 1 0-20 10 10 0 0 1 0 20zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-1-5h2v2h-2v-2zm0-8h2v6H9V5z"/>
+                            </svg>
+                            Continue with Demo Mode
+                        </button>
+                    </form>
+                    
+                    <div class="auth-divider">
+                        <span>or</span>
+                    </div>
+                    
+                    <a href="{{ url_for('main.index') }}" class="btn btn-secondary btn-full">
+                        Return to Home
+                    </a>
+                </div>
+                
+                <div class="auth-footer">
+                    <p class="auth-note">
+                        Demo mode provides limited functionality. For full access, please ensure Google OAuth is properly configured.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+```
+
+**Add route in** `routes/auth_routes.py`:
+```python
+@auth_bp.route('/login')
+def login():
+    """Display login page with proper OAuth checking"""
+    # Check if already authenticated
+    if session.get('user'):
+        return redirect(url_for('main.dashboard'))
+    
+    # Check OAuth configuration thoroughly
+    oauth_configured = False
+    oauth_error = None
+    
+    try:
+        if oauth_service and oauth_service.is_configured():
+            oauth_configured = True
+            # If OAuth is configured, redirect to Google login
+            return redirect(url_for('auth.google_login'))
+    except Exception as e:
+        logger.error(f"OAuth configuration check failed: {e}")
+        oauth_error = str(e)
+    
+    # Show fallback login page
+    return render_template('auth/login_fallback.html', 
+                         oauth_configured=oauth_configured,
+                         oauth_error=oauth_error)
+```
+
+---
+
+## SECTION 2: GOOGLE OAUTH IMPLEMENTATION FIXES (22 Issues)
+
+### 2.1 Critical Security Vulnerabilities
+
+#### Issue 13: Weak OAuth State Validation
+**File**: `utils/google_oauth.py`
+**Create new secure state handler**:
+```python
+import hmac
+import hashlib
+import base64
+from datetime import datetime, timedelta
+
+class OAuthStateManager:
+    """Secure OAuth state management with HMAC validation"""
+    
+    def __init__(self, secret_key):
+        self.secret_key = secret_key.encode('utf-8')
+        self.state_timeout = 600  # 10 minutes
+    
+    def generate_state(self, user_ip=None, user_agent=None):
+        """Generate secure state with timestamp and fingerprint"""
+        timestamp = int(datetime.utcnow().timestamp())
+        nonce = secrets.token_urlsafe(16)
+        
+        # Create fingerprint from user data
+        fingerprint_data = f"{user_ip or 'unknown'}:{user_agent or 'unknown'}"
+        fingerprint = hashlib.sha256(fingerprint_data.encode()).hexdigest()[:16]
+        
+        # Create state data
+        state_data = f"{timestamp}:{nonce}:{fingerprint}"
+        
+        # Generate HMAC
+        signature = hmac.new(
+            self.secret_key,
+            state_data.encode('utf-8'),
+            hashlib.sha256
+        ).digest()
+        
+        # Combine and encode
+        full_state = state_data + ':' + base64.urlsafe_b64encode(signature).decode('utf-8').rstrip('=')
+        return base64.urlsafe_b64encode(full_state.encode()).decode('utf-8').rstrip('=')
+    
+    def validate_state(self, state, user_ip=None, user_agent=None):
+        """Validate state with timeout and fingerprint checking"""
+        try:
+            # Decode state
+            decoded = base64.urlsafe_b64decode(state + '===').decode('utf-8')
+            parts = decoded.split(':')
+            
+            if len(parts) != 4:
+                return False
+            
+            timestamp_str, nonce, fingerprint, signature_b64 = parts
+            timestamp = int(timestamp_str)
+            
+            # Check timeout
+            if datetime.utcnow().timestamp() - timestamp > self.state_timeout:
+                logger.warning("OAuth state expired")
+                return False
+            
+            # Verify fingerprint
+            expected_fingerprint = hashlib.sha256(
+                f"{user_ip or 'unknown'}:{user_agent or 'unknown'}".encode()
+            ).hexdigest()[:16]
+            
+            if fingerprint != expected_fingerprint:
+                logger.warning("OAuth state fingerprint mismatch")
+                return False
+            
+            # Verify HMAC
+            state_data = f"{timestamp_str}:{nonce}:{fingerprint}"
+            expected_signature = hmac.new(
+                self.secret_key,
+                state_data.encode('utf-8'),
+                hashlib.sha256
+            ).digest()
+            
+            provided_signature = base64.urlsafe_b64decode(signature_b64 + '===')
+            
+            return hmac.compare_digest(expected_signature, provided_signature)
+            
+        except Exception as e:
+            logger.error(f"State validation error: {e}")
+            return False
+```
+
+**Update** `GoogleOAuthService.get_authorization_url`:
+```python
+def get_authorization_url(self, redirect_uri):
+    """Get Google OAuth authorization URL with enhanced CSRF protection"""
+    if not self.google:
+        raise ValueError("OAuth not initialized - missing credentials")
+    
+    # Fix redirect URI for Replit deployment
+    redirect_uri = self._fix_redirect_uri(redirect_uri)
+    logger.info(f"Using redirect URI: {redirect_uri}")
+    
+    # Get user fingerprint data
+    from flask import request
+    user_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    user_agent = request.headers.get('User-Agent', '')
+    
+    # Generate secure state
+    from flask import current_app
+    state_manager = OAuthStateManager(current_app.secret_key)
+    state = state_manager.generate_state(user_ip, user_agent)
+    
+    # Store state with additional validation data
+    session['oauth_state'] = state
+    session['oauth_state_timestamp'] = datetime.utcnow().timestamp()
+    session['oauth_state_ip'] = user_ip
+    
+    return self.google.authorize_redirect(redirect_uri, state=state)
+```
+
+#### Issue 14: Plain Text Token Storage
+**Create** `utils/encryption.py`:
+```python
+"""
+Token Encryption Module
+Provides secure encryption for OAuth tokens
+"""
+
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import base64
+import os
+
+class TokenEncryption:
+    """Handles encryption/decryption of sensitive tokens"""
+    
+    def __init__(self, master_key=None):
+        if master_key:
+            self.cipher = Fernet(master_key)
+        else:
+            # Derive key from environment variable
+            secret = os.environ.get('TOKEN_ENCRYPTION_KEY', os.environ.get('SESSION_SECRET', ''))
+            if not secret:
+                raise ValueError("TOKEN_ENCRYPTION_KEY or SESSION_SECRET required for token encryption")
+            
+            # Use PBKDF2 to derive a proper key from the secret
+            kdf = PBKDF2HMAC(
+                algorithm=hashes.SHA256(),
+                length=32,
+                salt=b'nous-oauth-tokens',  # Static salt for deterministic key
+                iterations=100000,
+            )
+            key = base64.urlsafe_b64encode(kdf.derive(secret.encode()))
+            self.cipher = Fernet(key)
+    
+    def encrypt_token(self, token):
+        """Encrypt a token string"""
+        if not token:
+            return None
+        
+        try:
+            return self.cipher.encrypt(token.encode()).decode()
+        except Exception as e:
+            logger.error(f"Token encryption failed: {e}")
+            raise
+    
+    def decrypt_token(self, encrypted_token):
+        """Decrypt a token string"""
+        if not encrypted_token:
+            return None
+        
+        try:
+            return self.cipher.decrypt(encrypted_token.encode()).decode()
+        except Exception as e:
+            logger.error(f"Token decryption failed: {e}")
+            return None  # Return None for invalid tokens instead of raising
+
+# Global instance
+token_encryption = TokenEncryption()
+```
+
+**Update** `models/user.py` to add encryption:
+```python
+from utils.encryption import token_encryption
+
+class User(UserMixin, db.Model):
+    """User account model with encrypted token storage"""
+    
+    __tablename__ = 'users'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False, index=True)
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    google_id = db.Column(db.String(100), unique=True, nullable=True, index=True)
+    active = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_login = db.Column(db.DateTime, nullable=True)
+    
+    # Encrypted OAuth token storage
+    _google_access_token = db.Column('google_access_token', db.Text, nullable=True)
+    _google_refresh_token = db.Column('google_refresh_token', db.Text, nullable=True)
+    google_token_expires_at = db.Column(db.DateTime, nullable=True)
+    
+    # Security audit fields
+    email_verified = db.Column(db.Boolean, default=False)
+    last_ip = db.Column(db.String(45), nullable=True)  # Support IPv6
+    last_user_agent = db.Column(db.String(200), nullable=True)
+    failed_login_attempts = db.Column(db.Integer, default=0)
+    locked_until = db.Column(db.DateTime, nullable=True)
+    
+    # Token encryption properties
+    @property
+    def google_access_token(self):
+        """Get decrypted access token"""
+        return token_encryption.decrypt_token(self._google_access_token)
+    
+    @google_access_token.setter
+    def google_access_token(self, value):
+        """Set encrypted access token"""
+        self._google_access_token = token_encryption.encrypt_token(value)
+    
+    @property
+    def google_refresh_token(self):
+        """Get decrypted refresh token"""
+        return token_encryption.decrypt_token(self._google_refresh_token)
+    
+    @google_refresh_token.setter
+    def google_refresh_token(self, value):
+        """Set encrypted refresh token"""
+        self._google_refresh_token = token_encryption.encrypt_token(value)
+```
+
+#### Issue 15: No Token Rotation
+**Add to** `utils/google_oauth.py`:
+```python
+def rotate_access_token(self, user):
+    """Force rotation of access token for enhanced security"""
+    if not user or not user.google_refresh_token:
+        return None
+    
+    try:
+        # Force token refresh
+        old_token = user.google_access_token
+        new_token = self.refresh_token(user)
+        
+        if new_token and new_token != old_token:
+            # Log token rotation for security audit
+            logger.info(f"Access token rotated for user {user.id}")
+            
+            # Emit security event
+            from utils.security_events import log_security_event
+            log_security_event(
+                'token_rotated',
+                user_id=user.id,
+                event_data={'reason': 'scheduled_rotation'}
+            )
+            
+            return new_token
+        
+        return None
+        
+    except Exception as e:
+        logger.error(f"Token rotation failed for user {user.id}: {e}")
+        return None
+
+def should_rotate_token(self, user):
+    """Check if token should be rotated based on age"""
+    if not user.google_token_expires_at:
+        return True
+    
+    # Rotate if token is older than 30 minutes
+    token_age = datetime.utcnow() - user.last_login
+    return token_age.total_seconds() > 1800  # 30 minutes
+```
+
+#### Issue 16: Missing Rate Limiting Implementation
+**Create** `utils/rate_limiter.py`:
+```python
+"""
+Rate Limiting Implementation
+Protects authentication endpoints from abuse
+"""
+
+from functools import wraps
+from flask import request, jsonify, session
+from datetime import datetime, timedelta
+import redis
+import hashlib
+import json
+
+class RateLimiter:
+    """Redis-based rate limiter with fallback to in-memory storage"""
+    
+    def __init__(self):
+        self.redis_client = None
+        self.memory_store = {}  # Fallback storage
+        
+        try:
+            self.redis_client = redis.StrictRedis(
+                host=os.environ.get('REDIS_HOST', 'localhost'),
+                port=int(os.environ.get('REDIS_PORT', 6379)),
+                db=0,
+                decode_responses=True,
+                socket_connect_timeout=1
+            )
+            self.redis_client.ping()
+        except:
+            logger.warning("Redis not available, using in-memory rate limiting")
+    
+    def _get_identifier(self, identifier_type='ip'):
+        """Get identifier for rate limiting"""
+        if identifier_type == 'ip':
+            return request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
+        elif identifier_type == 'session':
+            return session.get('session_id', request.remote_addr)
+        elif identifier_type == 'user':
+            user = session.get('user', {})
+            return user.get('id', request.remote_addr)
+        else:
+            return request.remote_addr
+    
+    def _get_key(self, endpoint, identifier):
+        """Generate rate limit key"""
+        return f"rate_limit:{endpoint}:{identifier}"
+    
+    def is_allowed(self, endpoint, max_requests, window_seconds, identifier_type='ip'):
+        """Check if request is allowed under rate limit"""
+        identifier = self._get_identifier(identifier_type)
+        key = self._get_key(endpoint, identifier)
+        now = datetime.utcnow()
+        
+        if self.redis_client:
+            try:
+                # Redis-based rate limiting
+                pipeline = self.redis_client.pipeline()
+                pipeline.incr(key)
+                pipeline.expire(key, window_seconds)
+                results = pipeline.execute()
+                
+                request_count = results[0]
+                return request_count <= max_requests
+                
+            except Exception as e:
+                logger.error(f"Redis rate limit error: {e}")
+                # Fall through to memory-based limiting
+        
+        # Memory-based rate limiting (fallback)
+        if key not in self.memory_store:
+            self.memory_store[key] = []
+        
+        # Clean old entries
+        cutoff_time = now - timedelta(seconds=window_seconds)
+        self.memory_store[key] = [
+            timestamp for timestamp in self.memory_store[key]
+            if timestamp > cutoff_time
+        ]
+        
+        # Check limit
+        if len(self.memory_store[key]) >= max_requests:
+            return False
+        
+        # Add current request
+        self.memory_store[key].append(now)
+        return True
+    
+    def get_reset_time(self, endpoint, window_seconds, identifier_type='ip'):
+        """Get time when rate limit resets"""
+        identifier = self._get_identifier(identifier_type)
+        key = self._get_key(endpoint, identifier)
+        
+        if self.redis_client:
+            try:
+                ttl = self.redis_client.ttl(key)
+                if ttl > 0:
+                    return datetime.utcnow() + timedelta(seconds=ttl)
+            except:
+                pass
+        
+        # For memory store, return window from first request
+        if key in self.memory_store and self.memory_store[key]:
+            first_request = min(self.memory_store[key])
+            return first_request + timedelta(seconds=window_seconds)
+        
+        return datetime.utcnow() + timedelta(seconds=window_seconds)
+
+# Global rate limiter instance
+rate_limiter = RateLimiter()
+
+def rate_limit(max_requests=60, window=60, identifier_type='ip'):
+    """Rate limiting decorator"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            endpoint = request.endpoint or 'unknown'
+            
+            if not rate_limiter.is_allowed(endpoint, max_requests, window, identifier_type):
+                reset_time = rate_limiter.get_reset_time(endpoint, window, identifier_type)
+                
+                response = jsonify({
+                    'error': 'Rate limit exceeded',
+                    'message': f'Too many requests. Please try again after {reset_time.strftime("%Y-%m-%d %H:%M:%S")} UTC'
+                })
+                response.status_code = 429
+                response.headers['X-RateLimit-Limit'] = str(max_requests)
+                response.headers['X-RateLimit-Remaining'] = '0'
+                response.headers['X-RateLimit-Reset'] = str(int(reset_time.timestamp()))
+                
+                return response
+            
+            return f(*args, **kwargs)
+        
+        return decorated_function
+    return decorator
+
+# Specific rate limiters for auth endpoints
+login_rate_limit = rate_limit(max_requests=5, window=300, identifier_type='ip')  # 5 per 5 minutes
+oauth_rate_limit = rate_limit(max_requests=10, window=600, identifier_type='ip')  # 10 per 10 minutes
+```
+
+#### Issue 17: Credential Extraction Hack
+**Fix the root cause - create** `scripts/fix_oauth_credentials.py`:
+```python
+#!/usr/bin/env python3
+"""
+Fix OAuth Credentials
+Properly extract and store OAuth credentials
+"""
+
+import os
+import re
+import sys
+
+def fix_oauth_credentials():
+    """Extract and properly set OAuth credentials"""
+    
+    # Get current values
+    raw_client_id = os.environ.get('GOOGLE_CLIENT_ID', '')
+    raw_client_secret = os.environ.get('GOOGLE_CLIENT_SECRET', '')
+    
+    print(f"Current GOOGLE_CLIENT_ID length: {len(raw_client_id)}")
+    print(f"Current GOOGLE_CLIENT_SECRET length: {len(raw_client_secret)}")
+    
+    # Extract clean values
+    clean_client_id = None
+    clean_client_secret = None
+    
+    # Extract client ID
+    if 'apps.googleusercontent.com' in raw_client_id:
+        match = re.search(r'(\d{10,15}-[a-zA-Z0-9]+\.apps\.googleusercontent\.com)', raw_client_id)
+        if match:
+            clean_client_id = match.group(1)
+    elif raw_client_id and len(raw_client_id) < 100:
+        clean_client_id = raw_client_id
+    
+    # Extract client secret  
+    if 'GOCSPX-' in raw_client_secret:
+        match = re.search(r'(GOCSPX-[a-zA-Z0-9_-]+)', raw_client_secret)
+        if match:
+            clean_client_secret = match.group(1)
+    elif raw_client_secret and len(raw_client_secret) < 50:
+        clean_client_secret = raw_client_secret
+    
+    if clean_client_id and clean_client_secret:
+        print(f"\nExtracted credentials:")
+        print(f"Client ID: {clean_client_id}")
+        print(f"Client Secret: {clean_client_secret[:20]}...")
+        
+        # Write to .env file
+        env_file = '.env'
+        env_lines = []
+        
+        if os.path.exists(env_file):
+            with open(env_file, 'r') as f:
+                env_lines = f.readlines()
+        
+        # Update or add credentials
+        updated = False
+        for i, line in enumerate(env_lines):
+            if line.startswith('GOOGLE_CLIENT_ID='):
+                env_lines[i] = f'GOOGLE_CLIENT_ID={clean_client_id}\n'
+                updated = True
+            elif line.startswith('GOOGLE_CLIENT_SECRET='):
+                env_lines[i] = f'GOOGLE_CLIENT_SECRET={clean_client_secret}\n'
+                updated = True
+        
+        if not updated:
+            env_lines.append(f'GOOGLE_CLIENT_ID={clean_client_id}\n')
+            env_lines.append(f'GOOGLE_CLIENT_SECRET={clean_client_secret}\n')
+        
+        with open(env_file, 'w') as f:
+            f.writelines(env_lines)
+        
+        print(f"\n✅ Credentials written to {env_file}")
+        return True
+    else:
+        print("\n❌ Could not extract valid credentials")
+        return False
+
+if __name__ == "__main__":
+    fix_oauth_credentials()
+```
+
+**Then remove the extraction methods from** `GoogleOAuthService` and use environment variables directly:
+```python
+def init_app(self, app):
+    """Initialize OAuth with Flask app - simplified"""
+    try:
+        self.oauth.init_app(app)
+        
+        # Get OAuth credentials directly
+        client_id = os.environ.get('GOOGLE_CLIENT_ID')
+        client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')
+        
+        if not client_id or not client_secret:
+            logger.warning("Google OAuth credentials not found in environment variables")
+            return False
+        
+        # Validate credential format
+        if not client_id.endswith('.apps.googleusercontent.com'):
+            logger.error("Invalid GOOGLE_CLIENT_ID format")
+            return False
+            
+        if not client_secret.startswith('GOCSPX-'):
+            logger.error("Invalid GOOGLE_CLIENT_SECRET format")
+            return False
+        
+        # Configure Google OAuth client
+        self.google = self.oauth.register(
+            name='google',
+            client_id=client_id,
+            client_secret=client_secret,
+            server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+            client_kwargs={
+                'scope': 'openid email profile',
+                'prompt': 'select_account'  # Always show account selector
+            }
+        )
+        
+        logger.info("Google OAuth initialized successfully")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to initialize Google OAuth: {e}")
+        return False
+```
+
+### 2.2 Configuration Problems
+
+#### Issue 18: Inconsistent OAuth Status Checking
+**Create** `utils/oauth_status.py`:
+```python
+"""
+OAuth Status Manager
+Provides consistent OAuth status checking across the application
+"""
+
+from enum import Enum
+from dataclasses import dataclass
+from typing import Optional
+import os
+
+class OAuthStatus(Enum):
+    """OAuth configuration status"""
+    NOT_CONFIGURED = "not_configured"
+    MISCONFIGURED = "misconfigured"
+    CONFIGURED = "configured"
+    OPERATIONAL = "operational"
+    ERROR = "error"
+
+@dataclass
+class OAuthHealthCheck:
+    """OAuth health check result"""
+    status: OAuthStatus
+    message: str
+    details: Optional[dict] = None
+    can_authenticate: bool = False
+
+class OAuthStatusChecker:
+    """Centralized OAuth status checking"""
+    
+    def __init__(self, oauth_service=None):
+        self.oauth_service = oauth_service
+        self._cached_status = None
+        self._cache_timestamp = None
+        self._cache_duration = 300  # 5 minutes
+    
+    def check_status(self, force_refresh=False) -> OAuthHealthCheck:
+        """Comprehensive OAuth status check"""
+        
+        # Check cache
+        if not force_refresh and self._cached_status:
+            if (datetime.utcnow() - self._cache_timestamp).seconds < self._cache_duration:
+                return self._cached_status
+        
+        # Perform checks
+        details = {}
+        
+        # Check environment variables
+        client_id = os.environ.get('GOOGLE_CLIENT_ID')
+        client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')
+        
+        if not client_id or not client_secret:
+            return OAuthHealthCheck(
+                status=OAuthStatus.NOT_CONFIGURED,
+                message="Google OAuth credentials not found",
+                details={"missing": ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"]},
+                can_authenticate=False
+            )
+        
+        # Validate credential format
+        if not client_id.endswith('.apps.googleusercontent.com'):
+            return OAuthHealthCheck(
+                status=OAuthStatus.MISCONFIGURED,
+                message="Invalid Google Client ID format",
+                details={"error": "Client ID must end with .apps.googleusercontent.com"},
+                can_authenticate=False
+            )
+        
+        if not client_secret.startswith('GOCSPX-'):
+            return OAuthHealthCheck(
+                status=OAuthStatus.MISCONFIGURED,
+                message="Invalid Google Client Secret format",
+                details={"error": "Client Secret must start with GOCSPX-"},
+                can_authenticate=False
+            )
+        
+        # Check OAuth service
+        if not self.oauth_service:
+            return OAuthHealthCheck(
+                status=OAuthStatus.ERROR,
+                message="OAuth service not initialized",
+                details={"error": "OAuth service instance not available"},
+                can_authenticate=False
+            )
+        
+        # Check if service is configured
+        try:
+            if self.oauth_service.is_configured():
+                # Test OAuth discovery endpoint
+                import requests
+                response = requests.get(
+                    'https://accounts.google.com/.well-known/openid-configuration',
+                    timeout=5
+                )
+                
+                if response.status_code == 200:
+                    result = OAuthHealthCheck(
+                        status=OAuthStatus.OPERATIONAL,
+                        message="Google OAuth is fully operational",
+                        details={
+                            "client_id_configured": True,
+                            "discovery_endpoint": "reachable",
+                            "service_initialized": True
+                        },
+                        can_authenticate=True
+                    )
+                else:
+                    result = OAuthHealthCheck(
+                        status=OAuthStatus.ERROR,
+                        message="Google OAuth discovery endpoint unreachable",
+                        details={"http_status": response.status_code},
+                        can_authenticate=False
+                    )
+            else:
+                result = OAuthHealthCheck(
+                    status=OAuthStatus.CONFIGURED,
+                    message="OAuth credentials present but service not initialized",
+                    details={"service_configured": False},
+                    can_authenticate=False
+                )
+                
+        except Exception as e:
+            result = OAuthHealthCheck(
+                status=OAuthStatus.ERROR,
+                message=f"OAuth health check failed: {str(e)}",
+                details={"exception": str(e)},
+                can_authenticate=False
+            )
+        
+        # Cache result
+        self._cached_status = result
+        self._cache_timestamp = datetime.utcnow()
+        
+        return result
+
+# Global instance
+oauth_status_checker = OAuthStatusChecker()
+```
+
+#### Issue 19: Unused OAuth Scopes
+**Update** `utils/google_oauth.py` to only request needed scopes:
+```python
+# In GoogleOAuthService.__init__
+self.base_scopes = ['openid', 'email', 'profile']
+self.optional_scopes = {
+    'calendar': 'https://www.googleapis.com/auth/calendar',
+    'tasks': 'https://www.googleapis.com/auth/tasks',
+    'drive': 'https://www.googleapis.com/auth/drive.file'
+}
+
+def get_required_scopes(self, features=None):
+    """Get required scopes based on enabled features"""
+    scopes = self.base_scopes.copy()
+    
+    if features:
+        for feature in features:
+            if feature in self.optional_scopes:
+                scopes.append(self.optional_scopes[feature])
+    
+    return ' '.join(scopes)
+```
+
+#### Issue 20: Hardcoded OAuth URLs
+**Update** `GoogleOAuthService.init_app` to use discovery:
+```python
+def init_app(self, app):
+    """Initialize OAuth with discovery document"""
+    try:
+        self.oauth.init_app(app)
+        
+        client_id = os.environ.get('GOOGLE_CLIENT_ID')
+        client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')
+        
+        if not client_id or not client_secret:
+            logger.warning("Google OAuth credentials not found")
+            return False
+        
+        # Use discovery document for automatic endpoint configuration
+        self.google = self.oauth.register(
+            name='google',
+            client_id=client_id,
+            client_secret=client_secret,
+            server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+            client_kwargs={
+                'scope': self.get_required_scopes(),
+                'prompt': 'select_account',
+                'access_type': 'offline'  # Get refresh token
+            }
+        )
+        
+        logger.info("Google OAuth initialized with discovery document")
+        return True
+        
+    except Exception as e:
+        logger.error(f"OAuth initialization failed: {e}")
+        return False
+```
+
+### 2.3 Implementation Flaws
+
+#### Issue 21: No Error Recovery
+**Update** `routes/auth_routes.py` with fallback handling:
+```python
+@auth_bp.route('/google')
+@oauth_rate_limit
+def google_login():
+    """Google OAuth login with comprehensive error recovery"""
+    
+    # Check OAuth status
+    from utils.oauth_status import oauth_status_checker
+    health_check = oauth_status_checker.check_status()
+    
+    if not health_check.can_authenticate:
+        logger.warning(f"OAuth not available: {health_check.message}")
+        
+        # Store intended destination
+        session['intended_destination'] = request.args.get('next', '/dashboard')
+        
+        # Redirect to fallback with specific error
+        return redirect(url_for('auth.login_fallback', 
+                              oauth_error=health_check.status.value,
+                              message=health_check.message))
+    
+    try:
+        redirect_uri = get_deployment_callback_uri()
+        return oauth_service.get_authorization_url(redirect_uri)
+        
+    except requests.exceptions.Timeout:
+        logger.error("Google OAuth timeout")
+        return redirect(url_for('auth.login_fallback', 
+                              oauth_error='timeout',
+                              message='Google authentication service timed out'))
+        
+    except requests.exceptions.ConnectionError:
+        logger.error("Google OAuth connection error")
+        return redirect(url_for('auth.login_fallback', 
+                              oauth_error='connection',
+                              message='Could not connect to Google'))
+        
+    except Exception as e:
+        logger.error(f"Unexpected OAuth error: {e}")
+        return redirect(url_for('auth.login_fallback', 
+                              oauth_error='unknown',
+                              message='An unexpected error occurred'))
+
+@auth_bp.route('/login-fallback')
+def login_fallback():
+    """Fallback login page with error details"""
+    oauth_error = request.args.get('oauth_error')
+    message = request.args.get('message', 'Authentication service unavailable')
+    
+    return render_template('auth/login_fallback.html',
+                         oauth_error=oauth_error,
+                         error_message=message,
+                         intended_destination=session.get('intended_destination'))
+```
+
+#### Issue 22: Demo Mode Session Conflicts
+**Create** `utils/session_manager.py`:
+```python
+"""
+Session Manager
+Handles session isolation between demo and authenticated users
+"""
+
+from flask import session
+import uuid
+from datetime import datetime
+
+class SessionManager:
+    """Manages user sessions with proper isolation"""
+    
+    # Session type constants
+    SESSION_TYPE_AUTHENTICATED = 'authenticated'
+    SESSION_TYPE_DEMO = 'demo'
+    SESSION_TYPE_GUEST = 'guest'
+    
+    @staticmethod
+    def create_authenticated_session(user):
+        """Create session for authenticated user"""
+        # Clear any existing session
+        SessionManager.clear_session()
+        
+        session['session_id'] = str(uuid.uuid4())
+        session['session_type'] = SessionManager.SESSION_TYPE_AUTHENTICATED
+        session['user'] = {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'google_id': user.google_id,
+            'authenticated': True,
+            'demo_mode': False
+        }
+        session['login_timestamp'] = datetime.utcnow().isoformat()
+        session['last_activity'] = datetime.utcnow().isoformat()
+        
+        # Security tracking
+        from flask import request
+        session['login_ip'] = request.headers.get('X-Forwarded-For', request.remote_addr)
+        session['login_user_agent'] = request.headers.get('User-Agent', '')
+        
+        session.permanent = True
+    
+    @staticmethod
+    def create_demo_session():
+        """Create isolated demo session"""
+        # Clear any existing session
+        SessionManager.clear_session()
+        
+        demo_id = f"demo_{uuid.uuid4().hex[:8]}"
+        
+        session['session_id'] = str(uuid.uuid4())
+        session['session_type'] = SessionManager.SESSION_TYPE_DEMO
+        session['user'] = {
+            'id': demo_id,
+            'username': 'Demo User',
+            'email': f'{demo_id}@demo.nous.app',
+            'authenticated': False,
+            'demo_mode': True,
+            'demo_restrictions': {
+                'max_messages': 50,
+                'features_disabled': ['oauth', 'persistent_storage', 'external_apis'],
+                'session_duration': 3600  # 1 hour
+            }
+        }
+        session['demo_start'] = datetime.utcnow().isoformat()
+        session['demo_expires'] = (datetime.utcnow() + timedelta(hours=1)).isoformat()
+        
+        # Don't make demo sessions permanent
+        session.permanent = False
+    
+    @staticmethod
+    def is_demo_session():
+        """Check if current session is demo"""
+        return session.get('session_type') == SessionManager.SESSION_TYPE_DEMO
+    
+    @staticmethod
+    def is_authenticated_session():
+        """Check if current session is authenticated"""
+        return (session.get('session_type') == SessionManager.SESSION_TYPE_AUTHENTICATED and 
+                session.get('user', {}).get('authenticated', False))
+    
+    @staticmethod
+    def validate_session():
+        """Validate current session"""
+        session_type = session.get('session_type')
+        
+        if not session_type:
+            return False
+        
+        # Check demo session expiration
+        if session_type == SessionManager.SESSION_TYPE_DEMO:
+            expires = session.get('demo_expires')
+            if expires:
+                if datetime.fromisoformat(expires) < datetime.utcnow():
+                    SessionManager.clear_session()
+                    return False
+        
+        # Update last activity
+        session['last_activity'] = datetime.utcnow().isoformat()
+        return True
+    
+    @staticmethod
+    def clear_session():
+        """Completely clear session data"""
+        # Store CSRF token if present
+        csrf_token = session.get('csrf_token')
+        
+        # Clear all session data
+        session.clear()
+        
+        # Restore CSRF token
+        if csrf_token:
+            session['csrf_token'] = csrf_token
+    
+    @staticmethod
+    def get_session_info():
+        """Get current session information"""
+        return {
+            'session_id': session.get('session_id'),
+            'session_type': session.get('session_type', 'none'),
+            'user': session.get('user'),
+            'created': session.get('login_timestamp') or session.get('demo_start'),
+            'last_activity': session.get('last_activity'),
+            'expires': session.get('demo_expires') if SessionManager.is_demo_session() else None
+        }
+```
+
+**Update demo mode route**:
+```python
+@auth_bp.route('/demo-mode', methods=['POST'])
+def demo_mode():
+    """Activate demo mode with proper session isolation"""
+    try:
+        # Check if demo mode is allowed
+        if not os.environ.get('ENABLE_DEMO_MODE', 'true').lower() == 'true':
+            flash('Demo mode is not available', 'error')
+            return redirect(url_for('main.index'))
+        
+        # Check rate limiting specifically for demo
+        from utils.rate_limiter import rate_limiter
+        if not rate_limiter.is_allowed('demo_mode', 3, 300, 'ip'):  # 3 demo sessions per 5 min per IP
+            flash('Too many demo sessions. Please try again later.', 'error')
+            return redirect(url_for('main.index'))
+        
+        # Create isolated demo session
+        from utils.session_manager import SessionManager
+        SessionManager.create_demo_session()
+        
+        # Log demo activation
+        logger.info(f"Demo mode activated: {session.get('user', {}).get('id')}")
+        
+        # Redirect to demo-specific dashboard
+        return redirect(url_for('main.demo_dashboard'))
+        
+    except Exception as e:
+        logger.error(f"Demo mode activation failed: {e}")
+        flash('Failed to activate demo mode. Please try again.', 'error')
+        return redirect(url_for('main.index'))
+```
+
+#### Issue 23: Multiple Callback Routes
+**Fix in** `routes/auth_routes.py` - keep only one callback route:
+```python
+# Remove the duplicate route decorator, keep only one:
+@auth_bp.route('/google/callback')
+def google_callback():
+    """Handle Google OAuth callback with comprehensive validation"""
+    try:
+        # Validate session state
+        from utils.session_manager import SessionManager
+        if SessionManager.is_demo_session():
+            logger.warning("OAuth callback attempted in demo session")
+            SessionManager.clear_session()
+        
+        # Get and validate state
+        from flask import current_app
+        from utils.google_oauth import OAuthStateManager
+        
+        state_manager = OAuthStateManager(current_app.secret_key)
+        received_state = request.args.get('state')
+        
+        # Get request fingerprint
+        user_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+        user_agent = request.headers.get('User-Agent', '')
+        
+        if not state_manager.validate_state(received_state, user_ip, user_agent):
+            logger.warning("Invalid OAuth state in callback")
+            flash('Authentication failed: Invalid security token', 'error')
+            return redirect(url_for('auth.login'))
+        
+        # Check for OAuth errors
+        error = request.args.get('error')
+        if error:
+            error_description = request.args.get('error_description', 'Unknown error')
+            logger.warning(f"OAuth error: {error} - {error_description}")
+            
+            if error == 'access_denied':
+                flash('You cancelled the sign-in process.', 'info')
+            else:
+                flash(f'Authentication failed: {error_description}', 'error')
+            
+            return redirect(url_for('auth.login'))
+        
+        # Process successful callback
+        redirect_uri = get_deployment_callback_uri()
+        user = oauth_service.handle_callback(redirect_uri)
+        
+        if user:
+            # Create authenticated session
+            SessionManager.create_authenticated_session(user)
+            
+            # Log successful authentication
+            from utils.security_events import log_security_event
+            log_security_event(
+                'oauth_login_success',
+                user_id=user.id,
+                event_data={
+                    'provider': 'google',
+                    'ip': user_ip
+                }
+            )
+            
+            flash('Successfully logged in with Google!', 'success')
+            
+            # Redirect to intended destination
+            next_page = session.pop('intended_destination', None) or request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('main.dashboard'))
+        else:
+            flash('Authentication failed. Please try again.', 'error')
+            return redirect(url_for('auth.login'))
+            
+    except Exception as e:
+        logger.error(f"OAuth callback error: {str(e)}", exc_info=True)
+        flash('An error occurred during authentication. Please try again.', 'error')
+        return redirect(url_for('auth.login'))
+```
+
+### 2.4 Architecture Issues
+
+#### Issue 24: Fix Circular Dependencies
+**Create** `models/__init__.py`:
+```python
+"""
+Models module initialization
+Prevents circular imports
+"""
+
+# Import order matters to prevent circular dependencies
+from .base import db, BaseModel
+from .user import User
+from .session import UserSession
+from .audit import AuditLog
+
+__all__ = ['db', 'BaseModel', 'User', 'UserSession', 'AuditLog']
+```
+
+**Create** `models/base.py`:
+```python
+"""
+Base model classes
+"""
+from database import db
+from datetime import datetime
+
+class BaseModel(db.Model):
+    """Base model with common fields"""
+    __abstract__ = True
+    
+    id = db.Column(db.Integer, primary_key=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+```
+
+#### Issue 25: Replace Global Singleton
+**Update** `utils/google_oauth.py`:
+```python
+# Remove global instance
+# oauth_service = GoogleOAuthService()
+
+# Replace with factory function
+def get_oauth_service(app=None):
+    """Get OAuth service instance"""
+    if app:
+        if not hasattr(app, 'oauth_service'):
+            app.oauth_service = GoogleOAuthService()
+            app.oauth_service.init_app(app)
+        return app.oauth_service
+    else:
+        # For use outside request context
+        from flask import current_app
+        return get_oauth_service(current_app)
+```
+
+---
+
+## SECTION 3: LOGIN FLOW FIXES (12 Issues)
+
+### 3.1 User Journey Problems
+
+#### Issue 26: Inconsistent Login Page Styles
+**Update** `templates/auth/login.html` to use shared styles:
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Login to NOUS - Your intelligent personal assistant">
+    <title>Login - NOUS</title>
+    
+    <!-- Use shared styles -->
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/auth.css">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    
+    <!-- Preload OAuth resources -->
+    <link rel="preconnect" href="https://accounts.google.com" crossorigin>
+    <link rel="dns-prefetch" href="https://oauth2.googleapis.com">
+</head>
+<body class="auth-page">
+    <div class="auth-wrapper">
+        <div class="auth-container">
+            <div class="auth-card">
+                <!-- Logo and branding -->
+                <div class="auth-header">
+                    <a href="{{ url_for('main.index') }}" class="auth-logo-link">
+                        <span class="auth-logo">🧠</span>
+                        <h1 class="auth-title">NOUS</h1>
+                    </a>
+                    <p class="auth-subtitle">Your Intelligent Assistant</p>
+                </div>
+                
+                <!-- Flash messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="auth-messages">
+                            {% for category, message in messages %}
+                                <div class="auth-message {{ category }}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+                
+                <!-- Login options -->
+                <div class="auth-content">
+                    {% if oauth_available %}
+                        <!-- Google Sign-in -->
+                        <div class="auth-primary">
+                            <a href="{{ url_for('auth.google_login') }}" 
+                               class="btn btn-google" 
+                               id="google-signin-btn">
+                                <svg class="btn-icon google-icon" viewBox="0 0 24 24">
+                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                                </svg>
+                                <span class="btn-text">Sign in with Google</span>
+                                <span class="btn-loading" style="display: none;">
+                                    <span class="spinner"></span>
+                                    Signing in...
+                                </span>
+                            </a>
+                            
+                            <p class="auth-security-note">
+                                <svg class="icon-lock" width="16" height="16" viewBox="0 0 16 16">
+                                    <path d="M8 1a3.5 3.5 0 0 0-3.5 3.5V7A1.5 1.5 0 0 0 3 8.5v5A1.5 1.5 0 0 0 4.5 15h7a1.5 1.5 0 0 0 1.5-1.5v-5A1.5 1.5 0 0 0 11.5 7V4.5A3.5 3.5 0 0 0 8 1zm0 1a2.5 2.5 0 0 1 2.5 2.5V7h-5V4.5A2.5 2.5 0 0 1 8 2z"/>
+                                </svg>
+                                Secure authentication powered by Google OAuth 2.0
+                            </p>
+                        </div>
+                        
+                        <div class="auth-divider">
+                            <span>or</span>
+                        </div>
+                    {% else %}
+                        <!-- OAuth not available message -->
+                        <div class="auth-warning">
+                            <svg class="warning-icon" width="24" height="24" viewBox="0 0 24 24">
+                                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                            </svg>
+                            <h3>Google Sign-in Unavailable</h3>
+                            <p>Google authentication is not configured. Please use Demo mode or contact your administrator.</p>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Demo mode option -->
+                    <div class="auth-secondary">
+                        <form method="POST" action="{{ url_for('auth.demo_mode') }}" id="demo-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-secondary">
+                                <svg class="btn-icon" width="20" height="20" viewBox="0 0 20 20">
+                                    <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
+                                </svg>
+                                Try Demo Mode
+                            </button>
+                        </form>
+                        
+                        <p class="auth-demo-note">
+                            Experience NOUS with limited features • No sign-up required
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Footer links -->
+                <div class="auth-footer">
+                    <a href="{{ url_for('main.index') }}">← Back to Home</a>
+                    <span class="separator">•</span>
+                    <a href="{{ url_for('main.privacy') }}">Privacy Policy</a>
+                    <span class="separator">•</span>
+                    <a href="{{ url_for('main.terms') }}">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Background decoration -->
+        <div class="auth-background">
+            <div class="gradient-overlay"></div>
+        </div>
+    </div>
+    
+    <!-- Load OAuth handler -->
+    <script src="/static/js/oauth-handler.js"></script>
+</body>
+</html>
+```
+
+#### Issue 27: Multiple Entry Points
+**Create** `utils/auth_redirect.py`:
+```python
+"""
+Authentication Redirect Manager
+Centralizes authentication flow logic
+"""
+
+from flask import url_for, session, request
+from urllib.parse import urlparse, urljoin
+
+class AuthRedirectManager:
+    """Manages authentication redirects consistently"""
+    
+    # Protected routes that require authentication
+    PROTECTED_ROUTES = [
+        'main.dashboard',
+        'chat.index',
+        'user.profile',
+        'user.settings'
+    ]
+    
+    # Routes that should not be redirect destinations
+    EXCLUDED_DESTINATIONS = [
+        'auth.login',
+        'auth.logout',
+        'auth.google_login',
+        'auth.google_callback',
+        'static'
+    ]
+    
+    @staticmethod
+    def get_login_url(next_url=None):
+        """Get consistent login URL with optional next parameter"""
+        if next_url and AuthRedirectManager.is_safe_url(next_url):
+            return url_for('auth.login', next=next_url)
+        return url_for('auth.login')
+    
+    @staticmethod
+    def store_next_url():
+        """Store the URL to redirect to after login"""
+        next_url = request.args.get('next')
+        
+        if not next_url:
+            # Use referrer if it's a protected route
+            referrer = request.referrer
+            if referrer and AuthRedirectManager.is_safe_url(referrer):
+                parsed = urlparse(referrer)
+                if any(route in parsed.path for route in AuthRedirectManager.PROTECTED_ROUTES):
+                    next_url = parsed.path
+        
+        if not next_url:
+            # Use current URL if it's protected
+            if request.endpoint in AuthRedirectManager.PROTECTED_ROUTES:
+                next_url = request.url
+        
+        if next_url and AuthRedirectManager.is_safe_url(next_url):
+            session['next_url'] = next_url
+    
+    @staticmethod
+    def get_post_login_url(default='/dashboard'):
+        """Get URL to redirect to after successful login"""
+        # Priority order:
+        # 1. Stored next_url in session
+        # 2. next parameter in request
+        # 3. Default dashboard
+        
+        next_url = session.pop('next_url', None) or request.args.get('next')
+        
+        if next_url and AuthRedirectManager.is_safe_url(next_url):
+            return next_url
+        
+        return default
+    
+    @staticmethod
+    def is_safe_url(target):
+        """Validate URL is safe for redirect"""
+        ref_url = urlparse(request.host_url)
+        test_url = urlparse(urljoin(request.host_url, target))
+        
+        # Ensure URL is relative or same host
+        return (test_url.scheme in ('http', 'https') and 
+                ref_url.netloc == test_url.netloc)
+    
+    @staticmethod
+    def requires_auth(endpoint):
+        """Check if endpoint requires authentication"""
+        return endpoint in AuthRedirectManager.PROTECTED_ROUTES
+```
+
+**Update all login entry points to use consistent flow**:
+```python
+# In routes that need auth
+from utils.auth_redirect import AuthRedirectManager
+
+@main_bp.route('/dashboard')
+def dashboard():
+    """Main dashboard with consistent auth check"""
+    if not SessionManager.is_authenticated_session():
+        AuthRedirectManager.store_next_url()
+        return redirect(AuthRedirectManager.get_login_url())
+    
+    return render_template('dashboard.html', user=session.get('user'))
+```
+
+#### Issue 28: No Remember Me in UI
+**Update login template to include remember me option**:
+```html
+<!-- In auth/login.html, add before sign-in button -->
+<div class="auth-options">
+    <label class="checkbox-label">
+        <input type="checkbox" 
+               id="remember-me" 
+               name="remember_me" 
+               checked>
+        <span class="checkbox-text">Keep me signed in</span>
+    </label>
+</div>
+```
+
+**Update OAuth handler JavaScript**:
+```javascript
+// In oauth-handler.js
+const rememberMe = document.getElementById('remember-me');
+if (rememberMe && rememberMe.checked) {
+    // Add remember parameter to OAuth URL
+    const currentHref = googleSignInBtn.href;
+    const separator = currentHref.includes('?') ? '&' : '?';
+    googleSignInBtn.href = currentHref + separator + 'remember=1';
+}
+```
+
+### 3.2 Demo Mode Security
+
+#### Issue 29: Demo Mode Too Accessible
+**Update** `routes/auth_routes.py`:
+```python
+@auth_bp.route('/demo-mode', methods=['POST'])
+@require_csrf
+def demo_mode():
+    """Secure demo mode activation"""
+    # Multiple security checks
+    
+    # 1. Check if demo mode is enabled
+    if not current_app.config.get('DEMO_MODE_ENABLED', False):
+        abort(404)  # Don't reveal it exists
+    
+    # 2. Rate limiting
+    from utils.rate_limiter import rate_limiter
+    if not rate_limiter.is_allowed('demo_activation', 3, 3600, 'ip'):
+        flash('Too many demo requests. Please try again later.', 'error')
+        return redirect(url_for('main.index'))
+    
+    # 3. Check for suspicious patterns
+    user_agent = request.headers.get('User-Agent', '')
+    if not user_agent or 'bot' in user_agent.lower():
+        abort(403)
+    
+    # 4. Verify CSRF token (handled by decorator)
+    
+    # 5. Create limited demo session
+    from utils.session_manager import SessionManager
+    SessionManager.create_demo_session()
+    
+    # Log demo activation
+    from utils.security_events import log_security_event
+    log_security_event(
+        'demo_activated',
+        event_data={
+            'ip': request.remote_addr,
+            'user_agent': user_agent[:100]
+        }
+    )
+    
+    flash('Welcome to NOUS Demo Mode! Some features are limited.', 'info')
+    return redirect(url_for('main.demo_dashboard'))
+```
+
+#### Issue 30: Demo Session Cleanup
+**Create** `utils/demo_cleanup.py`:
+```python
+"""
+Demo Session Cleanup
+Automatically cleans up expired demo sessions
+"""
+
+from datetime import datetime, timedelta
+import logging
+
+logger = logging.getLogger(__name__)
+
+class DemoSessionCleaner:
+    """Manages demo session lifecycle"""
+    
+    def __init__(self, app=None):
+        self.app = app
+        self.cleanup_interval = 300  # 5 minutes
+        self.max_demo_age = 3600  # 1 hour
+        
+        if app:
+            self.init_app(app)
+    
+    def init_app(self, app):
+        """Initialize with Flask app"""
+        self.app = app
+        
+        # Register cleanup task
+        from flask import g
+        
+        @app.before_request
+        def check_demo_expiration():
+            """Check demo session expiration before each request"""
+            from utils.session_manager import SessionManager
+            
+            if SessionManager.is_demo_session():
+                demo_expires = session.get('demo_expires')
+                if demo_expires:
+                    if datetime.fromisoformat(demo_expires) < datetime.utcnow():
+                        logger.info(f"Demo session expired: {session.get('session_id')}")
+                        SessionManager.clear_session()
+                        flash('Your demo session has expired. Please start a new session.', 'info')
+                        return redirect(url_for('main.index'))
+                
+                # Check message limit
+                message_count = session.get('demo_message_count', 0)
+                max_messages = session.get('user', {}).get('demo_restrictions', {}).get('max_messages', 50)
+                
+                if message_count >= max_messages:
+                    logger.info(f"Demo message limit reached: {session.get('session_id')}")
+                    flash('You have reached the demo message limit. Please sign in for unlimited access.', 'warning')
+                    return redirect(url_for('auth.login'))
+    
+    def cleanup_old_sessions(self):
+        """Clean up old demo sessions from database"""
+        try:
+            from models import UserSession, db
+            
+            cutoff_time = datetime.utcnow() - timedelta(seconds=self.max_demo_age)
+            
+            old_sessions = UserSession.query.filter(
+                UserSession.session_type == 'demo',
+                UserSession.created_at < cutoff_time
+            ).all()
+            
+            for session in old_sessions:
+                db.session.delete(session)
+            
+            if old_sessions:
+                db.session.commit()
+                logger.info(f"Cleaned up {len(old_sessions)} expired demo sessions")
+                
+        except Exception as e:
+            logger.error(f"Demo cleanup error: {e}")
+```
+
+### 3.3 Error Handling
+
+#### Issue 31: Generic Error Messages
+**Create** `utils/error_messages.py`:
+```python
+"""
+User-Friendly Error Messages
+Provides helpful error messages for authentication issues
+"""
+
+class AuthErrorMessages:
+    """Authentication error messages"""
+    
+    # OAuth errors
+    OAUTH_ERRORS = {
+        'access_denied': {
+            'title': 'Sign-in Cancelled',
+            'message': 'You cancelled the sign-in process. Click "Sign in with Google" when you\'re ready to continue.',
+            'severity': 'info'
+        },
+        'invalid_request': {
+            'title': 'Invalid Request',
+            'message': 'The sign-in request was invalid. Please try again.',
+            'severity': 'error'
+        },
+        'unauthorized_client': {
+            'title': 'Configuration Error',
+            'message': 'This application is not properly configured for Google Sign-in. Please contact support.',
+            'severity': 'error'
+        },
+        'invalid_scope': {
+            'title': 'Permission Error',
+            'message': 'The requested permissions are invalid. Please contact support.',
+            'severity': 'error'
+        },
+        'server_error': {
+            'title': 'Server Error',
+            'message': 'Google\'s servers are experiencing issues. Please try again later.',
+            'severity': 'warning'
+        },
+        'temporarily_unavailable': {
+            'title': 'Temporarily Unavailable',
+            'message': 'Google Sign-in is temporarily unavailable. Please try again in a few minutes.',
+            'severity': 'warning'
+        },
+        'timeout': {
+            'title': 'Connection Timeout',
+            'message': 'The connection to Google timed out. Please check your internet connection and try again.',
+            'severity': 'warning'
+        },
+        'network_error': {
+            'title': 'Network Error',
+            'message': 'Could not connect to Google. Please check your internet connection.',
+            'severity': 'error'
+        }
+    }
+    
+    # Session errors
+    SESSION_ERRORS = {
+        'expired': 'Your session has expired. Please sign in again.',
+        'invalid': 'Your session is invalid. Please sign in again.',
+        'concurrent': 'You have been signed out because you signed in from another location.'
+    }
+    
+    @classmethod
+    def get_oauth_error(cls, error_code, default=None):
+        """Get user-friendly OAuth error message"""
+        error_info = cls.OAUTH_ERRORS.get(error_code)
+        
+        if error_info:
+            return error_info
+        
+        # Default error
+        return {
+            'title': 'Authentication Error',
+            'message': default or 'An error occurred during sign-in. Please try again.',
+            'severity': 'error'
+        }
+    
+    @classmethod
+    def get_session_error(cls, error_type):
+        """Get session error message"""
+        return cls.SESSION_ERRORS.get(error_type, 'Your session is invalid. Please sign in again.')
+```
+
+#### Issue 32: No Retry Logic
+**Update** `static/js/oauth-handler.js`:
+```javascript
+// Add retry logic for OAuth
+class OAuthRetryHandler {
+    constructor() {
+        this.maxRetries = 3;
+        this.retryDelay = 1000; // Start with 1 second
+        this.retryCount = parseInt(sessionStorage.getItem('oauth_retry_count') || '0');
+    }
+    
+    canRetry() {
+        return this.retryCount < this.maxRetries;
+    }
+    
+    async retry(callback) {
+        if (!this.canRetry()) {
+            this.reset();
+            return false;
+        }
+        
+        this.retryCount++;
+        sessionStorage.setItem('oauth_retry_count', this.retryCount.toString());
+        
+        // Exponential backoff
+        const delay = this.retryDelay * Math.pow(2, this.retryCount - 1);
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        try {
+            return await callback();
+        } catch (error) {
+            if (this.canRetry()) {
+                return this.retry(callback);
+            } else {
+                this.reset();
+                throw error;
+            }
+        }
+    }
+    
+    reset() {
+        this.retryCount = 0;
+        sessionStorage.removeItem('oauth_retry_count');
+    }
+}
+
+// Use in OAuth flow
+const retryHandler = new OAuthRetryHandler();
+
+async function initiateOAuthFlow() {
+    try {
+        const response = await fetch('/auth/google/status');
+        const data = await response.json();
+        
+        if (!data.available) {
+            throw new Error('OAuth not available');
+        }
+        
+        // Proceed with OAuth
+        window.location.href = '/auth/google';
+        
+    } catch (error) {
+        if (retryHandler.canRetry()) {
+            showRetryNotification('Connection failed. Retrying...');
+            await retryHandler.retry(() => initiateOAuthFlow());
+        } else {
+            showErrorNotification('Could not connect to authentication service. Please try again later.');
+        }
+    }
+}
+```
+
+---
+
+## SECTION 4: DATABASE & SECURITY ENHANCEMENTS
+
+### Create Security Event Logging
+**Create** `models/audit.py`:
+```python
+"""
+Audit Log Model
+Tracks security-relevant events
+"""
+
+from models.base import BaseModel, db
+from sqlalchemy.dialects.postgresql import JSON
+
+class AuditLog(BaseModel):
+    """Security audit log entries"""
+    
+    __tablename__ = 'audit_logs'
+    
+    # Event identification
+    event_type = db.Column(db.String(50), nullable=False, index=True)
+    event_subtype = db.Column(db.String(50))
+    severity = db.Column(db.String(20), default='info')  # info, warning, error, critical
+    
+    # User information
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), index=True)
+    session_id = db.Column(db.String(36), index=True)
+    
+    # Request information
+    ip_address = db.Column(db.String(45))  # Support IPv6
+    user_agent = db.Column(db.String(200))
+    request_method = db.Column(db.String(10))
+    request_path = db.Column(db.String(255))
+    
+    # Event details
+    event_data = db.Column(JSON)
+    error_message = db.Column(db.Text)
+    
+    # Indexing for common queries
+    __table_args__ = (
+        db.Index('idx_audit_user_time', 'user_id', 'created_at'),
+        db.Index('idx_audit_type_time', 'event_type', 'created_at'),
+        db.Index('idx_audit_ip_time', 'ip_address', 'created_at'),
+    )
+```
+
+**Create** `utils/security_events.py`:
+```python
+"""
+Security Event Logger
+Central security event logging
+"""
+
+from flask import request, session
+from models import AuditLog, db
+import logging
+
+logger = logging.getLogger(__name__)
+
+def log_security_event(event_type, user_id=None, severity='info', event_data=None, error_message=None):
+    """Log a security-relevant event"""
+    try:
+        # Get request context
+        ip_address = None
+        user_agent = None
+        request_method = None
+        request_path = None
+        
+        if request:
+            ip_address = request.headers.get('X-Forwarded-For', request.remote_addr)
+            if ',' in ip_address:
+                ip_address = ip_address.split(',')[0].strip()
+            
+            user_agent = request.headers.get('User-Agent', '')[:200]
+            request_method = request.method
+            request_path = request.path
+        
+        # Create audit entry
+        audit_entry = AuditLog(
+            event_type=event_type,
+            severity=severity,
+            user_id=user_id or session.get('user', {}).get('id'),
+            session_id=session.get('session_id'),
+            ip_address=ip_address,
+            user_agent=user_agent,
+            request_method=request_method,
+            request_path=request_path,
+            event_data=event_data,
+            error_message=error_message
+        )
+        
+        db.session.add(audit_entry)
+        db.session.commit()
+        
+        # Also log to application logger
+        log_message = f"Security Event: {event_type}"
+        if user_id:
+            log_message += f" | User: {user_id}"
+        if event_data:
+            log_message += f" | Data: {event_data}"
+            
+        if severity == 'critical':
+            logger.critical(log_message)
+        elif severity == 'error':
+            logger.error(log_message)
+        elif severity == 'warning':
+            logger.warning(log_message)
+        else:
+            logger.info(log_message)
+            
+    except Exception as e:
+        logger.error(f"Failed to log security event: {e}")
+```
+
+### Create Database Migration
+**Create** `migrations/add_security_features.py`:
+```python
+"""
+Database migration to add security features
+"""
+
+from alembic import op
+import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
+
+def upgrade():
+    # Add security fields to users table
+    op.add_column('users', sa.Column('email_verified', sa.Boolean(), nullable=True))
+    op.add_column('users', sa.Column('last_ip', sa.String(45), nullable=True))
+    op.add_column('users', sa.Column('last_user_agent', sa.String(200), nullable=True))
+    op.add_column('users', sa.Column('failed_login_attempts', sa.Integer(), nullable=True, default=0))
+    op.add_column('users', sa.Column('locked_until', sa.DateTime(), nullable=True))
+    
+    # Create indexes
+    op.create_index('idx_users_google_id', 'users', ['google_id'])
+    op.create_index('idx_users_email', 'users', ['email'])
+    
+    # Create audit_logs table
+    op.create_table('audit_logs',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('created_at', sa.DateTime(), nullable=False),
+        sa.Column('updated_at', sa.DateTime(), nullable=True),
+        sa.Column('event_type', sa.String(50), nullable=False),
+        sa.Column('event_subtype', sa.String(50), nullable=True),
+        sa.Column('severity', sa.String(20), nullable=True),
+        sa.Column('user_id', sa.Integer(), nullable=True),
+        sa.Column('session_id', sa.String(36), nullable=True),
+        sa.Column('ip_address', sa.String(45), nullable=True),
+        sa.Column('user_agent', sa.String(200), nullable=True),
+        sa.Column('request_method', sa.String(10), nullable=True),
+        sa.Column('request_path', sa.String(255), nullable=True),
+        sa.Column('event_data', postgresql.JSON(astext_type=sa.Text()), nullable=True),
+        sa.Column('error_message', sa.Text(), nullable=True),
+        sa.PrimaryKeyConstraint('id'),
+        sa.ForeignKeyConstraint(['user_id'], ['users.id'], )
+    )
+    
+    # Create indexes for audit_logs
+    op.create_index('idx_audit_type_time', 'audit_logs', ['event_type', 'created_at'])
+    op.create_index('idx_audit_user_time', 'audit_logs', ['user_id', 'created_at'])
+    op.create_index('idx_audit_ip_time', 'audit_logs', ['ip_address', 'created_at'])
+
+def downgrade():
+    op.drop_table('audit_logs')
+    op.drop_column('users', 'email_verified')
+    op.drop_column('users', 'last_ip')
+    op.drop_column('users', 'last_user_agent')
+    op.drop_column('users', 'failed_login_attempts')
+    op.drop_column('users', 'locked_until')
+```
+
+### Create CSS Files
+**Create** `static/css/main.css`:
+```css
+/* Main stylesheet - consolidated from duplicate files */
+
+:root {
+    /* Color scheme */
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+    --secondary-color: #64748b;
+    --secondary-hover: #475569;
+    --success-color: #22c55e;
+    --warning-color: #f59e0b;
+    --error-color: #ef4444;
+    --info-color: #3b82f6;
+    
+    /* Neutrals */
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9fafb;
+    --border-color: #e5e7eb;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    
+    /* Spacing */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    
+    /* Border radius */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.375rem;
+    --radius-lg: 0.5rem;
+    --radius-full: 9999px;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text-primary: #f9fafb;
+        --text-secondary: #d1d5db;
+        --bg-primary: #111827;
+        --bg-secondary: #1f2937;
+        --border-color: #374151;
+    }
+}
+
+/* Base styles */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    margin: 0 0 var(--spacing-md) 0;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+h1 { font-size: 2.25rem; }
+h2 { font-size: 1.875rem; }
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.25rem; }
+h5 { font-size: 1.125rem; }
+h6 { font-size: 1rem; }
+
+p {
+    margin: 0 0 var(--spacing-md) 0;
+}
+
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.5;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+
+.btn-secondary {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: var(--secondary-hover);
+}
+
+.btn-google {
+    background-color: #ffffff;
+    color: #3c4043;
+    border: 1px solid var(--border-color);
+}
+
+.btn-google:hover {
+    background-color: #f8f9fa;
+    border-color: #dadce0;
+}
+
+.btn-full {
+    width: 100%;
+}
+
+.btn-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+/* Loading spinner */
+.spinner {
+    animation: rotate 1s linear infinite;
+}
+
+.spinner circle {
+    stroke: currentColor;
+    stroke-opacity: 0.25;
+}
+
+.spinner .path {
+    stroke: currentColor;
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+    animation: dash 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate {
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes dash {
+    0% {
+        stroke-dasharray: 1, 150;
+        stroke-dashoffset: 0;
+    }
+    50% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -35;
+    }
+    100% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -124;
+    }
+}
+
+/* Flash messages */
+.flash-messages-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    max-width: 400px;
+}
+
+.flash-message {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.flash-message.flash-success {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.flash-message.flash-error {
+    background-color: var(--error-color);
+    color: white;
+}
+
+.flash-message.flash-warning {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.flash-message.flash-info {
+    background-color: var(--info-color);
+    color: white;
+}
+
+.flash-close {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    margin-left: var(--spacing-md);
+}
+```
+
+**Create** `static/css/auth.css`:
+```css
+/* Authentication pages specific styles */
+
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.auth-wrapper {
+    width: 100%;
+    max-width: 400px;
+    padding: var(--spacing-lg);
+}
+
+.auth-card {
+    background: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: var(--spacing-xl);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.auth-logo-link {
+    display: inline-block;
+    text-decoration: none;
+    color: var(--text-primary);
+}
+
+.auth-logo {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: var(--spacing-sm);
+}
+
+.auth-title {
+    font-size: 2rem;
+    margin: 0;
+}
+
+.auth-subtitle {
+    color: var(--text-secondary);
+    margin-top: var(--spacing-xs);
+}
+
+.auth-messages {
+    margin-bottom: var(--spacing-lg);
+}
+
+.auth-message {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-sm);
+}
+
+.auth-message.error {
+    background-color: #fee;
+    color: #c00;
+    border: 1px solid #fcc;
+}
+
+.auth-message.warning {
+    background-color: #ffeaa7;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.auth-message.info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.auth-content {
+    margin-bottom: var(--spacing-xl);
+}
+
+.auth-divider {
+    text-align: center;
+    margin: var(--spacing-lg) 0;
+    position: relative;
+}
+
+.auth-divider span {
+    background: var(--bg-primary);
+    padding: 0 var(--spacing-md);
+    color: var(--text-secondary);
+    position: relative;
+    z-index: 1;
+}
+
+.auth-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--border-color);
+}
+
+.auth-security-note {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: var(--spacing-md);
+}
+
+.icon-lock {
+    flex-shrink: 0;
+    fill: currentColor;
+}
+
+.auth-warning {
+    text-align: center;
+    padding: var(--spacing-lg);
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.auth-warning .warning-icon {
+    fill: #f59e0b;
+    margin-bottom: var(--spacing-sm);
+}
+
+.auth-demo-note {
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: var(--spacing-sm);
+}
+
+.auth-footer {
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.auth-footer .separator {
+    margin: 0 var(--spacing-sm);
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    cursor: pointer;
+    margin-bottom: var(--spacing-md);
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.oauth-error-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    max-width: 400px;
+    background: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    border-left: 4px solid var(--error-color);
+    animation: slideIn 0.3s ease;
+    z-index: 1000;
+}
+
+.notification-content {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+}
+
+.error-icon {
+    fill: var(--error-color);
+    flex-shrink: 0;
+}
+
+.notification-text strong {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0;
+    margin-left: auto;
+}
+```
+
+---
+
+## VERIFICATION CHECKLIST
+
+After implementing all fixes, verify each item:
+
+### Landing Page (15 items)
+- [ ] CSP allows Google Fonts and OAuth resources
+- [ ] Security headers consistent across all pages
+- [ ] CSRF tokens on all forms
+- [ ] Single CSS file loaded (no duplicates)
+- [ ] Resources preloaded for performance
+- [ ] Fonts load asynchronously
+- [ ] OAuth status checking is consistent
+- [ ] Login fallback route exists
+- [ ] No inline styles in templates
+- [ ] Flash messages at top of page
+- [ ] Loading states for OAuth redirect
+- [ ] Clear error messages with recovery options
+- [ ] Demo button has CSRF protection
+- [ ] OAuth handler JavaScript loads
+- [ ] Error recovery UI works
+
+### OAuth Implementation (22 items)
+- [ ] Secure state validation with HMAC
+- [ ] OAuth tokens encrypted in database
+- [ ] Token rotation implemented
+- [ ] Rate limiting working on all auth endpoints
+- [ ] OAuth credentials properly stored in .env
+- [ ] Consistent OAuth status checking
+- [ ] Only required scopes requested
+- [ ] Discovery document used for endpoints
+- [ ] Error recovery with fallback
+- [ ] Demo sessions isolated from auth sessions
+- [ ] Single callback route
+- [ ] No circular dependencies
+- [ ] Factory pattern for OAuth service
+- [ ] Comprehensive error handling
+- [ ] User fingerprinting for security
+- [ ] Token refresh mechanism works
+- [ ] Audit logging for all auth events
+- [ ] Session management with timeout
+- [ ] CSRF protection on all forms
+- [ ] Secure credential storage
+- [ ] OAuth health checks cached
+- [ ] Deployment callback URI detection
+
+### Login Flow (12 items)
+- [ ] Consistent styling across auth pages
+- [ ] Single entry point for authentication
+- [ ] Consistent post-login redirects
+- [ ] Remember me option in UI
+- [ ] Demo mode requires POST + CSRF
+- [ ] Demo sessions auto-expire
+- [ ] Demo message limits enforced
+- [ ] User-friendly error messages
+- [ ] OAuth retry logic implemented
+- [ ] Session isolation working
+- [ ] Auth redirect manager used
+- [ ] Demo cleanup task running
+
+### Database & Security
+- [ ] Migration script created and run
+- [ ] Audit logs table created
+- [ ] User model has security fields
+- [ ] Indexes added for performance
+- [ ] Token encryption working
+- [ ] Security event logging active
+
+### Testing Commands
+Run these commands to verify all fixes:
+
+```bash
+# Test OAuth configuration
+python -c "from utils.oauth_status import oauth_status_checker; print(oauth_status_checker.check_status())"
+
+# Test rate limiting
+curl -X POST http://localhost:5000/auth/demo-mode -d "csrf_token=test" -H "Content-Type: application/x-www-form-urlencoded" -v
+
+# Test session management
+python -c "from utils.session_manager import SessionManager; print(SessionManager.get_session_info())"
+
+# Run security audit
+python comprehensive_security_validator.py
+
+# Check database migrations
+python -c "from models import db, User, AuditLog; print('Models loaded successfully')"
+```
+
+---
+
+## FINAL VERIFICATION
+
+Once all fixes are implemented:
+
+1. **Security Scan**: Run `python security_audit_validator.py`
+2. **OAuth Test**: Run `python test_oauth_complete.py` 
+3. **UI Test**: Manually test the complete login flow
+4. **Demo Test**: Verify demo mode restrictions
+5. **Performance Test**: Check page load times
+6. **Error Test**: Test all error scenarios
+
+**Total Issues to Fix**: 49
+**Estimated Time**: 16-24 hours of implementation
+**Priority**: Fix security issues first, then functionality, then UX
+
+This comprehensive fix list addresses every single issue found in the audit. Each fix includes specific code changes, new files to create, and exact line numbers to modify. Follow this guide systematically to achieve 100% issue resolution.
