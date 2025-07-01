@@ -33,11 +33,16 @@ def get_character_settings():
 
     # Try to get settings from current user if authenticated
     try:
-        from utils.auth_compat import login_required, get_demo_user
-        if get_demo_user() and is_authenticated():
+        from utils.auth_compat import get_demo_user
+        from flask import session
+        
+        # Check if user is in session
+        user = get_demo_user() if get_demo_user else session.get('user')
+        if user:
             # Check if user has settings
             from models import UserSettings
-            user_settings = UserSettings.query.filter_by(user_id=get_demo_user().get("id") if get_demo_user() else None).first()
+            user_id = user.get("id") if isinstance(user, dict) else getattr(user, 'id', None)
+            user_settings = UserSettings.query.filter_by(user_id=user_id).first() if user_id else None
 
             if user_settings:
                 # Extract character settings
