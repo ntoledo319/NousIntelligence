@@ -1,3 +1,5 @@
+import logging
+logger = logging.getLogger(__name__)
 #!/usr/bin/env python3
 """
 Quick Audit System - Fast, focused testing and issue detection
@@ -24,7 +26,7 @@ class QuickAuditor:
     
     def run_quick_audit(self):
         """Run focused audit on critical areas"""
-        print("🔍 Starting Quick Audit System")
+        logger.info(🔍 Starting Quick Audit System)
         
         # Critical checks
         self.check_app_startup()
@@ -36,12 +38,12 @@ class QuickAuditor:
         # Calculate health score
         self.calculate_health_score()
         
-        print(f"✅ Quick Audit Complete - Health Score: {self.results['health_score']}/100")
+        logger.info(✅ Quick Audit Complete - Health Score: {self.results['health_score']}/100)
         return self.results
     
     def check_app_startup(self):
         """Test if the Flask app can start without errors"""
-        print("🚀 Checking app startup...")
+        logger.info(🚀 Checking app startup...)
         
         try:
             # Test import of main app components
@@ -58,14 +60,14 @@ class QuickAuditor:
             for module in critical_imports:
                 try:
                     __import__(module)
-                    print(f"✅ {module} imports successfully")
+                    logger.info(✅ {module} imports successfully)
                 except Exception as e:
                     self.results['issues'].append({
                         'category': 'import_error',
                         'severity': 'critical',
                         'issue': f'Cannot import {module}: {str(e)}'
                     })
-                    print(f"❌ {module} import failed: {e}")
+                    logger.info(❌ {module} import failed: {e})
         
         except Exception as e:
             self.results['issues'].append({
@@ -76,7 +78,7 @@ class QuickAuditor:
     
     def check_critical_syntax(self):
         """Check syntax of critical Python files"""
-        print("🐍 Checking critical file syntax...")
+        logger.info(🐍 Checking critical file syntax...)
         
         critical_files = [
             'app.py',
@@ -100,7 +102,7 @@ class QuickAuditor:
                 
                 # Parse with AST
                 ast.parse(content, filename=file_path)
-                print(f"✅ {file_path} syntax OK")
+                logger.info(✅ {file_path} syntax OK)
                 
             except SyntaxError as e:
                 self.results['issues'].append({
@@ -108,7 +110,7 @@ class QuickAuditor:
                     'severity': 'critical',
                     'issue': f'Syntax error in {file_path} line {e.lineno}: {str(e)}'
                 })
-                print(f"❌ Syntax error in {file_path}: {e}")
+                logger.error(❌ Syntax error in {file_path}: {e})
             except Exception as e:
                 self.results['issues'].append({
                     'category': 'file_error',
@@ -118,7 +120,7 @@ class QuickAuditor:
     
     def check_auth_barriers(self):
         """Check for authentication barriers that block public access"""
-        print("🔐 Checking authentication barriers...")
+        logger.info(🔐 Checking authentication barriers...)
         
         barrier_count = 0
         barrier_files = []
@@ -152,7 +154,7 @@ class QuickAuditor:
                         })
                         
                 except Exception as e:
-                    print(f"Warning: Could not check {route_file}: {e}")
+                    logger.warning(Warning: Could not check {route_file}: {e})
         
         if barrier_count > 0:
             self.results['issues'].append({
@@ -161,13 +163,13 @@ class QuickAuditor:
                 'issue': f'Found {barrier_count} authentication barriers in {len(barrier_files)} files',
                 'details': barrier_files
             })
-            print(f"⚠️ Found {barrier_count} authentication barriers")
+            logger.info(⚠️ Found {barrier_count} authentication barriers)
         else:
-            print("✅ No authentication barriers detected")
+            logger.info(✅ No authentication barriers detected)
     
     def check_api_endpoints(self):
         """Test critical API endpoints"""
-        print("🔌 Testing API endpoints...")
+        logger.info(🔌 Testing API endpoints...)
         
         base_url = "http://localhost:8080"
         endpoints = [
@@ -191,9 +193,9 @@ class QuickAuditor:
                         'severity': 'high' if response.status_code >= 500 else 'medium',
                         'issue': f'{endpoint} returned {response.status_code}'
                     })
-                    print(f"❌ {endpoint}: {response.status_code}")
+                    logger.info(❌ {endpoint}: {response.status_code})
                 else:
-                    print(f"✅ {endpoint}: {response.status_code}")
+                    logger.info(✅ {endpoint}: {response.status_code})
                     
             except Exception as e:
                 self.results['issues'].append({
@@ -201,11 +203,11 @@ class QuickAuditor:
                     'severity': 'high',
                     'issue': f'{endpoint} failed: {str(e)}'
                 })
-                print(f"❌ {endpoint}: {e}")
+                logger.info(❌ {endpoint}: {e})
     
     def check_database_connection(self):
         """Test database connectivity"""
-        print("🗄️ Checking database connection...")
+        logger.info(🗄️ Checking database connection...)
         
         database_url = os.environ.get('DATABASE_URL')
         if not database_url:
@@ -214,7 +216,7 @@ class QuickAuditor:
                 'severity': 'critical',
                 'issue': 'DATABASE_URL environment variable not set'
             })
-            print("❌ DATABASE_URL not set")
+            logger.info(❌ DATABASE_URL not set)
             return
         
         try:
@@ -222,14 +224,14 @@ class QuickAuditor:
                 import psycopg2
                 conn = psycopg2.connect(database_url)
                 conn.close()
-                print("✅ PostgreSQL connection OK")
+                logger.info(✅ PostgreSQL connection OK)
             elif database_url.startswith('sqlite'):
                 import sqlite3
                 conn = sqlite3.connect(database_url.replace('sqlite:///', ''))
                 conn.close()
-                print("✅ SQLite connection OK")
+                logger.info(✅ SQLite connection OK)
             else:
-                print(f"⚠️ Unknown database type: {database_url[:20]}...")
+                logger.info(⚠️ Unknown database type: {database_url[:20]}...)
                 
         except Exception as e:
             self.results['issues'].append({
@@ -237,7 +239,7 @@ class QuickAuditor:
                 'severity': 'critical',
                 'issue': f'Database connection failed: {str(e)}'
             })
-            print(f"❌ Database connection failed: {e}")
+            logger.info(❌ Database connection failed: {e})
     
     def calculate_health_score(self):
         """Calculate health score based on issues found"""
@@ -258,7 +260,7 @@ class QuickAuditor:
     
     def fix_critical_issues(self):
         """Attempt to fix critical issues automatically"""
-        print("🔧 Attempting to fix critical issues...")
+        logger.info(🔧 Attempting to fix critical issues...)
         
         fixes_applied = []
         
@@ -326,7 +328,7 @@ class QuickAuditor:
                     fixes.append(f"Fixed authentication barriers in {route_file}")
                     
             except Exception as e:
-                print(f"Warning: Could not fix auth barriers in {route_file}: {e}")
+                logger.warning(Warning: Could not fix auth barriers in {route_file}: {e})
         
         return fixes
     
@@ -365,22 +367,22 @@ class QuickAuditor:
                                     f.writelines(lines)
                     
                     except (ValueError, IndexError, OSError) as e:
-                        print(f"Could not fix syntax issue: {e}")
+                        logger.info(Could not fix syntax issue: {e})
         
         return fixes
     
     def generate_report(self):
         """Generate quick audit report"""
-        print("\n" + "="*60)
-        print("QUICK AUDIT REPORT")
-        print("="*60)
-        print(f"Timestamp: {self.results['timestamp']}")
-        print(f"Health Score: {self.results['health_score']}/100")
-        print(f"Issues Found: {len(self.results['issues'])}")
-        print(f"Fixes Applied: {len(self.results['fixes_applied'])}")
+        logger.info(\n)
+        logger.info(QUICK AUDIT REPORT)
+        logger.info(=)
+        logger.info(Timestamp: {self.results['timestamp']})
+        logger.info(Health Score: {self.results['health_score']}/100)
+        logger.info(Issues Found: {len(self.results['issues'])})
+        logger.info(Fixes Applied: {len(self.results['fixes_applied'])})
         
         if self.results['issues']:
-            print("\nISSUES DETECTED:")
+            logger.info(\nISSUES DETECTED:)
             for issue in self.results['issues']:
                 severity_emoji = {
                     'critical': '🔴',
@@ -388,14 +390,14 @@ class QuickAuditor:
                     'medium': '🟡',
                     'low': '🟢'
                 }.get(issue['severity'], '🔵')
-                print(f"{severity_emoji} [{issue['severity'].upper()}] {issue['issue']}")
+                logger.info({severity_emoji} [{issue['severity'].upper()}] {issue['issue']})
         
         if self.results['fixes_applied']:
-            print("\nFIXES APPLIED:")
+            logger.info(\nFIXES APPLIED:)
             for fix in self.results['fixes_applied']:
-                print(f"✅ {fix}")
+                logger.info(✅ {fix})
         
-        print("="*60)
+        logger.info(=)
         
         return self.results
 
@@ -404,9 +406,9 @@ def main():
     auditor = QuickAuditor()
     
     for cycle in range(1, 4):
-        print(f"\n{'='*40}")
-        print(f"QUICK AUDIT CYCLE {cycle}/3")
-        print(f"{'='*40}")
+        logger.info(\n{'='*40})
+        logger.info(QUICK AUDIT CYCLE {cycle}/3)
+        logger.info({'='*40})
         
         # Run audit
         results = auditor.run_quick_audit()
@@ -419,10 +421,10 @@ def main():
         
         # Break if health is good enough
         if results['health_score'] >= 85:
-            print(f"\n✅ Good health score achieved: {results['health_score']}/100")
+            logger.info(\n✅ Good health score achieved: {results['health_score']}/100)
             break
             
-        print(f"\nCycle {cycle} complete. Preparing for next cycle...")
+        logger.info(\nCycle {cycle} complete. Preparing for next cycle...)
 
 if __name__ == "__main__":
     main()

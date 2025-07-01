@@ -1,3 +1,5 @@
+import logging
+logger = logging.getLogger(__name__)
 #!/usr/bin/env python3
 """
 Complete Integration Test
@@ -15,15 +17,15 @@ def test_endpoint(url, description, expected_status=200):
     try:
         response = requests.get(url, timeout=10)
         status = "✅ PASS" if response.status_code == expected_status else f"❌ FAIL ({response.status_code})"
-        print(f"{status} - {description}: {url}")
+        logger.info({status} - {description}: {url})
         return response.status_code == expected_status
     except Exception as e:
-        print(f"❌ ERROR - {description}: {url} - {str(e)}")
+        logger.error(❌ ERROR - {description}: {url} - {str(e)})
         return False
 
 def test_oauth_flow():
     """Test OAuth flow"""
-    print("\n🔐 Testing OAuth Flow...")
+    logger.info(\n🔐 Testing OAuth Flow...)
     
     # Test OAuth login initiation
     oauth_urls = [
@@ -37,18 +39,18 @@ def test_oauth_flow():
         try:
             response = requests.get(url, timeout=5, allow_redirects=False)
             if response.status_code in [302, 200]:  # Redirect to Google or login page
-                print(f"✅ OAuth endpoint working: {url}")
+                logger.info(✅ OAuth endpoint working: {url})
                 oauth_working = True
                 break
         except Exception as e:
-            print(f"❌ OAuth endpoint failed: {url} - {str(e)}")
+            logger.info(❌ OAuth endpoint failed: {url} - {str(e)})
     
     return oauth_working
 
 def main():
     """Run complete integration test"""
-    print("🧪 NOUS Complete Integration Test")
-    print("=" * 50)
+    logger.info(🧪 NOUS Complete Integration Test)
+    logger.info(=)
     
     base_url = "http://localhost:8080"
     
@@ -62,7 +64,7 @@ def main():
         (f"{base_url}/api/v1/health", "API V1 Health", 200),
     ]
     
-    print("\n🌐 Testing Core Pathways...")
+    logger.info(\n🌐 Testing Core Pathways...)
     passed = 0
     total = len(tests)
     
@@ -74,34 +76,34 @@ def main():
     oauth_working = test_oauth_flow()
     
     # Test modern UI elements
-    print("\n🎨 Testing Modern UI Integration...")
+    logger.info(\n🎨 Testing Modern UI Integration...)
     try:
         response = requests.get(f"{base_url}/", timeout=10)
         if "Inter" in response.text and "modern-chat.js" in response.text:
-            print("✅ Modern UI integration confirmed")
+            logger.info(✅ Modern UI integration confirmed)
             ui_working = True
         else:
-            print("❌ Modern UI integration not detected")
+            logger.info(❌ Modern UI integration not detected)
             ui_working = False
     except Exception as e:
-        print(f"❌ UI test failed: {str(e)}")
+        logger.info(❌ UI test failed: {str(e)})
         ui_working = False
     
     # Generate report
-    print("\n📊 Integration Test Report")
-    print("=" * 50)
-    print(f"Core Pathways: {passed}/{total} working")
-    print(f"OAuth System: {'✅ Working' if oauth_working else '❌ Issues detected'}")
-    print(f"Modern UI: {'✅ Integrated' if ui_working else '❌ Issues detected'}")
+    logger.info(\n📊 Integration Test Report)
+    logger.info(=)
+    logger.info(Core Pathways: {passed}/{total} working)
+    logger.info(OAuth System: {'✅ Working' if oauth_working else '❌ Issues detected'})
+    logger.info(Modern UI: {'✅ Integrated' if ui_working else '❌ Issues detected'})
     
     overall_score = (passed / total) * 100
-    print(f"\nOverall Health: {overall_score:.1f}%")
+    logger.info(\nOverall Health: {overall_score:.1f}%)
     
     if overall_score >= 80 and ui_working:
-        print("🎉 INTEGRATION SUCCESS - System ready for production!")
+        logger.info(🎉 INTEGRATION SUCCESS - System ready for production!)
         return True
     else:
-        print("⚠️  INTEGRATION ISSUES - Some components need attention")
+        logger.info(⚠️  INTEGRATION ISSUES - Some components need attention)
         return False
 
 if __name__ == "__main__":

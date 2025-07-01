@@ -1,3 +1,5 @@
+import logging
+logger = logging.getLogger(__name__)
 #!/usr/bin/env python3
 """
 Security Audit Validator
@@ -35,7 +37,7 @@ class SecurityAuditValidator:
     
     def check_secret_key_configuration(self):
         """Validate SECRET_KEY configuration security"""
-        print("🔐 Validating SECRET_KEY configuration...")
+        logger.info(🔐 Validating SECRET_KEY configuration...)
         
         # Check config/app_config.py
         config_file = self.project_root / 'config' / 'app_config.py'
@@ -56,7 +58,7 @@ class SecurityAuditValidator:
     
     def check_cors_configuration(self):
         """Validate CORS configuration"""
-        print("🌐 Validating CORS configuration...")
+        logger.info(🌐 Validating CORS configuration...)
         
         config_file = self.project_root / 'config' / 'app_config.py'
         if config_file.exists():
@@ -72,7 +74,7 @@ class SecurityAuditValidator:
     
     def check_database_configuration(self):
         """Validate database security settings"""
-        print("🗄️  Validating database configuration...")
+        logger.info(🗄️  Validating database configuration...)
         
         # Check for removal of db.create_all()
         database_file = self.project_root / 'database.py'
@@ -95,7 +97,7 @@ class SecurityAuditValidator:
     
     def check_authentication_system(self):
         """Validate authentication system security"""
-        print("🔑 Validating authentication system...")
+        logger.info(🔑 Validating authentication system...)
         
         # Check for proper Flask-Login integration
         pyproject_file = self.project_root / 'pyproject.toml'
@@ -122,7 +124,7 @@ class SecurityAuditValidator:
     
     def check_user_model_security(self):
         """Validate User model security"""
-        print("👤 Validating User model security...")
+        logger.info(👤 Validating User model security...)
         
         user_model = self.project_root / 'models' / 'user.py'
         if user_model.exists():
@@ -144,7 +146,7 @@ class SecurityAuditValidator:
     
     def check_foreign_key_consistency(self):
         """Check foreign key data type consistency"""
-        print("🔗 Validating foreign key consistency...")
+        logger.info(🔗 Validating foreign key consistency...)
         
         # This would require more complex analysis of all model files
         # For now, we'll do a basic check
@@ -158,27 +160,27 @@ class SecurityAuditValidator:
     
     def generate_report(self):
         """Generate security audit report"""
-        print("\n" + "="*60)
-        print("🛡️  SECURITY AUDIT VALIDATION REPORT")
-        print("="*60)
+        logger.info(\n)
+        logger.info(🛡️  SECURITY AUDIT VALIDATION REPORT)
+        logger.info(=)
         
-        print(f"\n✅ FIXES VALIDATED ({len(self.fixes_validated)}):")
+        logger.info(\n✅ FIXES VALIDATED ({len(self.fixes_validated)}):)
         for fix in self.fixes_validated:
-            print(f"  ✓ {fix['description']}")
+            logger.info(  ✓ {fix['description']})
         
         if self.issues_found:
-            print(f"\n⚠️  ISSUES FOUND ({len(self.issues_found)}):")
+            logger.info(\n⚠️  ISSUES FOUND ({len(self.issues_found)}):)
             for issue in self.issues_found:
                 severity_icon = "🔴" if issue['severity'] == 'high' else "🟡" if issue['severity'] == 'medium' else "🟢"
-                print(f"  {severity_icon} [{issue['severity'].upper()}] {issue['category']}: {issue['description']}")
+                logger.info(  {severity_icon} [{issue['severity'].upper()}] {issue['category']}: {issue['description']})
         else:
-            print("\n🎉 NO SECURITY ISSUES FOUND!")
+            logger.info(\n🎉 NO SECURITY ISSUES FOUND!)
         
         # Calculate security score
         total_checks = len(self.fixes_validated) + len(self.issues_found)
         if total_checks > 0:
             security_score = (len(self.fixes_validated) / total_checks) * 100
-            print(f"\n📊 SECURITY SCORE: {security_score:.1f}% ({len(self.fixes_validated)}/{total_checks} checks passed)")
+            logger.info(\n📊 SECURITY SCORE: {security_score:.1f}% ({len(self.fixes_validated)}/{total_checks} checks passed))
         
         # Generate JSON report
         report = {
@@ -192,14 +194,14 @@ class SecurityAuditValidator:
         with open(report_file, 'w') as f:
             json.dump(report, f, indent=2)
         
-        print(f"\n📄 Full report saved to: {report_file}")
+        logger.info(\n📄 Full report saved to: {report_file})
         
         return len(self.issues_found) == 0
 
 def main():
     """Run security audit validation"""
-    print("🔍 Running Security Audit Validation...")
-    print(f"📂 Project: {Path.cwd()}")
+    logger.info(🔍 Running Security Audit Validation...)
+    logger.info(📂 Project: {Path.cwd()})
     
     validator = SecurityAuditValidator()
     
@@ -215,10 +217,10 @@ def main():
     all_clear = validator.generate_report()
     
     if all_clear:
-        print("\n🎯 Security audit validation PASSED!")
+        logger.info(\n🎯 Security audit validation PASSED!)
         sys.exit(0)
     else:
-        print("\n❌ Security audit validation found issues that need attention.")
+        logger.info(\n❌ Security audit validation found issues that need attention.)
         sys.exit(1)
 
 if __name__ == '__main__':

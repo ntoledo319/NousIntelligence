@@ -1,3 +1,5 @@
+import logging
+logger = logging.getLogger(__name__)
 """
 Centralized Database Configuration
 Eliminates circular imports by providing a clean database setup
@@ -26,7 +28,7 @@ def init_database(app):
                 AAAchievement
             )
         except ImportError as e:
-            print(f"Error: Could not import some models: {e}")
+            logger.error(Error: Could not import some models: {e})
             raise e
         
         # Note: Database tables are now managed through Flask-Migrate

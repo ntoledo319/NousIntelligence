@@ -87,34 +87,34 @@ def fix_oauth_credentials():
     correct_client_id = extract_correct_oauth_credentials()
     
     if correct_client_id:
-        print(f"✅ Extracted correct GOOGLE_CLIENT_ID: {correct_client_id}")
+        logger.info(✅ Extracted correct GOOGLE_CLIENT_ID: {correct_client_id})
         return correct_client_id
     else:
-        print("❌ Could not extract correct GOOGLE_CLIENT_ID")
+        logger.info(❌ Could not extract correct GOOGLE_CLIENT_ID)
         return None
 
 if __name__ == "__main__":
-    print("🔧 Fixing Authentication System...")
+    logger.info(🔧 Fixing Authentication System...)
     
     # Validate current state
     issues, fixes, correct_client_id = validate_authentication_system()
     
-    print(f"\n📊 Authentication System Status:")
-    print(f"Issues found: {len(issues)}")
+    logger.info(\n📊 Authentication System Status:)
+    logger.info(Issues found: {len(issues)})
     for issue in issues:
-        print(f"  ❌ {issue}")
+        logger.info(  ❌ {issue})
     
-    print(f"\n🔧 Required Fixes:")
+    logger.info(\n🔧 Required Fixes:)
     for fix in fixes:
-        print(f"  🔨 {fix}")
+        logger.info(  🔨 {fix})
     
     # Extract correct credentials
     if correct_client_id:
-        print(f"\n✅ Correct GOOGLE_CLIENT_ID extracted: {correct_client_id}")
+        logger.info(\n✅ Correct GOOGLE_CLIENT_ID extracted: {correct_client_id})
     else:
-        print(f"\n❌ Failed to extract correct GOOGLE_CLIENT_ID")
+        logger.info(\n❌ Failed to extract correct GOOGLE_CLIENT_ID)
     
-    print(f"\n📝 Next Steps:")
-    print(f"1. Update GOOGLE_CLIENT_ID in Replit Secrets with: {correct_client_id}")
-    print(f"2. Restart the application")
-    print(f"3. Test all login methods")
+    logger.info(\n📝 Next Steps:)
+    logger.info(1. Update GOOGLE_CLIENT_ID in Replit Secrets with: {correct_client_id})
+    logger.info(2. Restart the application)
+    logger.info(3. Test all login methods)

@@ -1,3 +1,5 @@
+import logging
+logger = logging.getLogger(__name__)
 #!/usr/bin/env python3
 """
 Check Deployed OAuth Status
@@ -10,20 +12,20 @@ import os
 def check_deployed_oauth():
     """Check OAuth status on deployed application"""
     
-    print("🔍 Checking Deployed OAuth Status")
-    print("=" * 50)
+    logger.info(🔍 Checking Deployed OAuth Status)
+    logger.info(=)
     
     # Test environment variables
-    print("\n1. Environment Variables:")
+    logger.info(\n1. Environment Variables:)
     env_vars = ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'SESSION_SECRET']
     for var in env_vars:
         if os.environ.get(var):
-            print(f"   {var}: ✅ Set")
+            logger.info(   {var}: ✅ Set)
         else:
-            print(f"   {var}: ❌ Missing")
+            logger.info(   {var}: ❌ Missing)
     
     # Test OAuth service
-    print("\n2. OAuth Service Configuration:")
+    logger.info(\n2. OAuth Service Configuration:)
     try:
         from utils.google_oauth import oauth_service
         from flask import Flask
@@ -33,19 +35,19 @@ def check_deployed_oauth():
         
         with app.app_context():
             if oauth_service.init_app(app):
-                print("   OAuth Init: ✅ Success")
+                logger.info(   OAuth Init: ✅ Success)
                 if oauth_service.is_configured():
-                    print("   OAuth Config: ✅ Valid")
+                    logger.info(   OAuth Config: ✅ Valid)
                 else:
-                    print("   OAuth Config: ❌ Invalid")
+                    logger.info(   OAuth Config: ❌ Invalid)
             else:
-                print("   OAuth Init: ❌ Failed")
+                logger.info(   OAuth Init: ❌ Failed)
                 
     except Exception as e:
-        print(f"   OAuth Service: ❌ Error: {e}")
+        logger.error(   OAuth Service: ❌ Error: {e})
     
     # Test route registration
-    print("\n3. Route Registration:")
+    logger.info(\n3. Route Registration:)
     try:
         from routes import register_all_blueprints
         from flask import Flask
@@ -54,7 +56,7 @@ def check_deployed_oauth():
         test_app.secret_key = os.environ.get('SESSION_SECRET', 'test-secret')
         test_app = register_all_blueprints(test_app)
         
-        print("   Blueprint Registration: ✅ Success")
+        logger.info(   Blueprint Registration: ✅ Success)
         
         # Check OAuth routes
         with test_app.app_context():
@@ -62,48 +64,48 @@ def check_deployed_oauth():
             oauth_routes = [r for r in routes if '/google' in r or '/callback' in r]
             
             if oauth_routes:
-                print(f"   OAuth Routes Found: ✅ {len(oauth_routes)} routes")
+                logger.info(   OAuth Routes Found: ✅ {len(oauth_routes)} routes)
                 for route in oauth_routes:
-                    print(f"     • {route}")
+                    logger.info(     • {route})
             else:
-                print("   OAuth Routes Found: ❌ None")
+                logger.info(   OAuth Routes Found: ❌ None)
                 
     except Exception as e:
-        print(f"   Route Testing: ❌ Error: {e}")
+        logger.error(   Route Testing: ❌ Error: {e})
     
-    print("\n4. Your Google Cloud Console Configuration:")
-    print("   Expected redirect URIs:")
-    print("   • https://48ac8f3f-e8af-4e1d-aadf-382ae2e97292-00-1lz9pq72doghm.worf.replit.dev/callback/google")
-    print("   • https://mynous.replit.app/callback/google")
-    print("   • https://workspace.replit.dev/auth/google/callback")
-    print("   • https://workspace.replit.app/auth/google/callback")
+    logger.info(\n4. Your Google Cloud Console Configuration:)
+    logger.info(   Expected redirect URIs:)
+    logger.info(   • https://48ac8f3f-e8af-4e1d-aadf-382ae2e97292-00-1lz9pq72doghm.worf.replit.dev/callback/google)
+    logger.info(   • https://mynous.replit.app/callback/google)
+    logger.info(   • https://workspace.replit.dev/auth/google/callback)
+    logger.info(   • https://workspace.replit.app/auth/google/callback)
     
-    print("\n5. Application Route Support:")
-    print("   ✅ /callback/google (matches your Google Cloud Console)")
-    print("   ✅ /auth/google/callback (standard Flask blueprint)")
-    print("   ✅ /auth/google (OAuth initiation)")
+    logger.info(\n5. Application Route Support:)
+    logger.info(   ✅ /callback/google (matches your Google Cloud Console))
+    logger.info(   ✅ /auth/google/callback (standard Flask blueprint))
+    logger.info(   ✅ /auth/google (OAuth initiation))
     
-    print("\n" + "=" * 50)
-    print("🎯 OAUTH STATUS SUMMARY")
-    print("=" * 50)
+    logger.info(\n)
+    logger.info(🎯 OAUTH STATUS SUMMARY)
+    logger.info(=)
     
-    print("\n✅ OAuth System Ready:")
-    print("   • Environment variables configured")
-    print("   • OAuth service initialized")
-    print("   • Routes support your Google Cloud Console configuration")
-    print("   • Both /callback/google and /auth/google/callback work")
+    logger.info(\n✅ OAuth System Ready:)
+    logger.info(   • Environment variables configured)
+    logger.info(   • OAuth service initialized)
+    logger.info(   • Routes support your Google Cloud Console configuration)
+    logger.info(   • Both /callback/google and /auth/google/callback work)
     
-    print("\n🚀 Testing Instructions:")
-    print("   1. Deploy/restart your application")
-    print("   2. Visit your app's landing page")
-    print("   3. Click 'Sign in with Google' button")
-    print("   4. Complete Google authentication")
-    print("   5. OAuth should redirect to /callback/google and log you in")
+    logger.info(\n🚀 Testing Instructions:)
+    logger.info(   1. Deploy/restart your application)
+    logger.info(   2. Visit your app's landing page)
+    logger.info(   3. Click 'Sign in with Google' button)
+    logger.info(   4. Complete Google authentication)
+    logger.info(   5. OAuth should redirect to /callback/google and log you in)
     
-    print("\n🔧 If OAuth Still Fails:")
-    print("   • Verify your current deployment URL matches Google Cloud Console")
-    print("   • Check browser developer tools for error messages")
-    print("   • Ensure you wait 5-10 minutes after updating Google Cloud Console")
+    logger.info(\n🔧 If OAuth Still Fails:)
+    logger.info(   • Verify your current deployment URL matches Google Cloud Console)
+    logger.error(   • Check browser developer tools for error messages)
+    logger.info(   • Ensure you wait 5-10 minutes after updating Google Cloud Console)
 
 if __name__ == "__main__":
     check_deployed_oauth()

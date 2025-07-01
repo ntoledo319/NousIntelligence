@@ -1,3 +1,5 @@
+import logging
+logger = logging.getLogger(__name__)
 #!/usr/bin/env python3
 """
 Fix OAuth Credentials
@@ -15,9 +17,9 @@ def extract_clean_credentials():
     raw_client_id = os.environ.get('GOOGLE_CLIENT_ID', '')
     raw_client_secret = os.environ.get('GOOGLE_CLIENT_SECRET', '')
     
-    print("=== OAuth Credentials Analysis ===")
-    print(f"Raw GOOGLE_CLIENT_ID length: {len(raw_client_id)}")
-    print(f"Raw GOOGLE_CLIENT_SECRET length: {len(raw_client_secret)}")
+    logger.info(=== OAuth Credentials Analysis ===)
+    logger.info(Raw GOOGLE_CLIENT_ID length: {len(raw_client_id)})
+    logger.info(Raw GOOGLE_CLIENT_SECRET length: {len(raw_client_secret)})
     
     # Extract clean client ID
     client_id = None
@@ -35,24 +37,24 @@ def extract_clean_credentials():
         if match:
             client_secret = match.group(1)
     
-    print("\n=== Extracted Credentials ===")
-    print(f"Clean Client ID: {client_id}")
-    print(f"Clean Client Secret: {client_secret}")
+    logger.info(\n=== Extracted Credentials ===)
+    logger.info(Clean Client ID: {client_id})
+    logger.info(Clean Client Secret: {client_secret})
     
     # Validate credentials
     if client_id and client_secret:
-        print("\n✅ OAuth credentials successfully extracted!")
-        print(f"Client ID format: Valid (ends with .apps.googleusercontent.com)")
-        print(f"Client Secret format: Valid (starts with GOCSPX-)")
+        logger.info(\n✅ OAuth credentials successfully extracted!)
+        logger.info(Client ID format: Valid (ends with .apps.googleusercontent.com))
+        logger.info(Client Secret format: Valid (starts with GOCSPX-))
         
         # Show what needs to be set in Replit Secrets
-        print("\n=== Required Replit Secrets ===")
-        print(f"GOOGLE_CLIENT_ID = {client_id}")
-        print(f"GOOGLE_CLIENT_SECRET = {client_secret}")
+        logger.info(\n=== Required Replit Secrets ===)
+        logger.info(GOOGLE_CLIENT_ID = {client_id})
+        logger.info(GOOGLE_CLIENT_SECRET = {client_secret})
         
         return client_id, client_secret
     else:
-        print("\n❌ Failed to extract valid OAuth credentials")
+        logger.info(\n❌ Failed to extract valid OAuth credentials)
         return None, None
 
 if __name__ == "__main__":

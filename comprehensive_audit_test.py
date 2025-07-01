@@ -796,9 +796,9 @@ def main():
     
     # Run 3 cycles of testing and fixing
     for cycle in range(1, 4):
-        print(f"\n{'='*60}")
-        print(f"STARTING AUDIT CYCLE {cycle}/3")
-        print(f"{'='*60}")
+        logger.info(\n{'='*60})
+        logger.info(STARTING AUDIT CYCLE {cycle}/3)
+        logger.info({'='*60})
         
         auditor.results['cycle'] = cycle
         
@@ -814,18 +814,18 @@ def main():
         
         # If health score is high enough, we can break early
         if results['overall_health'] >= 95:
-            print(f"✅ Excellent health score achieved ({results['overall_health']}/100)")
+            logger.info(✅ Excellent health score achieved ({results['overall_health']}/100))
             break
         
         # Wait a moment before next cycle
         if cycle < 3:
-            print("Waiting 10 seconds before next cycle...")
+            logger.info(Waiting 10 seconds before next cycle...)
             time.sleep(10)
     
-    print(f"\n{'='*60}")
-    print("COMPREHENSIVE AUDIT COMPLETE")
-    print(f"Final Health Score: {auditor.results['overall_health']}/100")
-    print(f"{'='*60}")
+    logger.info(\n{'='*60})
+    logger.info(COMPREHENSIVE AUDIT COMPLETE)
+    logger.info(Final Health Score: {auditor.results['overall_health']}/100)
+    logger.info({'='*60})
 
 if __name__ == "__main__":
     main()
