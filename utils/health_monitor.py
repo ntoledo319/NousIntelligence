@@ -76,8 +76,9 @@ class HealthMonitor:
         """Check database connectivity"""
         try:
             from database import db
-            # Simple connection test
-            result = db.session.execute('SELECT 1').scalar()
+            from sqlalchemy import text
+            # Simple connection test with proper text() wrapper
+            result = db.session.execute(text('SELECT 1')).scalar()
             return {
                 'healthy': result == 1,
                 'message': 'Database connection successful',
@@ -247,7 +248,8 @@ class HealthMonitor:
         """Quick database connectivity check"""
         try:
             from database import db
-            db.session.execute('SELECT 1').scalar()
+            from sqlalchemy import text
+            db.session.execute(text('SELECT 1')).scalar()
             return True
         except Exception:
             return False
