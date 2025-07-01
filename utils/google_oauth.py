@@ -113,7 +113,7 @@ class GoogleOAuthService:
         return self.google is not None and client_id and client_secret
     
     def get_authorization_url(self, redirect_uri):
-        """Get Google OAuth authorization URL with CSRF protection"""
+        """Get Google OAuth authorization URL with enhanced CSRF protection"""
         if not self.google:
             raise ValueError("OAuth not initialized - missing credentials")
         
@@ -121,10 +121,25 @@ class GoogleOAuthService:
         redirect_uri = self._fix_redirect_uri(redirect_uri)
         logger.info(f"Using redirect URI: {redirect_uri}")
         
-        # Generate and store state parameter for CSRF protection
-        import secrets
-        state = secrets.token_urlsafe(32)
+        # Get user fingerprint data for enhanced security
+        user_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+        user_agent = request.headers.get('User-Agent', '')
+        
+        # Generate secure state using enhanced state manager
+        try:
+            from utils.oauth_state_manager import OAuthStateManager
+            from flask import current_app
+            state_manager = OAuthStateManager(current_app.secret_key)
+            state = state_manager.generate_state(user_ip, user_agent)
+        except ImportError:
+            # Fallback to simple state generation
+            import secrets
+            state = secrets.token_urlsafe(32)
+        
+        # Store state with additional validation data
         session['oauth_state'] = state
+        session['oauth_state_timestamp'] = datetime.utcnow().timestamp()
+        session['oauth_state_ip'] = user_ip
         
         return self.google.authorize_redirect(redirect_uri, state=state)
     

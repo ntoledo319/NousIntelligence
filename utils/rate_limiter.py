@@ -1,100 +1,106 @@
 """
-Rate Limiting Utility for Authentication Endpoints
-Provides protection against brute force attacks
+Rate Limiting Implementation
+Protects authentication endpoints from abuse
 """
 
-import time
+import os
+import json
 import logging
-from flask import request, jsonify, session
 from functools import wraps
-from collections import defaultdict, deque
+from flask import request, jsonify, session
 from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
 class RateLimiter:
-    """Simple in-memory rate limiter"""
+    """In-memory rate limiter with fallback storage"""
     
     def __init__(self):
-        # Store request timestamps per IP
-        self.requests = defaultdict(deque)
-        # Store blocked IPs with expiry time
-        self.blocked_ips = {}
+        self.memory_store = {}  # Fallback storage
         
-    def is_rate_limited(self, ip, max_requests=5, window_minutes=15, block_minutes=30):
-        """Check if IP is rate limited"""
+    def _get_identifier(self, identifier_type='ip'):
+        """Get identifier for rate limiting"""
+        if identifier_type == 'ip':
+            forwarded_for = request.headers.get('X-Forwarded-For', request.remote_addr)
+            return forwarded_for.split(',')[0].strip() if forwarded_for else request.remote_addr
+        elif identifier_type == 'session':
+            return session.get('session_id', request.remote_addr)
+        elif identifier_type == 'user':
+            user = session.get('user', {})
+            return user.get('id', request.remote_addr)
+        else:
+            return request.remote_addr
+    
+    def _get_key(self, endpoint, identifier):
+        """Generate rate limit key"""
+        return f"rate_limit:{endpoint}:{identifier}"
+    
+    def is_allowed(self, endpoint, max_requests, window_seconds, identifier_type='ip'):
+        """Check if request is allowed under rate limit"""
+        identifier = self._get_identifier(identifier_type)
+        key = self._get_key(endpoint, identifier)
         now = datetime.utcnow()
         
-        # Check if IP is currently blocked
-        if ip in self.blocked_ips:
-            if now < self.blocked_ips[ip]:
-                return True
-            else:
-                # Block expired, remove it
-                del self.blocked_ips[ip]
+        # Memory-based rate limiting
+        if key not in self.memory_store:
+            self.memory_store[key] = []
         
-        # Clean old requests outside the window
-        window_start = now - timedelta(minutes=window_minutes)
-        while self.requests[ip] and self.requests[ip][0] < window_start:
-            self.requests[ip].popleft()
+        # Clean old entries
+        cutoff_time = now - timedelta(seconds=window_seconds)
+        self.memory_store[key] = [
+            timestamp for timestamp in self.memory_store[key]
+            if timestamp > cutoff_time
+        ]
         
-        # Check if over the limit
-        if len(self.requests[ip]) >= max_requests:
-            # Block the IP
-            self.blocked_ips[ip] = now + timedelta(minutes=block_minutes)
-            logger.warning(f"Rate limit exceeded for IP {ip}, blocked for {block_minutes} minutes")
-            return True
+        # Check limit
+        if len(self.memory_store[key]) >= max_requests:
+            return False
         
         # Add current request
-        self.requests[ip].append(now)
-        return False
+        self.memory_store[key].append(now)
+        return True
     
-    def get_client_ip(self):
-        """Get client IP address, considering proxy headers"""
-        # Check for forwarded IP first (for proxies)
-        forwarded_for = request.headers.get('X-Forwarded-For')
-        if forwarded_for:
-            return forwarded_for.split(',')[0].strip()
+    def get_reset_time(self, endpoint, window_seconds, identifier_type='ip'):
+        """Get time when rate limit resets"""
+        identifier = self._get_identifier(identifier_type)
+        key = self._get_key(endpoint, identifier)
         
-        real_ip = request.headers.get('X-Real-IP')
-        if real_ip:
-            return real_ip
+        # For memory store, return window from first request
+        if key in self.memory_store and self.memory_store[key]:
+            first_request = min(self.memory_store[key])
+            return first_request + timedelta(seconds=window_seconds)
         
-        return request.remote_addr or '127.0.0.1'
+        return datetime.utcnow() + timedelta(seconds=window_seconds)
 
 # Global rate limiter instance
-auth_rate_limiter = RateLimiter()
+rate_limiter = RateLimiter()
 
-def auth_rate_limit(max_requests=5, window_minutes=15, block_minutes=30):
-    """
-    Decorator to apply rate limiting to authentication endpoints
-    
-    Args:
-        max_requests: Maximum requests allowed in the window
-        window_minutes: Time window in minutes
-        block_minutes: How long to block after limit exceeded
-    """
+def rate_limit(max_requests=60, window=60, identifier_type='ip'):
+    """Rate limiting decorator"""
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            ip = auth_rate_limiter.get_client_ip()
+            endpoint = request.endpoint or 'unknown'
             
-            if auth_rate_limiter.is_rate_limited(ip, max_requests, window_minutes, block_minutes):
-                logger.warning(f"Rate limit exceeded for {request.endpoint} from IP {ip}")
-                return jsonify({
-                    'error': 'Too many requests',
-                    'message': f'Rate limit exceeded. Try again in {block_minutes} minutes.',
-                    'retry_after': block_minutes * 60
-                }), 429
+            if not rate_limiter.is_allowed(endpoint, max_requests, window, identifier_type):
+                reset_time = rate_limiter.get_reset_time(endpoint, window, identifier_type)
+                
+                response = jsonify({
+                    'error': 'Rate limit exceeded',
+                    'message': f'Too many requests. Please try again after {reset_time.strftime("%Y-%m-%d %H:%M:%S")} UTC'
+                })
+                response.status_code = 429
+                response.headers['X-RateLimit-Limit'] = str(max_requests)
+                response.headers['X-RateLimit-Remaining'] = '0'
+                response.headers['X-RateLimit-Reset'] = str(int(reset_time.timestamp()))
+                
+                return response
             
             return f(*args, **kwargs)
+        
         return decorated_function
     return decorator
 
-def login_rate_limit(f):
-    """Specific rate limiter for login attempts - stricter limits"""
-    return auth_rate_limit(max_requests=3, window_minutes=10, block_minutes=60)(f)
-
-def oauth_rate_limit(f):
-    """Rate limiter for OAuth endpoints - more permissive for development"""
-    return auth_rate_limit(max_requests=50, window_minutes=15, block_minutes=5)(f)
+# Specific rate limiters for auth endpoints
+login_rate_limit = rate_limit(max_requests=5, window=300, identifier_type='ip')  # 5 per 5 minutes
+oauth_rate_limit = rate_limit(max_requests=10, window=600, identifier_type='ip')  # 10 per 10 minutes
