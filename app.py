@@ -138,9 +138,28 @@ def create_app():
         logger.warning("Routes module not found, registering basic routes")
         register_basic_routes(app)
     
+    # Register optimization routes
+    try:
+        from routes.optimization_routes import register_optimization_routes
+        register_optimization_routes(app)
+        logger.info("Optimization routes registered successfully")
+    except ImportError:
+        logger.warning("Optimization routes not available")
+    
     
     # Add CSRF token to template globals
     app.jinja_env.globals['csrf_token'] = csrf_token
+    
+    # Run startup optimizations
+    try:
+        from utils.startup_optimizer import run_startup_optimizations
+        optimization_results = run_startup_optimizations(app)
+        logger.info(f"Startup optimizations completed: {len(optimization_results.get('optimizations_run', []))} modules optimized")
+    except ImportError:
+        logger.warning("Startup optimizer not available")
+    except Exception as e:
+        logger.error(f"Startup optimization error: {e}")
+    
     return app
 
 def register_basic_routes(app):
