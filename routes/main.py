@@ -8,12 +8,23 @@ import logging
 from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, session, request, jsonify
 
+# Import rate limiting
+try:
+    from utils.rate_limiter import rate_limit
+except ImportError:
+    # Fallback if rate limiter not available
+    def rate_limit(*args, **kwargs):
+        def decorator(f):
+            return f
+        return decorator
+
 logger = logging.getLogger(__name__)
 
 # Create main blueprint
 main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
+@rate_limit(limit=30, window=60)  # 30 requests per minute
 def index():
     """Landing page for NOUS application"""
     try:
@@ -22,16 +33,21 @@ def index():
         
         # Get OAuth availability from app config
         from flask import current_app
-        oauth_available = current_app.config.get('OAUTH_ENABLED', True)  # Default to True for better UX
+        oauth_available = current_app.config.get('OAUTH_ENABLED', False)  # Default to False to prevent misleading users
+        
+        # Enhanced error logging with request context
+        logger.info(f"Landing page accessed - User authenticated: {user_authenticated}, OAuth available: {oauth_available}")
         
         return render_template('landing.html', 
                              user_authenticated=user_authenticated,
                              oauth_available=oauth_available)
     except Exception as e:
-        logger.error(f"Landing page error: {e}")
+        logger.error(f"Landing page error: {e}", exc_info=True)
+        # Provide fallback context for error cases
         return render_template('landing.html', 
                              user_authenticated=False,
-                             oauth_available=False)
+                             oauth_available=False,
+                             error_occurred=True)
 
 @main_bp.route('/dashboard')
 def dashboard():

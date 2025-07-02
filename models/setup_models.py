@@ -15,7 +15,7 @@ class SetupProgress(db.Model):
     __tablename__ = 'setup_progress'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False, unique=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, unique=True)
     
     # Setup completion tracking
     is_completed = db.Column(db.Boolean, default=False)
@@ -48,7 +48,7 @@ class UserPreferences(db.Model):
     __tablename__ = 'user_preferences'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False, unique=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, unique=True)
     
     # Language preferences
     primary_language = db.Column(db.String(10), default='en-US')

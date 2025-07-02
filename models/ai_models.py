@@ -13,7 +13,7 @@ class UserAIUsage(db.Model):
     __tablename__ = 'user_ai_usage'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id')), nullable=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     service = db.Column(db.String(50))  # e.g., 'openai', 'openrouter'
     model = db.Column(db.String(100))   # e.g., 'gpt-4o', 'claude-3-sonnet'
@@ -105,7 +105,7 @@ class UserAIPreferences(db.Model):
     __tablename__ = 'user_ai_preferences'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False, unique=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False), unique=True)
     preferred_service = db.Column(db.String(50))
     preferred_model = db.Column(db.String(100))
     max_daily_cost = db.Column(db.Float, default=0.0)  # 0 = no limit

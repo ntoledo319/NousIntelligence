@@ -2,6 +2,15 @@
  * OAuth Handler - Manages OAuth flow UX
  */
 
+// Configuration
+const OAUTH_CONFIG = {
+    timeouts: {
+        redirectTimeout: 60000, // 1 minute
+        notificationTimeout: 10000 // 10 seconds
+    },
+    retryAttempts: 3
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     const googleSignInBtn = document.getElementById('google-signin-btn');
     
@@ -37,9 +46,9 @@ document.addEventListener('DOMContentLoaded', function() {
         showOAuthError(errorCode);
     }
     
-    // Clear stale loading states (older than 1 minute)
+    // Clear stale loading states
     const redirectTime = sessionStorage.getItem('oauth_redirect_initiated');
-    if (redirectTime && (Date.now() - parseInt(redirectTime)) > 60000) {
+    if (redirectTime && (Date.now() - parseInt(redirectTime)) > OAUTH_CONFIG.timeouts.redirectTimeout) {
         sessionStorage.removeItem('oauth_redirect_initiated');
     }
 });
@@ -57,12 +66,56 @@ function showOAuthError(errorCode) {
     // Create error notification
     const notification = document.createElement('div');
     notification.className = 'oauth-error-notification';
-    notification.textContent = "OAuth notification";
+    notification.innerHTML = `
+        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 0.5rem; padding: 1rem; margin: 1rem;">
+            <p style="color: #dc2626; font-weight: 500; margin: 0;">
+                ⚠️ ${message}
+            </p>
+        </div>
+    `;
     
     document.body.appendChild(notification);
     
-    // Auto-remove after 10 seconds
+    // Auto-remove after configured timeout
     setTimeout(() => {
         notification.remove();
-    }, 10000);
+    }, OAUTH_CONFIG.timeouts.notificationTimeout);
+    
+    // Add retry functionality for certain errors
+    if (['network_error', 'timeout_error', 'server_error'].includes(errorCode)) {
+        addRetryButton(notification, errorCode);
+    }
+}
+
+function addRetryButton(notification, errorCode) {
+    const retryButton = document.createElement('button');
+    retryButton.textContent = 'Retry';
+    retryButton.style.cssText = `
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        margin-top: 0.5rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+    `;
+    
+    retryButton.addEventListener('click', function() {
+        const attempts = parseInt(sessionStorage.getItem('oauth_retry_attempts') || '0');
+        if (attempts < OAUTH_CONFIG.retryAttempts) {
+            sessionStorage.setItem('oauth_retry_attempts', (attempts + 1).toString());
+            window.location.href = '/auth/login';
+        } else {
+            retryButton.textContent = 'Max retries reached';
+            retryButton.disabled = true;
+        }
+    });
+    
+    notification.querySelector('div').appendChild(retryButton);
+}
+
+// Clear retry attempts on successful page load
+if (!window.location.search.includes('oauth_error')) {
+    sessionStorage.removeItem('oauth_retry_attempts');
 }

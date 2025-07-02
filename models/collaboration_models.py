@@ -51,7 +51,7 @@ class FamilyMember(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     family_id = db.Column(db.Integer, db.ForeignKey('families.id'), nullable=False)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False))
     role = db.Column(db.String(20), default='member')  # admin, member, child
     nickname = db.Column(db.String(50))  # Display name within family
     permissions = db.Column(db.JSON)  # Array of permission strings
@@ -284,7 +284,7 @@ class SupportGroupMember(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     group_id = db.Column(db.Integer, db.ForeignKey('support_groups.id'), nullable=False)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False))
     role = db.Column(db.String(20), default='member')  # facilitator, member
     anonymous_name = db.Column(db.String(50))  # For anonymity
     is_active = db.Column(db.Boolean, default=True)

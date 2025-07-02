@@ -3,18 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="NOUS - Your intelligent personal assistant for productivity, creativity, and insight. Chat, learn, and grow with AI-powered assistance.">
-    <meta name="keywords" content="AI assistant, personal productivity, cognitive behavioral therapy, mental health, task management, intelligent automation">
-    <meta property="og:title" content="NOUS - Intelligent Personal Assistant">
-    <meta property="og:description" content="Your AI-powered companion for productivity, creativity, and mental wellness. Features CBT tools, smart automation, and personalized assistance.">
+    <meta name="description" content="AI-powered cognitive behavioral therapy and mental health support platform. Get personalized therapeutic interventions, track your progress, and access evidence-based tools for better mental wellness.">
+    <meta name="keywords" content="mental health, CBT, DBT, therapy, AI assistant, mindfulness, wellness, HIPAA compliant, secure therapy, cognitive behavioral therapy">
+    <meta name="author" content="NOUS Team">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="classification" content="Health, Mental Health, Technology">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:title" content="NOUS - Mental Health Assistant">
+    <meta property="og:description" content="AI-powered cognitive behavioral therapy and mental health support platform with personalized therapeutic interventions.">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="/static/favicon.ico">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:image" content="{{ url_for('static', filename='icons/icon-512.svg') }}">
+    <meta property="og:site_name" content="NOUS">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="NOUS - Mental Health Assistant">
+    <meta name="twitter:description" content="AI-powered cognitive behavioral therapy and mental health support platform with personalized therapeutic interventions.">
+    <meta name="twitter:image" content="{{ url_for('static', filename='icons/icon-512.svg') }}">
+    
+    <!-- Enhanced Content Security Policy -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://apis.google.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://lh3.googleusercontent.com https://*.googleusercontent.com; connect-src 'self' https://oauth2.googleapis.com https://www.googleapis.com https://accounts.google.com; frame-src https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self' https://accounts.google.com;">
+    
+    <!-- App Meta -->
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="NOUS">
-    <title>NOUS - Intelligent Personal Assistant</title>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="NOUS">
+    <meta name="msapplication-TileColor" content="#2563eb">
+    
+    <title>NOUS - Mental Health Assistant</title>
     <!-- Enhanced resource preloading -->
     <link rel="preconnect" href="https://accounts.google.com" crossorigin>
     <link rel="preconnect" href="https://oauth2.googleapis.com" crossorigin>
@@ -29,10 +52,8 @@
     <!-- Load fonts asynchronously -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
-    <!-- Primary styles -->
-    <link rel="stylesheet" href="/static/css/main.css">
-    <!-- Page-specific styles -->
-    <link rel="stylesheet" href="/static/css/landing.css">
+    <!-- Unified landing page styles -->
+    <link rel="stylesheet" href="/static/css/unified-landing.css">
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="manifest" href="/static/manifest.json">
     <link rel="apple-touch-icon" href="/static/favicon.ico">
