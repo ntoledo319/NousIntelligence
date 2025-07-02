@@ -58,16 +58,15 @@ def login():
         oauth_configured = False
     
     if not oauth_configured:
-        # For demo, redirect to demo mode
-        session['user'] = {
-            'id': 'demo_user_123',
-            'name': 'Demo User',
-            'email': 'demo@nous.app',
-            'demo_mode': True
-        }
-        return redirect('/chat')
+        # Show login page with demo mode option instead of auto-redirecting
+        return render_template('auth/login.html', 
+                             oauth_configured=False, 
+                             demo_available=True,
+                             message="OAuth not configured. Demo mode available.")
     
-    return jsonify({"message": "Google OAuth available", "oauth_configured": True})
+    return render_template('auth/login.html', 
+                         oauth_configured=True, 
+                         demo_available=True)
 
 @auth_bp.route('/google')
 @oauth_rate_limit
@@ -179,31 +178,55 @@ def google_callback():
 def demo_mode():
     """Activate demo mode - provides immediate access without authentication"""
     try:
-        # Create demo user session
+        # Validate CSRF token for demo mode activation
+        csrf_token = request.form.get('csrf_token')
+        if not csrf_token or csrf_token != session.get('csrf_token'):
+            flash('Invalid security token. Please try again.', 'error')
+            return redirect('/auth/login')
+        
+        # Generate unique demo session ID to prevent session fixation
+        import secrets
+        demo_session_id = f"demo_{secrets.token_hex(8)}"
+        
+        # Create demo user session with expiration
+        from datetime import datetime, timedelta
         session['user'] = {
-            'id': 'demo_user_123',
+            'id': demo_session_id,
             'name': 'Demo User',
             'email': 'demo@nous.app',
             'demo_mode': True,
+            'session_expires': (datetime.utcnow() + timedelta(hours=2)).isoformat(),
             'avatar': '/static/images/default-avatar.png'
         }
         
-        logger.info("Demo mode activated successfully")
+        logger.info(f"Demo mode activated: {demo_session_id}")
+        flash('Demo mode activated. Session expires in 2 hours.', 'info')
         return redirect('/dashboard')
         
     except Exception as e:
         logger.error(f"Demo mode activation failed: {e}")
         flash('Failed to activate demo mode. Please try again.', 'error')
-        return redirect('/')
+        return redirect('/auth/login')
 
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
     """Logout current user with CSRF protection"""
     try:
+        # Validate CSRF token
+        csrf_token = request.form.get('csrf_token')
+        if not csrf_token or csrf_token != session.get('csrf_token'):
+            flash('Invalid security token. Please try again.', 'error')
+            return redirect('/dashboard')
+        
+        # Log security event
+        user_data = session.get('user', {})
+        logger.info(f"User logout: {user_data.get('email', 'unknown')}")
+        
         if oauth_service:
             oauth_service.logout()
-        # Clear session
-        session.pop('user', None)
+        
+        # Clear entire session for security
+        session.clear()
         flash('You have been logged out.', 'info')
         return redirect('/')
     except Exception as e:
