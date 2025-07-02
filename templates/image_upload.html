@@ -10,7 +10,7 @@
                     <p>Upload an image to analyze its content.</p>
                 </div>
                 <div class="card-body">
-                    <form action="{{ url_for('image_routes.analyze_image') }}" method="post" enctype="multipart/form-data">
+                    <form action="{{ url_for("image_routes.analyze_image") if "image_routes.analyze_image" in url_for.__globals__ else "#" }}" method="post" enctype="multipart/form-data">
                         <div class="form-group">
                             <label for="image">Choose Image</label>
                             <input type="file" class="form-control-file" id="image" name="image" required>

@@ -69,6 +69,15 @@ except ImportError:
     def init_auth(app): pass
 
 
+
+def csrf_token():
+    """Generate CSRF token for templates"""
+    from flask import session
+    import secrets
+    if 'csrf_token' not in session:
+        session['csrf_token'] = secrets.token_hex(16)
+    return session['csrf_token']
+
 def create_app():
     """Create Flask application with comprehensive backend stability features"""
     app = Flask(__name__)
@@ -122,6 +131,9 @@ def create_app():
         logger.warning("Routes module not found, registering basic routes")
         register_basic_routes(app)
     
+    
+    # Add CSRF token to template globals
+    app.jinja_env.globals['csrf_token'] = csrf_token
     return app
 
 def register_basic_routes(app):
