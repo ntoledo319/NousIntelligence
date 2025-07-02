@@ -360,3 +360,18 @@ class Insight(db.Model):
             'generated_at': self.generated_at.isoformat() if self.generated_at else None,
             'expires_at': self.expires_at.isoformat() if self.expires_at else None
         }
+
+class Activity(db.Model):
+    """User activity tracking model"""
+    __tablename__ = 'activities'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    activity_type = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    metadata = db.Column(db.JSON)
+    
+    def __repr__(self):
+        return f'<Activity {self.activity_type}>'
+
