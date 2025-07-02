@@ -175,20 +175,14 @@
                                 </svg>
                                 Google Sign-in is currently unavailable
                             </p>
-                            <form method="POST" action="{{ url_for("auth.demo_mode") if "auth.demo_mode" in url_for.__globals__ else "#" }}" class="demo-form">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else "" }}">
-                                <button type="submit" class="demo-btn primary">
-                                    Try Demo Mode Instead
-                                </button>
-                            </form>
+                            <a href="/demo" class="demo-btn primary">
+                                Try Demo Mode Instead
+                            </a>
                         </div>
                     {% endif %}
-                    <form method="POST" action="{{ url_for("auth.demo_mode") if "auth.demo_mode" in url_for.__globals__ else "#" }}" style="display: inline;">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else "" }}">
-                        <button type="submit" class="demo-btn secondary">
-                            🚀 Try Demo
-                        </button>
-                    </form>
+                    <a href="/demo" class="demo-btn secondary">
+                        🚀 Try Demo
+                    </a>
                 </div>
                 
                 <p class="signin-note">

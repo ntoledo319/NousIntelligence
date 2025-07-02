@@ -31,24 +31,36 @@ class GoogleOAuthService:
         try:
             self.oauth.init_app(app)
             
-            # Check if OAuth credentials are available
-            raw_client_id = os.environ.get('GOOGLE_CLIENT_ID')
-            raw_client_secret = os.environ.get('GOOGLE_CLIENT_SECRET', '')
+            # Check if OAuth credentials are available using correct environment variable names
+            client_id = os.environ.get('GOOGLE_OAUTH_CLIENT_ID')
+            client_secret = os.environ.get('GOOGLE_OAUTH_CLIENT_SECRET')
             
-            # Validate client secret strength using SecretManager
-            if raw_client_secret:
-                is_valid, msg = SecretManager.validate_secret_strength(raw_client_secret)
-                if not is_valid:
-                    logger.warning(f"Weak GOOGLE_CLIENT_SECRET: {msg}")
-                    # Continue anyway for backward compatibility but log warning
+            # Handle case where client_id might contain JSON data instead of just the ID
+            if client_id and len(client_id) > 100:  # Normal client IDs are ~70 chars
+                try:
+                    import json
+                    # Try to parse as JSON and extract client_id
+                    cred_data = json.loads(client_id)
+                    if isinstance(cred_data, dict) and 'client_id' in cred_data:
+                        client_id = cred_data['client_id']
+                        logger.info("Extracted client_id from JSON credentials")
+                except (json.JSONDecodeError, KeyError):
+                    # If it's not valid JSON, assume it's already the client_id
+                    pass
             
-            # Extract correct credentials from potentially malformed environment variables
-            client_id = self._extract_client_id(raw_client_id)
-            client_secret = self._extract_client_secret(raw_client_secret)
+            # Validate client secret strength using SecretManager if available
+            if client_secret:
+                try:
+                    is_valid, msg = SecretManager.validate_secret_strength(client_secret)
+                    if not is_valid:
+                        logger.warning(f"Weak GOOGLE_OAUTH_CLIENT_SECRET: {msg}")
+                except:
+                    # SecretManager may not be available - continue anyway
+                    pass
             
             if not client_id or not client_secret:
-                logger.warning("Google OAuth credentials not found in environment variables")
-                logger.warning("OAuth login will not be available. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET")
+                logger.warning("Google OAuth credentials not found - OAuth login will not be available")
+                logger.warning("Set GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET in environment")
                 return False
             
             # Configure Google OAuth client with direct endpoint configuration
@@ -114,10 +126,8 @@ class GoogleOAuthService:
     
     def is_configured(self):
         """Check if OAuth is properly configured"""
-        raw_client_id = os.environ.get('GOOGLE_CLIENT_ID')
-        raw_client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')
-        client_id = self._extract_client_id(raw_client_id)
-        client_secret = self._extract_client_secret(raw_client_secret)
+        client_id = os.environ.get('GOOGLE_OAUTH_CLIENT_ID')
+        client_secret = os.environ.get('GOOGLE_OAUTH_CLIENT_SECRET')
         return self.google is not None and client_id and client_secret
     
     def get_authorization_url(self, redirect_uri):
@@ -370,3 +380,19 @@ def require_auth():
         session['next'] = request.url
         return redirect(url_for('auth.login'))
     return None
+
+# Global OAuth service instance
+oauth_service = GoogleOAuthService()
+
+def init_oauth(app):
+    """Initialize OAuth with Flask app"""
+    try:
+        result = oauth_service.init_app(app)
+        if result:
+            logger.info("OAuth service initialized successfully")
+        else:
+            logger.warning("OAuth service initialization failed - credentials missing")
+        return result
+    except Exception as e:
+        logger.error(f"OAuth initialization error: {e}")
+        return False

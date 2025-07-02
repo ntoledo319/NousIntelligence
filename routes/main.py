@@ -31,9 +31,14 @@ def index():
         # Check if user is authenticated
         user_authenticated = 'user' in session and session['user'] is not None
         
-        # Get OAuth availability from app config
-        from flask import current_app
-        oauth_available = current_app.config.get('OAUTH_ENABLED', False)  # Default to False to prevent misleading users
+        # Check OAuth availability by checking if service is configured
+        oauth_available = False
+        try:
+            from utils.google_oauth import oauth_service
+            oauth_available = oauth_service and oauth_service.is_configured()
+        except Exception as e:
+            logger.warning(f"OAuth availability check failed: {e}")
+            oauth_available = False
         
         # Enhanced error logging with request context
         logger.info(f"Landing page accessed - User authenticated: {user_authenticated}, OAuth available: {oauth_available}")
