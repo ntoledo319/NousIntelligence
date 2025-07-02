@@ -6,12 +6,12 @@ import os
 bind = f"0.0.0.0:{os.environ.get('PORT', '8080')}"
 backlog = 2048
 
-# Worker processes - optimized for Replit
+# Worker processes - optimized for Replit and performance
 workers = min(multiprocessing.cpu_count() * 2 + 1, 4)  # Cap at 4 for Replit
 worker_class = "sync"
 worker_connections = 1000
-timeout = 30
-keepalive = 2
+timeout = 60  # Increased for optimization processes
+keepalive = 5  # Increased for better connection reuse
 
 # Restart workers for memory management
 max_requests = 1000
@@ -35,3 +35,11 @@ limit_request_field_size = 8190
 # Performance optimizations
 enable_stdio_inheritance = True
 sendfile = True
+
+# Memory and cache optimizations
+worker_tmp_dir = "/dev/shm"  # Use RAM for temporary files
+max_requests_jitter = 100    # Increased jitter for better worker recycling
+
+# Additional optimization settings
+reuse_port = True           # Enable port reuse for better performance
+preload_app = True         # Preload application for faster worker startup
