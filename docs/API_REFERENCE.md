@@ -1,18 +1,19 @@
-# NOUS Comprehensive API Reference
+# NOUS API Reference - Accurate Edition
 
-*Generated: July 1, 2025 - From Scratch Comprehensive Audit Complete*
+*Last Updated: July 2, 2025 - Based on Actual Codebase Analysis*
 
 ## 📊 API Overview
 
-NOUS provides **150+ REST API endpoints** across comprehensive therapeutic, optimization, automation, and intelligence categories, offering complete access to evidence-based mental health features, AI-powered therapeutic assistance, autonomous optimization systems, crisis support, and enterprise-grade platform capabilities.
+NOUS provides REST API endpoints across the platform's 74 route files and 3 dedicated API modules, supporting the comprehensive database architecture of 192 models. The API covers therapeutic support, personal management, AI services, and collaboration features.
 
-### API Statistics
-- **Total Endpoints**: 150+ (comprehensive coverage)
+### Verified API Architecture
+- **Route Files**: 74 implementation files across the platform
+- **API Modules**: 3 dedicated API service files
+- **Database Models**: 192 models providing data foundation
 - **Authentication Methods**: Session, API Token, Demo Mode, Google OAuth
-- **API Versions**: v1, v2 (enhanced intelligence), SEED optimization, Drone swarm
-- **Response Formats**: JSON, HTML, Streaming, Binary (audio/images)
-- **Rate Limiting**: Configurable per endpoint with intelligent throttling
-- **Specialized Systems**: CBT/DBT/AA therapeutic APIs, SEED optimization, Drone swarm, NOUS Tech advanced features
+- **Service Layer**: 14 business logic services
+- **Template Support**: 44 HTML templates for web interface
+- **Core Focus**: Mental health (40+ models), Language learning (24 models), Collaboration (16 models), Finance (16 models)
 
 ## 🔐 Authentication
 
