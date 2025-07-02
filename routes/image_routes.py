@@ -68,9 +68,12 @@ from utils.image_helper import (
 # Create blueprint
 image_routes = Blueprint('image_routes', __name__)
 
-# Configure upload folder
+# Configure upload folder with security constraints
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_MIME_TYPES = {'image/png', 'image/jpeg', 'image/gif'}
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB limit
+MAX_FILES_PER_USER = 100
 
 # Create upload directory if it doesn't exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -79,6 +82,27 @@ def allowed_file(filename):
     """Check if file has an allowed extension"""
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def validate_file_content(file_data):
+    """Validate file content and detect file type by magic bytes"""
+    import imghdr
+    
+    # Check if it's a valid image by content
+    try:
+        file_type = imghdr.what(None, h=file_data[:32])
+        return file_type in ['png', 'jpeg', 'gif']
+    except Exception:
+        return False
+
+def sanitize_user_id(user_id):
+    """Sanitize user ID to prevent path traversal"""
+    if not user_id:
+        return "anonymous"
+    
+    # Remove any path traversal attempts and keep only alphanumeric + underscores
+    import re
+    sanitized = re.sub(r'[^a-zA-Z0-9_]', '', str(user_id))
+    return sanitized[:50] if sanitized else "anonymous"  # Limit length
 
 @image_routes.route('/image/analyze', methods=['GET', 'POST'])
 
@@ -102,8 +126,33 @@ def analyze_image():
         flash('Invalid image file')
         return redirect(request.url)
 
-    # Read the file
-    file_data = file.read()
+    # Validate CSRF token
+    csrf_token = request.form.get('csrf_token')
+    if not csrf_token or csrf_token != session.get('csrf_token'):
+        flash('Invalid security token')
+        return redirect(request.url)
+
+    # Check file size before reading entire content
+    file.seek(0, 2)  # Seek to end
+    file_size = file.tell()
+    file.seek(0)  # Reset to beginning
+    
+    if file_size > MAX_FILE_SIZE:
+        flash(f'File too large. Maximum size: {MAX_FILE_SIZE // (1024*1024)}MB')
+        return redirect(request.url)
+
+    # Read the file with size limit
+    file_data = file.read(MAX_FILE_SIZE)
+    
+    # Validate file content by magic bytes
+    if not validate_file_content(file_data):
+        flash('Invalid file content. Only valid image files are allowed.')
+        return redirect(request.url)
+    
+    # Check MIME type
+    if file.content_type not in ALLOWED_MIME_TYPES:
+        flash('Invalid file type. Only PNG, JPEG, and GIF images are allowed.')
+        return redirect(request.url)
 
     # Get analysis type
     analysis_type = request.form.get('analysis_type', 'describe')
@@ -128,10 +177,23 @@ def analyze_image():
     # Encode image to base64 for display
     image_base64 = base64.b64encode(file_data).decode('utf-8')
 
-    # Create user directory if it doesn't exist
-    user_id = session.get('user_id')
-    user_dir = os.path.join(UPLOAD_FOLDER, f"user_{user_id}" if user_id else "anonymous")
+    # Create user directory if it doesn't exist (with path traversal protection)
+    user_id = session.get('user_id') or session.get('user', {}).get('id')
+    sanitized_user_id = sanitize_user_id(user_id)
+    user_dir = os.path.join(UPLOAD_FOLDER, f"user_{sanitized_user_id}")
+    
+    # Verify the path is safe (no path traversal)
+    if not os.path.abspath(user_dir).startswith(os.path.abspath(UPLOAD_FOLDER)):
+        flash('Security error: Invalid user directory')
+        return redirect(request.url)
+    
     os.makedirs(user_dir, exist_ok=True)
+    
+    # Check user file count limit
+    existing_files = len([f for f in os.listdir(user_dir) if allowed_file(f)])
+    if existing_files >= MAX_FILES_PER_USER:
+        flash(f'File limit reached. Maximum {MAX_FILES_PER_USER} files per user.')
+        return redirect(request.url)
 
     # Save the file
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
