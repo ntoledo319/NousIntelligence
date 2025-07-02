@@ -366,11 +366,11 @@ class Activity(db.Model):
     __tablename__ = 'activities'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     activity_type = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    metadata = db.Column(db.JSON)
+    meta_data = db.Column(db.JSON)
     
     def __repr__(self):
         return f'<Activity {self.activity_type}>'
