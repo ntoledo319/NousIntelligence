@@ -68,6 +68,12 @@ except ImportError:
     logger.warning("Unified auth not available")
     def init_auth(app): pass
 
+try:
+    from utils.session_security import init_session_security
+except ImportError:
+    logger.warning("Session security not available")
+    def init_session_security(app): pass
+
 
 
 def csrf_token():
@@ -75,7 +81,7 @@ def csrf_token():
     from flask import session
     import secrets
     if 'csrf_token' not in session:
-        session['csrf_token'] = secrets.token_hex(16)
+        session['csrf_token'] = secrets.token_hex(32)  # Consistent 64-char tokens
     return session['csrf_token']
 
 def create_app():
@@ -109,6 +115,7 @@ def create_app():
     init_oauth(app)
     init_auth(app)
     init_security_headers(app)
+    init_session_security(app)
     
     # Create database tables
     with app.app_context():
