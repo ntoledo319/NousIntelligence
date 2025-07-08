@@ -1,5 +1,5 @@
 """
-from utils.auth_compat import get_demo_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 Spotify AI Integration
 
 This module provides integration between AI features and Spotify music services.
@@ -14,7 +14,7 @@ import os
 from typing import Dict, List, Any, Optional, Union
 import random
 from flask import session
-from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user(), is_authenticated
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 
 from utils.spotify_helper import get_spotify_client
 

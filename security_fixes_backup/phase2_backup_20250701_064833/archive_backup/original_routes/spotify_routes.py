@@ -6,7 +6,7 @@ This module provides routes for Spotify integration with the NOUS assistant.
 
 import logging
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
-from utils.auth_compat import login_required, current_user, get_current_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 
 # Create blueprint
 spotify_bp = Blueprint('spotify', __name__, url_prefix='/spotify')

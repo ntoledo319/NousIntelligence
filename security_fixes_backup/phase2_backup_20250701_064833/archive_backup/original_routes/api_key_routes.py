@@ -9,7 +9,7 @@ for secure access to the NOUS API.
 """
 import logging
 from flask import Blueprint, request, jsonify, g
-from utils.auth_compat import login_required, current_user, get_current_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 import json
 from datetime import datetime

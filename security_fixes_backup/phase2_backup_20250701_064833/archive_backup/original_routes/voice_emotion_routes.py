@@ -21,7 +21,7 @@ import io
 import json
 import logging
 from flask import Blueprint, render_template, request, jsonify, current_app, session
-from utils.auth_compat import login_required, current_user, get_current_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 
 from utils.emotion_detection import analyze_voice_audio
 from utils.settings import get_setting

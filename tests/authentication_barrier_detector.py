@@ -514,7 +514,7 @@ class AuthenticationBarrierFixer:
                 content = re.sub(r'import flask_login.*\n', '', content)
                 
                 # Add auth compatibility import if needed
-                if '@login_required' in content and 'from utils.auth_compat import' not in content:
+                if '@login_required' in content and 'from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
                     # Find a good place to add import
                     import_lines = []
                     lines = content.split('\n')
@@ -524,7 +524,7 @@ class AuthenticationBarrierFixer:
                     
                     if import_lines:
                         insert_at = max(import_lines) + 1
-                        lines.insert(insert_at, 'from utils.auth_compat import login_required, get_current_user, is_authenticated')
+                        lines.insert(insert_at, 'from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
                         content = '\n'.join(lines)
                 
                 # Replace @login_required with public access decorator

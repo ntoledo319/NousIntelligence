@@ -661,8 +661,8 @@ class ComprehensiveAuditor:
                     content = content.replace('@login_required', '@require_authentication')
                     
                     # Add import if not present
-                    if 'from utils.auth_compat import require_authentication' not in content:
-                        import_line = 'from utils.auth_compat import require_authentication\n'
+                    if 'from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
+                        import_line = 'from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
                         content = import_line + content
                 
                 # Replace current_user with session-based equivalent

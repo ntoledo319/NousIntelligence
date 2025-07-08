@@ -3,7 +3,7 @@ CBT (Cognitive Behavioral Therapy) routes
 """
 
 from flask import Blueprint, render_template, jsonify, request
-from utils.auth_compat import login_required, get_demo_user, is_authenticated
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 
 cbt_bp = Blueprint('cbt', __name__)
 

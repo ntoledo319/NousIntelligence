@@ -1,0 +1,21 @@
+{
+  "timestamp": "2025-07-08T05:36:55.721545",
+  "system_info": {
+    "error": "Could not get system info"
+  },
+  "file_counts": {
+    ".py": 493,
+    ".js": 7,
+    ".html": 45,
+    ".css": 6,
+    ".md": 80,
+    ".yml": 5,
+    ".yaml": 1,
+    ".json": 18
+  },
+  "code_metrics": {
+    "python_files": 493,
+    "total_lines": 135954,
+    "avg_lines_per_file": 275.8
+  }
+}

@@ -9,7 +9,7 @@ from matplotlib.figure import Figure
 from collections import Counter
 
 # Set seaborn style for better aesthetics
-from utils.auth_compat import get_demo_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 sns.set_style("darkgrid")
 plt.rcParams.update({
     'font.family': 'sans-serif',

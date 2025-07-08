@@ -1,5 +1,5 @@
 """
-from utils.auth_compat import get_demo_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 JWT Authentication Utilities
 Provides JWT token generation, validation, and management for API authentication
 """
@@ -9,7 +9,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from flask import request, jsonify, current_app, session
-from utils.auth_compat import login_required, get_demo_user, is_authenticated
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)

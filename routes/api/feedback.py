@@ -1,10 +1,10 @@
 """
-from utils.auth_compat import get_demo_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 Feedback API routes
 """
 
 from flask import Blueprint, request, jsonify
-from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user()
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 
 feedback_api = Blueprint('feedback_api', __name__)
 

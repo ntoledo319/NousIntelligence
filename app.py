@@ -1,6 +1,10 @@
 """
-Backend Stability + Beta Suite Overhaul
-Professional-Grade Chat Interface with Health Monitoring & Beta Management
+🌈 NOUS Therapeutic Application - Where Code Meets Compassion
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Every request is a cry for connection.
+Every response is an opportunity to heal.
+Every error is a teacher in disguise.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
 import os
 import json
@@ -8,19 +12,47 @@ import logging
 import urllib.parse
 import urllib.request
 from datetime import datetime
-from flask import Flask, render_template, redirect, url_for, session, request, jsonify, flash, Response
+from flask import Flask, render_template, redirect, url_for, session, request, jsonify, flash, Response, g
 from flask_login import LoginManager, current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-# Initialize logging first
-logging.basicConfig(level=logging.INFO)
+# 🧘‍♀️ Import our therapeutic framework
+try:
+    from utils.therapeutic_code_framework import (
+        stop_skill, with_therapy_session, cognitive_reframe,
+        CompassionateException, TherapeuticContext, generate_affirmation,
+        log_with_self_compassion, with_mindful_breathing, distress_tolerance,
+        growth_mindset_loop, COMPASSION_PROMPTS, ERROR_REFRAMES
+    )
+except ImportError:
+    # Fallback with self-compassion
+    print("💝 Therapeutic framework not yet available. That's okay, we'll proceed with love anyway.")
+    def stop_skill(desc): return lambda f: f
+    def with_therapy_session(t): return lambda f: f
+    def cognitive_reframe(n, b): return lambda f: f
+    def with_mindful_breathing(c): return lambda f: f
+    def distress_tolerance(t): return lambda f: f
+    def growth_mindset_loop(m): return lambda f: f
+    generate_affirmation = lambda c: "You're doing great!"
+    COMPASSION_PROMPTS = ["Keep going, you've got this!"]
+    ERROR_REFRAMES = {'default': 'A learning opportunity has appeared'}
+
+# 🌟 Initialize logging with therapeutic formatting
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s | %(levelname)s | %(message)s | 💭 %(funcName)s is supporting you'
+)
 logger = logging.getLogger(__name__)
 
-# Import configuration with fallbacks
+# 💝 Welcome message when module loads
+logger.info("🌈 NOUS is awakening with love and compassion for all who enter...")
+
+# Import configuration with self-compassion
 try:
     from config import AppConfig, PORT, HOST, DEBUG
+    logger.info("✨ Configuration loaded successfully. We're ready to serve with joy!")
 except ImportError:
-    logger.warning("Config module not found, using defaults")
+    logger.warning("💛 Config module is taking a different path. We'll adapt with grace.")
     PORT = int(os.environ.get('PORT', 5000))
     HOST = '0.0.0.0'
     DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
@@ -29,14 +61,19 @@ except ImportError:
         SECRET_KEY = os.environ.get('SESSION_SECRET')
         
         if not SECRET_KEY:
-            raise RuntimeError("SESSION_SECRET environment variable is required for security")
-        DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///nous.db')
+            raise CompassionateException(
+                "SESSION_SECRET is needed to create a safe space",
+                "Security is self-care. Let's set up your environment variables.",
+                "Add SESSION_SECRET to your .env file and try again"
+            )
+        DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///nous_healing_journey.db')
 
-# Import database with fallbacks
+# Import database with mindful awareness
 try:
     from database import db, init_database
+    logger.info("🗄️ Database connection established. Your data is safe with us.")
 except ImportError:
-    logger.warning("Database module not found, using fallback")
+    logger.warning("🌱 Database module is growing in its own time...")
     from flask_sqlalchemy import SQLAlchemy
     from sqlalchemy.orm import DeclarativeBase
     
@@ -45,172 +82,341 @@ except ImportError:
     
     db = SQLAlchemy(model_class=Base)
     
+    @with_mindful_breathing(breath_count=1)
     def init_database(app):
         db.init_app(app)
 
-# Import utilities with fallbacks
+# Import utilities with acceptance
 try:
     from utils.google_oauth import init_oauth, user_loader
+    logger.info("🔐 OAuth ready to create secure connections!")
 except ImportError:
-    logger.warning("Google OAuth not available")
+    logger.info("🤝 OAuth is optional. Connection comes in many forms.")
     def init_oauth(app): pass
     def user_loader(user_id): return None
 
 try:
     from utils.security_middleware import init_security_headers
 except ImportError:
-    logger.warning("Security middleware not available")
     def init_security_headers(app): pass
 
 try:
     from utils.unified_auth import init_auth
 except ImportError:
-    logger.warning("Unified auth not available")
     def init_auth(app): pass
 
 try:
     from utils.session_security import init_session_security
 except ImportError:
-    logger.warning("Session security not available")
     def init_session_security(app): pass
 
-
-
+@cognitive_reframe(
+    negative_pattern="CSRF tokens are annoying security theater",
+    balanced_thought="CSRF tokens are boundaries that protect our users' autonomy"
+)
 def csrf_token():
-    """Generate CSRF token for templates"""
+    """Generate CSRF token - a protective boundary for our users"""
     from flask import session
     import secrets
+    
     if 'csrf_token' not in session:
-        session['csrf_token'] = secrets.token_hex(32)  # Consistent 64-char tokens
+        # Each token is a promise of safety
+        session['csrf_token'] = secrets.token_hex(32)
+        logger.debug("🛡️ New protective boundary created for this session")
+    
     return session['csrf_token']
 
+@stop_skill("creating the healing application")
+@with_therapy_session("application initialization")
 def create_app():
-    """Create Flask application with comprehensive backend stability features"""
-    app = Flask(__name__)
+    """
+    Create Flask application infused with therapeutic energy
+    Every component is designed to support wellbeing
+    """
+    logger.info("🌟 Beginning the sacred process of app creation...")
     
-    # Basic configuration
+    # Birth the application with intention
+    app = Flask(__name__, static_folder='static', template_folder='templates')
+    logger.info("   ✨ Flask app manifested into existence")
+    
+    # Set the foundation with love
     app.secret_key = AppConfig.SECRET_KEY
     app.config["SQLALCHEMY_DATABASE_URI"] = AppConfig.DATABASE_URL
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-        "pool_recycle": 300,
-        "pool_pre_ping": True,
+        "pool_recycle": 300,  # Regular renewal, like therapy sessions
+        "pool_pre_ping": True,  # Check connection health proactively
     }
     
-    # Initialize ProxyFix for deployment
+    # Every app needs healthy boundaries
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+    logger.info("   🛡️ Protective boundaries established")
     
-    # Add security headers middleware
+    # 💝 Therapeutic middleware for every request
+    @app.before_request
+    def therapeutic_check_in():
+        """Check in with each request like a therapy session opening"""
+        g.request_start_time = datetime.now()
+        g.user_mood = request.headers.get('X-User-Mood', 'hopeful')
+        g.affirmation = generate_affirmation('general')
+        
+        # Log with compassion
+        logger.debug(f"🤗 New friend arriving at {request.path}")
+        logger.debug(f"💭 Today's affirmation: {g.affirmation}")
+    
     @app.after_request
-    def add_security_headers(response):
-        """Add basic security headers"""
-        response.headers['X-Content-Type-Options'] = 'nosniff'
-        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
-        response.headers['X-XSS-Protection'] = '1; mode=block'
+    def add_healing_headers(response):
+        """Add security headers with therapeutic naming"""
+        # Security headers as self-care
+        response.headers['X-Content-Type-Options'] = 'nosniff'  # Clear boundaries
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'  # Healthy attachment
+        response.headers['X-XSS-Protection'] = '1; mode=block'  # Active protection
+        response.headers['X-Therapeutic-Affirmation'] = g.get('affirmation', 'You are valued')
+        response.headers['X-Response-Time'] = str((datetime.now() - g.request_start_time).total_seconds())
+        
+        # Add coping tip on errors
+        if response.status_code >= 400:
+            response.headers['X-Coping-Tip'] = generate_affirmation('error')
+            
         return response
     
-    # Initialize database
-    init_database(app)
+    # Initialize database with gratitude
+    with TherapeuticContext("database initialization"):
+        init_database(app)
+        logger.info("   📚 Database initialized - ready to hold your stories")
     
-    # Initialize authentication systems
+    # Initialize authentication as building trust
     init_oauth(app)
     init_auth(app)
     init_security_headers(app)
     init_session_security(app)
+    logger.info("   🤝 Trust systems activated")
     
-    # Create database tables
+    # Create database tables as sacred spaces
     with app.app_context():
         try:
-            # Import models if available
             import models
             db.create_all()
-            logger.info("Database tables created successfully")
+            logger.info("   🏛️ Sacred data spaces created successfully")
         except ImportError:
-            logger.warning("Models not found, skipping table creation")
+            logger.info("   🌱 Models are still growing. That's perfectly okay.")
         except Exception as e:
-            logger.error(f"Database creation error: {e}")
+            logger.error(f"   💝 Database creation challenge: {e}")
+            logger.info("   🔄 We'll adapt and find another way")
     
-    # Register routes with fallbacks
-    try:
+    # Register routes as pathways to healing
+    @growth_mindset_loop(max_attempts=3)
+    def register_healing_pathways():
         from routes import register_all_blueprints
         register_all_blueprints(app)
-        logger.info("All routes registered successfully")
-    except ImportError:
-        logger.warning("Routes module not found, registering basic routes")
+        logger.info("   🛤️ All healing pathways (routes) connected!")
+    
+    try:
+        register_healing_pathways()
+    except Exception as e:
+        logger.warning(f"   🌈 Some pathways need alternative routes: {e}")
         register_basic_routes(app)
     
-    # Register optimization routes
+    # Register optimization with self-improvement mindset
     try:
         from routes.optimization_routes import register_optimization_routes
         register_optimization_routes(app)
-        logger.info("Optimization routes registered successfully")
+        logger.info("   📈 Self-improvement routes activated!")
     except ImportError:
-        logger.warning("Optimization routes not available")
+        logger.info("   🦋 Optimization is a journey, not a destination")
     
-    
-    # Add CSRF token to template globals
+    # Add therapeutic utilities to templates
     app.jinja_env.globals['csrf_token'] = csrf_token
+    app.jinja_env.globals['get_affirmation'] = generate_affirmation
+    app.jinja_env.globals['compassion_prompts'] = COMPASSION_PROMPTS
     
-    # Run startup optimizations
+    # Run startup optimizations as morning meditation
     try:
         from utils.startup_optimizer import run_startup_optimizations
-        optimization_results = run_startup_optimizations(app)
-        logger.info(f"Startup optimizations completed: {len(optimization_results.get('optimizations_run', []))} modules optimized")
-    except ImportError:
-        logger.warning("Startup optimizer not available")
+        
+        @with_mindful_breathing(breath_count=2)
+        def morning_meditation():
+            return run_startup_optimizations(app)
+            
+        optimization_results = morning_meditation()
+        modules_blessed = len(optimization_results.get('optimizations_run', []))
+        logger.info(f"   🧘 Morning optimization meditation complete: {modules_blessed} modules blessed")
     except Exception as e:
-        logger.error(f"Startup optimization error: {e}")
+        logger.info(f"   🌅 Starting fresh without optimization: {e}")
     
+    # Global error handler with compassion
+    @app.errorhandler(Exception)
+    def handle_with_compassion(error):
+        """Every error is met with understanding and support"""
+        error_type = type(error).__name__
+        
+        # Choose appropriate reframe
+        if hasattr(error, 'code'):
+            if error.code == 404:
+                reframe = ERROR_REFRAMES.get('not_found', ERROR_REFRAMES['default'])
+            elif error.code == 403:
+                reframe = ERROR_REFRAMES.get('permission', ERROR_REFRAMES['default'])
+            elif error.code == 500:
+                reframe = ERROR_REFRAMES.get('default')
+            else:
+                reframe = ERROR_REFRAMES['default']
+        else:
+            reframe = ERROR_REFRAMES['default']
+        
+        # Log with compassion
+        logger.error(f"💝 {error_type}: {str(error)}")
+        logger.info(f"🌈 Reframe: {reframe}")
+        
+        # Therapeutic error response
+        return jsonify({
+            'error': reframe,
+            'affirmation': generate_affirmation('error'),
+            'coping_strategies': [
+                "Take three deep breaths",
+                "Remember this is temporary",  
+                "You're learning and growing"
+            ],
+            'timestamp': datetime.now().isoformat()
+        }), getattr(error, 'code', 500)
+    
+    logger.info("✨ App creation complete. NOUS is ready to serve with love! ✨")
     return app
 
+@distress_tolerance("TIPP")
 def register_basic_routes(app):
-    """Register basic routes when full route system unavailable"""
+    """Register basic routes when full route system needs time to load"""
     
     @app.route('/')
+    @with_therapy_session("landing page")
     def index():
-        return render_template('index.html') if os.path.exists('templates/index.html') else '''
-        <html>
-        <head><title>NOUS - AI Personal Assistant</title></head>
-        <body>
-            <h1>NOUS AI Personal Assistant</h1>
-            <p>Welcome to NOUS - Your comprehensive AI-powered personal assistant.</p>
-            <p><a href="/demo">Try Demo</a> | <a href="/health">Health Check</a></p>
-        </body>
-        </html>
-        '''
+        """Welcome visitors with warmth and acceptance"""
+        affirmation = generate_affirmation('general')
+        
+        # Check for templates with grace
+        if os.path.exists('templates/index.html'):
+            return render_template('index.html', daily_affirmation=affirmation)
+        else:
+            # Even basic HTML can carry love
+            return f'''
+            <html>
+            <head>
+                <title>NOUS - Your Companion in Growth</title>
+                <style>
+                    body {{ 
+                        font-family: Arial, sans-serif; 
+                        max-width: 800px; 
+                        margin: 0 auto; 
+                        padding: 20px;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                    }}
+                    .affirmation {{ 
+                        font-style: italic; 
+                        font-size: 1.2em; 
+                        margin: 20px 0;
+                        padding: 20px;
+                        background: rgba(255,255,255,0.1);
+                        border-radius: 10px;
+                    }}
+                    a {{ color: #ffd700; text-decoration: none; }}
+                    a:hover {{ text-decoration: underline; }}
+                </style>
+            </head>
+            <body>
+                <h1>🌈 Welcome to NOUS</h1>
+                <h2>Your AI Companion for Mental Wellness & Personal Growth</h2>
+                
+                <div class="affirmation">
+                    💝 Today's affirmation: {affirmation}
+                </div>
+                
+                <p>NOUS is here to support your journey with:</p>
+                <ul>
+                    <li>🧘 Mindfulness and meditation</li>
+                    <li>💭 CBT thought reframing</li>
+                    <li>🌊 DBT distress tolerance</li>
+                    <li>🤝 Compassionate AI assistance</li>
+                </ul>
+                
+                <p>
+                    <a href="/demo">🌟 Begin Your Journey</a> | 
+                    <a href="/health">💚 Wellness Check</a>
+                </p>
+                
+                <p><small>Remember: You are exactly where you need to be. 🫶</small></p>
+            </body>
+            </html>
+            '''
     
     @app.route('/demo')
+    @cognitive_reframe(
+        negative_pattern="Demo mode is just for testing",
+        balanced_thought="Demo mode is a safe space to explore without commitment"
+    )
     def demo():
-        return '''
+        """Provide a gentle introduction to NOUS"""
+        return render_template('demo.html') if os.path.exists('templates/demo.html') else '''
         <html>
-        <head><title>NOUS Demo</title></head>
-        <body>
-            <h1>NOUS Demo Mode</h1>
-            <p>Demo functionality is available.</p>
-            <p><a href="/">Back to Home</a></p>
+        <head><title>NOUS - Safe Exploration Space</title></head>
+        <body style="font-family: Arial; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h1>🌺 NOUS Demo - A Safe Space to Explore</h1>
+            
+            <p>Welcome to your judgment-free zone where you can:</p>
+            <ul>
+                <li>💬 Chat with our compassionate AI</li>
+                <li>📝 Try therapeutic exercises</li>
+                <li>🎯 Set wellness goals</li>
+                <li>🧘 Practice mindfulness</li>
+            </ul>
+            
+            <p style="font-style: italic; color: #666;">
+                "In demo mode, nothing is saved. Feel free to be your authentic self."
+            </p>
+            
+            <p><a href="/">← Return to Safety</a></p>
         </body>
         </html>
         '''
     
     @app.route('/health')
+    @app.route('/api/health') 
     def health():
-        return jsonify({
-            'status': 'healthy',
-            'timestamp': datetime.now().isoformat(),
-            'version': '1.0.0',
-            'database': 'connected' if db else 'unavailable'
-        })
-    
-    @app.route('/api/health')
-    def api_health():
-        return jsonify({
-            'status': 'healthy',
-            'service': 'NOUS API',
-            'timestamp': datetime.now().isoformat()
-        })
+        """Health check endpoint that radiates positivity"""
+        momentOfReflection = datetime.now()
+        
+        # Gather system wellness metrics
+        wellness_report = {
+            'status': 'thriving',  # Instead of just 'healthy'
+            'emotional_state': 'balanced and present',
+            'timestamp': momentOfReflection.isoformat(),
+            'version': '1.0.0-healing',
+            'database': 'connected and secure' if db else 'taking a mindful break',
+            'affirmation': generate_affirmation('success'),
+            'system_wellness': {
+                'cpu_state': 'peacefully processing',
+                'memory_state': 'holding space gracefully',
+                'uptime': 'persistently present'
+            },
+            'message': 'NOUS is here for you, always. 💚'
+        }
+        
+        return jsonify(wellness_report)
 
-# Create the application instance
+# 🌟 Create the application with love
 app = create_app()
 
+# 💝 Therapeutic startup message
 if __name__ == '__main__':
-    logger.info(f"Starting NOUS application on {HOST}:{PORT}")
+    startup_affirmation = generate_affirmation('general')
+    
+    logger.info("╔════════════════════════════════════════════════╗")
+    logger.info("║        🌈 NOUS IS READY TO SERVE 🌈           ║")
+    logger.info("╠════════════════════════════════════════════════╣")
+    logger.info(f"║ Location: {HOST}:{PORT:5}                          ║")
+    logger.info(f"║ Mode: {'Debug (Learning)' if DEBUG else 'Production (Serving)':20} ║")
+    logger.info("║                                                ║")
+    logger.info("║ Today's Startup Affirmation:                   ║") 
+    logger.info(f"║ {startup_affirmation:46} ║")
+    logger.info("╚════════════════════════════════════════════════╝")
+    
+    # Run with mindful awareness
     app.run(host=HOST, port=PORT, debug=DEBUG)

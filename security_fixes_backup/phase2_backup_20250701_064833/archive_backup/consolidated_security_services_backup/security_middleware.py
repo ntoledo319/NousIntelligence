@@ -179,7 +179,7 @@ def allowed_roles(*roles):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            from utils.auth_compat import login_required, current_user, get_current_user
+            from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 
             # Check if user is authenticated and has an allowed role
             if not is_authenticated():

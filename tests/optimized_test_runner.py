@@ -189,7 +189,7 @@ class OptimizedTester:
         
         try:
             # Test auth system
-            from utils.auth_compat import get_current_user, is_authenticated
+            from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
             user = get_current_user()
             auth_status = is_authenticated()
             health['auth_system_working'] = True

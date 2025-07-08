@@ -17,7 +17,7 @@ with templates in the `templates/voice_mindfulness/` directory.
 import os
 import json
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, session
-from utils.auth_compat import login_required, current_user, get_current_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 
 # Import our voice mindfulness utility
 from utils.voice_mindfulness import (

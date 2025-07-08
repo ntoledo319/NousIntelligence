@@ -297,8 +297,8 @@ class QuickAuditor:
                     content = content.replace('@login_required', '@require_authentication')
                     
                     # Add import if needed
-                    if 'from utils.auth_compat import require_authentication' not in content:
-                        import_line = 'from utils.auth_compat import require_authentication\n'
+                    if 'from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
+                        import_line = 'from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
                         # Find a good place to insert the import
                         lines = content.split('\n')
                         insert_index = 0

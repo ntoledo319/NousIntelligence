@@ -3,7 +3,7 @@ Index Routes - Main application landing page and public routes
 """
 
 from flask import Blueprint, render_template, session, request, redirect, url_for, jsonify
-from utils.auth_compat import login_required, get_demo_user, is_authenticated
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 
 index_bp = Blueprint('index', __name__)
 

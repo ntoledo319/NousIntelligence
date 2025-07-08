@@ -3,7 +3,7 @@ Dashboard routes
 """
 
 from flask import Blueprint, render_template, jsonify
-from utils.auth_compat import login_required, get_demo_user, is_authenticated
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 
 dashboard_bp = Blueprint('dashboard', __name__)
 

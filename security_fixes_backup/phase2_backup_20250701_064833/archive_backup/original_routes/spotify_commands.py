@@ -10,7 +10,7 @@ It processes actions detected by the AI helper and executes the appropriate Spot
 
 import logging
 from flask import Blueprint, jsonify, request, session
-from utils.auth_compat import login_required, current_user, get_current_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 import os
 
 from utils.spotify_helper import get_spotify_client

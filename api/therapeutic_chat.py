@@ -8,7 +8,7 @@ import json
 import logging
 from datetime import datetime
 from flask import Blueprint, request, jsonify, session
-from utils.auth_compat import login_required, current_user, get_current_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 from werkzeug.utils import secure_filename
 
 # Import therapeutic assistant

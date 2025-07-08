@@ -1,5 +1,5 @@
 """
-from utils.auth_compat import get_demo_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 Character customization module for personalizing the AI assistant.
 This module helps create a more engaging and personalized AI character
 based on user preferences.
@@ -33,7 +33,7 @@ def get_character_settings():
 
     # Try to get settings from current user if authenticated
     try:
-        from utils.auth_compat import get_demo_user
+        from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
         from flask import session
         
         # Check if user is in session

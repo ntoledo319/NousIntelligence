@@ -3,7 +3,7 @@ Simple Authentication API
 """
 
 from flask import Blueprint, request, jsonify, session
-from utils.auth_compat import get_demo_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 import datetime
 
 auth_bp = Blueprint('simple_auth_api', __name__)

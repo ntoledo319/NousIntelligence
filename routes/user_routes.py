@@ -4,7 +4,7 @@ Handles all user-related operations including profile, preferences, settings, an
 """
 
 from flask import Blueprint, render_template, jsonify, request, session
-from utils.auth_compat import login_required, get_demo_user, is_authenticated, get_current_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 from models.user import User
 from models.setup_models import UserPreferences, SetupProgress
 from models.analytics_models import Activity, Insight

@@ -1,10 +1,10 @@
 """
-from utils.auth_compat import get_demo_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 NOUS Tech advanced features routes
 """
 
 from flask import Blueprint, render_template, jsonify, request
-from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user()
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 
 nous_tech_bp = Blueprint('nous_tech', __name__)
 

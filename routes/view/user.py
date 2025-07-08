@@ -1,10 +1,10 @@
 """
 
-from utils.auth_compat import get_demo_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
     from flask import session, request, redirect, url_for, jsonify
-from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user(), is_authenticated
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
     
     # Check session authentication
     if 'user' in session and session['user']:

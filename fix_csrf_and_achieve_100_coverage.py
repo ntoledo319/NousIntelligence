@@ -452,7 +452,7 @@ class Test100Coverage(unittest.TestCase):
     
     def test_utility_functions(self):
         """Test utility functions work correctly"""
-        from utils.auth_compat import get_current_user, is_authenticated
+        from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
         
         self.assertTrue(callable(get_current_user))
         self.assertTrue(callable(is_authenticated))

@@ -3,7 +3,7 @@ logger = logging.getLogger(__name__)
 
 import asyncio
 """
-from utils.auth_compat import get_demo_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 Unified Spotify Services
 Consolidated Spotify API integrations and utilities
 """

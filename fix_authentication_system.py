@@ -70,7 +70,7 @@ def validate_authentication_system():
     
     # Check demo mode availability
     try:
-        from utils.auth_compat import get_demo_user
+        from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
         demo_user = get_demo_user()
         if not demo_user:
             issues.append("Demo mode not available")

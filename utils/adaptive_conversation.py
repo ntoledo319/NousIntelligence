@@ -1,5 +1,5 @@
 """
-from utils.auth_compat import get_demo_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 Adaptive conversation module for adjusting response complexity based on user preferences.
 This module helps customize AI responses to match the user's preferred difficulty level.
 """
@@ -8,7 +8,7 @@ import os
 import re
 import logging
 from flask import session, g
-from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user()
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 
 # Initialize with default difficulty
 _current_difficulty = "intermediate"

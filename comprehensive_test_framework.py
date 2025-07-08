@@ -305,7 +305,7 @@ class ComprehensiveTestFramework:
         
         # Test auth compatibility
         try:
-            from utils.auth_compat import get_current_user, is_authenticated
+            from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
             assert callable(get_current_user)
             assert callable(is_authenticated)
             results['tests_run'] += 1

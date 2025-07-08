@@ -282,7 +282,7 @@ class LoggingOAuthFixValidator:
         
         try:
             # Test auth compatibility layer
-            from utils.auth_compat import get_demo_user, login_required, is_authenticated
+            from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
             
             # Test demo user
             demo_user = get_demo_user()

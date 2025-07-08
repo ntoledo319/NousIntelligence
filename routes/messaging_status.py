@@ -1,11 +1,11 @@
 """
-from utils.auth_compat import get_demo_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 Messaging Status Routes
 Messaging Status functionality for the NOUS application
 """
 
 from flask import Blueprint, render_template, session, request, redirect, url_for, jsonify
-from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user(), is_authenticated
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 
 messaging_status_bp = Blueprint('messaging_status', __name__)
 
@@ -13,7 +13,7 @@ messaging_status_bp = Blueprint('messaging_status', __name__)
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
     from flask import session, request, redirect, url_for, jsonify
-from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user(), is_authenticated
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
     
     # Check session authentication
     if 'user' in session and session['user']:

@@ -1,11 +1,11 @@
 """
-from utils.auth_compat import get_demo_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 Memory Routes Routes
 Memory Routes functionality for the NOUS application
 """
 
 from flask import Blueprint, render_template, session, request, redirect, url_for, jsonify
-from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user(), is_authenticated
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 
 memory_routes_bp = Blueprint('memory_routes', __name__)
 
@@ -13,7 +13,7 @@ memory_routes_bp = Blueprint('memory_routes', __name__)
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
     from flask import session, request, redirect, url_for, jsonify
-from utils.auth_compat import login_required, get_demo_user(), get_get_demo_user(), is_authenticated
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
     
     # Check session authentication
     if 'user' in session and session['user']:

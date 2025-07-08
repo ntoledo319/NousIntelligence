@@ -1,10 +1,10 @@
 """
-from utils.auth_compat import get_demo_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 Setup and onboarding routes
 """
 
 from flask import Blueprint, render_template, jsonify, request, redirect, url_for
-from utils.auth_compat import login_required, get_demo_user
+from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 
 setup_bp = Blueprint('setup', __name__)
 

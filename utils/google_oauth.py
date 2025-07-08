@@ -32,8 +32,9 @@ class GoogleOAuthService:
             self.oauth.init_app(app)
             
             # Check if OAuth credentials are available using correct environment variable names
-            client_id = os.environ.get('GOOGLE_OAUTH_CLIENT_ID')
-            client_secret = os.environ.get('GOOGLE_OAUTH_CLIENT_SECRET')
+            # Support both naming conventions for backwards compatibility
+            client_id = os.environ.get('GOOGLE_CLIENT_ID') or os.environ.get('GOOGLE_OAUTH_CLIENT_ID')
+            client_secret = os.environ.get('GOOGLE_CLIENT_SECRET') or os.environ.get('GOOGLE_OAUTH_CLIENT_SECRET')
             
             # Handle case where client_id might contain JSON data instead of just the ID
             if client_id and len(client_id) > 100:  # Normal client IDs are ~70 chars
@@ -53,14 +54,14 @@ class GoogleOAuthService:
                 try:
                     is_valid, msg = SecretManager.validate_secret_strength(client_secret)
                     if not is_valid:
-                        logger.warning(f"Weak GOOGLE_OAUTH_CLIENT_SECRET: {msg}")
+                        logger.warning(f"Weak OAuth client secret: {msg}")
                 except:
                     # SecretManager may not be available - continue anyway
                     pass
             
             if not client_id or not client_secret:
                 logger.warning("Google OAuth credentials not found - OAuth login will not be available")
-                logger.warning("Set GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET in environment")
+                logger.warning("Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in environment")
                 return False
             
             # Configure Google OAuth client with direct endpoint configuration
@@ -126,8 +127,8 @@ class GoogleOAuthService:
     
     def is_configured(self):
         """Check if OAuth is properly configured"""
-        client_id = os.environ.get('GOOGLE_OAUTH_CLIENT_ID')
-        client_secret = os.environ.get('GOOGLE_OAUTH_CLIENT_SECRET')
+        client_id = os.environ.get('GOOGLE_CLIENT_ID') or os.environ.get('GOOGLE_OAUTH_CLIENT_ID')
+        client_secret = os.environ.get('GOOGLE_CLIENT_SECRET') or os.environ.get('GOOGLE_OAUTH_CLIENT_SECRET')
         return self.google is not None and client_id and client_secret
     
     def get_authorization_url(self, redirect_uri):

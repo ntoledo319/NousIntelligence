@@ -214,8 +214,8 @@ current_user = get_current_user()
                 # Fix the import line order
                 lines = content.split('\n')
                 for i, line in enumerate(lines):
-                    if 'from utils.auth_compat import' in line:
-                        lines[i] = 'from utils.auth_compat import require_authentication, is_authenticated, get_current_user'
+                    if 'from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
+                        lines[i] = 'from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
                         break
                 
                 # Remove duplicate shebang
@@ -361,7 +361,7 @@ except ImportError:
             logger.warning(f"⚠️ models.py import issue: {e}")
         
         try:
-            from utils.auth_compat import require_authentication, get_current_user
+            from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
             logger.info("✅ auth_compat functions available")
         except Exception as e:
             logger.warning(f"⚠️ auth_compat import issue: {e}")
