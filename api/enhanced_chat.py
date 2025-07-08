@@ -28,6 +28,7 @@ except (ImportError, TypeError):
             }
 from utils.unified_ai_service import UnifiedAIService
 from utils.adaptive_ai_system import process_adaptive_request, provide_user_feedback, get_adaptive_ai
+from utils.mental_health_chat_handler import get_mental_health_handler
 
 # Initialize logger first
 logger = logging.getLogger(__name__)
@@ -89,6 +90,41 @@ def enhanced_chat():
         
         # Store context for next interaction
         session['previous_context'] = context
+        
+        # Check for mental health content first (highest priority)
+        mental_health_handler = get_mental_health_handler()
+        mental_health_response = mental_health_handler.process_message(user_id, message, context)
+        
+        if mental_health_response:
+            # Format the mental health response
+            formatted_message = mental_health_handler.format_chat_response(mental_health_response)
+            
+            # Track engagement
+            from utils.chat_feature_integration import ChatFeatureIntegration
+            chat_integration = ChatFeatureIntegration()
+            
+            if mental_health_response['type'] == 'crisis_support':
+                chat_integration.reward_chat_engagement(user_id, 'crisis_support')
+            elif mental_health_response['type'] == 'resource_discovery':
+                chat_integration.reward_chat_engagement(user_id, 'therapy_discussion')
+            else:
+                chat_integration.reward_chat_engagement(user_id, 'support_seeking')
+            
+            # Return mental health response immediately
+            return jsonify({
+                'success': True,
+                'message': formatted_message,
+                'type': 'mental_health_support',
+                'requires_immediate_display': mental_health_response.get('requires_immediate_display', False),
+                'structured_data': mental_health_response,
+                'timestamp': datetime.now().isoformat(),
+                'processing_time': time.time() - start_time,
+                'sources': ['mental_health_handler'],
+                'metadata': {
+                    'enhanced_mode': True,
+                    'crisis_detected': mental_health_response.get('severity', 0) >= 8
+                }
+            })
         
         # Step 1: Try existing chat command routing first
         command_result = None

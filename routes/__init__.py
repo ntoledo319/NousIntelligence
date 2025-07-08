@@ -19,6 +19,12 @@ CORE_BLUEPRINTS = [
     {'name': 'callback', 'module': 'routes.callback_routes', 'attr': 'callback_bp', 'url_prefix': None},
     {'name': 'api', 'module': 'routes.api_routes', 'attr': 'api_bp', 'url_prefix': '/api/v1'},
     {'name': 'chat', 'module': 'routes.chat_routes', 'attr': 'chat_bp', 'url_prefix': None},
+    # Mental health resources are core features for crisis support
+    {'name': 'resources', 'module': 'routes.mental_health_resources_routes', 'attr': 'resources_bp', 'url_prefix': '/resources'},
+    # Mental health chat API for crisis detection and support
+    {'name': 'mental_health_chat', 'module': 'api.mental_health_chat', 'attr': 'mental_health_chat_bp', 'url_prefix': None},
+    # Enhanced chat with mental health integration
+    {'name': 'enhanced_chat', 'module': 'api.enhanced_chat', 'attr': 'enhanced_chat_bp', 'url_prefix': None},
 ]
 
 # Feature blueprints
@@ -38,6 +44,10 @@ OPTIONAL_BLUEPRINTS = [
     {'name': 'seed', 'module': 'routes.seed_routes', 'attr': 'seed_bp', 'url_prefix': None},
     {'name': 'drone_swarm', 'module': 'routes.drone_swarm_routes', 'attr': 'drone_swarm_bp', 'url_prefix': None},
     {'name': 'drone_dashboard', 'module': 'routes.drone_dashboard_routes', 'attr': 'drone_dashboard_bp', 'url_prefix': None},
+    # New user feature routes
+    {'name': 'social', 'module': 'routes.social_routes', 'attr': 'social_bp', 'url_prefix': '/social'},
+    {'name': 'gamification', 'module': 'routes.gamification_routes', 'attr': 'gamification_bp', 'url_prefix': '/gamification'},
+    {'name': 'growth', 'module': 'routes.personal_growth_routes', 'attr': 'growth_bp', 'url_prefix': '/growth'},
 ]
 
 def register_all_blueprints(app: Flask) -> Flask:

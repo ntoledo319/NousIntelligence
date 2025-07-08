@@ -15,6 +15,14 @@ import models.health_models
 import models.analytics_models
 import models.setup_models
 
+# Import new feature models
+try:
+    import models.social_models
+    import models.gamification_models  
+    import models.personal_growth_models
+except ImportError as e:
+    print(f"Some new models not yet available: {e}")
+
 # Re-export for convenience
 from models.health_models import (
     DBTSkillRecommendation, DBTSkillLog, DBTDiaryCard,
@@ -24,6 +32,72 @@ from models.health_models import (
 )
 
 from models.analytics_models import UserActivity, Goal, Insight
+
+# Social models with fallback
+try:
+    from models.social_models import (
+        SupportGroup, GroupMembership, PeerConnection, AnonymousShare,
+        AnonymousResponse, GroupPost, GroupComment
+    )
+except ImportError:
+    # Simple fallback classes
+    SupportGroup = type('SupportGroup', (), {})
+    GroupMembership = type('GroupMembership', (), {})
+    PeerConnection = type('PeerConnection', (), {})
+    AnonymousShare = type('AnonymousShare', (), {})
+    AnonymousResponse = type('AnonymousResponse', (), {})
+    GroupPost = type('GroupPost', (), {})
+    GroupComment = type('GroupComment', (), {})
+
+# Gamification models with fallback
+try:
+    from models.gamification_models import (
+        Achievement, UserAchievement, WellnessStreak, UserPoints,
+        PointTransaction, Leaderboard, Challenge, ChallengeParticipation
+    )
+except ImportError:
+    # Simple fallback classes
+    Achievement = type('Achievement', (), {})
+    UserAchievement = type('UserAchievement', (), {})
+    WellnessStreak = type('WellnessStreak', (), {})
+    UserPoints = type('UserPoints', (), {})
+    PointTransaction = type('PointTransaction', (), {})
+    Leaderboard = type('Leaderboard', (), {})
+    Challenge = type('Challenge', (), {})
+    ChallengeParticipation = type('ChallengeParticipation', (), {})
+
+# Personal growth models with fallback
+try:
+    from models.personal_growth_models import (
+        Goal as PersonalGoal, GoalMilestone, Habit, HabitEntry,
+        JournalEntry, JournalAttachment, VisionBoard, VisionBoardItem,
+        ReflectionPrompt
+    )
+except ImportError:
+    # Simple fallback classes
+    PersonalGoal = type('PersonalGoal', (), {})
+    GoalMilestone = type('GoalMilestone', (), {})
+    Habit = type('Habit', (), {})
+    HabitEntry = type('HabitEntry', (), {})
+    JournalEntry = type('JournalEntry', (), {})
+    JournalAttachment = type('JournalAttachment', (), {})
+    VisionBoard = type('VisionBoard', (), {})
+    VisionBoardItem = type('VisionBoardItem', (), {})
+    ReflectionPrompt = type('ReflectionPrompt', (), {})
+
+# Mental health resource models with fallback
+try:
+    from models.mental_health_resources import (
+        CrisisResource, TherapyProvider, PsychiatryProvider,
+        CommunityResource, UserSavedResource
+    )
+except ImportError:
+    # Simple fallback classes
+    CrisisResource = type('CrisisResource', (), {})
+    TherapyProvider = type('TherapyProvider', (), {})
+    PsychiatryProvider = type('PsychiatryProvider', (), {})
+    CommunityResource = type('CommunityResource', (), {})
+    UserSavedResource = type('UserSavedResource', (), {})
 
 # Language learning models with fallback
 try:
@@ -205,5 +279,18 @@ __all__ = [
     # Analytics models
     'UserActivity', 'Goal', 'Insight',
     # Language learning models
-    'LanguageProfile', 'VocabularyItem', 'LearningSession', 'ConversationTemplate', 'ConversationPrompt'
+    'LanguageProfile', 'VocabularyItem', 'LearningSession', 'ConversationTemplate', 'ConversationPrompt',
+    # Social models
+    'SupportGroup', 'GroupMembership', 'PeerConnection', 'AnonymousShare',
+    'AnonymousResponse', 'GroupPost', 'GroupComment',
+    # Gamification models
+    'Achievement', 'UserAchievement', 'WellnessStreak', 'UserPoints',
+    'PointTransaction', 'Leaderboard', 'Challenge', 'ChallengeParticipation',
+    # Personal growth models
+    'PersonalGoal', 'GoalMilestone', 'Habit', 'HabitEntry',
+    'JournalEntry', 'JournalAttachment', 'VisionBoard', 'VisionBoardItem',
+    'ReflectionPrompt',
+    # Mental health resource models
+    'CrisisResource', 'TherapyProvider', 'PsychiatryProvider',
+    'CommunityResource', 'UserSavedResource'
 ]
