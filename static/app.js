@@ -1008,6 +1008,28 @@ class ChatApp {
         // Generate session ID for activity tracking
         this.sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
+
+    showCrisisSupport() {
+        const crisisDiv = document.createElement('div');
+        crisisDiv.className = 'message system-message crisis-message';
+        crisisDiv.innerHTML = `
+            <div style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                <h3 style="margin: 0 0 10px 0;">🆘 Crisis Support Available</h3>
+                <p style="margin: 0 0 10px 0;">I'm concerned about you. Please reach out for help:</p>
+                <div style="margin: 10px 0;">
+                    <a href="tel:988" style="background: white; color: red; padding: 8px 16px; border-radius: 4px; text-decoration: none; margin-right: 10px; font-weight: bold;">Call 988</a>
+                    <a href="sms:741741&body=HOME" style="background: rgba(255,255,255,0.2); color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none;">Text 741741</a>
+                </div>
+                <a href="/resources/crisis" style="color: white; text-decoration: underline;">View all crisis resources →</a>
+            </div>
+        `;
+        
+        const messagesContainer = document.getElementById('message-stream') || document.querySelector('.chat-messages');
+        if (messagesContainer) {
+            messagesContainer.appendChild(crisisDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    }
 }
 
 // Initialize when DOM is ready

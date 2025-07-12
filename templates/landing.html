@@ -57,6 +57,35 @@
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="manifest" href="/static/manifest.json">
     <link rel="apple-touch-icon" href="/static/favicon.ico">
+    <style>
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.5rem; }
+            .features-grid { grid-template-columns: 1fr; }
+            .feature-card { padding: 1rem; }
+        }
+        
+        .crisis-support-banner {
+            margin: 2rem 0;
+        }
+        
+        .crisis-button {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .crisis-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            color: white;
+        }
+    </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 font-sans">
     <!-- Efficient Flash Messages -->
@@ -86,6 +115,13 @@
                     Experience the future of AI-powered assistance. Chat, learn, and grow with NOUS - 
                     your personalized companion for productivity, creativity, and insight.
                 </p>
+                
+                <!-- Crisis Support - Always Available -->
+                <div class="crisis-support-banner">
+                    <a href="/resources/crisis" class="crisis-button">
+                        🆘 Crisis Support Available 24/7
+                    </a>
+                </div>
             </div>
         </header>
 

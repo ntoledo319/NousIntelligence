@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Growth - NOUS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">Personal Growth</h1>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <button onclick="createGoal()" class="bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700 flex flex-col items-center">
+                <span class="text-2xl mb-2">🎯</span>
+                <span>New Goal</span>
+            </button>
+            <button onclick="logHabit()" class="bg-green-600 text-white p-4 rounded-lg hover:bg-green-700 flex flex-col items-center">
+                <span class="text-2xl mb-2">✅</span>
+                <span>Log Habit</span>
+            </button>
+            <button onclick="writeJournal()" class="bg-purple-600 text-white p-4 rounded-lg hover:bg-purple-700 flex flex-col items-center">
+                <span class="text-2xl mb-2">📝</span>
+                <span>Journal</span>
+            </button>
+            <button onclick="createVisionBoard()" class="bg-orange-600 text-white p-4 rounded-lg hover:bg-orange-700 flex flex-col items-center">
+                <span class="text-2xl mb-2">🖼️</span>
+                <span>Vision Board</span>
+            </button>
+        </div>
+
+        <!-- Current Goals -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b">
+                    <h2 class="text-xl font-semibold">Active Goals</h2>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-blue-500 pl-4">
+                            <h3 class="font-medium">Exercise 3x per week</h3>
+                            <div class="mt-2">
+                                <div class="bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue-500 h-2 rounded-full" style="width: 60%"></div>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-1">60% complete</p>
+                            </div>
+                        </div>
+                        <div class="border-l-4 border-green-500 pl-4">
+                            <h3 class="font-medium">Read 12 books this year</h3>
+                            <div class="mt-2">
+                                <div class="bg-gray-200 rounded-full h-2">
+                                    <div class="bg-green-500 h-2 rounded-full" style="width: 33%"></div>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-1">4 of 12 books</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Habit Tracker -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b">
+                    <h2 class="text-xl font-semibold">Today's Habits</h2>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span>Meditation</span>
+                            <button class="w-8 h-8 rounded-full bg-green-500 text-white">✓</button>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Gratitude journaling</span>
+                            <button class="w-8 h-8 rounded-full border-2 border-gray-300"></button>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Exercise</span>
+                            <button class="w-8 h-8 rounded-full border-2 border-gray-300"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Journal Entries -->
+        <div class="bg-white rounded-lg shadow mb-8">
+            <div class="p-6 border-b">
+                <h2 class="text-xl font-semibold">Recent Reflections</h2>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    <div class="border-l-4 border-purple-500 pl-4">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-medium">Gratitude Practice</h3>
+                            <span class="text-sm text-gray-500">2 days ago</span>
+                        </div>
+                        <p class="text-gray-600 mt-1">Reflecting on three things I'm grateful for today...</p>
+                    </div>
+                    <div class="border-l-4 border-purple-500 pl-4">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-medium">Weekly Review</h3>
+                            <span class="text-sm text-gray-500">1 week ago</span>
+                        </div>
+                        <p class="text-gray-600 mt-1">Looking back at this week's progress and challenges...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Crisis Support Footer -->
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <span class="text-red-600 text-xl mr-3">🆘</span>
+                    <span class="text-red-800">Having difficult thoughts? Support is available 24/7.</span>
+                </div>
+                <a href="/resources/crisis" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                    Get Help Now
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function createGoal() {
+            window.location.href = '/growth/goals/new';
+        }
+        
+        function logHabit() {
+            alert('Habit logging interface coming soon!');
+        }
+        
+        function writeJournal() {
+            window.location.href = '/growth/journal/new';
+        }
+        
+        function createVisionBoard() {
+            window.location.href = '/growth/vision-boards/new';
+        }
+    </script>
+</body>
+</html> 

@@ -34,7 +34,6 @@ class ChatFeatureIntegration:
         self.gamification_service = GamificationService()
         self.growth_service = PersonalGrowthService()
         self.resources_service = MentalHealthResourcesService()
-        self.mental_health_handler = None  # Lazy load to avoid circular import
     
     def get_user_context(self, user_id: str) -> Dict[str, Any]:
         """
@@ -181,13 +180,6 @@ class ChatFeatureIntegration:
             'disclaimer': "If you're in immediate danger, please call 911 or your local emergency number."
         }
     
-    def _get_mental_health_handler(self):
-        """Lazy load mental health handler to avoid circular import"""
-        if self.mental_health_handler is None:
-            from utils.mental_health_chat_handler import get_mental_health_handler
-            self.mental_health_handler = get_mental_health_handler()
-        return self.mental_health_handler
-    
     def process_chat_intent(self, user_id: str, message: str, 
                           location: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
         """
@@ -195,23 +187,10 @@ class ChatFeatureIntegration:
         
         Returns action data if the message relates to new features
         """
-        # Use enhanced mental health handler for all mental health related messages
-        mental_health_response = self._get_mental_health_handler().process_message(
-            user_id, message, {'location': location} if location else {}
-        )
-        
-        if mental_health_response:
-            # Format the response for chat
-            formatted_message = self._get_mental_health_handler().format_chat_response(mental_health_response)
-            return {
-                'intent': 'mental_health_support',
-                'action': mental_health_response['type'],
-                'data': {
-                    'message': formatted_message,
-                    'structured_response': mental_health_response,
-                    'requires_immediate_display': mental_health_response.get('requires_immediate_display', False)
-                }
-            }
+        # CRITICAL: Check for crisis keywords first
+        if self.detect_crisis_keywords(message):
+            country = location.get('country_code', 'US') if location else 'US'
+            return self.get_crisis_response(country)
         
         message_lower = message.lower()
         
@@ -353,4 +332,4 @@ def enhance_chat_response(user_id: str, ai_response: str) -> str:
 
 # AI-GENERATED [2024-12-01]
 # @see services/* for individual service implementations
-# ## Affected Components: api/chat.py, api/enhanced_chat.py
+# ## Affected Components: api/chat.py, api/enhanced_chat.py 

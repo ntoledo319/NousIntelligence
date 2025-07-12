@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run lint-staged to check staged files
+npx lint-staged
+
+# Check for TypeScript errors
+# Only check files that are being committed
+FILES=$(git diff --cached --name-only --diff-filter=ACMR "*.ts" "*.tsx" "*.js" "*.jsx" | sed 's| |\\ |g')
+[ -z "$FILES" ] && exit 0
+
+# Run type checking on staged files
+yarn tsc --noEmit --pretty $FILES
+
+# If the above command fails, the commit will be aborted
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript check failed. Please fix the errors and try again."
+  exit 1
+fi

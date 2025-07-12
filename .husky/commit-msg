@@ -1,0 +1,48 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Commit message format: <type>(<scope>): <subject>
+# Example: feat(auth): add login functionality
+#
+# Types:
+#   build: Changes that affect the build system or external dependencies
+#   chore: Other changes that don't modify src or test files
+#   ci: Changes to CI configuration files and scripts
+#   docs: Documentation only changes
+#   feat: A new feature
+#   fix: A bug fix
+#   perf: A code change that improves performance
+#   refactor: A code change that neither fixes a bug nor adds a feature
+#   revert: Revert a previous commit
+#   style: Changes that do not affect the meaning of the code
+#   test: Adding missing tests or correcting existing tests
+
+grep -qE '^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\(.+\))?: .+$' "$1"
+
+if [ $? -ne 0 ]; then
+  echo "❌ Error: Invalid commit message format."
+  echo ""
+  echo "Please follow the format: <type>(<scope>): <subject>"
+  echo "Example: feat(auth): add login functionality"
+  echo ""
+  echo "Types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test"
+  exit 1
+fi
+
+# Ensure the first line is 72 characters or less
+first_line=$(head -n 1 "$1")
+if [ ${#first_line} -gt 72 ]; then
+  echo "❌ Error: The first line of the commit message is too long (max 72 characters)."
+  echo ""
+  echo "Current length: ${#first_line} characters"
+  echo "Message: $first_line"
+  exit 1
+fi
+
+# Ensure there's a blank line between the subject and body (if body exists)
+if [ $(wc -l < "$1") -gt 1 ] && ! head -n 2 "$1" | tail -n 1 | grep -qE '^$'; then
+  echo "❌ Error: The commit message should have a blank line between the subject and body."
+  exit 1
+fi
+
+echo "✅ Commit message is valid!"

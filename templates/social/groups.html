@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Groups - NOUS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Support Groups</h1>
+            <button onclick="createGroup()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                Create Group
+            </button>
+        </div>
+
+        <!-- Crisis Support Banner -->
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div class="flex items-center">
+                <span class="text-red-600 text-xl mr-3">🆘</span>
+                <div>
+                    <h3 class="font-semibold text-red-800">Need immediate help?</h3>
+                    <p class="text-red-700">Crisis support is available 24/7</p>
+                </div>
+                <a href="/resources/crisis" class="ml-auto bg-red-600 text-white px-4 py-2 rounded">Get Help Now</a>
+            </div>
+        </div>
+
+        <!-- My Groups -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">My Groups</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for group in my_groups %}
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="font-semibold text-lg mb-2">{{ group.name }}</h3>
+                    <p class="text-gray-600 mb-4">{{ group.description }}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">{{ group.member_count }} members</span>
+                        <a href="/social/groups/{{ group.id }}" class="text-blue-600 hover:text-blue-800">View →</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Available Groups -->
+        <div>
+            <h2 class="text-xl font-semibold mb-4">Available Groups</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for category in categories %}
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="font-semibold text-lg mb-2 capitalize">{{ category }}</h3>
+                    <p class="text-gray-600 mb-4">Connect with others facing similar challenges</p>
+                    <button onclick="joinGroup('{{ category }}')" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+                        Find Groups
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function createGroup() {
+            // Redirect to create group form
+            window.location.href = '/social/groups/create';
+        }
+        
+        function joinGroup(category) {
+            // Show groups in category
+            alert('Finding ' + category + ' support groups...');
+        }
+    </script>
+</body>
+</html> 

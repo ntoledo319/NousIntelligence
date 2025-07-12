@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress & Achievements - NOUS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">Your Progress</h1>
+
+        <!-- Level & Points -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6 text-center">
+                <h3 class="text-lg font-semibold mb-2">Level</h3>
+                <div class="text-4xl font-bold text-blue-600">{{ points_summary.current_level or 1 }}</div>
+                <div class="text-sm text-gray-500 mt-2">
+                    {{ points_summary.points_to_next_level or 100 }} points to next level
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6 text-center">
+                <h3 class="text-lg font-semibold mb-2">Total Points</h3>
+                <div class="text-4xl font-bold text-green-600">{{ points_summary.total_points or 0 }}</div>
+                <div class="text-sm text-gray-500 mt-2">Lifetime earned</div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6 text-center">
+                <h3 class="text-lg font-semibold mb-2">Current Streak</h3>
+                <div class="text-4xl font-bold text-purple-600">{{ streaks[0].current_streak if streaks else 0 }}</div>
+                <div class="text-sm text-gray-500 mt-2">Days active</div>
+            </div>
+        </div>
+
+        <!-- Recent Achievements -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Recent Achievements</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for achievement in achievements[:6] %}
+                <div class="bg-white rounded-lg shadow p-4 flex items-center">
+                    <div class="text-2xl mr-4">🏆</div>
+                    <div>
+                        <h3 class="font-semibold">{{ achievement.name }}</h3>
+                        <p class="text-sm text-gray-600">{{ achievement.description }}</p>
+                        <div class="text-xs text-gray-500 mt-1">+{{ achievement.points }} points</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Weekly Leaderboard -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b">
+                    <h3 class="text-lg font-semibold">Weekly Leaderboard</h3>
+                </div>
+                <div class="p-6">
+                    {% for entry in weekly_leaderboard[:5] %}
+                    <div class="flex justify-between items-center py-2">
+                        <div class="flex items-center">
+                            <span class="w-6 text-center font-bold">{{ loop.index }}</span>
+                            <span class="ml-3">{{ entry.user_name or 'Anonymous' }}</span>
+                        </div>
+                        <span class="font-semibold">{{ entry.points }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Active Challenges -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b">
+                    <h3 class="text-lg font-semibold">Active Challenges</h3>
+                </div>
+                <div class="p-6">
+                    {% for challenge in active_challenges[:3] %}
+                    <div class="mb-4 last:mb-0">
+                        <h4 class="font-medium">{{ challenge.name }}</h4>
+                        <p class="text-sm text-gray-600">{{ challenge.description }}</p>
+                        <div class="mt-2">
+                            <button class="text-blue-600 hover:text-blue-800 text-sm">Join Challenge</button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Crisis Support Footer -->
+        <div class="mt-12 bg-red-50 border border-red-200 rounded-lg p-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <span class="text-red-600 text-xl mr-3">🆘</span>
+                    <span class="text-red-800">Need support? Crisis help is always available.</span>
+                </div>
+                <a href="/resources/crisis" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                    Get Help Now
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

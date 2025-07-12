@@ -28,10 +28,7 @@ I've successfully added comprehensive user engagement features to enhance the NO
 - **Therapy Search**: Find affordable therapists by location with sliding scale options
 - **Psychiatry Search**: Locate medication management providers
 - **Community Resources**: Free/low-cost local mental health services
-- **Enhanced Crisis Detection**: Multi-level severity detection with false positive filtering
-- **Natural Language Support**: Users can ask for help conversationally ("I need to talk to someone")
-- **Mental Health Check-ins**: Regular mood tracking with proactive support
-- **Integrated Chat Support**: Crisis detection works in ALL chat interactions
+- **Smart Crisis Detection**: Chat AI can detect crisis keywords and provide immediate resources
 
 ## 📁 Files Created
 
@@ -55,11 +52,7 @@ I've successfully added comprehensive user engagement features to enhance the NO
 
 ### Integration & Documentation
 - `utils/chat_feature_integration.py` - Integrates all features with AI chat
-- `utils/mental_health_chat_handler.py` - Enhanced mental health chat processing
-- `api/mental_health_chat.py` - Dedicated mental health chat API endpoints
-- `api/enhanced_chat.py` - Enhanced chat with integrated crisis detection
 - `docs/NEW_USER_FEATURES.md` - Comprehensive documentation
-- `docs/MENTAL_HEALTH_CHAT_INTEGRATION.md` - Mental health chat integration guide
 - `migrations/add_user_features_tables.py` - Database migration script
 - `migrations/add_crisis_resources.py` - Populates default crisis resources
 
@@ -73,22 +66,6 @@ I've successfully added comprehensive user engagement features to enhance the NO
    - `/gamification/` - Progress dashboard
    - `/growth/` - Personal development hub
    - `/resources/therapy` - Find therapists
-
-## 📡 Key API Endpoints
-
-### Mental Health Chat APIs
-- `POST /api/enhanced/chat` - Enhanced chat with automatic crisis detection
-- `POST /api/mental-health/chat` - Dedicated mental health support chat
-- `POST /api/mental-health/check-in` - Mental health mood check-ins
-- `POST /api/mental-health/resources/search` - Search for providers by location
-- `GET /api/crisis` - Crisis resources API (no auth required)
-
-### Feature APIs
-- `GET /api/therapy/search` - Search therapy providers
-- `GET /api/psychiatry/search` - Search psychiatry providers
-- `GET /api/community/{city}/{state}` - Get community resources
-- `POST /api/resources/save` - Save preferred providers
-- `GET /api/resources/saved` - View saved resources
 
 ## 🎨 Next Steps
 
@@ -131,4 +108,4 @@ All backend functionality is complete and integrated. The features are productio
 
 **Created**: December 2024
 **Status**: ✅ Backend Complete | ⏳ Frontend Templates Needed
-**Safety**: 🆘 Crisis resources are live and accessible
+**Safety**: 🆘 Crisis resources are live and accessible 

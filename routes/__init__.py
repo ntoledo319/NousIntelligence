@@ -21,10 +21,6 @@ CORE_BLUEPRINTS = [
     {'name': 'chat', 'module': 'routes.chat_routes', 'attr': 'chat_bp', 'url_prefix': None},
     # Mental health resources are core features for crisis support
     {'name': 'resources', 'module': 'routes.mental_health_resources_routes', 'attr': 'resources_bp', 'url_prefix': '/resources'},
-    # Mental health chat API for crisis detection and support
-    {'name': 'mental_health_chat', 'module': 'api.mental_health_chat', 'attr': 'mental_health_chat_bp', 'url_prefix': None},
-    # Enhanced chat with mental health integration
-    {'name': 'enhanced_chat', 'module': 'api.enhanced_chat', 'attr': 'enhanced_chat_bp', 'url_prefix': None},
 ]
 
 # Feature blueprints
