@@ -12,13 +12,13 @@ from datetime import datetime
 
 def print_header(title):
     """Print formatted header"""
-    print(f"\n{'='*60}")
-    print(f"{title}")
-    print(f"{'='*60}")
+    print("\n" + "="*60)
+    print("{}".format(title))
+    print("="*60)
 
 def check_env_vars():
     """Check environment variables"""
-    print_header("🔍 ENVIRONMENT VARIABLES CHECK")
+    print_header("ENVIRONMENT VARIABLES CHECK")
     
     required_vars = {
         'GOOGLE_CLIENT_ID': {
@@ -45,33 +45,34 @@ def check_env_vars():
         value = os.environ.get(var_name)
         
         if not value:
-            print(f"\n❌ {var_name}: Not set")
-            print(f"   Example: {requirements.get('example')}")
-            issues.append(f"{var_name} not set")
+            print("\n[FAIL] {} is not set".format(var_name))
+            print("   Example: {}".format(requirements.get('example')))
+            issues.append("{} not set".format(var_name))
         else:
             # Validate format
             if 'pattern' in requirements:
                 if re.match(requirements['pattern'], value):
-                    print(f"\n✅ {var_name}: Set and valid format")
+                    print("\n[PASS] {} is set and valid format".format(var_name))
                 else:
-                    print(f"\n⚠️  {var_name}: Set but format may be invalid")
-                    print(f"   Current length: {len(value)}")
-                    print(f"   Expected pattern: {requirements['example']}")
-                    issues.append(f"{var_name} format invalid")
+                    print("\n[FAIL] {} format may be invalid".format(var_name))
+                    print("   Current length: {}".format(len(value)))
+                    print("   Expected pattern: {}".format(requirements['example']))
+                    issues.append("{} format invalid".format(var_name))
             elif 'min_length' in requirements:
                 if len(value) >= requirements['min_length']:
-                    print(f"\n✅ {var_name}: Set (length: {len(value)})")
+                    print("\n[PASS] {}: Set (length: {})".format(var_name, len(value)))
                 else:
-                    print(f"\n❌ {var_name}: Too short (length: {len(value)}, min: {requirements['min_length']})")
-                    issues.append(f"{var_name} too short")
+                    print("\n[FAIL] {}: Too short (length: {}, min: {})".format(
+                        var_name, len(value), requirements['min_length']))
+                    issues.append("{} too short".format(var_name))
             else:
-                print(f"\n✅ {var_name}: Set")
+                print("\n[PASS] {}: Set".format(var_name))
     
     return issues
 
 def check_oauth_files():
     """Check if OAuth files exist"""
-    print_header("📁 OAUTH FILES CHECK")
+    print_header("OAUTH FILES CHECK")
     
     critical_files = [
         'utils/google_oauth.py',
@@ -84,16 +85,16 @@ def check_oauth_files():
     
     for file_path in critical_files:
         if os.path.exists(file_path):
-            print(f"✅ {file_path}")
+            print("[PASS] {}".format(file_path))
         else:
-            print(f"❌ {file_path} - Missing!")
+            print("[FAIL] {} - Missing!".format(file_path))
             missing_files.append(file_path)
     
     return missing_files
 
 def generate_setup_script():
     """Generate setup script for environment variables"""
-    print_header("🔧 GENERATING SETUP SCRIPT")
+    print_header("GENERATING SETUP SCRIPT")
     
     setup_script = '''#!/bin/bash
 # OAuth Setup Script for NOUS Intelligence

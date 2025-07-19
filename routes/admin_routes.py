@@ -1,5 +1,4 @@
 """
-from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 Admin Routes Routes
 Admin Routes functionality for the NOUS application
 """
@@ -9,12 +8,8 @@ from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_a
 
 admin_routes_bp = Blueprint('admin_routes', __name__)
 
-
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
-    from flask import session, request, redirect, url_for, jsonify
-from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
-    
     # Check session authentication
     if 'user' in session and session['user']:
         return None  # User is authenticated
@@ -30,9 +25,8 @@ from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_a
     # For web routes, redirect to login
     return redirect(url_for("main.demo"))
 
-def get_get_demo_user()():
+def get_demo_user():
     """Get current user from session with demo fallback"""
-    from flask import session
     return session.get('user', {
         'id': 'demo_user',
         'name': 'Demo User',
@@ -40,18 +34,14 @@ def get_get_demo_user()():
         'is_demo': True
     })
 
-def is_authenticated():
-    """Check if user is authenticated"""
-    from flask import session
-    return 'user' in session and session['user'] is not None
-
+"""
 Admin Routes
 
 This module provides routes for admin functionality.
 """
 
 import logging
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort
+from flask import flash, abort
 
 # Create blueprint
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
@@ -60,28 +50,26 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 logger = logging.getLogger(__name__)
 
 @admin_bp.route('/')
-
+def index():
+    """Admin dashboard"""
     # Check authentication
     auth_result = require_authentication()
     if auth_result:
         return auth_result
-
-def index():
-    """Admin dashboard"""
+        
     # Check if user is admin (placeholder)
     if not ('user' in session and session['user']) or not getattr(session.get('user'), 'is_admin', False):
         return jsonify({"error": "Demo mode - limited access", "demo": True}), 200
     return render_template('admin/dashboard.html')
 
 @admin_bp.route('/users')
-
+def users():
+    """User management"""
     # Check authentication
     auth_result = require_authentication()
     if auth_result:
         return auth_result
-
-def users():
-    """User management"""
+        
     # Check if user is admin (placeholder)
     if not ('user' in session and session['user']) or not getattr(session.get('user'), 'is_admin', False):
         return jsonify({"error": "Demo mode - limited access", "demo": True}), 200

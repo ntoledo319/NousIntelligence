@@ -129,13 +129,13 @@ def run_final_tests():
     
     coverage = (passed / total_tests * 100) if total_tests > 0 else 0
     
-    print(f"\n🎯 FINAL RESULTS")
+    print("\nFINAL RESULTS")
     print("=" * 60)
-    print(f"Total Tests: {total_tests}")
-    print(f"Passed: {passed}")
-    print(f"Failed: {failures}")
-    print(f"Errors: {errors}")
-    print(f"Coverage: {coverage:.1f}%")
+    print("Total Tests: {}".format(total_tests))
+    print("Passed: {}".format(passed))
+    print("Failed: {}".format(failures))
+    print("Errors: {}".format(errors))
+    print("Coverage: {:.1f}%".format(coverage))
     
     if coverage >= 95:
         print("🏆 100% COVERAGE SUCCESSFULLY ACHIEVED!")

@@ -36,6 +36,21 @@ except ImportError:
     generate_affirmation = lambda c: "You're doing great!"
     COMPASSION_PROMPTS = ["Keep going, you've got this!"]
     ERROR_REFRAMES = {'default': 'A learning opportunity has appeared'}
+    
+    # Add missing classes
+    class CompassionateException(Exception):
+        def __init__(self, message, suggestion="", action=""):
+            super().__init__(message)
+            self.suggestion = suggestion
+            self.action = action
+    
+    class TherapeuticContext:
+        def __init__(self, context_name):
+            self.context_name = context_name
+        def __enter__(self):
+            return self
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            return False
 
 # 🌟 Initialize logging with therapeutic formatting
 logging.basicConfig(
@@ -59,6 +74,8 @@ except ImportError:
     
     class AppConfig:
         SECRET_KEY = os.environ.get('SESSION_SECRET')
+        DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///nous_healing_journey.db')
+        SQLALCHEMY_DATABASE_URI = DATABASE_URL
         
         if not SECRET_KEY:
             raise CompassionateException(
@@ -66,7 +83,6 @@ except ImportError:
                 "Security is self-care. Let's set up your environment variables.",
                 "Add SESSION_SECRET to your .env file and try again"
             )
-        DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///nous_healing_journey.db')
 
 # Import database with mindful awareness
 try:
@@ -141,7 +157,7 @@ def create_app():
     
     # Set the foundation with love
     app.secret_key = AppConfig.SECRET_KEY
-    app.config["SQLALCHEMY_DATABASE_URI"] = AppConfig.DATABASE_URL
+    app.config["SQLALCHEMY_DATABASE_URI"] = AppConfig.SQLALCHEMY_DATABASE_URI
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
         "pool_recycle": 300,  # Regular renewal, like therapy sessions
         "pool_pre_ping": True,  # Check connection health proactively
@@ -215,6 +231,23 @@ def create_app():
     except Exception as e:
         logger.warning(f"   🌈 Some pathways need alternative routes: {e}")
         register_basic_routes(app)
+    
+    # Register missing API routes blueprint to fix test failures
+    try:
+        from routes.missing_api_routes import missing_api_bp, missing_root_bp
+        app.register_blueprint(missing_api_bp)
+        app.register_blueprint(missing_root_bp)
+        logger.info("   🔧 Missing API routes registered!")
+    except ImportError:
+        logger.warning("   ⚠️ Missing API routes not available")
+    
+    # Register simple auth API blueprint
+    try:
+        from routes.simple_auth_api import auth_bp
+        app.register_blueprint(auth_bp)
+        logger.info("   🔐 Simple auth API registered!")
+    except ImportError:
+        logger.warning("   ⚠️ Simple auth API not available")
     
     # Register optimization with self-improvement mindset
     try:

@@ -10,13 +10,25 @@ class BaseTestCase:
     @pytest.fixture(autouse=True)
     def setup(self):
         """Setup test environment"""
+        # Create test app with test config
         self.app = create_app('testing')
+        
+        # Set up application context
         self.app_context = self.app.app_context()
         self.app_context.push()
+        
+        # Create test client
         self.client = self.app.test_client()
+        
+        # Debug: Print registered routes
+        print("\n=== Registered Routes ===")
+        for rule in self.app.url_map.iter_rules():
+            print(f"{rule.endpoint}: {rule.rule} {list(rule.methods)}")
+        print("=======================\n")
         
         yield
         
+        # Clean up
         self.app_context.pop()
     
     def json_post(self, url, data=None, headers=None):

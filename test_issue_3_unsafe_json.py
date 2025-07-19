@@ -27,16 +27,16 @@ def test_unsafe_request_json_usage():
             for i, line in enumerate(lines, 1):
                 # Check for unsafe patterns
                 if 'request.json' in line and 'get_json' not in line:
-                    unsafe_patterns.append(f"{file_path}:{i} - Direct request.json access")
+                    unsafe_patterns.append("{}:{} - Direct request.json access".format(file_path, i))
                 elif 'request.get_json()' in line:
                     # Check if there's validation nearby
                     context_lines = lines[max(0, i-3):min(len(lines), i+3)]
                     context = '\n'.join(context_lines)
                     
                     if not any(check in context.lower() for check in ['if not data', 'if data is none', 'validate', 'try:']):
-                        unsafe_patterns.append(f"{file_path}:{i} - request.get_json() without validation")
+                        unsafe_patterns.append("{}:{} - request.get_json() without validation".format(file_path, i))
     
-    assert len(unsafe_patterns) > 0, f"Should find unsafe JSON patterns, found: {unsafe_patterns}"
+    assert len(unsafe_patterns) > 0, "Should find unsafe JSON patterns, found: {}".format(unsafe_patterns)
 
 def test_request_json_without_error_handling():
     """Test that request.json is used without proper error handling"""

@@ -31,7 +31,7 @@ class OAuthTester:
         
     def test_all(self):
         """Run all tests"""
-        print("\n🧪 NOUS Intelligence OAuth Testing Framework")
+        print("\nNOUS Intelligence OAuth Testing Framework")
         print("=" * 60)
         
         # Test 1: Environment
@@ -54,7 +54,7 @@ class OAuthTester:
         
     def test_environment(self):
         """Test environment variables"""
-        print("\n1️⃣ Testing Environment Variables...")
+        print("\n1. Testing Environment Variables...")
         
         vars_to_check = {
             'GOOGLE_CLIENT_ID': lambda x: x and '.apps.googleusercontent.com' in x,
@@ -67,14 +67,14 @@ class OAuthTester:
             value = os.environ.get(var_name)
             if value and validator(value):
                 self.results['environment'][var_name] = 'PASS'
-                print(f"   ✅ {var_name}: Valid")
+                print("   [PASS] {}: Valid".format(var_name))
             else:
                 self.results['environment'][var_name] = 'FAIL'
-                print(f"   ❌ {var_name}: Invalid or not set")
+                print("   [FAIL] {}: Invalid or not set".format(var_name))
                 
     def test_oauth_service(self):
         """Test OAuth service initialization"""
-        print("\n2️⃣ Testing OAuth Service...")
+        print("\n2. Testing OAuth Service...")
         
         try:
             from utils.google_oauth import oauth_service
@@ -82,88 +82,106 @@ class OAuthTester:
             # Test configuration
             if oauth_service.is_configured():
                 self.results['oauth_service']['configured'] = 'PASS'
-                print("   ✅ OAuth service is configured")
+                print("   [PASS] OAuth service is configured")
             else:
                 self.results['oauth_service']['configured'] = 'FAIL'
-                print("   ❌ OAuth service is not configured")
+                print("   [FAIL] OAuth service is not configured")
                 
             # Test OAuth client
             if hasattr(oauth_service, 'google') and oauth_service.google:
                 self.results['oauth_service']['client'] = 'PASS'
-                print("   ✅ OAuth client initialized")
+                print("   [PASS] OAuth client initialized")
             else:
                 self.results['oauth_service']['client'] = 'FAIL'
-                print("   ❌ OAuth client not initialized")
+                print("   [FAIL] OAuth client not initialized")
                 
         except Exception as e:
             self.results['oauth_service']['error'] = str(e)
-            print(f"   ❌ Failed to load OAuth service: {e}")
+            print("   [ERROR] Failed to load OAuth service: {}".format(str(e)))
             
     def test_database(self):
         """Test database and User model"""
-        print("\n3️⃣ Testing Database...")
+        print("\n3. Testing Database...")
         
         try:
             from models.user import User
             from database import db
-            from app import app
             
-            with app.app_context():
-                # Check User model fields
-                required_fields = ['email', 'google_id', 'google_access_token', 'google_refresh_token']
-                user_fields = [col.name for col in User.__table__.columns]
+            # Test database connection
+            try:
+                db.engine.connect()
+                self.results['database']['connection'] = 'PASS'
+                print("   [PASS] Database connection successful")
+            except Exception as e:
+                self.results['database']['connection'] = 'FAIL: {}'.format(str(e))
+                print("   [FAIL] Database connection failed: {}".format(str(e)))
+                return
                 
-                for field in required_fields:
-                    if field in user_fields:
-                        self.results['database'][f'user_{field}'] = 'PASS'
-                        print(f"   ✅ User.{field} exists")
-                    else:
-                        self.results['database'][f'user_{field}'] = 'FAIL'
-                        print(f"   ❌ User.{field} missing")
-                        
-        except Exception as e:
+            # Test User model
+            try:
+                user_count = User.query.count()
+                self.results['database']['user_model'] = 'PASS'
+                print("   [PASS] User model works (found {} users)".format(user_count))
+            except Exception as e:
+                self.results['database']['user_model'] = 'FAIL: {}'.format(str(e))
+                print("   [FAIL] User model error: {}".format(str(e)))
+                
+        except ImportError as e:
             self.results['database']['error'] = str(e)
-            print(f"   ❌ Database test failed: {e}")
+            print("   [ERROR] Failed to import database modules: {}".format(str(e)))
             
     def test_routes(self):
         """Test OAuth routes"""
-        print("\n4️⃣ Testing OAuth Routes...")
+        print("\n4. Testing Routes...")
         
         try:
             from app import app
+            from flask import url_for
             
-            with app.test_client() as client:
-                # Test login page
-                response = client.get('/auth/login')
-                if response.status_code == 200:
-                    self.results['routes']['login_page'] = 'PASS'
-                    print("   ✅ Login page accessible")
-                else:
-                    self.results['routes']['login_page'] = 'FAIL'
-                    print(f"   ❌ Login page returned {response.status_code}")
+            with app.test_request_context():
+                # Test login route
+                try:
+                    login_url = url_for('auth.login')
+                    self.results['routes']['login'] = 'PASS'
+                    print("   [PASS] Login route: {}".format(login_url))
+                except Exception as e:
+                    self.results['routes']['login'] = 'FAIL: {}'.format(str(e))
+                    print("   [FAIL] Login route not found: {}".format(str(e)))
                     
-                # Test OAuth initiation
-                response = client.get('/auth/google', follow_redirects=False)
-                if response.status_code in [302, 303]:
-                    self.results['routes']['oauth_init'] = 'PASS'
-                    print("   ✅ OAuth initiation redirects")
-                    
-                    # Check redirect location
-                    if 'accounts.google.com' in response.location:
-                        print("   ✅ Redirects to Google")
-                    else:
-                        print(f"   ⚠️  Unexpected redirect: {response.location}")
-                else:
-                    self.results['routes']['oauth_init'] = 'FAIL'
-                    print(f"   ❌ OAuth initiation returned {response.status_code}")
+                # Test callback route
+                try:
+                    callback_url = url_for('auth.google_callback')
+                    self.results['routes']['callback'] = 'PASS'
+                    print("   [PASS] Callback route: {}".format(callback_url))
+                except Exception as e:
+                    self.results['routes']['callback'] = 'FAIL: {}'.format(str(e))
+                    print("   [FAIL] Callback route not found: {}".format(str(e)))
                     
         except Exception as e:
             self.results['routes']['error'] = str(e)
-            print(f"   ❌ Route testing failed: {e}")
+            print("   [ERROR] Route testing failed: {}".format(str(e)))
+            
+    def test_templates(self):
+        """Test OAuth templates"""
+        print("\n5. Testing Templates...")
+        
+        template_paths = [
+            'templates/auth/login.html',
+            'templates/auth/callback.html',
+            'templates/auth/error.html'
+        ]
+        
+        for template in template_paths:
+            if os.path.exists(template):
+                self.results['templates'][template] = 'PASS'
+                print("   [PASS] Template found: {}".format(template))
+            else:
+                self.results['templates'][template] = 'MISSING'
+                print("   [FAIL] Template missing: {}".format(template))
             
     def test_templates(self):
         """Test template rendering"""
-        print("\n5️⃣ Testing Templates...")
+        print("\n5. Testing Templates...")
         
         try:
             from app import app

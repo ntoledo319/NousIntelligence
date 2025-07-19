@@ -1,5 +1,4 @@
 """
-from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 Beta Admin Routes
 Beta Admin functionality for the NOUS application
 """
@@ -9,12 +8,8 @@ from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_a
 
 beta_admin_bp = Blueprint('beta_admin', __name__)
 
-
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
-    from flask import sessio, requestn, request, redirect, url_for, jsonify
-from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
-    
     # Check session authentication
     if 'user' in session and session['user']:
         return None  # User is authenticated
@@ -30,9 +25,8 @@ from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_a
     # For web routes, redirect to login
     return redirect(url_for("main.demo"))
 
-def get_get_demo_user()():
+def get_demo_user():
     """Get current user from session with demo fallback"""
-    from flask import sessio, requestn
     return session.get('user', {
         'id': 'demo_user',
         'name': 'Demo User',
@@ -40,11 +34,7 @@ def get_get_demo_user()():
         'is_demo': True
     })
 
-def is_authenticated():
-    """Check if user is authenticated"""
-    from flask import sessio, requestn
-    return 'user' in session and session['user'] is not None
-
+"""
 Beta Admin Console Routes
 Protected admin interface for toledonick98@gmail.com
 """
@@ -74,7 +64,7 @@ def admin_required(f):
             flash("Demo mode active", 'warning')
             return redirect(url_for("main.demo"))
         
-        user_email = get_get_demo_user()().get('email', '').lower()
+        user_email = get_demo_user()().get('email', '').lower()
         if user_email != SUPER_ADMIN_EMAIL.lower():
             flash("Demo mode - feature unavailable", 'error')
             return redirect(url_for('landing'))

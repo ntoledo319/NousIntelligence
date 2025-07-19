@@ -24,7 +24,7 @@ def test_seed_imports():
         
         return True
     except Exception as e:
-        print(f"✗ Import error: {e}")
+        print("✗ Import error: {}".format(e))
         traceback.print_exc()
         return False
 
@@ -41,15 +41,15 @@ def test_seed_engine_initialization():
         
         # Test optimization status
         status = engine.get_optimization_status()
-        print(f"✓ Optimization status retrieved: {status.get('engine_status', 'unknown')}")
+        print("✓ Optimization status retrieved: {}".format(status.get('engine_status', 'unknown')))
         
         # Test domain parameters
         domains = len(engine.domain_parameters)
-        print(f"✓ Domain parameters configured: {domains} domains")
+        print("✓ Domain parameters configured: {} domains".format(domains))
         
         return True
     except Exception as e:
-        print(f"✗ Engine initialization error: {e}")
+        print("✗ Engine initialization error: {}".format(e))
         traceback.print_exc()
         return False
 
@@ -66,11 +66,11 @@ def test_integration_layer():
         
         # Test dashboard data (without user)
         dashboard_data = integration.get_optimization_dashboard_data()
-        print(f"✓ Dashboard data retrieved")
+        print("✓ Dashboard data retrieved")
         
         return True
     except Exception as e:
-        print(f"✗ Integration layer error: {e}")
+        print("✗ Integration layer error: {}".format(e))
         traceback.print_exc()
         return False
 
@@ -82,16 +82,16 @@ def test_api_routes():
         from routes.seed_routes import seed_bp
         
         # Check blueprint registration
-        print(f"✓ SEED blueprint created: {seed_bp.name}")
-        print(f"✓ URL prefix: {seed_bp.url_prefix}")
+        print("✓ SEED blueprint created: {}".format(seed_bp.name))
+        print("✓ URL prefix: {}".format(seed_bp.url_prefix))
         
         # Count routes
         route_count = len(list(seed_bp.iter_rules()))
-        print(f"✓ Routes registered: {route_count}")
+        print("✓ Routes registered: {}".format(route_count))
         
         return True
     except Exception as e:
-        print(f"✗ API routes error: {e}")
+        print("✗ API routes error: {}".format(e))
         traceback.print_exc()
         return False
 
@@ -103,14 +103,14 @@ def test_optimization_domains():
         from services.seed_optimization_engine import OptimizationDomain
         
         domains = list(OptimizationDomain)
-        print(f"✓ Optimization domains available: {len(domains)}")
+        print("✓ Optimization domains available: {}".format(len(domains)))
         
         for domain in domains:
-            print(f"  - {domain.value}")
+            print("  - {}".format(domain.value))
         
         return True
     except Exception as e:
-        print(f"✗ Optimization domains error: {e}")
+        print("✗ Optimization domains error: {}".format(e))
         traceback.print_exc()
         return False
 
@@ -137,14 +137,14 @@ def test_demo_optimization():
             confidence=0.8
         )
         
-        print(f"✓ Demo optimization result created")
-        print(f"  - Domain: {demo_result.domain.value}")
-        print(f"  - Improvement: {demo_result.improvement_percentage}%")
-        print(f"  - Confidence: {demo_result.confidence}")
+        print("✓ Demo optimization result created")
+        print("  - Domain: {}".format(demo_result.domain.value))
+        print("  - Improvement: {}%".format(demo_result.improvement_percentage))
+        print("  - Confidence: {}".format(demo_result.confidence))
         
         return True
     except Exception as e:
-        print(f"✗ Demo optimization error: {e}")
+        print("✗ Demo optimization error: {}".format(e))
         traceback.print_exc()
         return False
 
@@ -153,8 +153,8 @@ def run_all_tests():
     print("=" * 60)
     print("SEED OPTIMIZATION INTEGRATION TEST")
     print("=" * 60)
-    print(f"Test started: {datetime.now().isoformat()}")
-    
+    print("Test started: {}".format(datetime.now().isoformat()))
+    print("-" * 60)
     tests = [
         test_seed_imports,
         test_seed_engine_initialization,
@@ -170,7 +170,7 @@ def run_all_tests():
             result = test()
             results.append(result)
         except Exception as e:
-            print(f"✗ Test {test.__name__} failed with exception: {e}")
+            print("✗ Test {} failed with exception: {}".format(test.__name__, e))
             results.append(False)
     
     print("\n" + "=" * 60)
@@ -180,8 +180,8 @@ def run_all_tests():
     passed = sum(results)
     total = len(results)
     
-    print(f"Tests passed: {passed}/{total}")
-    print(f"Success rate: {(passed/total)*100:.1f}%")
+    print("Tests passed: {}/{}".format(passed, total))
+    print("Success rate: {:.1f}%".format((passed/total)*100))
     
     if passed == total:
         print("🎉 ALL TESTS PASSED - SEED integration is working!")
@@ -200,9 +200,9 @@ def run_all_tests():
     else:
         print("❌ Some tests failed - check errors above")
         failed_tests = [tests[i].__name__ for i, result in enumerate(results) if not result]
-        print(f"Failed tests: {', '.join(failed_tests)}")
+        print("Failed tests: {}".format(', '.join(failed_tests)))
     
-    print(f"\nTest completed: {datetime.now().isoformat()}")
+    print("\nTest completed: {}".format(datetime.now().isoformat()))
     return passed == total
 
 if __name__ == "__main__":

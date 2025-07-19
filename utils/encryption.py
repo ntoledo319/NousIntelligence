@@ -13,19 +13,15 @@ class FieldEncryption:
         """Get encryption key from environment or generate one"""
         key_str = os.getenv('ENCRYPTION_KEY')
         if key_str:
-            return key_str.encode()
+            try:
+                # Try to decode to verify it's valid base64
+                base64.urlsafe_b64decode(key_str)
+                return key_str.encode()
+            except:
+                pass  # Fall through to generate new key
         
-        # Generate key from password if available
-        password = os.getenv('SECRET_KEY', 'default-key').encode()
-        salt = b'salt_'  # In production, use proper random salt
-        kdf = PBKDF2HMAC(
-            algorithm=hashes.SHA256(),
-            length=32,
-            salt=salt,
-            iterations=100000,
-        )
-        key = base64.urlsafe_b64encode(kdf.derive(password))
-        return key
+        # Generate a proper Fernet key
+        return Fernet.generate_key()
     
     def encrypt(self, data: str) -> str:
         """Encrypt sensitive data"""

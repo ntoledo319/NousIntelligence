@@ -18,7 +18,7 @@ def test_basic_seed_classes():
         # Test optimization domain enum
         from services.seed_optimization_engine import OptimizationDomain
         domains = list(OptimizationDomain)
-        print(f"✓ OptimizationDomain enum: {len(domains)} domains")
+        print("✓ OptimizationDomain enum: {} domains".format(len(domains)))
         
         # Test optimization result class
         from services.seed_optimization_engine import OptimizationResult
@@ -31,7 +31,9 @@ def test_basic_seed_classes():
             parameters_adjusted={'test': True},
             confidence=0.8
         )
-        print(f"✓ OptimizationResult created: {result.improvement_percentage}% improvement")
+        print("✓ OptimizationResult created: {}".format(result))
+        print("  Domain: {}, Improved: {}".format(result.domain, result.metric_improved))
+        print("  Old: {:.2f} -> New: {:.2f} ({:.1f}%)".format(result.old_value, result.new_value, result.improvement_percentage))
         
         return True
     except Exception as e:
@@ -73,14 +75,14 @@ def test_seed_database():
             # Test query
             cursor = conn.execute("SELECT COUNT(*) FROM optimization_cycles")
             count = cursor.fetchone()[0]
-            print(f"✓ Database created and tested: {count} record(s)")
+            print("✓ Database created and tested: {} record(s)".format(count))
         
         # Cleanup
         db_path.unlink(missing_ok=True)
         
         return True
     except Exception as e:
-        print(f"✗ Database error: {e}")
+        print("✗ Database error: {}".format(e))
         return False
 
 def test_seed_routes_structure():
@@ -154,7 +156,7 @@ def run_simple_tests():
             result = test()
             results.append(result)
         except Exception as e:
-            print(f"✗ Test {test.__name__} failed: {e}")
+            print("✗ Test {} failed: {}".format(test.__name__, e))
             results.append(False)
     
     print("\n" + "=" * 50)

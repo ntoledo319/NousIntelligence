@@ -63,7 +63,11 @@ def stop_skill(action_description: str = "processing"):
             logger.info(f"🛑 STOP: About to {action_description}. Taking a mindful moment...")
             
             # Observe - Check current state
-            currentMoodState = g.get('user_mood', 'centered')
+            try:
+                from flask import has_app_context
+                currentMoodState = g.get('user_mood', 'centered') if has_app_context() else 'centered'
+            except:
+                currentMoodState = 'centered'
             if currentMoodState == 'distressed':
                 logger.info("💭 Noticing distress. Offering extra support...")
                 
@@ -144,12 +148,17 @@ def with_therapy_session(session_type: str = "supportive"):
             logger.info("📝 Session check-in: How are you feeling right now?")
             
             # Set therapeutic context
-            g.therapy_session = {
-                'id': session_id,
-                'type': session_type,
-                'start_time': datetime.now(),
-                'coping_tips': []
-            }
+            try:
+                from flask import has_app_context
+                if has_app_context():
+                    g.therapy_session = {
+                        'id': session_id,
+                        'type': session_type,
+                        'start_time': datetime.now(),
+                        'coping_tips': []
+                    }
+            except:
+                pass  # Skip if no app context
             
             try:
                 # Process with therapeutic awareness
@@ -170,7 +179,11 @@ def with_therapy_session(session_type: str = "supportive"):
                 
                 # Add coping tip
                 coping_tip = random.choice(COMPASSION_PROMPTS)
-                g.therapy_session['coping_tips'].append(coping_tip)
+                try:
+                    if has_app_context():
+                        g.therapy_session['coping_tips'].append(coping_tip)
+                except:
+                    pass
                 logger.info(f"💭 Coping tip: {coping_tip}")
                 
                 raise

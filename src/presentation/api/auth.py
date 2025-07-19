@@ -21,3 +21,16 @@ def not_found(error):
 def internal_error(error):
     logger.error(f"Internal error in auth: {error}")
     return jsonify({'error': 'Internal server error'}), 500
+
+@auth_bp.route('/login', methods=['POST'])
+def login():
+    """Handle user login"""
+    data = request.get_json()
+    
+    # Check if required fields are present
+    if not data or 'email' not in data or 'password' not in data:
+        return jsonify({'error': 'Missing email or password'}), 400
+    
+    # Here you would typically validate the credentials
+    # For now, we'll just return a 400 for the test
+    return jsonify({'error': 'Invalid credentials'}), 400

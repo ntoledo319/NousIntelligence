@@ -11,6 +11,13 @@ auth_bp = Blueprint('simple_auth_api', __name__)
 @auth_bp.route('/api/auth/login', methods=['POST'])
 def api_login():
     """API login endpoint"""
+    data = request.get_json() or {}
+    
+    # Check for missing credentials
+    if not data.get('email') or not data.get('password'):
+        return jsonify({'error': 'Missing credentials'}), 400
+    
+    # For demo purposes, accept any credentials
     user = get_demo_user()
     session['user'] = {
         'id': user.id,

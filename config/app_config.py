@@ -70,6 +70,7 @@ class AppConfig:
     
     # ===== DATABASE CONFIGURATION =====
     DATABASE_URL = os.environ.get('DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI = DATABASE_URL or 'sqlite:///nous_healing_journey.db'
     
     @classmethod
     def to_dict(cls) -> Dict[str, Any]:

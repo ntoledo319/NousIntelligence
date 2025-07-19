@@ -66,34 +66,36 @@ def api_status():
 @api_bp.route('/user')
 def get_user_info():
     """Get current user information"""
-    return jsonify(session.get('user', {}).get('to_dict())
+    user = session.get('user', {})
+    return jsonify(user)
 
 @api_bp.route('/settings', methods=['GET'])
 def get_settings():
     """Get user settings"""
-    if not session.get('user', {}).get('settings:
+    user = session.get('user', {})
+    if not user.get('settings'):
         return jsonify({'error': 'Settings not found'}), 404
 
-    return jsonify(session.get('user', {}).get('settings.to_dict())
+    return jsonify(user.get('settings', {}))
 
 @api_bp.route('/settings', methods=['POST'])
-
-    # Check authentication
-    auth_result = require_authentication()
-    if auth_result:
-        return auth_result
-
 def update_settings():
     """Update user settings"""
     try:
         data = request.get_json()
+        user = session.get('user', {})
+
+        # Check authentication
+        auth_result = require_authentication()
+        if auth_result:
+            return auth_result
 
         # Create settings if they don't exist
-        if not session.get('user', {}).get('settings:
+        if not user.get('settings'):
             from models import UserSettings
-            settings = UserSettings(user_id=session.get('user', {}).get('id', 'demo_user'))
+            settings = UserSettings(user_id=user.get('id', 'demo_user'))
             db.session.add(settings)
-            session.get('user', {}).get('settings = settings
+            user['settings'] = settings
 
         # Update valid fields
         valid_fields = [
@@ -103,12 +105,12 @@ def update_settings():
 
         for field in valid_fields:
             if field in data:
-                setattr(session.get('user', {}).get('settings, field, data[field])
+                setattr(user['settings'], field, data[field])
 
         # Save changes
         db.session.commit()
 
-        return jsonify(session.get('user', {}).get('settings.to_dict())
+        return jsonify(user.get('settings', {}))
     except Exception as e:
         logger.error(f"Error updating settings: {str(e)}")
         return jsonify({'error': str(e)}), 500
@@ -116,20 +118,21 @@ def update_settings():
 @api_bp.route('/tasks', methods=['GET'])
 def get_tasks():
     """Get user tasks"""
-    tasks = [task.to_dict() for task in session.get('user', {}).get('tasks]
+    user = session.get('user', {})
+    tasks = [task.to_dict() for task in user.get('tasks', [])]
     return jsonify(tasks)
 
 @api_bp.route('/tasks', methods=['POST'])
-
-    # Check authentication
-    auth_result = require_authentication()
-    if auth_result:
-        return auth_result
-
 def create_task():
     """Create a new task"""
     try:
         data = request.get_json()
+        user = session.get('user', {})
+
+        # Check authentication
+        auth_result = require_authentication()
+        if auth_result:
+            return auth_result
 
         # Validate required fields
         if 'title' not in data:
@@ -137,7 +140,7 @@ def create_task():
 
         # Create task
         task = Task(
-            user_id=session.get('user', {}).get('id', 'demo_user'),
+            user_id=user.get('id', 'demo_user'),
             title=data['title'],
             description=data.get('description'),
             priority=data.get('priority', 'medium'),
@@ -154,34 +157,36 @@ def create_task():
         return jsonify({'error': str(e)}), 500
 
 @api_bp.route('/tasks/<int:task_id>', methods=['GET'])
-
+def get_task(task_id):
+    """Get a specific task"""
+    user = session.get('user', {})
+    
     # Check authentication
     auth_result = require_authentication()
     if auth_result:
         return auth_result
 
-def get_task(task_id):
-    """Get a specific task"""
     task = Task.query.get(task_id)
 
-    if not task or task.user_id != session.get('user', {}).get('id', 'demo_user'):
+    if not task or task.user_id != user.get('id', 'demo_user'):
         return jsonify({'error': 'Task not found'}), 404
 
     return jsonify(task.to_dict())
 
 @api_bp.route('/tasks/<int:task_id>', methods=['PUT'])
-
-    # Check authentication
-    auth_result = require_authentication()
-    if auth_result:
-        return auth_result
-
 def update_task(task_id):
     """Update an existing task"""
     try:
+        user = session.get('user', {})
+        
+        # Check authentication
+        auth_result = require_authentication()
+        if auth_result:
+            return auth_result
+            
         task = Task.query.get(task_id)
 
-        if not task or task.user_id != session.get('user', {}).get('id', 'demo_user'):
+        if not task or task.user_id != user.get('id', 'demo_user'):
             return jsonify({'error': 'Task not found'}), 404
 
         # Update task with request data
@@ -207,18 +212,19 @@ def update_task(task_id):
         return jsonify({'error': str(e)}), 500
 
 @api_bp.route('/tasks/<int:task_id>', methods=['DELETE'])
-
-    # Check authentication
-    auth_result = require_authentication()
-    if auth_result:
-        return auth_result
-
 def delete_task(task_id):
     """Delete a task"""
     try:
+        user = session.get('user', {})
+        
+        # Check authentication
+        auth_result = require_authentication()
+        if auth_result:
+            return auth_result
+            
         task = Task.query.get(task_id)
 
-        if not task or task.user_id != session.get('user', {}).get('id', 'demo_user'):
+        if not task or task.user_id != user.get('id', 'demo_user'):
             return jsonify({'error': 'Task not found'}), 404
 
         # Delete the task
@@ -231,12 +237,6 @@ def delete_task(task_id):
         return jsonify({'error': str(e)}), 500
 
 @api_bp.route('/chat', methods=['POST'])
-
-    # Check authentication
-    auth_result = require_authentication()
-    if auth_result:
-        return auth_result
-
 def process_chat():
     """
     Process chat messages and return responses
@@ -257,11 +257,11 @@ def process_chat():
         }
     }
     """
-    if not ('user' in session and session['user']):
-        return jsonify({
-            "success": False,
-            "error": "Demo mode - limited access"
-        }), 401
+    
+    # Check authentication
+    auth_result = require_authentication()
+    if auth_result:
+        return auth_result
 
     # Get chat message from request
     data = request.json
@@ -301,13 +301,14 @@ def get_user_profile():
         return jsonify({"error": "Demo mode - limited access"}), 401
 
     try:
+        user = session.get('user', {})
         profile = {
-            "id": session.get('user', {}).get('id', 'demo_user'),
-            "username": session.get('user', {}).get('username,
-            "email": session.get('user', {}).get('email,
-            "first_name": session.get('user', {}).get('first_name,
-            "last_name": session.get('user', {}).get('last_name,
-            "created_at": session.get('user', {}).get('created_at.isoformat() if hasattr(session.get('user'), 'created_at') else None,
+            "id": user.get('id', 'demo_user'),
+            "username": user.get('username', ''),
+            "email": user.get('email', ''),
+            "first_name": user.get('first_name', ''),
+            "last_name": user.get('last_name', ''),
+            "created_at": user.get('created_at', '').isoformat() if hasattr(user.get('created_at'), 'isoformat') else None,
         }
         return jsonify({"success": True, "profile": profile})
     except Exception as e:
@@ -323,10 +324,11 @@ def user_settings():
     # Handle GET request
     if request.method == 'GET':
         try:
+            user = session.get('user', {})
             settings = {
-                "theme": session.get('user', {}).get('get_setting('theme', 'light'),
-                "notifications_enabled": session.get('user', {}).get('get_setting('notifications_enabled', True),
-                "language": session.get('user', {}).get('get_setting('language', 'en')
+                "theme": user.get('theme', 'light'),
+                "notifications_enabled": user.get('notifications_enabled', True),
+                "language": user.get('language', 'en')
             }
             return jsonify({"success": True, "settings": settings})
         except Exception as e:
@@ -341,8 +343,9 @@ def user_settings():
 
         try:
             # Update settings
+            user = session.get('user', {})
             for key, value in data.items():
-                session.get('user', {}).get('set_setting(key, value)
+                user[key] = value
 
             return jsonify({"success": True, "message": "Settings updated successfully"})
         except Exception as e:

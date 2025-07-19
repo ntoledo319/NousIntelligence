@@ -1,5 +1,4 @@
 """
-from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 Pulse Routes
 Pulse functionality for the NOUS application
 """
@@ -9,12 +8,8 @@ from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_a
 
 pulse_bp = Blueprint('pulse', __name__)
 
-
 def require_authentication():
     """Check if user is authenticated, allow demo mode"""
-    from flask import session, request, redirect, url_for, jsonify
-from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
-    
     # Check session authentication
     if 'user' in session and session['user']:
         return None  # User is authenticated
@@ -30,9 +25,8 @@ from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_a
     # For web routes, redirect to login
     return redirect(url_for("main.demo"))
 
-def get_get_demo_user()():
+def get_demo_user():
     """Get current user from session with demo fallback"""
-    from flask import session
     return session.get('user', {
         'id': 'demo_user',
         'name': 'Demo User',
@@ -40,23 +34,39 @@ def get_get_demo_user()():
         'is_demo': True
     })
 
-def is_authenticated():
-    """Check if user is authenticated"""
-    from flask import session
-    return 'user' in session and session['user'] is not None
-
+"""
 NOUS Pulse Dashboard - Unified Alert Hub
 Aggregates top alerts from health, DBT, finance, shopping, and weather
 """
 import logging
-from flask import Blueprint, render_template, jsonify, request
 from datetime import datetime
 
 # Import core modules
-from core.health import get_due_appointment_reminders, get_medications_to_refill, analyze_skill_effectiveness
-from core.finance import get_budget_status, get_budget_heat_map_data
-from core.shopping import get_due_shopping_lists, auto_replenish_from_expenses
-from core.weather import get_weather_mood_correlation, get_weather_alerts
+try:
+    from core.health import get_due_appointment_reminders, get_medications_to_refill, analyze_skill_effectiveness
+    from core.finance import get_budget_status, get_budget_heat_map_data
+    from core.shopping import get_due_shopping_lists, auto_replenish_from_expenses
+    from core.weather import get_weather_mood_correlation, get_weather_alerts
+except ImportError:
+    # Fallback functions for when core modules are not available
+    def get_due_appointment_reminders():
+        return []
+    def get_medications_to_refill():
+        return []
+    def analyze_skill_effectiveness():
+        return {}
+    def get_budget_status():
+        return []
+    def get_budget_heat_map_data():
+        return {}
+    def get_due_shopping_lists():
+        return []
+    def auto_replenish_from_expenses():
+        return []
+    def get_weather_mood_correlation():
+        return {'mood_correlation': {'weather_influence': 'unknown'}}
+    def get_weather_alerts():
+        return []
 
 logger = logging.getLogger(__name__)
 

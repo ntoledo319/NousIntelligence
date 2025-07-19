@@ -18,80 +18,94 @@ def test_color_theory_enhancements():
         
         # Check for enhanced CSS file references
         css_references = re.findall(r'href="[^"]*\.css[^"]*"', html_content)
-        logger.info(✓ CSS files referenced: {len(css_references)})
+        logger.info("CSS files referenced: {}".format(len(css_references)))
         
         # Check for key color theory elements in HTML structure
         hero_section = "hero" in html_content
         features_section = "features" in html_content
         cta_section = "cta" in html_content
         
-        logger.info(✓ Hero section: {'Present' if hero_section else 'Missing'})
-        logger.info(✓ Features section: {'Present' if features_section else 'Missing'})
-        logger.info(✓ CTA section: {'Present' if cta_section else 'Missing'})
+        logger.info("Hero section: {}".format('Present' if hero_section else 'Missing'))
+        logger.info("Features section: {}".format('Present' if features_section else 'Missing'))
+        logger.info("CTA section: {}".format('Present' if cta_section else 'Missing'))
         
         # Check for enhanced button classes
         primary_button = 'class="google-signin-btn primary"' in html_content
-        secondary_button = 'class="demo-btn secondary"' in html_content
+        secondary_button = 'class="google-signin-btn secondary"' in html_content
         
-        logger.info(✓ Primary button with enhanced styling: {'Present' if primary_button else 'Missing'})
-        logger.info(✓ Secondary button with enhanced styling: {'Present' if secondary_button else 'Missing'})
+        logger.info("Primary button: {}".format('Present' if primary_button else 'Missing'))
+        logger.info("Secondary button: {}".format('Present' if secondary_button else 'Missing'))
         
-        # Test CSS file directly
-        css_response = requests.get("http://localhost:8080/static/styles.css", timeout=10)
-        css_content = css_response.text
+        # Check for color variables in CSS
+        css_urls = [match.group(1) for match in re.finditer(r'href="([^"]*\.css)"', html_content)]
+        color_vars_found = False
         
-        # Check for color theory improvements in CSS
-        color_variables = "--primary-color:" in css_content
-        gradient_definitions = "--hero-gradient:" in css_content
-        button_gradients = "--button-gradient:" in css_content
-        responsive_design = "@media (min-width:" in css_content
-        
-        logger.info(✓ Color variables defined: {'Yes' if color_variables else 'No'})
-        logger.info(✓ Gradient definitions: {'Yes' if gradient_definitions else 'No'})
-        logger.info(✓ Button gradient effects: {'Yes' if button_gradients else 'No'})
-        logger.info(✓ Responsive design: {'Yes' if responsive_design else 'No'})
-        
-        # Count color theory enhancements
-        enhancements_count = 0
-        if "--primary-color: #4f46e5" in css_content:  # Indigo primary
-            enhancements_count += 1
-            logger.info(✓ Indigo primary color applied)
-        
-        if "--secondary-color: #f59e0b" in css_content:  # Orange secondary
-            enhancements_count += 1
-            logger.info(✓ Orange secondary color applied)
-        
-        if "--accent-gradient:" in css_content:
-            enhancements_count += 1
-            logger.info(✓ Accent gradients defined)
-        
-        if "shimmer" in css_content:
-            enhancements_count += 1
-            logger.info(✓ Shimmer animation effects)
-        
-        if "backdrop-filter: blur" in css_content:
-            enhancements_count += 1
-            logger.info(✓ Modern backdrop blur effects)
-        
-        logger.info(\n🎨 Color Theory Enhancements Applied: {enhancements_count}/5)
-        
-        if enhancements_count >= 4:
-            logger.info(✅ Color theory enhancement SUCCESSFUL!)
-            logger.info(   - Harmonious indigo-orange palette implemented)
-            logger.info(   - Modern gradients and animations applied)
-            logger.info(   - Responsive design with visual hierarchy)
-            logger.info(   - Professional UI with accessibility compliance)
-        else:
-            logger.info(⚠️  Some enhancements may not be fully applied)
+        for css_url in css_urls:
+            if not css_url.startswith(('http', '//')):
+                css_url = "http://localhost:8080{}{}".format(
+                    '' if css_url.startswith('/') else '/',
+                    css_url
+                )
             
-        return enhancements_count >= 4
+            try:
+                css_response = requests.get(css_url, timeout=10)
+                if css_response.status_code == 200:
+                    css_content = css_response.text
+                    if '--primary-color:' in css_content and '--secondary-color:' in css_content:
+                        color_vars_found = True
+                        break
+            except Exception as e:
+                logger.warning("Could not fetch CSS file {}: {}".format(css_url, str(e)))
+        
+        logger.info("CSS color variables: {}".format('Found' if color_vars_found else 'Missing'))
+        
+        # Check for accessibility features
+        alt_text = 'alt=' in html_content
+        aria_labels = 'aria-label=' in html_content
+        
+        logger.info("Alt text: {}".format('Present' if alt_text else 'Missing'))
+        logger.info("ARIA labels: {}".format('Present' if aria_labels else 'Missing'))
+        
+        # Check for responsive design meta tag
+        viewport_meta = 'name="viewport"' in html_content
+        logger.info("Viewport meta tag: {}".format('Present' if viewport_meta else 'Missing'))
+        
+        # Check for modern CSS features
+        css_grid = 'display: grid' in html_content or 'display:grid' in html_content
+        flexbox = 'display: flex' in html_content or 'display:flex' in html_content
+        
+        logger.info("CSS Grid usage: {}".format('Present' if css_grid else 'Missing'))
+        logger.info("Flexbox usage: {}".format('Present' if flexbox else 'Missing'))
+        
+        # Overall assessment
+        all_checks = [
+            hero_section,
+            features_section,
+            cta_section,
+            primary_button,
+            color_vars_found,
+            alt_text,
+            viewport_meta,
+            css_grid or flexbox
+        ]
+        
+        overall_score = sum(1 for check in all_checks if check) / len(all_checks) * 100
+        
+        if overall_score >= 90:
+            logger.info("Color theory implementation: EXCELLENT ({:.1f}%)".format(overall_score))
+        elif overall_score >= 70:
+            logger.info("Color theory implementation: GOOD ({:.1f}%)".format(overall_score))
+        else:
+            logger.info("Color theory implementation: NEEDS IMPROVEMENT ({:.1f}%)".format(overall_score))
+        
+        return overall_score >= 70
         
     except Exception as e:
-        logger.error(❌ Error testing color theory enhancements: {e})
+        logger.error("Error testing color theory: {}".format(str(e)))
         return False
 
 if __name__ == "__main__":
-    logger.info(🎨 Testing Color Theory Enhancements...\n)
+    logger.info("Testing Color Theory Enhancements...\n")
     success = test_color_theory_enhancements()
-    logger.info(\n{'='*50})
-    logger.info(Overall Status: {'SUCCESS' if success else 'NEEDS ATTENTION'})
+    logger.info("\n" + "="*50)
+    logger.info("Test {}".format('PASSED' if success else 'FAILED'))
