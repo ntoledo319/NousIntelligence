@@ -1,8 +1,0 @@
-[deployment]
-run = ["sh", "-c", "bash start.sh"]
-deploymentTarget = "cloudrun"
-ignorePorts = false
-
-[auth]
-pageEnabled = false
-buttonEnabled = false

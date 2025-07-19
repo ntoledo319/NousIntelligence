@@ -1,4 +1,0 @@
-language = "python3"
-entrypoint = "app.py"
-run = "python app.py"
-hidden = [".pythonlibs"]

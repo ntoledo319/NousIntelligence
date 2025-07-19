@@ -1,6 +1,0 @@
-# Initialize environment for deployment
-export REPLIT_DEPLOYMENT=true
-export FLASK_ENV=production
-export PORT=8080
-export PYTHONPATH="${PYTHONPATH}:${REPL_HOME}"
-export PYTHONUNBUFFERED=1

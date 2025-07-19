@@ -1,9 +1,0 @@
-[Run App]
-run = "python app_public.py"
-language = "python3"
-persistent = true
-
-[Public App]
-run = "bash run_nous_public.sh"
-language = "python3"
-persistent = true
