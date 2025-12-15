@@ -312,6 +312,9 @@ def create_app():
         }), getattr(error, 'code', 500)
     
     logger.info("✨ App creation complete. NOUS is ready to serve with love! ✨")
+    # Initialize NOUS core runtime (event bus + semantic index + policy)
+    from services.runtime_service import init_runtime
+    init_runtime(app)
     return app
 
 @distress_tolerance("TIPP")

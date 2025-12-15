@@ -118,3 +118,7 @@ def get_rate_limit_status(key: str = None, limit: int = 60, window: int = 60) ->
         'reset_time': reset_time,
         'current_requests': current_requests
     }
+
+# Preconfigured limits used by auth routes
+login_rate_limit = rate_limit(limit=5, window=60)   # 5/min
+oauth_rate_limit = rate_limit(limit=10, window=60)  # 10/min

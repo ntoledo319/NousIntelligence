@@ -39,6 +39,7 @@ dependencies = [
     "numpy>=1.24.4",
     "spotipy>=2.22.1",
     "pyjwt>=2.8.0",
+    "flask-wtf>=1.2.2",
 ]
 
 [project.urls]
@@ -50,6 +51,9 @@ dependencies = [
 nous = "main:main"
 
 [project.optional-dependencies]
+semantic = [
+    "sentence-transformers>=2.2.2"
+]
 dev = [
     "pytest>=8.0.0",
     "pytest-cov>=4.1.0",
@@ -58,6 +62,7 @@ dev = [
     "mypy>=1.8.0",
     "isort>=5.13.0",
     "bandit>=1.7.6",
+    "ruff>=0.6.0",
 ]
 
 [build-system]
@@ -81,3 +86,12 @@ exclude = [
     "tests*",
     "__pycache__*",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["archive", "node_modules", "instance", ".venv", "venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]

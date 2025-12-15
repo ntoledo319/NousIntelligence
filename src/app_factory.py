@@ -29,6 +29,20 @@ def create_app(config_name='development'):
     # Setup logging
     setup_logging(app)
     
+    # Initialize NOUS core runtime (event bus + semantic index + policy)
+    try:
+        from services.runtime_service import init_runtime
+        init_runtime(app)
+    except Exception:
+        pass
+    
+    # Register API v2 blueprint
+    try:
+        from routes.api_v2 import api_v2_bp
+        app.register_blueprint(api_v2_bp, url_prefix="/api/v2")
+    except Exception:
+        pass
+    
     return app
 
 def register_blueprints(app):

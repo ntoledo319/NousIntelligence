@@ -6,7 +6,7 @@ Provides comprehensive health checking for deployment monitoring
 import os
 import logging
 from datetime import datetime
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 
 logger = logging.getLogger(__name__)
 
@@ -138,6 +138,14 @@ def liveness_check():
         "status": "alive",
         "timestamp": datetime.now().isoformat()
     }), 200
+
+@health_api_bp.route('/demo/chat', methods=['POST'])
+def demo_chat():
+    data = request.get_json() or {}
+    message = str(data.get('message', '') or '')
+    if not message.strip():
+        return jsonify({'ok': False, 'error': 'message_required'}), 400
+    return jsonify({'ok': True, 'response': f"Demo says: {message}"})
 
 # Export the blueprint
 __all__ = ['health_api_bp']
