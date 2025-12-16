@@ -9,12 +9,37 @@ Every error is a teacher in disguise.
 import os
 import json
 import logging
+import re
 import urllib.parse
 import urllib.request
 from datetime import datetime
 from flask import Flask, render_template, redirect, url_for, session, request, jsonify, flash, Response, g
 from flask_login import LoginManager, current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
+
+# Helper function to sanitize HTTP header values (remove emojis and non-latin-1 characters)
+def sanitize_header_value(value: str) -> str:
+    """
+    Sanitize HTTP header values by removing emojis and non-latin-1 characters.
+    HTTP headers must be encodable in latin-1 (0x00-0xFF).
+    
+    Args:
+        value: Header value that may contain emojis or Unicode characters
+        
+    Returns:
+        Sanitized header value with only latin-1 compatible characters
+    """
+    if not value:
+        return value
+    
+    # Remove all characters outside latin-1 range (0x00-0xFF)
+    # This removes emojis, most Unicode characters, etc.
+    sanitized = re.sub(r'[^\x00-\xFF]', '', value)
+    
+    # Clean up any extra whitespace that might result from emoji removal
+    sanitized = ' '.join(sanitized.split())
+    
+    return sanitized.strip()
 
 # 🧘‍♀️ Import our therapeutic framework
 try:
@@ -75,7 +100,19 @@ except ImportError:
     class AppConfig:
         SECRET_KEY = os.environ.get('SESSION_SECRET')
         DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///nous_healing_journey.db')
-        SQLALCHEMY_DATABASE_URI = DATABASE_URL
+        # Normalize postgres:// to postgresql:// if needed
+        _normalized_url = DATABASE_URL
+        if _normalized_url and _normalized_url.startswith("postgres://"):
+            _normalized_url = _normalized_url.replace("postgres://", "postgresql://", 1)
+        SQLALCHEMY_DATABASE_URI = _normalized_url
+        
+        @classmethod
+        def get_database_url(cls):
+            """Get normalized database URL"""
+            url = cls.DATABASE_URL
+            if url and url.startswith("postgres://"):
+                url = url.replace("postgres://", "postgresql://", 1)
+            return url
         
         if not SECRET_KEY:
             raise CompassionateException(
@@ -86,7 +123,7 @@ except ImportError:
 
 # Import database with mindful awareness
 try:
-    from database import db, init_database
+    from models.database import db, init_db as init_database
     logger.info("🗄️ Database connection established. Your data is safe with us.")
 except ImportError:
     logger.warning("🌱 Database module is growing in its own time...")
@@ -157,7 +194,8 @@ def create_app():
     
     # Set the foundation with love
     app.secret_key = AppConfig.SECRET_KEY
-    app.config["SQLALCHEMY_DATABASE_URI"] = AppConfig.SQLALCHEMY_DATABASE_URI
+    # Use normalized database URL (postgres:// -> postgresql://)
+    app.config["SQLALCHEMY_DATABASE_URI"] = AppConfig.get_database_url() if hasattr(AppConfig, 'get_database_url') else AppConfig.SQLALCHEMY_DATABASE_URI
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
         "pool_recycle": 300,  # Regular renewal, like therapy sessions
         "pool_pre_ping": True,  # Check connection health proactively
@@ -186,12 +224,16 @@ def create_app():
         response.headers['X-Content-Type-Options'] = 'nosniff'  # Clear boundaries
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'  # Healthy attachment
         response.headers['X-XSS-Protection'] = '1; mode=block'  # Active protection
-        response.headers['X-Therapeutic-Affirmation'] = g.get('affirmation', 'You are valued')
+        
+        # Sanitize affirmations to remove emojis (HTTP headers must be latin-1 encodable)
+        affirmation = g.get('affirmation', 'You are valued')
+        response.headers['X-Therapeutic-Affirmation'] = sanitize_header_value(affirmation)
         response.headers['X-Response-Time'] = str((datetime.now() - g.request_start_time).total_seconds())
         
-        # Add coping tip on errors
+        # Add coping tip on errors (sanitized)
         if response.status_code >= 400:
-            response.headers['X-Coping-Tip'] = generate_affirmation('error')
+            coping_tip = generate_affirmation('error')
+            response.headers['X-Coping-Tip'] = sanitize_header_value(coping_tip)
             
         return response
     

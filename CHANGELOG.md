@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **HTTP Header Encoding**: Fixed UnicodeEncodeError in HTTP response headers
+  - Resolved issue where therapeutic affirmations containing emojis caused latin-1 encoding errors
+  - Added `sanitize_header_value()` function to remove emojis and non-latin-1 characters from header values
+  - Headers `X-Therapeutic-Affirmation` and `X-Coping-Tip` now properly sanitized for HTTP compliance
+  - Affirmations still work in templates, JSON responses, and logs; only headers are sanitized
+  - Fixes Render deployment errors: `UnicodeEncodeError: 'latin-1' codec can't encode character`
 - **Render Deployment**: Fixed Poetry build failure by adding `package-mode = false` to `pyproject.toml`
   - Resolved issue where Poetry tried to install the current project as a package
   - Service now correctly installs dependencies without attempting to install the project itself
