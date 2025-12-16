@@ -18,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Quality gate scoring
   - Monitoring snapshots
   - Policy engine
+- Added NOUS Nexus unified pipeline
+- Added Memory Graph and graph endpoints
+- Added Crossref + OpenLibrary connectors
+- Added workflows + optional scheduler
+- Added metrics endpoint and request-id header
+- Added Nexus console page
 - Added API v2 (`/api/v2`) endpoints:
   - /health
   - /plugins/status
@@ -33,6 +39,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - /quote/random
   - /briefing/daily
   - /export/text
+  - /nexus/chat, /nexus/ingest, /nexus/graph
+  - /research/crossref, /library/search
+  - /workflows/daily_reset
 
 ### Planned
 - Full SQLAlchemy User model integration

@@ -19,6 +19,9 @@ CORE_BLUEPRINTS = [
     {'name': 'callback', 'module': 'routes.callback_routes', 'attr': 'callback_bp', 'url_prefix': None},
     {'name': 'api', 'module': 'routes.api_routes', 'attr': 'api_bp', 'url_prefix': '/api/v1'},
     {'name': 'api_v2', 'module': 'routes.api_v2', 'attr': 'api_v2_bp', 'url_prefix': '/api/v2'},
+    {'name': 'nexus', 'module': 'routes.nexus_api', 'attr': 'nexus_bp', 'url_prefix': '/api/v2'},
+    {'name': 'metrics', 'module': 'routes.metrics_routes', 'attr': 'metrics_bp', 'url_prefix': ''},
+    {'name': 'nexus_console', 'module': 'routes.nexus_console_routes', 'attr': 'nexus_console_bp', 'url_prefix': ''},
     {'name': 'chat', 'module': 'routes.chat_routes', 'attr': 'chat_bp', 'url_prefix': None},
     # Mental health resources are core features for crisis support
     {'name': 'resources', 'module': 'routes.mental_health_resources_routes', 'attr': 'resources_bp', 'url_prefix': '/resources'},

@@ -54,6 +54,9 @@ nous = "main:main"
 semantic = [
     "sentence-transformers>=2.2.2"
 ]
+scheduler = [
+    "apscheduler>=3.10.4"
+]
 dev = [
     "pytest>=8.0.0",
     "pytest-cov>=4.1.0",

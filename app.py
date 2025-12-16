@@ -315,6 +315,43 @@ def create_app():
     # Initialize NOUS core runtime (event bus + semantic index + policy)
     from services.runtime_service import init_runtime
     init_runtime(app)
+    
+    # Initialize scheduler (optional)
+    try:
+        from services.scheduler_service import init_scheduler
+        init_scheduler(app)
+    except Exception:
+        pass
+    
+    # Add request-id + event emission middleware
+    import uuid
+    
+    @app.before_request
+    def _nous_before():
+        g.request_id = str(uuid.uuid4())
+        try:
+            rt = init_runtime(app)
+            rt["bus"].publish("http.request", {
+                "id": g.request_id,
+                "path": request.path,
+                "method": request.method,
+            })
+        except Exception:
+            pass
+    
+    @app.after_request
+    def _nous_after(resp):
+        try:
+            rt = init_runtime(app)
+            rt["bus"].publish("http.response", {
+                "id": getattr(g, "request_id", None),
+                "status": getattr(resp, "status_code", None),
+            })
+        except Exception:
+            pass
+        resp.headers["X-Request-Id"] = getattr(g, "request_id", "")
+        return resp
+    
     return app
 
 @distress_tolerance("TIPP")
