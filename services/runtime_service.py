@@ -27,4 +27,3 @@ def init_runtime(app: Flask) -> Dict[str, Any]:
     rt = {"store": store, "bus": bus, "semantic": sem, "policy": policy}
     app.extensions["nous_runtime"] = rt
     return rt
-

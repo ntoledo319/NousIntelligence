@@ -27,4 +27,3 @@ def test_api_v2_events_roundtrip(client):
     data = recent.get_json()
     assert data["ok"] is True
     assert isinstance(data["events"], list)
-
