@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Render Deployment**: Fixed Poetry build failure by adding `package-mode = false` to `pyproject.toml`
+  - Resolved issue where Poetry tried to install the current project as a package
+  - Service now correctly installs dependencies without attempting to install the project itself
+  - Build should now succeed on Render deployments
+
 ### Added
 - Security: removed committed `.secret_key` and purged git history
 - Repo hygiene: removed committed `node_modules` and purged git history

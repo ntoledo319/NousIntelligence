@@ -90,6 +90,11 @@ exclude = [
     "__pycache__*",
 ]
 
+[tool.poetry]
+# Disable package mode - Poetry will only manage dependencies, not install the project itself
+# This allows Poetry to work with PEP 621 format while using poetry install
+package-mode = false
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"
