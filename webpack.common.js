@@ -99,9 +99,11 @@ module.exports = (env, argv) => {
         patterns: [
           {
             from: 'public',
+            to: '.',
             globOptions: {
               ignore: ['**/index.html', '**/favicon.ico'],
             },
+            noErrorOnMissing: true,
           },
         ],
       }),
