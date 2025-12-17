@@ -15,7 +15,7 @@ from sqlalchemy import and_, or_, desc, func
 logger = logging.getLogger(__name__)
 
 # Import database and models
-from database import db
+from models.database import db
 from models.health_models import (
     DBTSkillLog, DBTDiaryCard, CBTThoughtRecord, CBTMoodLog, 
     CBTCopingSkill, CBTSkillUsage

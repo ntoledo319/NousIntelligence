@@ -14,7 +14,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 from sqlalchemy import and_, desc
-from database import db
+from models.database import db
 
 # Import NOUS models
 from models.health_models import (

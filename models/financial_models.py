@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from sqlalchemy import func
 from sqlalchemy.ext.hybrid import hybrid_property
-from database import db
+from models.database import db
 import json
 
 class BankAccount(db.Model):

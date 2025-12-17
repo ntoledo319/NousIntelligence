@@ -10,7 +10,7 @@ from authlib.integrations.flask_client import OAuth
 from flask import session, redirect, url_for, request, flash
 from flask_login import login_user, logout_user, current_user
 from models.user import User
-from database import db
+from models.database import db
 from datetime import datetime
 from utils.secret_manager import SecretManager
 
@@ -335,25 +335,9 @@ class GoogleOAuthService:
             return None
         
         return None
-
-
-# Global OAuth service instance
-oauth_service = GoogleOAuthService()
-
-
-def init_oauth(app):
-    """Initialize OAuth service with app"""
-    success = oauth_service.init_app(app)
-    if success:
-        return oauth_service
-    else:
-        return None
-
-
-
+    
     def get_deployment_url(self):
         """Get the current deployment URL"""
-        import os
         from flask import request, has_request_context
         
         # Try environment variables first
@@ -362,38 +346,35 @@ def init_oauth(app):
                 return os.environ.get(env_var)
         
         # Try to get from request context
-        if has_request_context() and request:
+        if has_request_context():
             scheme = 'https' if request.is_secure else 'http'
             return f"{scheme}://{request.host}"
         
         # Fallback to common Replit URL
         return "https://nous.replit.app"
 
-def user_loader(user_id):
-    """Load user by ID for Flask-Login"""
-    return User.query.get(int(user_id))
-
-
-def require_auth():
-    """Check if authentication is required and redirect if needed"""
-    if not current_user.is_authenticated:
-        # Store the requested URL for redirect after login
-        session['next'] = request.url
-        return redirect(url_for('auth.login'))
-    return None
 
 # Global OAuth service instance
 oauth_service = GoogleOAuthService()
 
+
 def init_oauth(app):
-    """Initialize OAuth with Flask app"""
-    try:
-        result = oauth_service.init_app(app)
-        if result:
-            logger.info("OAuth service initialized successfully")
-        else:
-            logger.warning("OAuth service initialization failed - credentials missing")
-        return result
-    except Exception as e:
-        logger.error(f"OAuth initialization error: {e}")
-        return False
+    """Initialize OAuth service with app. Returns the service on success or None on failure."""
+    success = oauth_service.init_app(app)
+    return oauth_service if success else None
+
+
+def user_loader(user_id):
+    """Flask-Login user loader: load User by ID."""
+    return User.query.get(int(user_id)) if user_id else None
+
+
+def require_auth():
+    """Decorator or utility to enforce login for certain routes."""
+    if not current_user.is_authenticated:
+        # Save next URL for redirect after login
+        session['next'] = request.url
+        # Redirect to login with a flash message
+        flash("Please log in to access this page.", "warning")
+        return redirect(url_for('auth.login'))
+    return None

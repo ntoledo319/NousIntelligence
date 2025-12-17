@@ -10,7 +10,7 @@ import logging
 from flask import session, request, jsonify, redirect, url_for, current_app, g
 from models.user import User
 from models.setup_models import UserPreferences
-from database import db
+from models.database import db
 
 logger = logging.getLogger(__name__)
 

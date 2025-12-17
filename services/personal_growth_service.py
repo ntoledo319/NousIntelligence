@@ -12,7 +12,7 @@ import logging
 from datetime import datetime, date, timedelta
 from typing import Dict, List, Optional, Any, Tuple
 from sqlalchemy import and_, or_, func
-from database import db
+from models.database import db
 from models.personal_growth_models import (
     Goal, GoalMilestone, Habit, HabitEntry, JournalEntry,
     JournalAttachment, VisionBoard, VisionBoardItem, ReflectionPrompt
@@ -28,7 +28,7 @@ class PersonalGrowthService:
     
     def __init__(self):
         self.gamification_service = GamificationService()
-        self.notification_service = NotificationService()
+        self.notification_service = NotificationService(db)
         logger.info("Personal Growth Service initialized")
     
     # === Goal Methods ===

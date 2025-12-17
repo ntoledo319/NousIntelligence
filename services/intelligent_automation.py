@@ -16,6 +16,7 @@ from utils.unified_ai_service import UnifiedAIService
 from utils.notification_service import NotificationService
 from utils.weather_helper import WeatherHelper
 from services.predictive_analytics import predictive_engine
+from models.database import db
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +62,7 @@ class IntelligentAutomationEngine:
     def __init__(self):
         """Initialize automation engine"""
         self.ai_service = UnifiedAIService()
-        self.notification_service = NotificationService()
+        self.notification_service = NotificationService(db)
         self.weather_helper = WeatherHelper()
         
         # Active automation rules

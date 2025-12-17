@@ -6,7 +6,7 @@ including DBT (Dialectical Behavior Therapy) and AA (Alcoholics Anonymous) model
 """
 
 from datetime import datetime
-from database import db
+from models.database import db
 from sqlalchemy.ext.hybrid import hybrid_property
 
 class DBTSkillRecommendation(db.Model):

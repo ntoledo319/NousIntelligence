@@ -3,7 +3,7 @@ User Repository - Data access layer for user-related operations
 """
 
 from typing import Optional, List, Dict, Any
-from database import db
+from models.database import db
 from models.user import User
 
 class UserRepository:

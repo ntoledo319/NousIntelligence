@@ -8,7 +8,7 @@ Provides location-based access to affordable mental health care options.
 @context_boundary Crisis Support & Mental Health Resources
 """
 
-from database import db
+from models.database import db
 from datetime import datetime
 from sqlalchemy import func, Index
 from sqlalchemy.dialects.postgresql import JSONB

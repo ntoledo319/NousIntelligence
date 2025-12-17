@@ -12,7 +12,7 @@ from models.user import User
 from models.setup_models import UserPreferences, SetupProgress
 from models.analytics_models import Activity, Insight, HealthMetric
 from models.health_models import DBTSkillLog, DBTDiaryCard, DBTEmotionTrack
-from database import db
+from models.database import db
 
 logger = logging.getLogger(__name__)
 

@@ -8,7 +8,7 @@ achievements, badges, streaks, points, and leaderboards.
 @context_boundary Gamification System
 """
 
-from database import db
+from models.database import db
 from datetime import datetime, timedelta
 from sqlalchemy import func, and_
 

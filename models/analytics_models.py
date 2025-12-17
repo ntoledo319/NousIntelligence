@@ -11,7 +11,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 import json
 
 # Import the shared database instance
-from database import db
+from models.database import db
 
 class UserActivity(db.Model):
     """Track user activities and interactions"""
@@ -72,7 +72,7 @@ class UserMetrics(db.Model):
     # Relationships
     user = db.relationship('User', backref=db.backref('metrics', lazy=True))
 
-class UserInsights(db.Model):
+class UserInsight(db.Model):
     """AI-generated insights about user behavior and patterns"""
     __tablename__ = 'user_insights'
 
@@ -197,7 +197,9 @@ class PerformanceMetrics(db.Model):
 
 # Legacy aliases for backward compatibility
 Activity = UserActivity
-Insight = UserInsights
+Insight = UserInsight
 Goal = UserGoals
 HealthMetric = UserMetrics
 AnalyticsData = UserMetrics
+# Keep plural alias for backward compatibility
+UserInsights = UserInsight

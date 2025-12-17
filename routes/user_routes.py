@@ -8,7 +8,7 @@ from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_a
 from models.user import User
 from models.setup_models import UserPreferences, SetupProgress
 from models.analytics_models import Activity, Insight
-from database import db
+from models.database import db
 from datetime import datetime
 import logging
 

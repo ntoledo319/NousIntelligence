@@ -5,7 +5,7 @@ Database models for beta user management and feature flags
 import uuid
 from datetime import datetime
 from sqlalchemy.orm import relationship
-from database import db
+from models.database import db
 
 class BetaUser(db.Model):
     """Beta user registration and management"""

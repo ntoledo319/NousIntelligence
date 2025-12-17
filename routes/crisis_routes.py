@@ -55,7 +55,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, session
 
 # Import database from database module to avoid circular imports
-from database import db
+from models.database import db
 from models import User
 
 # Import DBT crisis helper functions

@@ -12,7 +12,7 @@ import logging
 from datetime import datetime, timedelta, date
 from typing import Dict, List, Optional, Any, Tuple
 from sqlalchemy import and_, or_, func
-from database import db
+from models.database import db
 from models.gamification_models import (
     Achievement, UserAchievement, WellnessStreak, UserPoints,
     PointTransaction, Leaderboard, Challenge, ChallengeParticipation
@@ -27,7 +27,7 @@ class GamificationService:
     """Service for managing gamification and engagement features"""
     
     def __init__(self):
-        self.notification_service = NotificationService()
+        self.notification_service = NotificationService(db)
         self.point_values = {
             'mood_log': 5,
             'dbt_skill': 10,

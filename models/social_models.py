@@ -8,7 +8,7 @@ peer connections, anonymous sharing, and community interactions.
 @context_boundary Social Features
 """
 
-from database import db
+from models.database import db
 from datetime import datetime
 from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import UUID

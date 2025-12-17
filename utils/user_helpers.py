@@ -12,7 +12,7 @@ import secrets
 from flask import session, request
 from models.user import User
 from models.setup_models import UserPreferences, SetupProgress
-from database import db
+from models.database import db
 
 logger = logging.getLogger(__name__)
 

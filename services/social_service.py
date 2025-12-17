@@ -15,7 +15,7 @@ from typing import Dict, List, Optional, Any, Tuple
 from sqlalchemy import and_, or_, func
 from flask import g
 
-from database import db
+from models.database import db
 from models.social_models import (
     SupportGroup, GroupMembership, PeerConnection, AnonymousShare,
     AnonymousResponse, GroupPost, GroupComment
@@ -30,7 +30,7 @@ class SocialService:
     """Service for managing social and community features"""
     
     def __init__(self):
-        self.notification_service = NotificationService()
+        self.notification_service = NotificationService(db)
         logger.info("Social Service initialized")
     
     # === Support Group Methods ===

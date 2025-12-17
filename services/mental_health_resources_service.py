@@ -13,7 +13,7 @@ import math
 from datetime import datetime
 from typing import Dict, List, Optional, Any, Tuple
 from sqlalchemy import and_, or_, func
-from database import db
+from models.database import db
 from models.mental_health_resources import (
     CrisisResource, TherapyProvider, PsychiatryProvider,
     CommunityResource, UserSavedResource

@@ -9,6 +9,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Complete Spotify Pipeline**: Full-featured Spotify integration with OAuth, data ingestion, and enrichment
+  - OAuth 2.0 authentication with automatic token refresh and SQLite storage
+  - Recently played tracks ingestion into NOUS runtime (SemanticIndex, MemoryGraph, EventBus)
+  - MusicBrainz enrichment via ISRC lookup (credits, releases, tags)
+  - Last.fm tag enrichment (optional, requires API key)
+  - Lyrics fetching and analysis (lyrics.ovh provider + user upload support)
+  - Lyrics analysis: sentiment, themes, keywords, excerpts
+  - Audio features integration (danceability, energy, valence, tempo, etc.)
+  - Graph relationships: track→artist, track→tags, track→MusicBrainz recording
+  - Event publishing: `spotify.track.played` events
+  - Backwards compatibility: alias endpoints for legacy code (`/authorize_spotify`, `/callback/spotify`)
+  - New API endpoints:
+    - `GET /api/v2/spotify/status` - Connection status
+    - `GET /api/v2/spotify/auth/url` - OAuth authorization URL
+    - `GET /callback/spotify` - OAuth callback handler
+    - `POST /api/v2/spotify/disconnect` - Disconnect Spotify
+    - `GET /api/v2/spotify/devices` - List available devices
+    - `GET /api/v2/spotify/search` - Search tracks/artists/playlists
+    - `POST /api/v2/spotify/play` - Start playback
+    - `POST /api/v2/spotify/pause` - Pause playback
+    - `POST /api/v2/spotify/sync` - Ingest recently played tracks
+    - `POST /api/v2/spotify/lyrics/upload` - Upload lyrics for analysis
+    - `GET /api/v2/spotify/track/<track_id>` - Get track details with enrichment
+- **Spotify Service Architecture**:
+  - `services/spotify/spotify_store.py` - SQLite token/cache store
+  - `services/spotify/spotify_api.py` - Spotify Web API client (no spotipy dependency)
+  - `services/spotify/spotify_ingest.py` - NOUS runtime integration
+  - `services/spotify/enrichment_musicbrainz.py` - MusicBrainz ISRC enrichment
+  - `services/spotify/enrichment_lastfm.py` - Last.fm tags enrichment
+  - `services/spotify/lyrics/` - Lyrics providers and analyzer
+- **Infrastructure Updates**:
+  - `utils/http.py` - HTTP utilities for API calls
+  - `utils/spotify_helper.py` - Compatibility helper for existing code
+  - `utils/unified_spotify_services.py` - Fixed broken plugin interface
+  - `utils/spotify_client.py` - Fixed broken client wrapper
+  - `utils/spotify_visualizer.py` - Minimal visualization helper
+  - `routes/spotify_routes.py` - Complete OAuth + API + ingestion routes
+  - `routes/consolidated_spotify_routes.py` - Deprecated compatibility stub
+
 ### Fixed
 - **HTTP Header Encoding**: Fixed UnicodeEncodeError in HTTP response headers
   - Resolved issue where therapeutic affirmations containing emojis caused latin-1 encoding errors

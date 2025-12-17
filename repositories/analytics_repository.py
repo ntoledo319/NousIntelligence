@@ -4,7 +4,7 @@ Analytics Repository - Data access layer for analytics and metrics operations
 
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
-from database import db
+from models.database import db
 from models.analytics_models import UserActivity, Goal, Insight
 
 class AnalyticsRepository:

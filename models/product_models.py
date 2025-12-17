@@ -3,7 +3,7 @@ Product Models - E-commerce and Amazon Integration
 Models for product tracking, price monitoring, wishlists, and shopping management
 """
 
-from database import db
+from models.database import db
 from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, Float, JSON
 from sqlalchemy.orm import relationship

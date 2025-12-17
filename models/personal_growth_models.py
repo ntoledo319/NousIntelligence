@@ -8,7 +8,7 @@ goal setting, habit tracking, journaling, and vision boards.
 @context_boundary Personal Development
 """
 
-from database import db
+from models.database import db
 from datetime import datetime, date
 from sqlalchemy import func
 import json

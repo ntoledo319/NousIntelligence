@@ -5,7 +5,7 @@ Database models for the initial user setup and onboarding process.
 """
 
 from datetime import datetime
-from database import db
+from models.database import db
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 

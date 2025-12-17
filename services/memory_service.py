@@ -7,7 +7,7 @@ import json
 import logging
 from typing import Dict, Any, List, Optional, Union
 from datetime import datetime, timezone, timedelta
-from database import db
+from models.database import db
 from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, Float, ForeignKey
 from sqlalchemy.orm import relationship
 

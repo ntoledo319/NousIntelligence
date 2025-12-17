@@ -4,7 +4,7 @@ Language Learning Repository - Data access layer for language learning operation
 
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from database import db
+from models.database import db
 from models.language_learning_models import (
     LanguageLearningSession, Vocabulary, Grammar, 
     LearningProgress, LanguageGoal

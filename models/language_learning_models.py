@@ -3,7 +3,7 @@ Language Learning Models
 Models for tracking language learning progress, sessions, and achievements
 """
 
-from database import db
+from models.database import db
 from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, Float
 from sqlalchemy.orm import relationship

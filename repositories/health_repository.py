@@ -4,7 +4,7 @@ Health Repository - Data access layer for health-related operations
 
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from database import db
+from models.database import db
 from models.health_models import (
     DBTSkillRecommendation, DBTSkillLog, DBTDiaryCard,
     DBTSkillChallenge, DBTCrisisResource, DBTEmotionTrack,

@@ -6,7 +6,7 @@ This package contains all database models for the NOUS application.
 
 # Core models - always available
 from datetime import datetime
-from database import db
+from models.database import db
 from models.user import User
 from models.database import init_db, get_db_health
 

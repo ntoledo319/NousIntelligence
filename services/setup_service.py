@@ -7,7 +7,7 @@ Business logic for the user setup wizard and onboarding process.
 import logging
 from typing import Dict, List, Any, Optional
 from datetime import datetime
-from database import db
+from models.database import db
 from models.setup_models import SetupProgress, UserPreferences
 from models.user import User
 
