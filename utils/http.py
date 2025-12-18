@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-import json
 import logging
 from typing import Any, Dict, Optional, Tuple
-from urllib.parse import urlencode
 
 import requests
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_TIMEOUT: Tuple[float, float] = (5.0, 20.0)  # (connect, read)
+DEFAULT_TIMEOUT: Tuple[float, float] = (5.0, 20.0)
 
 
 class HTTPError(RuntimeError):

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 import time
+import re
 from typing import Any, Dict
 
 from flask import Blueprint, jsonify, request, session
@@ -12,9 +13,32 @@ api_bp = Blueprint("api", __name__)
 
 MAX_MESSAGE_LEN = 10000
 
+
 def _escape_text(s: str) -> str:
-    # Prevent XSS by escaping any user-controlled content
-    return html.escape(s or "", quote=True)
+    """
+    Normalize and escape user-controlled text for safe display.
+
+    - HTML-escape content to prevent tag injection.
+    - Strip dangerous URL schemes like ``javascript:``.
+    - Remove inline JS event handlers such as ``onload=``.
+    - Drop any embedded null bytes.
+    """
+    text = s or ""
+    # Remove null bytes that can confuse downstream parsers
+    text = text.replace("\x00", "")
+
+    # Strip dangerous protocols and inline event handlers
+    dangerous_patterns = [
+        r"javascript\s*:",
+        r"vbscript\s*:",
+        r"data\s*:",
+        r"on\w+\s*=",  # onload=, onclick=, etc.
+    ]
+    for pat in dangerous_patterns:
+        text = re.sub(pat, "", text, flags=re.IGNORECASE)
+
+    # Finally, HTML-escape for safe rendering
+    return html.escape(text, quote=True)
 
 def _demo_response(message: str) -> str:
     # Deterministic, safe fallback response (no external model required)

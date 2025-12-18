@@ -88,7 +88,9 @@ class AppConfig:
     @classmethod
     def get_database_url(cls) -> str:
         """Get database URL with proper fallback handling"""
-        database_url = cls.DATABASE_URL
+        # Always re-read from the environment to support tests that
+        # modify DATABASE_URL after import time.
+        database_url = os.environ.get('DATABASE_URL') or cls.DATABASE_URL
         if not database_url:
             # For production, require explicit DATABASE_URL
             if not cls.DEBUG:

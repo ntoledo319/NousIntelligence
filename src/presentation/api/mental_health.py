@@ -23,7 +23,6 @@ def internal_error(error):
     return jsonify({'error': 'Internal server error'}), 500
 
 @mental_health_bp.route('/mood', methods=['POST'])
-@demo_allowed
 def log_mood():
     """Log a mood entry"""
     data = request.get_json()

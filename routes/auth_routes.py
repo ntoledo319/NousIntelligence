@@ -221,7 +221,7 @@ def demo_mode():
         flash('Failed to activate demo mode. Please try again.', 'error')
         return redirect('/auth/login')
 
-@auth_bp.route('/logout', methods=['POST'])
+@auth_bp.route('/logout', methods=['GET', 'POST'])
 def logout():
     """Logout current user with CSRF protection"""
     try:

@@ -34,7 +34,9 @@ def get_tasks():
 @demo_allowed
 def create_task():
     """Create a new task"""
-    data = request.get_json()
+    # Use silent JSON parsing so tests exercising validation don't receive
+    # a 415 Unsupported Media Type for empty or invalid bodies.
+    data = request.get_json(silent=True) or {}
     if not data:
         return jsonify({'error': 'No data provided'}), 400
     

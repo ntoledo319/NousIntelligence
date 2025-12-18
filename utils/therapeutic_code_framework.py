@@ -11,6 +11,7 @@ import functools
 import time
 import logging
 import random
+import re
 from typing import Any, Callable, Dict, List, Optional
 from datetime import datetime
 from flask import session, request, g
@@ -390,7 +391,9 @@ class TherapeuticContext:
     Creates a supportive context for code execution
     """
     def __init__(self, context_name: str = "safe_space"):
-        self.context_name = context_name
+        # Normalize context name so tests can rely on a stable identifier.
+        # Replace whitespace with underscores while preserving the original spirit.
+        self.context_name = re.sub(r"\s+", "_", context_name.strip())
         self.support_messages = []
         self.coping_strategies = []
         

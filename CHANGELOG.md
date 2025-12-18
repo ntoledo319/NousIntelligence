@@ -10,46 +10,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Complete Spotify Pipeline**: Full-featured Spotify integration with OAuth, data ingestion, and enrichment
-  - OAuth 2.0 authentication with automatic token refresh and SQLite storage
-  - Recently played tracks ingestion into NOUS runtime (SemanticIndex, MemoryGraph, EventBus)
-  - MusicBrainz enrichment via ISRC lookup (credits, releases, tags)
-  - Last.fm tag enrichment (optional, requires API key)
-  - Lyrics fetching and analysis (lyrics.ovh provider + user upload support)
-  - Lyrics analysis: sentiment, themes, keywords, excerpts
-  - Audio features integration (danceability, energy, valence, tempo, etc.)
-  - Graph relationships: track→artist, track→tags, track→MusicBrainz recording
-  - Event publishing: `spotify.track.played` events
-  - Backwards compatibility: alias endpoints for legacy code (`/authorize_spotify`, `/callback/spotify`)
-  - New API endpoints:
-    - `GET /api/v2/spotify/status` - Connection status
-    - `GET /api/v2/spotify/auth/url` - OAuth authorization URL
+- **Stable Spotify Integration with Mood-Based Playlist Generation**: Complete rewrite of Spotify integration with reliable OAuth, ingestion, and intelligent playlist creation
+  - **OAuth Flow**: Simple, reliable OAuth 2.0 flow with SQLite token storage
+    - `GET /authorize_spotify` - Initiate OAuth authorization
     - `GET /callback/spotify` - OAuth callback handler
-    - `POST /api/v2/spotify/disconnect` - Disconnect Spotify
-    - `GET /api/v2/spotify/devices` - List available devices
-    - `GET /api/v2/spotify/search` - Search tracks/artists/playlists
-    - `POST /api/v2/spotify/play` - Start playback
-    - `POST /api/v2/spotify/pause` - Pause playback
-    - `POST /api/v2/spotify/sync` - Ingest recently played tracks
-    - `POST /api/v2/spotify/lyrics/upload` - Upload lyrics for analysis
-    - `GET /api/v2/spotify/track/<track_id>` - Get track details with enrichment
-- **Spotify Service Architecture**:
-  - `services/spotify/spotify_store.py` - SQLite token/cache store
-  - `services/spotify/spotify_api.py` - Spotify Web API client (no spotipy dependency)
-  - `services/spotify/spotify_ingest.py` - NOUS runtime integration
-  - `services/spotify/enrichment_musicbrainz.py` - MusicBrainz ISRC enrichment
-  - `services/spotify/enrichment_lastfm.py` - Last.fm tags enrichment
-  - `services/spotify/lyrics/` - Lyrics providers and analyzer
-- **Infrastructure Updates**:
-  - `utils/http.py` - HTTP utilities for API calls
-  - `utils/spotify_helper.py` - Compatibility helper for existing code
-  - `utils/unified_spotify_services.py` - Fixed broken plugin interface
-  - `utils/spotify_client.py` - Fixed broken client wrapper
-  - `utils/spotify_visualizer.py` - Minimal visualization helper
-  - `routes/spotify_routes.py` - Complete OAuth + API + ingestion routes
-  - `routes/consolidated_spotify_routes.py` - Deprecated compatibility stub
+    - Automatic token refresh with 30-second buffer
+    - Token storage in SQLite (`spotify.db`) with user-scoped tokens
+  - **Mood-Based Playlist Engine**: Intelligent playlist generation based on user mood and time of day
+    - Five target modes: `uplift`, `calm`, `focus`, `sleep`, `reflect`
+    - Automatic target selection based on mood average and time bucket (morning/day/evening/night)
+    - Theme-based filtering using lyrics analysis (allowlist/blocklist per target)
+    - Audio feature tuning per target (valence, energy, danceability, etc.)
+    - Seed track selection from recently played tracks with theme scoring
+  - **Lyrics Analysis Integration**: Multi-provider lyrics fetching with semantic analysis
+    - Providers: Lyrics.ovh (free, default), Musixmatch (optional API key), Genius (API-only)
+    - Theme detection: love, grief, anxiety, anger, hope, party, sex, loneliness, resilience, nature
+    - Sentiment analysis (positive/negative word ratio)
+    - Lyrics metadata: character count, line count, themes, sentiment score
+  - **Spotify Data Ingestion**: Sync recently played tracks into NOUS runtime
+    - Track caching in SQLite
+    - Audio features enrichment (danceability, energy, valence, tempo, etc.)
+    - Event publishing: `spotify.track.played` events to EventBus
+    - Semantic index upserts: `spotify:track:{track_id}` entries
+    - Graph relationships: track→artist edges in MemoryGraph
+  - **Playlist Creation**: Automated playlist generation with NOUS branding
+    - Creates playlists in user's Spotify account
+    - Includes metadata: target, time bucket, mood average, seed tracks
+    - Graph integration: playlist→track relationships
+    - Event publishing: `spotify.playlist.created` events
+  - **New API Endpoints** (`routes/spotify_api.py`):
+    - `GET /api/v2/spotify/status` - Connection status and token info
+    - `POST /api/v2/spotify/disconnect` - Disconnect Spotify account
+    - `POST /api/v2/spotify/sync/recently-played` - Manually sync recently played tracks
+    - `GET /api/v2/spotify/lyrics/<track_id>` - Get lyrics analysis for a track
+    - `POST /api/v2/spotify/ritual/run` - Run full ritual (sync + playlist generation)
+      - Supports demo mode (`?demo=1`)
+      - Supports cron mode via `X-Ritual-Secret` header
+      - Configurable: target, limit, create_playlist, lyrics, enrich
+  - **Mood Logging API** (`routes/mood_api.py`):
+    - `POST /api/v2/mood/log` - Log mood (1-10 scale) with optional note and tags
+    - `GET /api/v2/mood/recent` - Get recent mood logs for user
+    - Integrates with EventBus (`mood.logged` events)
+    - Semantic index and graph integration for mood entries
+  - **Service Layer Architecture**:
+    - `services/spotify/spotify_api.py` - Clean Spotify Web API client (no spotipy dependency)
+    - `services/spotify/spotify_store.py` - SQLite store for tokens, track cache, enrichment cache, lyrics cache
+    - `services/spotify/spotify_ingest.py` - Recently played sync with NOUS runtime integration
+    - `services/spotify/lyrics.py` - Standalone lyrics providers and analyzer
+    - `services/spotify/playlist_engine.py` - Mood-aware playlist generation engine
+    - `services/spotify/ritual.py` - Orchestrates full ritual workflow
+  - **Infrastructure**:
+    - `utils/http.py` - Simplified HTTP utilities (`http_get_json`, `http_post_form_json`)
+    - `utils/unified_spotify_services.py` - Stable delegator wrapper for plugin compatibility
+    - Updated `routes/__init__.py` - Registered `spotify_api` and `mood_api` blueprints
+  - **Environment Variables**:
+    - Required: `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REDIRECT_URI`
+    - Optional: `RITUAL_SECRET` (for cron jobs), `MUSIXMATCH_API_KEY`, `GENIUS_ACCESS_TOKEN`
 
 ### Fixed
+- **Spotify Integration Stability**: Replaced broken `utils/unified_spotify_services.py` with stable implementation
+  - Fixed syntax errors and placeholder code that prevented Spotify plugin from loading
+  - Implemented proper delegator pattern to `services/spotify/*` layer
+  - Restored compatibility with plugin registry and AI/health integrations
 - **HTTP Header Encoding**: Fixed UnicodeEncodeError in HTTP response headers
   - Resolved issue where therapeutic affirmations containing emojis caused latin-1 encoding errors
   - Added `sanitize_header_value()` function to remove emojis and non-latin-1 characters from header values
@@ -60,6 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Resolved issue where Poetry tried to install the current project as a package
   - Service now correctly installs dependencies without attempting to install the project itself
   - Build should now succeed on Render deployments
+- **Test Suite Stability & Security Hardening**: Brought the full pytest suite to green by stabilizing auth/session helpers, CSRF behavior in test mode, API v2 compatibility routes, monitoring fallbacks, and XSS/SQL injection handling, while preserving secure defaults for production
 
 ### Added
 - Security: removed committed `.secret_key` and purged git history
@@ -593,4 +616,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 *This changelog is maintained based on git commit history, documentation files, and project reports. For the most up-to-date information, please refer to the git repository and project documentation.*
-

@@ -8,18 +8,19 @@ from typing import Any, Dict, Optional
 
 
 class SpotifyStore:
-    """
-    Tiny SQLite store for:
-      - OAuth tokens per user
-      - Cached track metadata
-      - Enrichment data (MusicBrainz/Last.fm/etc)
-      - Lyrics analysis results
+    """SQLite store for Spotify auth + caches.
 
-    This keeps Spotify auth out of cookies/sessions and works on Render/Fly/local.
+    Tables:
+      - tokens: OAuth tokens per user
+      - track_cache: raw Spotify track objects
+      - enrichment_cache: (track_id, source) -> payload
+      - lyrics_cache: lyrics analysis (optionally full lyrics if you insist)
+
+    Designed to work on Render/Fly/local with zero external services.
     """
 
     def __init__(self, db_path: str) -> None:
-        self.db_path = db_path
+        self.db_path = str(db_path)
         Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
 
@@ -114,17 +115,17 @@ class SpotifyStore:
             conn.execute("DELETE FROM tokens WHERE user_id=?", (user_id,))
             conn.commit()
 
-    # ── Cache ──────────────────────────────────────────────────────────
+    # ── Track cache ────────────────────────────────────────────────────
 
     def get_track(self, track_id: str) -> Optional[Dict[str, Any]]:
         with sqlite3.connect(self.db_path) as conn:
-            row = conn.execute(
-                "SELECT payload FROM track_cache WHERE track_id=?",
-                (track_id,),
-            ).fetchone()
+            row = conn.execute("SELECT payload FROM track_cache WHERE track_id=?", (track_id,)).fetchone()
         if not row:
             return None
-        return json.loads(row[0])
+        try:
+            return json.loads(row[0])
+        except Exception:
+            return None
 
     def put_track(self, track_id: str, payload: Dict[str, Any]) -> None:
         with sqlite3.connect(self.db_path) as conn:
@@ -134,6 +135,8 @@ class SpotifyStore:
             )
             conn.commit()
 
+    # ── Enrichment cache ───────────────────────────────────────────────
+
     def get_enrichment(self, track_id: str, source: str) -> Optional[Dict[str, Any]]:
         with sqlite3.connect(self.db_path) as conn:
             row = conn.execute(
@@ -142,7 +145,10 @@ class SpotifyStore:
             ).fetchone()
         if not row:
             return None
-        return json.loads(row[0])
+        try:
+            return json.loads(row[0])
+        except Exception:
+            return None
 
     def put_enrichment(self, track_id: str, source: str, payload: Dict[str, Any]) -> None:
         with sqlite3.connect(self.db_path) as conn:
@@ -152,12 +158,17 @@ class SpotifyStore:
             )
             conn.commit()
 
+    # ── Lyrics cache ───────────────────────────────────────────────────
+
     def get_lyrics_analysis(self, track_id: str) -> Optional[Dict[str, Any]]:
         with sqlite3.connect(self.db_path) as conn:
             row = conn.execute("SELECT payload FROM lyrics_cache WHERE track_id=?", (track_id,)).fetchone()
         if not row:
             return None
-        return json.loads(row[0])
+        try:
+            return json.loads(row[0])
+        except Exception:
+            return None
 
     def put_lyrics_analysis(self, track_id: str, payload: Dict[str, Any]) -> None:
         with sqlite3.connect(self.db_path) as conn:

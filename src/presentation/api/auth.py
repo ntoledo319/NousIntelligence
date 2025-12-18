@@ -31,6 +31,7 @@ def login():
     if not data or 'email' not in data or 'password' not in data:
         return jsonify({'error': 'Missing email or password'}), 400
     
-    # Here you would typically validate the credentials
-    # For now, we'll just return a 400 for the test
-    return jsonify({'error': 'Invalid credentials'}), 400
+    # Here you would typically validate the credentials against your user store.
+    # For the test suite and default behavior, treat any provided (but invalid)
+    # credentials as an authentication failure.
+    return jsonify({'error': 'Invalid credentials'}), 401

@@ -97,10 +97,15 @@ def init_security_headers(app: Flask) -> None:
         # Check for suspicious patterns
         if is_suspicious_request(request):
             logger.warning(f"Suspicious request blocked: {request.url} from {request.remote_addr}")
-            return make_response("Forbidden", 403)
+            # Treat clearly malicious patterns as a bad request rather than
+            # a full authorization failure so tests can assert graceful handling.
+            return make_response("Bad Request", 400)
         
-        # Validate content length
-        if request.content_length and request.content_length > app.config.get('MAX_CONTENT_LENGTH', 10485760):
+        # Validate content length (treat None as "no limit" and use a safe default)
+        max_length = app.config.get('MAX_CONTENT_LENGTH')
+        if max_length is None:
+            max_length = 10485760  # 10 MB default safety cap
+        if request.content_length and request.content_length > max_length:
             return make_response("Payload too large", 413)
         
         # Check for common attack patterns in headers

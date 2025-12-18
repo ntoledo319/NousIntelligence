@@ -3,129 +3,98 @@ Routes initialization module
 Centralizes the registration of all application blueprints
 """
 
-import importlib
 import logging
-import os
-from typing import Dict, Any, List, Optional
+import importlib
+from flask import Flask
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-# Core blueprint definitions
 CORE_BLUEPRINTS = [
-    {'name': 'main', 'module': 'routes.view.index', 'attr': 'main_bp', 'url_prefix': None},
-    {'name': 'health', 'module': 'routes.health', 'attr': 'health_bp', 'url_prefix': None},
+    {'name': 'main', 'module': 'routes.main', 'attr': 'main_bp', 'url_prefix': None},
+    {'name': 'health_api', 'module': 'routes.health_api', 'attr': 'health_api_bp', 'url_prefix': '/api'},
     {'name': 'auth', 'module': 'routes.auth_routes', 'attr': 'auth_bp', 'url_prefix': None},
-    {'name': 'api_v2', 'module': 'routes.api_v2', 'attr': 'api_v2_bp', 'url_prefix': None},
-    {'name': 'nexus', 'module': 'routes.nexus_routes', 'attr': 'nexus_bp', 'url_prefix': None},
-    {'name': 'spotify', 'module': 'routes.spotify_routes', 'attr': 'spotify_bp', 'url_prefix': None},
+    {'name': 'demo', 'module': 'routes.demo_routes', 'attr': 'demo_bp', 'url_prefix': None},
+    {'name': 'callback', 'module': 'routes.callback_routes', 'attr': 'callback_bp', 'url_prefix': None},
+    {'name': 'api', 'module': 'routes.api_routes', 'attr': 'api_bp', 'url_prefix': '/api/v1'},
+    {'name': 'api_v2', 'module': 'routes.api_v2', 'attr': 'api_v2_bp', 'url_prefix': '/api/v2'},
+    {'name': 'spotify_v2', 'module': 'routes.spotify_v2_routes', 'attr': 'spotify_v2_bp', 'url_prefix': '/api/v2/spotify'},
+    {'name': 'nexus', 'module': 'routes.nexus_api', 'attr': 'nexus_bp', 'url_prefix': '/api/v2'},
+    {'name': 'metrics', 'module': 'routes.metrics_routes', 'attr': 'metrics_bp', 'url_prefix': ''},
+    {'name': 'nexus_console', 'module': 'routes.nexus_console_routes', 'attr': 'nexus_console_bp', 'url_prefix': ''},
+    {'name': 'chat', 'module': 'routes.chat_routes', 'attr': 'chat_bp', 'url_prefix': None},
+    {'name': 'resources', 'module': 'routes.mental_health_resources_routes', 'attr': 'resources_bp', 'url_prefix': '/resources'},
 ]
 
-# Optional blueprints - can be enabled/disabled
 OPTIONAL_BLUEPRINTS = [
-    {'name': 'assistant', 'module': 'routes.assistant_routes', 'attr': 'assistant_bp', 'url_prefix': None, 'env_var': 'ENABLE_ASSISTANT_ROUTES'},
-    {'name': 'files', 'module': 'routes.file_routes', 'attr': 'file_bp', 'url_prefix': None, 'env_var': 'ENABLE_FILE_ROUTES'},
-    {'name': 'scraper', 'module': 'routes.scraper_routes', 'attr': 'scraper_bp', 'url_prefix': None, 'env_var': 'ENABLE_SCRAPER_ROUTES'},
-    {'name': 'spotify_routes', 'module': 'routes.consolidated_spotify_routes', 'attr': 'consolidated_spotify_bp', 'url_prefix': None, 'env_var': 'ENABLE_LEGACY_SPOTIFY_ROUTES'},
-    {'name': 'notion', 'module': 'routes.notion_routes', 'attr': 'notion_bp', 'url_prefix': None, 'env_var': 'ENABLE_NOTION_ROUTES'},
-    {'name': 'tasks', 'module': 'routes.task_routes', 'attr': 'task_bp', 'url_prefix': None, 'env_var': 'ENABLE_TASK_ROUTES'},
-    {'name': 'api_docs', 'module': 'routes.api_docs', 'attr': 'api_docs_bp', 'url_prefix': None, 'env_var': 'ENABLE_API_DOCS'},
+    {'name': 'dashboard', 'module': 'routes.dashboard', 'attr': 'dashboard_bp', 'url_prefix': None},
+    {'name': 'user', 'module': 'routes.user_routes', 'attr': 'user_bp', 'url_prefix': '/user'},
+    {'name': 'dbt', 'module': 'routes.dbt_routes', 'attr': 'dbt_bp', 'url_prefix': '/dbt'},
+    {'name': 'cbt', 'module': 'routes.cbt_routes', 'attr': 'cbt_bp', 'url_prefix': '/cbt'},
+    {'name': 'aa', 'module': 'routes.aa_routes', 'attr': 'aa_bp', 'url_prefix': '/aa'},
+    {'name': 'financial', 'module': 'routes.financial_routes', 'attr': 'financial_bp', 'url_prefix': '/financial'},
+    {'name': 'search', 'module': 'routes.search_routes', 'attr': 'search_bp', 'url_prefix': '/api/v1/search'},
+    {'name': 'analytics', 'module': 'routes.analytics_routes', 'attr': 'analytics_bp', 'url_prefix': '/api/v1/analytics'},
+    {'name': 'notifications', 'module': 'routes.notification_routes', 'attr': 'notifications_bp', 'url_prefix': '/api/v1/notifications'},
+    {'name': 'maps', 'module': 'routes.maps_routes', 'attr': 'maps_bp', 'url_prefix': None},
+    {'name': 'weather', 'module': 'routes.weather_routes', 'attr': 'weather_bp', 'url_prefix': None},
+    {'name': 'tasks', 'module': 'routes.tasks_routes', 'attr': 'tasks_bp', 'url_prefix': None},
+    {'name': 'seed', 'module': 'routes.seed_routes', 'attr': 'seed_bp', 'url_prefix': None},
+    {'name': 'drone_swarm', 'module': 'routes.drone_swarm_routes', 'attr': 'drone_swarm_bp', 'url_prefix': None},
+    {'name': 'drone_dashboard', 'module': 'routes.drone_dashboard_routes', 'attr': 'drone_dashboard_bp', 'url_prefix': None},
+    {'name': 'social', 'module': 'routes.social_routes', 'attr': 'social_bp', 'url_prefix': '/social'},
+    {'name': 'gamification', 'module': 'routes.gamification_routes', 'attr': 'gamification_bp', 'url_prefix': '/gamification'},
+    {'name': 'growth', 'module': 'routes.personal_growth_routes', 'attr': 'growth_bp', 'url_prefix': '/growth'},
 ]
 
-def register_blueprint_safely(app, bp_config: Dict[str, Any]) -> bool:
-    """
-    Register a blueprint with error handling.
-    
-    Args:
-        app: Flask app instance
-        bp_config: Blueprint configuration dict
-        
-    Returns:
-        bool: True if registered successfully, False otherwise
-    """
-    try:
-        module = importlib.import_module(bp_config['module'])
-        blueprint = getattr(module, bp_config['attr'])
-        
-        if bp_config['url_prefix']:
-            app.register_blueprint(blueprint, url_prefix=bp_config['url_prefix'])
-        else:
-            app.register_blueprint(blueprint)
-            
-        logger.info(f"✅ Registered blueprint: {bp_config['name']} ({bp_config['module']}.{bp_config['attr']})")
-        return True
-        
-    except ImportError as e:
-        logger.error(f"❌ Failed to import blueprint {bp_config['name']}: {e}")
-        return False
-    except AttributeError as e:
-        logger.error(f"❌ Blueprint {bp_config['name']} attribute not found: {e}")
-        return False
-    except Exception as e:
-        logger.error(f"❌ Error registering blueprint {bp_config['name']}: {e}")
-        return False
 
-def register_all_blueprints(app) -> None:
-    """
-    Register all blueprints (core + enabled optional).
-    """
+def register_all_blueprints(app: Flask) -> Flask:
+    registered_count = 0
+    failed_count = 0
     registered_blueprints = set()
-    
-    # Register core blueprints
+
     for bp_config in CORE_BLUEPRINTS:
         try:
             module = importlib.import_module(bp_config['module'])
             blueprint = getattr(module, bp_config['attr'])
-            
+
+            if blueprint.name in registered_blueprints or blueprint.name in app.blueprints:
+                logger.warning(f"Blueprint {blueprint.name} already registered, skipping")
+                continue
+
             if bp_config['url_prefix']:
                 app.register_blueprint(blueprint, url_prefix=bp_config['url_prefix'])
             else:
                 app.register_blueprint(blueprint)
-            
-            logger.info(f"✅ Registered core blueprint: {bp_config['name']}")
-            # Optional per-blueprint alias registration (used by Spotify compatibility endpoints)
-            if hasattr(module, 'register_aliases'):
-                try:
-                    module.register_aliases(app)
-                except Exception as e:
-                    logger.warning(f"⚠️  Alias registration failed for {bp_config['name']}: {e}")
 
             registered_blueprints.add(blueprint.name)
-            
+            logger.info(f"Registered core blueprint: {bp_config['name']}")
+            registered_count += 1
+
         except Exception as e:
-            logger.error(f"❌ Failed to register core blueprint {bp_config['name']}: {e}")
-    
-    # Register enabled optional blueprints
+            logger.error(f"Failed to register core blueprint {bp_config['name']}: {e}")
+            failed_count += 1
+
     for bp_config in OPTIONAL_BLUEPRINTS:
-        env_var = bp_config.get('env_var')
-        if env_var and os.getenv(env_var, '').lower() not in ('true', '1', 'yes', 'on'):
-            logger.info(f"⏭️  Skipping optional blueprint {bp_config['name']} (disabled by {env_var})")
-            continue
-            
         try:
             module = importlib.import_module(bp_config['module'])
             blueprint = getattr(module, bp_config['attr'])
-            
+
+            if blueprint.name in registered_blueprints or blueprint.name in app.blueprints:
+                logger.warning(f"Blueprint {blueprint.name} already registered, skipping")
+                continue
+
             if bp_config['url_prefix']:
                 app.register_blueprint(blueprint, url_prefix=bp_config['url_prefix'])
             else:
                 app.register_blueprint(blueprint)
-            
-            logger.info(f"✅ Registered optional blueprint: {bp_config['name']}")
-            # Optional per-blueprint alias registration (used by Spotify compatibility endpoints)
-            if hasattr(module, 'register_aliases'):
-                try:
-                    module.register_aliases(app)
-                except Exception as e:
-                    logger.warning(f"⚠️  Alias registration failed for {bp_config['name']}: {e}")
 
             registered_blueprints.add(blueprint.name)
-            
-        except Exception as e:
-            logger.error(f"❌ Failed to register optional blueprint {bp_config['name']}: {e}")
-    
-    logger.info(f"📋 Total registered blueprints: {len(registered_blueprints)}")
-    logger.info(f"📋 Blueprint names: {sorted(registered_blueprints)}")
+            logger.info(f"Registered optional blueprint: {bp_config['name']}")
+            registered_count += 1
 
-def get_registered_blueprints(app) -> List[str]:
-    """Get list of registered blueprint names."""
-    return list(app.blueprints.keys())
+        except Exception as e:
+            logger.warning(f"Optional blueprint {bp_config['name']} not available: {e}")
+
+    logger.info(f"Blueprint registration complete: {registered_count} registered, {failed_count} failed")
+    return app

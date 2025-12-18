@@ -1,26 +1,26 @@
+"""
+Legacy Spotify routes (compat layer).
+
+This file used to be broken enough to qualify as performance art.
+Now it stays import-safe and points developers to the v2 Spotify API.
+
+Preferred endpoints:
+  - /api/v2/spotify/auth
+  - /api/v2/spotify/callback
+  - /api/v2/spotify/status
+  - /api/v2/spotify/now
+"""
+
 from __future__ import annotations
 
-"""
-Deprecated Spotify routes.
+from flask import Blueprint, redirect
 
-This file existed in older versions of the repo but had syntax errors and was never reliably registered.
-To avoid breaking imports and to preserve backwards compatibility, we now expose a tiny blueprint that
-points people to the new /api/v2/spotify/* endpoints.
+legacy_spotify_bp = Blueprint("legacy_spotify", __name__)
 
-If you have a frontend calling these old endpoints, update it.
-"""
+@legacy_spotify_bp.get("/spotify/auth")
+def legacy_auth_redirect():
+    return redirect("/api/v2/spotify/auth")
 
-from flask import Blueprint, jsonify
-
-consolidated_spotify_bp = Blueprint("consolidated_spotify", __name__)
-
-
-@consolidated_spotify_bp.get("/api/v2/spotify")
-def spotify_root():
-    return jsonify(
-        {
-            "ok": True,
-            "deprecated": True,
-            "message": "Use /api/v2/spotify/status, /api/v2/spotify/auth/url, /api/v2/spotify/sync, etc.",
-        }
-    )
+@legacy_spotify_bp.get("/spotify/callback")
+def legacy_callback_redirect():
+    return redirect("/api/v2/spotify/callback")

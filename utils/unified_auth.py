@@ -117,6 +117,27 @@ def get_demo_user() -> SessionUser:
     return dict(DEMO_USER)
 
 
+def get_current_user() -> Optional[SessionUser]:
+    """Get current user from session or bearer token."""
+    if _is_expired():
+        _rotate_session()
+    
+    # Try bearer token first
+    tok = _extract_bearer_token()
+    if tok and not _build_user_from_session():
+        u = _auth_user_from_bearer(tok)
+        if u:
+            session["user"] = u
+            _touch_last_activity()
+            return u
+    
+    # Return session user
+    user = _build_user_from_session()
+    if user:
+        _touch_last_activity()
+    return user
+
+
 def _wants_json() -> bool:
     p = request.path or ""
     accept = request.headers.get("Accept") or ""

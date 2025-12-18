@@ -16,6 +16,11 @@ def create_app(config_name='development'):
     app = Flask(__name__)
     app.config.update(config)
     
+    # Respect explicit testing configuration so helpers (like CSRF)
+    # can adjust their behavior appropriately in the test suite.
+    if config_name == 'testing':
+        app.config['TESTING'] = True
+    
     # Initialize extensions
     init_security_headers(app)
     init_csrf(app)
