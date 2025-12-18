@@ -17,7 +17,7 @@ class BankAccount(db.Model):
     __tablename__ = 'bank_accounts'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     account_name = db.Column(db.String(100), nullable=False)
     account_type = db.Column(db.String(50), nullable=False)  # checking, savings, credit
     account_number_masked = db.Column(db.String(20))  # Only last 4 digits
@@ -52,7 +52,7 @@ class Transaction(db.Model):
     __tablename__ = 'transactions'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     account_id = db.Column(db.Integer, db.ForeignKey('bank_accounts.id'), nullable=False)
     transaction_type = db.Column(db.String(20), nullable=False)  # income, expense, transfer
     amount = db.Column(db.Numeric(10, 2), nullable=False)
@@ -125,7 +125,7 @@ class Budget(db.Model):
     __tablename__ = 'budgets'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     budget_type = db.Column(db.String(20), default='monthly')
@@ -194,7 +194,7 @@ class Bill(db.Model):
     __tablename__ = 'bills'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     amount = db.Column(db.Numeric(10, 2), nullable=False)
@@ -238,7 +238,7 @@ class Investment(db.Model):
     __tablename__ = 'investments'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     symbol = db.Column(db.String(10), nullable=False)  # Stock symbol
     name = db.Column(db.String(200))
     investment_type = db.Column(db.String(50))  # stock, bond, crypto, etc.
@@ -292,7 +292,7 @@ class FinancialGoal(db.Model):
     __tablename__ = 'financial_goals'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     goal_type = db.Column(db.String(50))  # savings, debt_payoff, investment, etc.
