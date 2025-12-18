@@ -91,7 +91,7 @@ class ExpenseCategory(db.Model):
     __tablename__ = 'expense_categories'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id')), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     color = db.Column(db.String(7), default='#6366f1')
