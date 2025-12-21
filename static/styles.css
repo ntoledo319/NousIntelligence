@@ -1,104 +1,147 @@
-/* NOUS - Scorched Earth UI Rebuild - Modern CSS with Theme System */
+/* NOUS - Limen Harbor Theme System
+ * A calming, nautical-inspired design language for mental wellness
+ * 
+ * Limen Harbor represents a safe haven - a threshold between storm and calm,
+ * designed to provide comfort and serenity for users on their mental health journey.
+ */
 
-/* CSS Variables for Theme System - Enhanced Color Theory */
-:root {
-    /* Primary Brand Colors - Harmonious Blue Palette */
-    --primary-color: #4f46e5; /* Indigo - trustworthy, calming */
-    --primary-hover: #4338ca;
-    --primary-light: #6366f1;
-    --primary-soft: #a5b4fc;
+/* ===== LIMEN HARBOR - DEFAULT THEME ===== */
+:root, [data-theme="limen-harbor"] {
+    /* Primary Harbor Blues - Calm, trustworthy, therapeutic */
+    --primary-color: #0891b2; /* Cyan-600: Harbor water */
+    --primary-hover: #0e7490; /* Cyan-700: Deeper waters */
+    --primary-light: #22d3ee; /* Cyan-400: Surface reflection */
+    --primary-soft: #a5f3fc; /* Cyan-200: Morning mist */
+    --primary-dark: #155e75; /* Cyan-800: Deep harbor */
     
-    /* Complementary Orange Accents */
-    --secondary-color: #f59e0b; /* Warm orange - energy, creativity */
-    --secondary-hover: #d97706;
-    --secondary-light: #fbbf24;
-    --secondary-soft: #fed7aa;
+    /* Secondary Seafoam - Tranquility and growth */
+    --secondary-color: #14b8a6; /* Teal-500: Seafoam */
+    --secondary-hover: #0d9488; /* Teal-600: Deep seafoam */
+    --secondary-light: #5eead4; /* Teal-300: Light spray */
+    --secondary-soft: #ccfbf1; /* Teal-100: Gentle mist */
     
-    /* Neutral Palette - Sophisticated Grays */
-    --background-color: #ffffff;
-    --background-soft: #fefefe;
-    --surface-color: #f8fafc;
-    --surface-hover: #f1f5f9;
+    /* Neutral Harbor Stones - Grounding and stable */
+    --background-color: #f0fdfa; /* Teal-50: Harbor fog */
+    --background-soft: #f8fafc; /* Slate-50: Soft sky */
+    --surface-color: #ffffff; /* White: Clean decks */
+    --surface-hover: #ecfeff; /* Cyan-50: Touched by water */
     --surface-elevated: #ffffff;
     
-    /* Text Colors - High Contrast Hierarchy */
-    --text-primary: #0f172a; /* Near black for maximum readability */
-    --text-secondary: #374151; /* Medium gray for supporting text */
-    --text-muted: #6b7280; /* Light gray for hints */
-    --text-inverse: #ffffff; /* White text on dark backgrounds */
+    /* Text Colors - Clear visibility on calm waters */
+    --text-primary: #134e4a; /* Teal-900: Deep navigation */
+    --text-secondary: #115e59; /* Teal-800: Harbor signs */
+    --text-muted: #5eead4; /* Teal-300: Distant shore */
+    --text-inverse: #ffffff; /* White: Light signals */
     
-    /* Border and Shadow System */
-    --border-color: #e5e7eb;
-    --border-hover: #d1d5db;
-    --border-focus: #4f46e5;
-    --shadow-color: rgba(15, 23, 42, 0.08);
-    --shadow-strong: rgba(15, 23, 42, 0.12);
-    --shadow-elevated: rgba(15, 23, 42, 0.16);
+    /* Border and Shadow System - Gentle waves */
+    --border-color: #99f6e4; /* Teal-200: Water's edge */
+    --border-hover: #5eead4; /* Teal-300: Ripple */
+    --border-focus: #0891b2; /* Cyan-600: Focus beacon */
+    --shadow-color: rgba(8, 145, 178, 0.08);
+    --shadow-strong: rgba(8, 145, 178, 0.15);
+    --shadow-elevated: rgba(8, 145, 178, 0.20);
     
-    /* Semantic Colors - Accessible and Meaningful */
-    --success-color: #059669; /* Teal-green for success */
-    --success-light: #10b981;
-    --success-bg: #ecfdf5;
-    --error-color: #dc2626; /* Clear red for errors */
-    --error-light: #ef4444;
-    --error-bg: #fef2f2;
-    --warning-color: #d97706; /* Amber for warnings */
-    --warning-light: #f59e0b;
-    --warning-bg: #fffbeb;
-    --info-color: #2563eb; /* Blue for information */
-    --info-light: #3b82f6;
-    --info-bg: #eff6ff;
+    /* Semantic Colors - Harbor signals */
+    --success-color: #059669; /* Emerald-600: Safe passage */
+    --success-light: #10b981; /* Emerald-500: All clear */
+    --success-bg: #ecfdf5; /* Emerald-50: Calm zone */
+    --error-color: #dc2626; /* Red-600: Warning buoy */
+    --error-light: #ef4444; /* Red-500: Alert */
+    --error-bg: #fef2f2; /* Red-50: Caution area */
+    --warning-color: #d97706; /* Amber-600: Attention needed */
+    --warning-light: #f59e0b; /* Amber-500: Lighthouse beam */
+    --warning-bg: #fffbeb; /* Amber-50: Caution zone */
+    --info-color: #0284c7; /* Sky-600: Information buoy */
+    --info-light: #0ea5e9; /* Sky-500: Clear skies */
+    --info-bg: #f0f9ff; /* Sky-50: Open waters */
     
-    /* Accent Colors - Harmonious Palette */
-    --accent-purple: #7c3aed;
-    --accent-pink: #ec4899;
-    --accent-teal: #0d9488;
-    --accent-emerald: #059669;
+    /* Accent Colors - Harbor flora and fauna */
+    --accent-purple: #7c3aed; /* Violet-600: Twilight harbor */
+    --accent-pink: #db2777; /* Pink-600: Coral reef */
+    --accent-teal: #0d9488; /* Teal-600: Deep lagoon */
+    --accent-emerald: #059669; /* Emerald-600: Seaweed */
+    --accent-sky: #0284c7; /* Sky-600: Clear horizon */
     
-    /* Enhanced Gradients - Multiple Options */
-    --hero-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
-    --hero-gradient-alt: linear-gradient(135deg, #0ea5e9 0%, #4f46e5 50%, #7c3aed 100%);
-    --surface-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.9) 100%);
-    --card-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
-    --button-gradient: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
-    --button-gradient-hover: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
-    --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #ec4899 100%);
+    /* Limen Harbor Signature Gradients */
+    --hero-gradient: linear-gradient(135deg, #0891b2 0%, #14b8a6 50%, #0284c7 100%);
+    --hero-gradient-alt: linear-gradient(135deg, #155e75 0%, #0891b2 50%, #0ea5e9 100%);
+    --surface-gradient: linear-gradient(135deg, rgba(240, 253, 250, 0.95) 0%, rgba(236, 254, 255, 0.9) 100%);
+    --card-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 253, 250, 0.95) 100%);
+    --button-gradient: linear-gradient(135deg, #0891b2 0%, #14b8a6 100%);
+    --button-gradient-hover: linear-gradient(135deg, #0e7490 0%, #0d9488 100%);
+    --accent-gradient: linear-gradient(135deg, #14b8a6 0%, #0ea5e9 100%);
+    --calm-gradient: linear-gradient(180deg, #ecfeff 0%, #f0fdfa 50%, #f0f9ff 100%);
     
-    /* Animation and Transition Variables */
+    /* Animation and Transition Variables - Gentle waves */
     --transition-fast: 0.15s ease-out;
     --transition-normal: 0.3s ease-out;
     --transition-slow: 0.5s ease-out;
     --border-radius: 0.75rem;
     --border-radius-lg: 1rem;
     --border-radius-xl: 1.5rem;
+    
+    /* Brand Consistency */
+    --brand: #0891b2;
+    --brand-dark: #0e7490;
+    --brand-light: #22d3ee;
 }
 
-/* Dark Theme - Enhanced for better visibility */
-[data-theme="dark"] {
-    --primary-color: #60a5fa;
-    --primary-hover: #3b82f6;
-    --primary-light: #93c5fd;
-    --secondary-color: #64748b;
-    --background-color: #0f172a;
-    --surface-color: #1e293b;
-    --surface-hover: #334155;
-    --text-primary: #f8fafc;
-    --text-secondary: #e2e8f0;
-    --text-muted: #94a3b8;
-    --border-color: #475569;
-    --border-hover: #64748b;
+/* Limen Harbor Dark - Night Harbor Theme */
+[data-theme="limen-harbor-dark"], [data-theme="dark"] {
+    --primary-color: #22d3ee; /* Cyan-400: Moonlit waters */
+    --primary-hover: #06b6d4; /* Cyan-500: Deep night */
+    --primary-light: #67e8f9; /* Cyan-300: Starlight on water */
+    --primary-soft: #0891b2; /* Cyan-600: Distant glow */
+    --primary-dark: #155e75; /* Cyan-800: Deep harbor night */
+    
+    --secondary-color: #5eead4; /* Teal-300: Bioluminescence */
+    --secondary-hover: #2dd4bf; /* Teal-400: Glowing foam */
+    --secondary-light: #99f6e4; /* Teal-200: Light spray */
+    
+    --background-color: #042f2e; /* Teal-950: Deep night harbor */
+    --background-soft: #083344; /* Cyan-950: Night sky */
+    --surface-color: #134e4a; /* Teal-900: Harbor deck */
+    --surface-hover: #115e59; /* Teal-800: Moonlit deck */
+    --surface-elevated: #164e63; /* Cyan-900: Elevated platform */
+    
+    --text-primary: #f0fdfa; /* Teal-50: Lighthouse beam */
+    --text-secondary: #ccfbf1; /* Teal-100: Soft glow */
+    --text-muted: #5eead4; /* Teal-300: Distant light */
+    --text-inverse: #042f2e; /* Teal-950: Dark inverse */
+    
+    --border-color: #115e59; /* Teal-800: Night edge */
+    --border-hover: #14b8a6; /* Teal-500: Active edge */
+    --border-focus: #22d3ee; /* Cyan-400: Focus beacon */
+    
     --shadow-color: rgba(0, 0, 0, 0.4);
     --shadow-strong: rgba(0, 0, 0, 0.6);
-    --success-color: #22c55e;
-    --success-light: #4ade80;
-    --error-color: #f87171;
-    --error-light: #fca5a5;
-    --warning-color: #fbbf24;
-    --warning-light: #fcd34d;
-    --accent-color: #a78bfa;
-    --accent-light: #c4b5fd;
-    --hero-gradient: linear-gradient(135deg, #1e3a8a 0%, #581c87 100%);
-    --card-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+    --shadow-elevated: rgba(6, 182, 212, 0.15);
+    
+    --success-color: #34d399; /* Emerald-400: Safe passage */
+    --success-light: #6ee7b7; /* Emerald-300: All clear */
+    --success-bg: #064e3b; /* Emerald-900: Calm zone */
+    
+    --error-color: #f87171; /* Red-400: Warning buoy */
+    --error-light: #fca5a5; /* Red-300: Alert glow */
+    --error-bg: #7f1d1d; /* Red-900: Danger zone */
+    
+    --warning-color: #fbbf24; /* Amber-400: Lighthouse */
+    --warning-light: #fcd34d; /* Amber-300: Bright beam */
+    --warning-bg: #78350f; /* Amber-900: Warning zone */
+    
+    --info-color: #38bdf8; /* Sky-400: Info beacon */
+    --info-light: #7dd3fc; /* Sky-300: Clear signal */
+    --info-bg: #0c4a6e; /* Sky-900: Info zone */
+    
+    --hero-gradient: linear-gradient(135deg, #155e75 0%, #134e4a 50%, #083344 100%);
+    --hero-gradient-alt: linear-gradient(135deg, #164e63 0%, #115e59 50%, #134e4a 100%);
+    --card-gradient: linear-gradient(135deg, rgba(20, 78, 74, 0.95) 0%, rgba(17, 94, 89, 0.9) 100%);
+    --button-gradient: linear-gradient(135deg, #0891b2 0%, #14b8a6 100%);
+    --button-gradient-hover: linear-gradient(135deg, #06b6d4 0%, #2dd4bf 100%);
+    
+    --brand: #22d3ee;
+    --brand-dark: #06b6d4;
+    --brand-light: #67e8f9;
 }
 
 /* Ocean Theme */

@@ -1,17 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="limen-harbor">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crisis Support - Get Help Now</title>
+    <meta name="theme-color" content="#0891b2">
+    <title>Crisis Support - Get Help Now | NOUS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        harbor: { 50: '#f0fdfa', 100: '#ccfbf1', 500: '#0891b2', 600: '#0e7490', 700: '#155e75' }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
+        body { background: var(--background-color); color: var(--text-primary); }
         .crisis-card { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); }
         .pulse { animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-harbor-50 min-h-screen">
     <!-- Emergency Banner -->
     <div class="bg-red-600 text-white text-center py-2 font-bold pulse">
         🚨 IF YOU ARE IN IMMEDIATE DANGER, CALL 911 🚨

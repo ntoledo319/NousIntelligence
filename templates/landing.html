@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="limen-harbor">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,14 +37,13 @@
     <meta name="application-name" content="NOUS">
     <meta name="msapplication-TileColor" content="#2563eb">
     
-    <title>NOUS - Mental Health Assistant</title>
+    <title>NOUS - Mental Health Assistant | Limen Harbor</title>
     <!-- Enhanced resource preloading -->
     <link rel="preconnect" href="https://accounts.google.com" crossorigin>
     <link rel="preconnect" href="https://oauth2.googleapis.com" crossorigin>
     <link rel="dns-prefetch" href="https://www.googleapis.com">
-    <link rel="preload" href="/static/css/main.css" as="style">
+    <link rel="preload" href="/static/css/unified-landing.css" as="style">
     <link rel="preload" href="/static/js/oauth-handler.js" as="script">
-    <link rel="preload" href="/static/js/main.js" as="script">
     <link rel="prefetch" href="/api/health">
     <link rel="prefetch" href="/auth/status">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -52,42 +51,13 @@
     <!-- Load fonts asynchronously -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
-    <!-- Unified landing page styles -->
+    <!-- Limen Harbor Theme - Unified landing page styles -->
     <link rel="stylesheet" href="/static/css/unified-landing.css">
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="manifest" href="/static/manifest.json">
     <link rel="apple-touch-icon" href="/static/favicon.ico">
-    <style>
-        @media (max-width: 768px) {
-            .hero-title { font-size: 2.5rem; }
-            .features-grid { grid-template-columns: 1fr; }
-            .feature-card { padding: 1rem; }
-        }
-        
-        .crisis-support-banner {
-            margin: 2rem 0;
-        }
-        
-        .crisis-button {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 0.5rem;
-            text-decoration: none;
-            font-weight: bold;
-            display: inline-block;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-        
-        .crisis-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-            color: white;
-        }
-    </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 font-sans">
+<body class="bg-harbor font-sans" data-theme="limen-harbor">
     <!-- Efficient Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}

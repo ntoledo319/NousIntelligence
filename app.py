@@ -587,7 +587,7 @@ def register_basic_routes(app=None):
                         max-width: 800px; 
                         margin: 0 auto; 
                         padding: 20px;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        background: linear-gradient(135deg, #0891b2 0%, #14b8a6 50%, #0284c7 100%);
                         color: white;
                     }}
                     .affirmation {{ 

@@ -1,54 +1,72 @@
 <!DOCTYPE html>
-<html lang="en" class="">
+<html lang="en" data-theme="limen-harbor">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="NOUS Chat - Intelligent conversation with {{ user.name }}">
-    <meta name="theme-color" content="#2563eb">
+    <meta name="description" content="NOUS Chat - Intelligent conversation with {{ user.name }} | Limen Harbor Theme">
+    <meta name="theme-color" content="#0891b2">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="NOUS Chat">
-    <title>NOUS Chat - {{ user.name }}</title>
+    <title>NOUS Chat - {{ user.name }} | Limen Harbor</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Limen Harbor Theme System -->
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <style>
+        /* Limen Harbor Navigation Styles */
         .nav-item {
-            @apply flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100 transition-colors;
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: var(--border-radius);
+            color: var(--text-secondary);
+            transition: all var(--transition-normal);
+            text-decoration: none;
+        }
+        .nav-item:hover {
+            background-color: var(--surface-hover);
+            color: var(--text-primary);
         }
         .nav-section {
-            @apply mb-4;
+            margin-bottom: 1rem;
         }
         .nav-section-title {
-            @apply px-3 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 font-sans" data-theme="light">
-    <div id="app" class="flex h-screen antialiased text-gray-800 dark:text-gray-200">
-        <!-- Navigation Sidebar -->
-        <nav class="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+<body class="bg-harbor font-sans" data-theme="limen-harbor">
+    <div id="app" class="flex h-screen antialiased" style="color: var(--text-primary);">
+        <!-- Navigation Sidebar - Limen Harbor -->
+        <nav class="w-64 flex flex-col" style="background: var(--surface-color); border-right: 1px solid var(--border-color);">
             <!-- User Profile -->
-            <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div class="p-4" style="border-bottom: 1px solid var(--border-color);">
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-full bg-brand flex items-center justify-center text-white font-semibold">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center font-semibold" style="background: var(--button-gradient); color: var(--text-inverse);">
                         {{ user.name[0].upper() if user.name else 'U' }}
                     </div>
                     <div>
-                        <div class="font-medium text-gray-900 dark:text-gray-100">{{ user.name or 'User' }}</div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">{{ user.email or 'user@nous.app' }}</div>
+                        <div class="font-medium" style="color: var(--text-primary);">{{ user.name or 'User' }}</div>
+                        <div class="text-sm" style="color: var(--text-muted);">{{ user.email or 'user@nous.app' }}</div>
                     </div>
                 </div>
             </div>
 
             <!-- Crisis Support - Always Visible -->
-            <div class="p-4 bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800">
-                <a href="/resources/crisis" class="flex items-center space-x-2 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200 font-medium">
+            <div class="p-4" style="background: var(--error-bg); border-bottom: 1px solid var(--error-color);">
+                <a href="/resources/crisis" class="flex items-center space-x-2 font-medium" style="color: var(--error-color); transition: opacity var(--transition-fast);" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
                     <span class="text-lg">🆘</span>
                     <span>Crisis Support 24/7</span>
                 </a>
@@ -121,58 +139,58 @@
             </div>
 
             <!-- Settings & Logout -->
-            <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+            <div class="p-4" style="border-top: 1px solid var(--border-color);">
                 <a href="/settings" class="nav-item">
                     <span class="mr-3">⚙️</span>
                     Settings
                 </a>
-                <a href="/logout" class="nav-item text-red-600 dark:text-red-400">
+                <a href="/logout" class="nav-item" style="color: var(--error-color);">
                     <span class="mr-3">🚪</span>
                     Logout
                 </a>
             </div>
         </nav>
 
-        <!-- Main Chat Window -->
+        <!-- Main Chat Window - Limen Harbor -->
         <main class="flex-1 w-full flex flex-col h-screen">
-            <header class="flex-shrink-0 h-16 px-4 flex items-center justify-between border-b dark:border-gray-700/50 bg-white dark:bg-gray-800">
+            <header class="flex-shrink-0 h-16 px-4 flex items-center justify-between" style="border-bottom: 1px solid var(--border-color); background: var(--surface-color);">
                 <div class="flex items-center">
-                    <button id="back-to-conversations" aria-label="Back to conversations" class="p-2 mr-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none md:hidden transition-colors">
+                    <button id="back-to-conversations" aria-label="Back to conversations" class="p-2 mr-2 rounded-full focus:outline-none md:hidden transition-colors" style="background: transparent;" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background='transparent'">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                     </button>
-                    <div class="w-10 h-10 rounded-full bg-brand text-white flex items-center justify-center text-sm font-semibold mr-3">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold mr-3" style="background: var(--button-gradient); color: var(--text-inverse);">
                         🧠
                     </div>
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">NOUS Assistant</h2>
+                    <h2 class="text-lg font-semibold" style="color: var(--text-primary);">NOUS Assistant</h2>
                 </div>
                 
                 <!-- Quick Actions -->
                 <div class="flex items-center space-x-2">
-                    <button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition-colors" title="Voice features" onclick="alert('Voice features available with full setup')">
-                        <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                    <button class="p-2 rounded-full focus:outline-none transition-colors" style="color: var(--text-secondary);" title="Voice features" onclick="alert('Voice features available with full setup')" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background='transparent'">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clip-rule="evenodd"></path>
                         </svg>
                     </button>
-                    <button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition-colors" title="Mindfulness" onclick="alert('Mindfulness features available with full setup')">
-                        <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                    <button class="p-2 rounded-full focus:outline-none transition-colors" style="color: var(--text-secondary);" title="Mindfulness" onclick="alert('Mindfulness features available with full setup')" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background='transparent'">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </button>
                 </div>
             </header>
             
-            <div id="message-stream" role="log" aria-live="polite" class="flex-1 p-6 overflow-y-auto bg-gray-100 dark:bg-gray-900 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-900">
+            <div id="message-stream" role="log" aria-live="polite" class="flex-1 p-6 overflow-y-auto scrollbar-thin" style="background: var(--background-color);">
                 <div class="flex flex-col space-y-4">
-                    <!-- Welcome message -->
+                    <!-- Welcome message - Limen Harbor themed -->
                     <div class="flex items-start justify-start animate-fade-in-up">
-                        <div class="w-8 h-8 rounded-full mr-3 bg-brand flex items-center justify-center text-white text-sm font-semibold">
+                        <div class="w-8 h-8 rounded-full mr-3 flex items-center justify-center text-sm font-semibold" style="background: var(--button-gradient); color: var(--text-inverse);">
                             🧠
                         </div>
-                        <div class="p-3 rounded-lg max-w-md shadow-sm bg-white dark:bg-gray-700">
-                            <div class="text-sm">
+                        <div class="p-3 rounded-lg max-w-md shadow-sm" style="background: var(--surface-color); border: 1px solid var(--border-color);">
+                            <div class="text-sm" style="color: var(--text-primary);">
                                 <h3 class="font-semibold mb-2">Welcome to NOUS, {{ user.name }}! 👋</h3>
-                                <p class="mb-2">I'm your intelligent personal assistant. I can help you with:</p>
-                                <ul class="list-disc list-inside space-y-1 text-xs mb-2">
+                                <p class="mb-2">I'm your intelligent personal assistant at Limen Harbor. I can help you with:</p>
+                                <ul class="list-disc list-inside space-y-1 text-xs mb-2" style="color: var(--text-secondary);">
                                     <li>Answering questions on any topic</li>
                                     <li>Creative writing and brainstorming</li>
                                     <li>Problem-solving and analysis</li>
@@ -182,34 +200,37 @@
                                 </ul>
                                 <p>What would you like to explore today?</p>
                             </div>
-                            <span class="text-xs mt-1 block text-right text-gray-500 dark:text-gray-400">Just now</span>
+                            <span class="text-xs mt-1 block text-right" style="color: var(--text-muted);">Just now</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <footer class="p-4 border-t dark:border-gray-700/50 bg-white dark:bg-gray-800">
+            <footer class="p-4" style="border-top: 1px solid var(--border-color); background: var(--surface-color);">
                 <form id="message-form" class="flex items-center">
                     <label for="message-input" class="sr-only">Message</label>
                     <textarea 
                         id="message-input" 
                         name="message-input" 
-                        class="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-full bg-gray-100 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-brand resize-none" 
+                        class="flex-1 px-4 py-3 rounded-full resize-none" 
+                        style="border: 2px solid var(--border-color); background: var(--background-color); color: var(--text-primary);"
                         placeholder="Type your message here..."
                         rows="1"
                         maxlength="2000"
+                        onfocus="this.style.borderColor='var(--brand)'; this.style.boxShadow='0 0 0 3px rgba(8, 145, 178, 0.15)';"
+                        onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';"
                     ></textarea>
-                    <button type="submit" aria-label="Send message" class="ml-3 flex-shrink-0 p-3 bg-brand text-white rounded-full hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+                    <button type="submit" aria-label="Send message" class="ml-3 flex-shrink-0 p-3 rounded-full transition-colors" style="background: var(--button-gradient); color: var(--text-inverse);" onmouseover="this.style.background='var(--button-gradient-hover)'" onmouseout="this.style.background='var(--button-gradient)'">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
                     </button>
                 </form>
                 
                 <!-- Chat Actions -->
                 <div class="flex items-center justify-between mt-2">
-                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                    <div class="text-xs" style="color: var(--text-muted);">
                         <span id="char-count">0</span>/2000 characters
                     </div>
-                    <button type="button" class="text-xs text-gray-500 dark:text-gray-400 hover:text-brand transition-colors" id="clear-chat">
+                    <button type="button" class="text-xs transition-colors" style="color: var(--text-muted);" id="clear-chat" onmouseover="this.style.color='var(--brand)'" onmouseout="this.style.color='var(--text-muted)'">
                         Clear Chat
                     </button>
                 </div>
@@ -217,65 +238,65 @@
         </main>
     </div>
 
-    <!-- Quick Actions Floating Button -->
+    <!-- Quick Actions Floating Button - Limen Harbor -->
     <div class="fixed bottom-6 right-6 z-50">
         <div class="relative">
-            <button id="fab-main" class="w-14 h-14 bg-brand text-white rounded-full shadow-lg hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 transition-all duration-200 flex items-center justify-center">
+            <button id="fab-main" class="w-14 h-14 rounded-full shadow-lg focus:outline-none transition-all duration-200 flex items-center justify-center" style="background: var(--button-gradient); color: var(--text-inverse); box-shadow: 0 4px 15px var(--shadow-strong);">
                 <span class="text-xl">⚡</span>
             </button>
             <div id="fab-menu" class="absolute bottom-16 right-0 space-y-2 hidden">
-                <button class="fab-action flex items-center bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors whitespace-nowrap" data-action="new-task">
+                <button class="fab-action flex items-center px-4 py-2 rounded-lg shadow-lg transition-colors whitespace-nowrap" style="background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color);" data-action="new-task" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background='var(--surface-color)'">
                     <span class="mr-2">✅</span> New Task
                 </button>
-                <button class="fab-action flex items-center bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors whitespace-nowrap" data-action="voice-note">
+                <button class="fab-action flex items-center px-4 py-2 rounded-lg shadow-lg transition-colors whitespace-nowrap" style="background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color);" data-action="voice-note" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background='var(--surface-color)'">
                     <span class="mr-2">🎤</span> Voice Note
                 </button>
-                <button class="fab-action flex items-center bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors whitespace-nowrap" data-action="quick-mood">
+                <button class="fab-action flex items-center px-4 py-2 rounded-lg shadow-lg transition-colors whitespace-nowrap" style="background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color);" data-action="quick-mood" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background='var(--surface-color)'">
                     <span class="mr-2">😊</span> Log Mood
                 </button>
-                <button class="fab-action flex items-center bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors whitespace-nowrap" data-action="new-goal">
+                <button class="fab-action flex items-center px-4 py-2 rounded-lg shadow-lg transition-colors whitespace-nowrap" style="background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color);" data-action="new-goal" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background='var(--surface-color)'">
                     <span class="mr-2">🎯</span> New Goal
                 </button>
-                <button class="fab-action flex items-center bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors whitespace-nowrap" data-action="analytics">
+                <button class="fab-action flex items-center px-4 py-2 rounded-lg shadow-lg transition-colors whitespace-nowrap" style="background: var(--surface-color); color: var(--text-primary); border: 1px solid var(--border-color);" data-action="analytics" onmouseover="this.style.background='var(--surface-hover)'" onmouseout="this.style.background='var(--surface-color)'">
                     <span class="mr-2">📊</span> Analytics
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Help System -->
+    <!-- Help System - Limen Harbor -->
     <div class="fixed bottom-6 left-6 z-40">
-        <button id="help-toggle" class="w-12 h-12 bg-gray-600 dark:bg-gray-700 text-white rounded-full shadow-lg hover:bg-gray-700 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors flex items-center justify-center">
+        <button id="help-toggle" class="w-12 h-12 rounded-full shadow-lg focus:outline-none transition-colors flex items-center justify-center" style="background: var(--secondary-color); color: var(--text-inverse);">
             <span class="text-lg font-semibold">?</span>
         </button>
-        <div id="help-panel" class="absolute bottom-14 left-0 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl border dark:border-gray-700 p-6 hidden">
+        <div id="help-panel" class="absolute bottom-14 left-0 w-80 rounded-lg shadow-xl p-6 hidden" style="background: var(--surface-color); border: 1px solid var(--border-color);">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Help & Shortcuts</h3>
-                <button id="close-help" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl">&times;</button>
+                <h3 class="text-lg font-semibold" style="color: var(--text-primary);">Help & Shortcuts</h3>
+                <button id="close-help" class="text-xl" style="color: var(--text-muted);">&times;</button>
             </div>
             
             <div class="space-y-4">
                 <div>
-                    <h4 class="font-medium text-gray-900 dark:text-white mb-2">⌨️ Keyboard Shortcuts</h4>
+                    <h4 class="font-medium mb-2" style="color: var(--text-primary);">⌨️ Keyboard Shortcuts</h4>
                     <div class="space-y-2 text-sm">
                         <div class="flex justify-between">
-                            <span><kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">Ctrl</kbd> + <kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">/</kbd></span>
-                            <span class="text-gray-600 dark:text-gray-400">Open search</span>
+                            <span><kbd>Ctrl</kbd> + <kbd>/</kbd></span>
+                            <span style="color: var(--text-secondary);">Open search</span>
                         </div>
                         <div class="flex justify-between">
-                            <span><kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">Ctrl</kbd> + <kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">K</kbd></span>
-                            <span class="text-gray-600 dark:text-gray-400">Quick actions</span>
+                            <span><kbd>Ctrl</kbd> + <kbd>K</kbd></span>
+                            <span style="color: var(--text-secondary);">Quick actions</span>
                         </div>
                         <div class="flex justify-between">
-                            <span><kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">Enter</kbd></span>
-                            <span class="text-gray-600 dark:text-gray-400">Send message</span>
+                            <span><kbd>Enter</kbd></span>
+                            <span style="color: var(--text-secondary);">Send message</span>
                         </div>
                     </div>
                 </div>
                 
                 <div>
-                    <h4 class="font-medium text-gray-900 dark:text-white mb-2">🎯 Quick Tips</h4>
-                    <ul class="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                    <h4 class="font-medium mb-2" style="color: var(--text-primary);">🎯 Quick Tips</h4>
+                    <ul class="space-y-1 text-sm" style="color: var(--text-secondary);">
                         <li>• Use natural language for all commands</li>
                         <li>• Search across all your content</li>
                         <li>• Track progress with analytics dashboard</li>
