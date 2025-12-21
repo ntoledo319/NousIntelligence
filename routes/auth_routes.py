@@ -57,16 +57,24 @@ def login():
         logger.error(f"Error checking OAuth configuration: {e}")
         oauth_configured = False
     
+    # NOTE: templates historically used `oauth_available`; keep both names for
+    # backwards compatibility to avoid hiding the Google button.
     if not oauth_configured:
         # Show login page with demo mode option instead of auto-redirecting
-        return render_template('auth/login.html', 
-                             oauth_configured=False, 
-                             demo_available=True,
-                             message="OAuth not configured. Demo mode available.")
-    
-    return render_template('auth/login.html', 
-                         oauth_configured=True, 
-                         demo_available=True)
+        return render_template(
+            'auth/login.html',
+            oauth_configured=False,
+            oauth_available=False,
+            demo_available=True,
+            message="OAuth not configured. Demo mode available.",
+        )
+
+    return render_template(
+        'auth/login.html',
+        oauth_configured=True,
+        oauth_available=True,
+        demo_available=True,
+    )
 
 @auth_bp.route('/google', methods=['GET', 'POST'])
 @oauth_rate_limit
@@ -119,24 +127,18 @@ def google_callback():
             else:
                 return redirect(url_for('main.index', oauth_error='oauth_error'))
         
-        # Enhanced state validation
-        state = request.args.get('state')
-        stored_state = session.pop('oauth_state', None)
-        
-        if not state or not stored_state or state != stored_state:
-            logger.warning("OAuth state mismatch - possible CSRF attack")
-            return redirect(url_for('main.index', oauth_error='invalid_state'))
-        
-        # Validate state timestamp (should be within 10 minutes)
-        state_timestamp = session.pop('oauth_state_timestamp', None)
-        if state_timestamp:
-            from datetime import datetime
-            if datetime.utcnow().timestamp() - state_timestamp > 600:
-                logger.warning("OAuth state expired")
-                return redirect(url_for('main.index', oauth_error='state_expired'))
-        
-        # Get deployment-aware redirect URI for token exchange
-        redirect_uri = get_deployment_callback_uri()
+        # IMPORTANT: Do not pre-consume/validate `state` here.
+        # `oauth_service.handle_callback()` (Authlib + our service layer)
+        # performs the state validation and will reject mismatches.
+        #
+        # If we pop `oauth_state` here first, callback handling fails with an
+        # "Invalid OAuth state" error because the service no longer has access
+        # to the stored state.
+
+        # Use the *current* callback URL for token exchange so it always matches
+        # the redirect_uri used during authorization (required by Google).
+        scheme = 'https' if request.is_secure else 'http'
+        redirect_uri = f"{scheme}://{request.host}{request.path}"
         
         # Handle OAuth callback with enhanced error tracking
         user = oauth_service.handle_callback(redirect_uri)

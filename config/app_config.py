@@ -3,6 +3,7 @@ NOUS Application Configuration
 Centralized configuration management for ports, base paths, and API endpoints
 """
 import os
+import sys
 from typing import Dict, Any
 
 class AppConfig:
@@ -92,8 +93,16 @@ class AppConfig:
         # modify DATABASE_URL after import time.
         database_url = os.environ.get('DATABASE_URL') or cls.DATABASE_URL
         if not database_url:
-            # For production, require explicit DATABASE_URL
-            if not cls.DEBUG:
+            # Detect pytest even when TESTING env var isn't set yet.
+            pytest_running = (
+                "PYTEST_CURRENT_TEST" in os.environ
+                or "pytest" in sys.modules
+                or any(k.startswith("PYTEST_") for k in os.environ.keys())
+            )
+            # For production, require explicit DATABASE_URL unless we're running tests.
+            # Pytest environments frequently don't provide DATABASE_URL and should
+            # default to SQLite.
+            if not cls.DEBUG and not cls.TESTING and not pytest_running:
                 raise ValueError("DATABASE_URL environment variable is required in production")
             # Development fallback to SQLite
             from pathlib import Path

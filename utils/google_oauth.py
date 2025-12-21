@@ -163,17 +163,34 @@ class GoogleOAuthService:
         return self.google.authorize_redirect(redirect_uri, state=state)
     
     def _fix_redirect_uri(self, redirect_uri):
-        """Fix redirect URI for Replit deployment"""
-        # If we're on Replit, ensure we use the correct domain
+        """
+        Fix redirect URI for deployment environments.
+
+        Key invariant: the redirect URI used for authorization **must** match
+        the redirect URI used during the token exchange.
+
+        Historically this code forced Replit deployments to use
+        `/auth/google/callback`, but the app's canonical callback route is
+        `/callback/google` (root-level) and is what the Google Cloud Console
+        configuration commonly whitelists. Forcing a different path causes the
+        callback to hit the wrong handler and can break state validation.
+        """
+        if not redirect_uri:
+            return redirect_uri
+
+        # If already pointing at a Replit domain, keep as-is.
         if 'replit.dev' in redirect_uri or 'replit.app' in redirect_uri:
             return redirect_uri
-            
-        # Check for common Replit patterns in environment
-        repl_url = os.environ.get('REPL_URL')
-        if repl_url:
-            return f"{repl_url}/auth/google/callback"
-            
-        # For local development or other deployments, use as-is
+
+        # If a deployment URL is available, only override obvious local fallbacks.
+        from urllib.parse import urlparse
+        parsed = urlparse(redirect_uri)
+
+        repl_url = (os.environ.get('REPL_URL') or '').strip()
+        if repl_url and parsed.hostname in {'localhost', '127.0.0.1'}:
+            return f"{repl_url}/callback/google"
+
+        # Otherwise, use the provided redirect URI unchanged.
         return redirect_uri
     
     def handle_callback(self, redirect_uri):

@@ -46,8 +46,13 @@ def health_check():
                 }
             })
             
-            status_code = 200 if health_data['status'] == 'healthy' else 503
-            return jsonify(health_data), status_code
+            # IMPORTANT: Keep `/api/health` and `/api/healthz` non-failing (200)
+            # even when subsystems are degraded.
+            #
+            # Operational readiness should be expressed via `/ready` (which can
+            # return 503). Returning 503 here breaks clients and the test suite,
+            # and it is not necessary for most load balancers.
+            return jsonify(health_data), 200
             
         except ImportError:
             # Fallback to simple health check

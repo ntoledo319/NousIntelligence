@@ -105,7 +105,7 @@
             {% endif %}
         {% endwith %}
         
-        {% if oauth_available %}
+        {% if oauth_available or oauth_configured %}
             <a href="{{ url_for('auth.google_login') }}" class="google-btn" style="text-decoration: none; display: block;">
                 🔐 Sign in with Google
             </a>
@@ -116,6 +116,7 @@
         {% endif %}
         
         <form method="POST" action="{{ url_for('auth.demo_mode') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="demo-btn">
                 🚀 Try Demo Mode
             </button>
