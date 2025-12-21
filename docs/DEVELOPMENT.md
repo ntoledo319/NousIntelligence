@@ -3,12 +3,14 @@
 ## Setup Development Environment
 
 ### Prerequisites
+
 - Python 3.9+
 - Node.js 16+
 - PostgreSQL 13+
 - Redis 6+ (optional)
 
 ### Quick Setup
+
 ```bash
 # Clone and setup
 git clone https://github.com/nous/platform.git
@@ -17,6 +19,7 @@ make dev-setup
 ```
 
 ### Manual Setup
+
 ```bash
 # Python environment
 python -m venv venv
@@ -35,13 +38,16 @@ npm run dev
 ## Development Workflow
 
 ### Code Style
+
 We use Black, isort, and flake8 for code formatting:
+
 ```bash
 make format  # Format code
 make lint    # Check code quality
 ```
 
 ### Testing
+
 ```bash
 make test           # Run all tests
 make test-unit      # Unit tests only
@@ -50,6 +56,7 @@ make coverage       # Generate coverage report
 ```
 
 ### Database
+
 ```bash
 flask db migrate -m "Description"  # Create migration
 flask db upgrade                   # Apply migrations
@@ -57,6 +64,7 @@ flask db downgrade                 # Rollback migration
 ```
 
 ### Frontend Development
+
 ```bash
 npm run dev     # Development build with watch
 npm run build   # Production build
@@ -82,6 +90,7 @@ nous/
 ## Common Tasks
 
 ### Adding a New Feature
+
 1. Create feature branch
 2. Add tests first (TDD)
 3. Implement feature
@@ -89,12 +98,14 @@ nous/
 5. Submit PR
 
 ### Adding API Endpoint
+
 1. Create in `src/presentation/api/`
 2. Add tests in `tests/test_api_endpoints.py`
 3. Update OpenAPI spec
 4. Add integration tests
 
 ### Database Changes
+
 1. Create migration: `flask db migrate`
 2. Review migration file
 3. Test migration: `flask db upgrade`
@@ -103,11 +114,13 @@ nous/
 ## Debugging
 
 ### Flask Debug Mode
+
 ```bash
 FLASK_ENV=development flask run --debugger
 ```
 
 ### Database Debugging
+
 ```bash
 # SQL logging
 SQLALCHEMY_ECHO=True flask run
@@ -119,6 +132,7 @@ flask shell
 ```
 
 ### Frontend Debugging
+
 - Use browser dev tools
 - Check webpack output
 - Enable source maps in development
@@ -126,6 +140,7 @@ flask shell
 ## Performance
 
 ### Profiling
+
 ```bash
 # Profile endpoint
 flask profile /api/users
@@ -135,6 +150,7 @@ memory_profiler flask run
 ```
 
 ### Database Performance
+
 - Use `explain analyze` for slow queries
 - Monitor with `pg_stat_statements`
 - Add indexes for common queries
@@ -142,16 +158,19 @@ memory_profiler flask run
 ## Deployment
 
 ### Local Docker
+
 ```bash
 docker-compose up -d
 ```
 
 ### Staging
+
 ```bash
 make deploy-staging
 ```
 
 ### Production
+
 ```bash
 make deploy-production
 ```

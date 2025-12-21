@@ -1,4 +1,5 @@
 import React from 'react';
+
 import styled from 'styled-components';
 
 interface ButtonGroupProps {
@@ -23,19 +24,33 @@ interface ButtonGroupProps {
   children: React.ReactNode;
 }
 
-const StyledButtonGroup = styled.div<ButtonGroupProps>`
-  ${({ theme, direction = 'row', spacing = 'medium', equalWidth }) => `
-    display: flex;
-    flex-direction: ${direction};
-    gap: ${theme.spacing[spacing]};
-    width: 100%;
+const StyledButtonGroup = styled.div.withConfig({
+  shouldForwardProp: (prop) => !['direction', 'spacing', 'equalWidth'].includes(prop),
+})<ButtonGroupProps>`
+  ${({ theme, direction = 'row', spacing = 'medium', equalWidth }) => {
+    const gapBySize = {
+      small: theme.space[2],
+      medium: theme.space[4],
+      large: theme.space[6],
+    } as const;
 
-    ${equalWidth ? `
-      & > * {
-        flex: 1;
+    return `
+      display: flex;
+      flex-direction: ${direction};
+      gap: ${gapBySize[spacing]};
+      width: 100%;
+
+      ${
+        equalWidth
+          ? `
+        & > * {
+          flex: 1;
+        }
+      `
+          : ''
       }
-    ` : ''}
-  `}
+    `;
+  }}
 `;
 
 export const ButtonGroup: React.FC<ButtonGroupProps> = ({
@@ -45,11 +60,11 @@ export const ButtonGroup: React.FC<ButtonGroupProps> = ({
   equalWidth = false,
 }) => {
   return (
-    <StyledButtonGroup 
+    <StyledButtonGroup
       direction={direction}
       spacing={spacing}
       equalWidth={equalWidth}
-      data-testid="button-group"
+      data-testid='button-group'
     >
       {children}
     </StyledButtonGroup>

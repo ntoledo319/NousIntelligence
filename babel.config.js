@@ -29,21 +29,24 @@ module.exports = (api) => {
     '@babel/plugin-proposal-export-namespace-from',
     '@babel/plugin-proposal-numeric-separator',
     '@babel/plugin-proposal-throw-expressions',
-    
+
     // Stage 3
     '@babel/plugin-syntax-dynamic-import',
     '@babel/plugin-syntax-import-assertions',
     ['@babel/plugin-proposal-class-properties', { loose: true }],
     ['@babel/plugin-proposal-private-methods', { loose: true }],
     ['@babel/plugin-proposal-private-property-in-object', { loose: true }],
-    
+
     // Runtime
-    ['@babel/plugin-transform-runtime', {
-      corejs: 3,
-      helpers: true,
-      regenerator: true,
-      useESModules: true,
-    }],
+    [
+      '@babel/plugin-transform-runtime',
+      {
+        corejs: 3,
+        helpers: true,
+        regenerator: true,
+        useESModules: true,
+      },
+    ],
   ];
 
   if (isDev) {

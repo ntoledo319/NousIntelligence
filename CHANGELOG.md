@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - **Stable Spotify Integration with Mood-Based Playlist Generation**: Complete rewrite of Spotify integration with reliable OAuth, ingestion, and intelligent playlist creation
   - **OAuth Flow**: Simple, reliable OAuth 2.0 flow with SQLite token storage
     - `GET /authorize_spotify` - Initiate OAuth authorization
@@ -68,6 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Optional: `RITUAL_SECRET` (for cron jobs), `MUSIXMATCH_API_KEY`, `GENIUS_ACCESS_TOKEN`
 
 ### Fixed
+
 - **Spotify Integration Stability**: Replaced broken `utils/unified_spotify_services.py` with stable implementation
   - Fixed syntax errors and placeholder code that prevented Spotify plugin from loading
   - Implemented proper delegator pattern to `services/spotify/*` layer
@@ -85,6 +87,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Test Suite Stability & Security Hardening**: Brought the full pytest suite to green by stabilizing auth/session helpers, CSRF behavior in test mode, API v2 compatibility routes, monitoring fallbacks, and XSS/SQL injection handling, while preserving secure defaults for production
 
 ### Added
+
 - Security: removed committed `.secret_key` and purged git history
 - Repo hygiene: removed committed `node_modules` and purged git history
 - Added `nous_core`:
@@ -119,6 +122,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - /workflows/daily_reset
 
 ### Planned
+
 - Full SQLAlchemy User model integration
 - Enhanced API documentation with OpenAPI/Swagger
 - Rate limiting for API endpoints
@@ -132,10 +136,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.0.0] - 2025-10-14
 
 ### Changed
+
 - **License Change**: Changed license to proprietary terms
 - **Repository Cleanup**: Removed backups, duplicate configs, and old reports
 
 ### Security
+
 - Enhanced security posture with ongoing improvements
 - Comprehensive security monitoring and validation
 
@@ -144,10 +150,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.5.0] - 2025-07-19
 
 ### Changed
+
 - **Repository Cleanup**: Major cleanup removing backups, duplicate configurations, and outdated reports
 - **Documentation Consolidation**: Streamlined documentation structure
 
 ### Fixed
+
 - Removed redundant files and configurations
 - Cleaned up branch structure
 
@@ -156,6 +164,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.0] - 2025-07-14
 
 ### Added
+
 - **Comprehensive Platform Documentation**: Transformed README.md into comprehensive platform documentation
 - **Frontend Templates**: Added frontend templates for user engagement features
   - Support groups interface
@@ -164,6 +173,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Mental health resources pages
 
 ### Changed
+
 - **Documentation Overhaul**: Complete rewrite of README with detailed platform information
 - **User Engagement**: Enhanced user engagement features with frontend support
 
@@ -172,6 +182,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0] - 2025-07-11
 
 ### Added
+
 - **User Engagement Features**: Comprehensive social and community features
   - Support Groups: Create and join topic-specific support groups
   - Peer Connections: Build friendships and mentor relationships
@@ -195,29 +206,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Smart Crisis Detection: Chat AI detects crisis keywords and provides immediate resources
 
 ### Database
+
 - Added `models/social_models.py` - Social feature database tables
 - Added `models/gamification_models.py` - Gamification database tables
 - Added `models/personal_growth_models.py` - Personal growth database tables
 - Added `models/mental_health_resources.py` - Mental health provider database tables
 
 ### Services
+
 - Added `services/social_service.py` - Handles support groups, connections
 - Added `services/gamification_service.py` - Manages points, achievements, streaks
 - Added `services/personal_growth_service.py` - Goals, habits, journaling logic
 - Added `services/mental_health_resources_service.py` - Crisis support and provider search
 
 ### Routes
+
 - Added `routes/social_routes.py` - `/social/*` endpoints
 - Added `routes/gamification_routes.py` - `/gamification/*` endpoints
 - Added `routes/personal_growth_routes.py` - `/growth/*` endpoints
 - Added `routes/mental_health_resources_routes.py` - `/resources/*` endpoints (crisis is open access)
 
 ### Integration
+
 - Added `utils/chat_feature_integration.py` - Integrates all features with AI chat
 - Added `migrations/add_user_features_tables.py` - Database migration script
 - Added `migrations/add_crisis_resources.py` - Populates default crisis resources
 
 ### Security
+
 - Crisis resources accessible without authentication (critical safety feature)
 - Multiple crisis options always shown (never just one)
 - Chat AI detects crisis keywords and responds immediately
@@ -228,6 +244,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.0] - 2025-07-08
 
 ### Added
+
 - **Major OAuth Implementation**: Complete Google OAuth 2.0 integration
 - **Security Enhancements**: Comprehensive security improvements
   - CSRF protection on all POST routes
@@ -242,6 +259,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Integration tests
 
 ### Fixed
+
 - **Critical Security Issues**: Fixed 7 critical security vulnerabilities
   - Syntax errors in API routes
   - Missing CSRF protection
@@ -261,12 +279,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - File count limits per user
 
 ### Changed
+
 - **Security Score**: Improved from 50/100 to 95/100 (Enterprise-grade)
 - **Session Security**: Enhanced session configuration with secure cookies
 - **OAuth Flow**: Improved OAuth state management with HMAC-signed states
 - **Error Handling**: Comprehensive error handling without information disclosure
 
 ### Security
+
 - Implemented `SecureOAuthStateManager` with HMAC-signed states
 - Added client fingerprinting (IP + User-Agent)
 - Timing-safe state comparison using `hmac.compare_digest()`
@@ -281,6 +301,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2025-07-02
 
 ### Added
+
 - **Comprehensive Optimization System**: Unified optimization management
   - Consolidated Optimization Manager (`utils/consolidated_optimization_manager.py`)
   - Optimization API Routes (`routes/optimization_routes.py`)
@@ -302,12 +323,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Enhanced Analytics**: Improved user experience tracking
 
 ### Changed
+
 - **Cost Optimization**: Achieved 75-85% cost reduction through intelligent routing
 - **Performance**: 20-40% faster application startup time
 - **Caching**: 15-25% improvement in cache hit rates
 - **Database Performance**: 10-20% reduction in query execution times
 
 ### Performance
+
 - Potential 15-35% additional cost savings
 - Unified optimization reduces overhead by 20-30%
 - Automated background optimization maintains peak performance
@@ -319,6 +342,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2025-07-02
 
 ### Added
+
 - **Production Readiness**: Application ready for production deployment
 - **Critical Fixes**: Resolved all critical system failures
   - Fixed 50 critical system failures (syntax errors, missing dependencies, import failures)
@@ -339,6 +363,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **User Safety Focus**: Increased focus on user safety and data protection
 
 ### Fixed
+
 - **SQLAlchemy Model**: Fixed metadata column name conflict
 - **Foreign Key References**: Corrected foreign key relationships
 - **Application Startup**: Improved startup and error handling
@@ -346,6 +371,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Security Measures**: Enhanced security measures to protect user data
 
 ### Changed
+
 - **Database Models**: 192 models across 13 specialized files
 - **Route Files**: 74 route files with comprehensive endpoints
 - **Blueprints**: 21 blueprints registered and operational
@@ -356,6 +382,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.0] - 2025-07-01
 
 ### Added
+
 - **Complete Repository Upload**: All documentation, tests, security fixes, and application code
 - **Comprehensive System Repair**: Resolved 347 total issues across entire codebase
 - **System Restoration**: Complete system repair and restoration
@@ -379,6 +406,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Build Optimization**: Optimized and secured build process
 
 ### Fixed
+
 - **System Failures**: Resolved all 50 critical system failures
 - **Functional Failures**: Fixed all 39 high-priority functional failures
 - **Missing Files**: Created 45+ missing critical files
@@ -387,6 +415,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **User Model**: Simplified User model for authentication compatibility
 
 ### Changed
+
 - **Error Handling**: Comprehensive error handling and fallback systems
 - **Service Architecture**: Unified service architecture with 100% backward compatibility
 - **Performance**: 90% reduction in critical failures
@@ -397,6 +426,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.8.0] - 2025-06-30
 
 ### Added
+
 - **OAuth Authentication**: Comprehensive OAuth authentication with error handling and testing
 - **Login Reliability**: Improved user login reliability
 - **Google OAuth Setup**: Fixed issues with Google OAuth setup
@@ -412,6 +442,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Security Documentation**: Document explaining security and privacy protections
 
 ### Fixed
+
 - **OAuth Flow**: Fixed Google OAuth authentication flow
 - **Login Issues**: Fixed login reliability across all supported authentication methods
 - **Text Contrast**: Fixed text visibility by ensuring sufficient contrast
@@ -422,6 +453,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.7.0] - 2025-06-27
 
 ### Added
+
 - **Documentation Overhaul**: Created clean, accurate documentation based on actual functionality
 - **Architecture Documentation**: Comprehensive architecture documentation with accurate system diagrams
 - **API Reference**: Complete API documentation with examples and error codes
@@ -430,12 +462,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Feedback API**: Created `/api/feedback/submit` and `/status` endpoints
 
 ### Fixed
+
 - **Code Cleanup**: Fixed import errors, resolved User model issues, cleaned up 30+ redundant docs
 - **Database Fixes**: Resolved circular import issues in models/database.py
 - **User Model**: Simplified User model for authentication compatibility
 - **Import Resolution**: Fixed all critical import errors preventing app startup
 
 ### Changed
+
 - **Documentation**: Cleaned up 30+ redundant documentation files
 - **Feature Documentation**: Accurate feature inventory based on codebase audit
 
@@ -444,6 +478,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.0] - 2025-06-26
 
 ### Added
+
 - **Responsive Design**: Implemented responsive mobile-first design
 - **Theme System**: Added 6-theme system with localStorage persistence
 - **Landing Page**: Created professional landing page with Google-only authentication
@@ -452,6 +487,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Database Monitoring**: Enhanced database performance monitoring
 
 ### Changed
+
 - **AI Provider Migration**: Migrated from OpenAI to cost-effective OpenRouter + HuggingFace stack
 - **Cost Reduction**: Achieved 99.85% cost reduction (from ~$330/month to ~$0.49/month)
 - **Authentication Flow**: Changed to Google-only authentication
@@ -459,10 +495,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Deployment**: Established single deployment path: main.py → app.py
 
 ### Fixed
+
 - **Google OAuth**: Fixed Google OAuth authentication flow
 - **Authentication Loops**: Removed redundant authentication loops
 
 ### Removed
+
 - **Duplicate Entry Points**: Eliminated redundant deployment scripts and configurations
 - **Obsolete Files**: Moved obsolete files to backup directories
 
@@ -471,6 +509,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.5.0] - Initial Major Release
 
 ### Added
+
 - **Flask Application**: Flask-based personal assistant application
 - **Google OAuth**: Google OAuth authentication
 - **Chat Interface**: Basic chat interface
@@ -484,6 +523,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Progressive Web App**: Progressive Web App features
 
 ### Database
+
 - **192 Database Models**: Comprehensive database architecture
   - 40+ mental health models (CBT, DBT, AA)
   - 24+ language learning models
@@ -493,6 +533,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Additional personal management models
 
 ### Architecture
+
 - **13 Specialized Model Files**: Organized database models
 - **74 Route Files**: Comprehensive API coverage
 - **21 Blueprints**: Modular, scalable architecture
@@ -505,13 +546,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Breaking Changes
 
 ### [1.4.0] - 2025-07-14
+
 - **License Change**: Changed from MIT to proprietary license terms
 
 ### [1.0.0] - 2025-07-02
+
 - **Database Schema**: Updated foreign key references from `user.id` to `users.id`
 - **Model Changes**: Fixed metadata column name conflict in analytics models
 
 ### [0.6.0] - 2025-06-26
+
 - **Removed OpenAI API**: Replaced with OpenRouter + HuggingFace stack
 - **Simplified User Model**: Removed SQLAlchemy dependency from User model
 - **Consolidated Entry Points**: Removed duplicate app files, single entry point now
@@ -524,6 +568,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Security Improvements
 
 ### [1.2.0] - 2025-07-08
+
 - **Security Score**: Improved from 50/100 to 95/100 (Enterprise-grade)
 - **CSRF Protection**: Added to all POST routes
 - **OAuth Security**: Enhanced OAuth state management with HMAC-signed states
@@ -532,6 +577,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Session Hijacking Protection**: Added IP monitoring and session validation
 
 ### [1.0.0] - 2025-07-02
+
 - **Comprehensive Security Auditing**: Multiple security improvements
 - **Authentication Security**: Enhanced authentication and configuration
 - **Data Protection**: Increased focus on user safety and data protection
@@ -541,6 +587,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Performance Improvements
 
 ### [1.1.0] - 2025-07-02
+
 - **Cost Optimization**: 75-85% cost reduction through intelligent routing
 - **Startup Time**: 20-40% faster application startup
 - **Cache Hit Rates**: 15-25% improvement
@@ -548,6 +595,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Response Times**: 10-15% improvement
 
 ### [0.6.0] - 2025-06-26
+
 - **Cost Reduction**: 99.85% cost reduction (from ~$330/month to ~$0.49/month)
 - **Database Performance**: Enhanced database performance monitoring
 
@@ -556,11 +604,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Known Issues
 
 ### Current
+
 - Some utility modules require API key configuration for full functionality
 - Beta admin console access restricted to specific email addresses
 - Frontend templates needed for some new user engagement features
 
 ### Resolved
+
 - ~~User model needs full SQLAlchemy integration~~ - Resolved in v1.0.0
 - ~~Missing critical files~~ - Resolved in v1.0.0
 - ~~Import errors preventing app startup~~ - Resolved in v0.7.0
@@ -571,6 +621,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Statistics
 
 ### Platform Scale
+
 - **Database Models**: 192 models across 13 specialized files
 - **Route Files**: 74 route files with comprehensive endpoints
 - **Blueprints**: 21 blueprints registered and operational
@@ -580,6 +631,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Features**: 374+ distinct capabilities
 
 ### Development Metrics
+
 - **Development Value**: $2.6M commercial equivalent
 - **Security Score**: 95/100 (Enterprise-grade)
 - **Cost Efficiency**: 97-99% cheaper than competitors
@@ -587,6 +639,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Cost per User**: $0.25-0.66/user/month
 
 ### Performance Metrics
+
 - **Response Time**: < 100ms average
 - **Uptime**: 99.9%+ (Replit SLA)
 - **Concurrent Users**: 100-500 on single instance
@@ -615,4 +668,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-*This changelog is maintained based on git commit history, documentation files, and project reports. For the most up-to-date information, please refer to the git repository and project documentation.*
+_This changelog is maintained based on git commit history, documentation files, and project reports. For the most up-to-date information, please refer to the git repository and project documentation._

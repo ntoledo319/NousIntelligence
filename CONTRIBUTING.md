@@ -3,6 +3,7 @@
 First off, thank you for considering contributing! We welcome any and all contributions that help make this project better.
 
 ## 🤝 Code of Conduct
+
 This project and everyone participating in it is governed by our [Code of Conduct](./CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
 
 ## ▶️ Getting Started
@@ -19,6 +20,7 @@ This project and everyone participating in it is governed by our [Code of Conduc
 The application is configured to run on Replit, which handles most dependency management. For a local setup:
 
 1.  **Install Dependencies:**
+
     ```bash
     pip install -r requirements.txt
     pip install -r requirements_dev.txt
@@ -34,11 +36,12 @@ The application is configured to run on Replit, which handles most dependency ma
 
 ## 🎨 Code Style
 
--   **Python:** We follow `PEP 8` for all Python code.
--   **Docstrings:** Use Google-style docstrings for all modules, classes, and functions.
--   **Naming:** Use descriptive and consistent names for variables, functions, and classes.
+- **Python:** We follow `PEP 8` for all Python code.
+- **Docstrings:** Use Google-style docstrings for all modules, classes, and functions.
+- **Naming:** Use descriptive and consistent names for variables, functions, and classes.
 
 ## ✅ Pre-Commit Hooks (Recommended)
+
 We highly recommend using `pre-commit` to automatically lint and format your code before you commit it.
 
 1.  **Install pre-commit:**
@@ -46,16 +49,19 @@ We highly recommend using `pre-commit` to automatically lint and format your cod
     pip install pre-commit
     ```
 2.  **Install the git hooks:**
-    ```bash
-    pre-commit install
-    ```
-Now, `pre-commit` will run automatically on `git commit`!
+    `bash
+pre-commit install
+`
+    Now, `pre-commit` will run automatically on `git commit`!
 
 ## 🧪 Testing
+
 The test suite uses `pytest`. To run all tests:
+
 ```bash
 pytest
 ```
+
 Ensure all tests pass before submitting a pull request. New features should include corresponding tests.
 
 ## Project Structure
@@ -75,18 +81,21 @@ Ensure all tests pass before submitting a pull request. New features should incl
 ## Types of Contributions
 
 ### Bug Reports
+
 - Use the issue template
 - Include steps to reproduce
 - Provide error messages and logs
 - Specify your environment details
 
 ### Feature Requests
+
 - Describe the feature clearly
 - Explain the use case
 - Consider implementation complexity
 - Check if it aligns with project goals
 
 ### Pull Requests
+
 - Reference related issues
 - Include tests for new functionality
 - Update documentation as needed
@@ -95,11 +104,13 @@ Ensure all tests pass before submitting a pull request. New features should incl
 ## Testing
 
 Run the test suite:
+
 ```bash
 python -m pytest tests/
 ```
 
 For specific test categories:
+
 ```bash
 # Unit tests
 python -m pytest tests/unit/

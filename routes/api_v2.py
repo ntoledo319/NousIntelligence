@@ -1,11 +1,12 @@
 from __future__ import annotations
 import os
 import time
+import json
 from functools import wraps
 from typing import Any, Dict, List
 
 import requests
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, current_app, jsonify, request, session, g
 
 api_v2_bp = Blueprint("api_v2", __name__)
 
@@ -26,6 +27,21 @@ def _auth_optional(fn):
 def _rt() -> Dict[str, Any]:
     from services.runtime_service import init_runtime
     return init_runtime(current_app)
+
+def _user_id() -> str:
+    """
+    Resolve the current user id in a way that works for:
+    - authenticated requests (unified auth)
+    - demo mode
+    - tests
+    """
+    try:
+        from utils.unified_auth import get_demo_user
+    except Exception:
+        get_demo_user = lambda: {"id": "demo_user"}  # type: ignore
+
+    u = getattr(g, "user", None) or session.get("user") or get_demo_user() or {}
+    return str((u or {}).get("id") or session.get("user_id") or "demo_user")
 
 @api_v2_bp.get("/health")
 def health():
@@ -162,6 +178,142 @@ def journal_search():
     # Only return journal docs
     res = [r for r in res if (r.get("meta") or {}).get("kind") == "journal"]
     return jsonify({"ok": True, "results": res})
+
+# ── NEW FEATURE: Thought records (CBT) ─────────────────────────────────
+@api_v2_bp.post("/thought-record/create")
+@_auth_optional
+def thought_record_create():
+    """
+    Create a CBT-style thought record.
+
+    Security: stores encrypted sensitive text payload (encrypt_field).
+    """
+    from utils.encryption import encrypt_field
+
+    d = request.get_json(force=True, silent=False) or {}
+    required = ["situation", "thoughts", "emotions", "intensity"]
+    missing = [k for k in required if not (d.get(k) or "").strip()]
+    if missing:
+        return jsonify({"ok": False, "error": "missing_fields", "fields": missing}), 400
+
+    try:
+        intensity = int(d.get("intensity"))
+    except Exception:
+        return jsonify({"ok": False, "error": "intensity_must_be_int_1_10"}), 400
+    if intensity < 1 or intensity > 10:
+        return jsonify({"ok": False, "error": "intensity_must_be_int_1_10"}), 400
+
+    user_id = _user_id()
+    ts = time.time()
+    record_id = f"thought:{user_id}:{int(ts)}"
+
+    payload: Dict[str, Any] = {
+        "id": record_id,
+        "user_id": user_id,
+        "ts": ts,
+        "situation": encrypt_field(d.get("situation") or ""),
+        "thoughts": encrypt_field(d.get("thoughts") or ""),
+        "emotions": d.get("emotions") if isinstance(d.get("emotions"), list) else [str(d.get("emotions") or "")],
+        "intensity": intensity,
+        "evidence_for": encrypt_field(d.get("evidence_for") or ""),
+        "evidence_against": encrypt_field(d.get("evidence_against") or ""),
+        "alternative_thought": encrypt_field(d.get("alternative_thought") or ""),
+    }
+
+    rt = _rt()
+    rt["store"].append("thought.record", payload)
+    try:
+        rt["semantic"].upsert(record_id, f"Thought record @ {int(ts)}", {"kind": "thought_record", "user_id": user_id})
+    except Exception:
+        pass
+
+    return jsonify({"ok": True, "record": {"id": record_id, "ts": ts}}), 201
+
+
+@api_v2_bp.get("/thought-record/recent")
+@_auth_optional
+def thought_record_recent():
+    """Return recent thought records for the current user."""
+    from utils.encryption import decrypt_field
+
+    rt = _rt()
+    user_id = _user_id()
+    limit = int(request.args.get("limit", "20"))
+    limit = max(1, min(limit, 100))
+
+    items: List[Dict[str, Any]] = []
+    try:
+        all_ev = rt["store"].recent(limit=500, topic_prefix="thought.record")
+        for e in all_ev:
+            p = e.get("payload") or {}
+            if str(p.get("user_id") or "") != user_id:
+                continue
+            items.append(
+                {
+                    "id": p.get("id"),
+                    "ts": p.get("ts"),
+                    "intensity": p.get("intensity"),
+                    "emotions": p.get("emotions") or [],
+                    "situation": decrypt_field(p.get("situation")) or "",
+                    "thoughts": decrypt_field(p.get("thoughts")) or "",
+                    "evidence_for": decrypt_field(p.get("evidence_for")) or "",
+                    "evidence_against": decrypt_field(p.get("evidence_against")) or "",
+                    "alternative_thought": decrypt_field(p.get("alternative_thought")) or "",
+                }
+            )
+            if len(items) >= limit:
+                break
+    except Exception:
+        items = []
+
+    return jsonify({"ok": True, "user_id": user_id, "items": items})
+
+
+# ── NEW FEATURE: Safety plan (encrypted) ───────────────────────────────
+@api_v2_bp.get("/safety-plan")
+@_auth_optional
+def safety_plan_get():
+    """Get the most recent saved safety plan for the current user."""
+    from utils.encryption import decrypt_field
+
+    rt = _rt()
+    user_id = _user_id()
+    plan = None
+    try:
+        events = rt["store"].recent(limit=200, topic_prefix="safety.plan.saved")
+        for e in events:
+            p = e.get("payload") or {}
+            if str(p.get("user_id") or "") != user_id:
+                continue
+            cipher = p.get("ciphertext")
+            if cipher:
+                txt = decrypt_field(cipher)
+                plan = json.loads(txt) if txt else None
+            break
+    except Exception:
+        plan = None
+    return jsonify({"ok": True, "user_id": user_id, "plan": plan})
+
+
+@api_v2_bp.post("/safety-plan")
+@_auth_optional
+def safety_plan_save():
+    """Save a safety plan for the current user (encrypted-at-rest)."""
+    from utils.encryption import encrypt_field
+
+    d = request.get_json(force=True, silent=False) or {}
+    if not isinstance(d, dict):
+        return jsonify({"ok": False, "error": "invalid_json"}), 400
+
+    user_id = _user_id()
+    payload = {
+        "user_id": user_id,
+        "ts": time.time(),
+        "ciphertext": encrypt_field(json.dumps(d)),
+    }
+    rt = _rt()
+    rt["store"].append("safety.plan.saved", payload)
+    return jsonify({"ok": True, "saved": True})
 
 # ── NEW FEATURE #2: Habits check-in + streak summary ───────────────────
 @api_v2_bp.post("/habits/checkin")

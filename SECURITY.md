@@ -29,7 +29,7 @@ You should receive an initial response within 48 hours. We will keep you informe
 
 ## Secret Handling
 
--   **NEVER** commit secrets (API keys, passwords, client secrets) to the repository.
--   All secrets must be managed through Replit Secrets or a local `.env` file for development.
--   The application loads all secrets from environment variables. Refer to `ENV_VARS.md` for a complete list.
--   When adding a new integration, ensure its secrets are loaded from the environment and documented in `ENV_VARS.md`. 
+- **NEVER** commit secrets (API keys, passwords, client secrets) to the repository.
+- All secrets must be managed through Replit Secrets or a local `.env` file for development.
+- The application loads all secrets from environment variables. Refer to `ENV_VARS.md` for a complete list.
+- When adding a new integration, ensure its secrets are loaded from the environment and documented in `ENV_VARS.md`.

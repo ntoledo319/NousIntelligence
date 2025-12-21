@@ -38,7 +38,5 @@
   ],
   "status": "FAIL",
   "security_score": 75,
-  "recommendations": [
-    "Authentication system appears secure"
-  ]
+  "recommendations": ["Authentication system appears secure"]
 }

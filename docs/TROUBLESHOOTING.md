@@ -35,6 +35,7 @@ sudo systemctl status nginx
 #### 1. Application Won't Start
 
 **Symptoms:**
+
 - Service fails to start
 - 502 Bad Gateway errors
 - Connection refused
@@ -58,6 +59,7 @@ python -c "from app import create_app; app = create_app()"
 #### 2. Database Connection Issues
 
 **Symptoms:**
+
 - Database connection failed errors
 - 500 errors on database operations
 
@@ -78,6 +80,7 @@ sudo -u postgres psql -c "SELECT count(*) FROM pg_stat_activity;"
 #### 3. Authentication Problems
 
 **Symptoms:**
+
 - Login failures
 - OAuth redirect issues
 - Session expired errors
@@ -99,6 +102,7 @@ curl -s "https://oauth2.googleapis.com/tokeninfo?id_token=test"
 #### Slow Response Times
 
 **Diagnosis:**
+
 ```bash
 # Monitor response times
 curl -w "%{time_total}" -s -o /dev/null http://localhost:8000/
@@ -111,6 +115,7 @@ iotop
 **Solutions:**
 
 1. **Database optimization:**
+
 ```sql
 -- Check slow queries
 SELECT query, mean_time FROM pg_stat_statements ORDER BY mean_time DESC LIMIT 10;
@@ -120,6 +125,7 @@ ANALYZE;
 ```
 
 2. **Application optimization:**
+
 ```bash
 # Restart services
 sudo systemctl restart nous
@@ -131,6 +137,7 @@ cat /home/nous/app/gunicorn.conf.py
 #### High Memory Usage
 
 **Diagnosis:**
+
 ```bash
 # Check memory usage
 ps aux --sort=-%mem | head -10
@@ -152,6 +159,7 @@ watch -n 5 'free -h && ps aux --sort=-%mem | head -5'
 #### API Failures
 
 **Symptoms:**
+
 - AI responses fail
 - Timeout errors
 - Rate limit exceeded
@@ -174,6 +182,7 @@ curl -H "Authorization: Bearer $OPENAI_API_KEY" https://api.openai.com/v1/models
 #### Swarm Not Operating
 
 **Symptoms:**
+
 - No autonomous improvements
 - Swarm status shows inactive
 - Performance not optimizing
@@ -196,6 +205,7 @@ grep -i "drone" /home/nous/app/logs/app.log
 #### Learning Not Working
 
 **Symptoms:**
+
 - No personalized recommendations
 - System not adapting to usage patterns
 - Optimization not improving
@@ -296,4 +306,4 @@ grep -v "SECRET\|KEY\|PASSWORD" /home/nous/app/.env
 
 ---
 
-*Last updated: 2025-07-01*
+_Last updated: 2025-07-01_

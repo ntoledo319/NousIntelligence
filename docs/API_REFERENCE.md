@@ -1,12 +1,13 @@
 # NOUS API Reference - Accurate Edition
 
-*Last Updated: July 2, 2025 - Based on Actual Codebase Analysis*
+_Last Updated: July 2, 2025 - Based on Actual Codebase Analysis_
 
 ## 📊 API Overview
 
 NOUS provides REST API endpoints across the platform's 74 route files and 3 dedicated API modules, supporting the comprehensive database architecture of 192 models. The API covers therapeutic support, personal management, AI services, and collaboration features.
 
 ### Verified API Architecture
+
 - **Route Files**: 74 implementation files across the platform
 - **API Modules**: 3 dedicated API service files
 - **Database Models**: 192 models providing data foundation
@@ -20,6 +21,7 @@ NOUS provides REST API endpoints across the platform's 74 route files and 3 dedi
 ### Authentication Methods
 
 #### 1. Session-Based Authentication
+
 ```bash
 # Login to get session
 POST /api/login
@@ -35,6 +37,7 @@ Cookie: session=<session_cookie>
 ```
 
 #### 2. API Token Authentication
+
 ```bash
 # Generate API token
 POST /api/tokens/generate
@@ -46,6 +49,7 @@ Authorization: Bearer <api_token>
 ```
 
 #### 3. Demo Mode (No Authentication)
+
 ```bash
 # Access demo endpoints without authentication
 GET /api/demo/chat
@@ -55,18 +59,21 @@ POST /api/demo/chat
 ### Authentication Endpoints
 
 #### POST /api/login
+
 - **Purpose**: User authentication and session creation
 - **Methods**: POST
 - **Authentication**: None required
 - **Response**: Session cookie + user data
 
 #### POST /api/logout
+
 - **Purpose**: Session termination
 - **Methods**: POST
 - **Authentication**: Session required
 - **Response**: Confirmation message
 
 #### GET /api/me
+
 - **Purpose**: Current user information
 - **Methods**: GET
 - **Authentication**: Session or Token
@@ -77,6 +84,7 @@ POST /api/demo/chat
 ### Core Chat API
 
 #### POST /api/chat
+
 - **Purpose**: Main AI chat interface with intelligent routing
 - **Methods**: POST
 - **Authentication**: Session, Token, or Demo
@@ -111,18 +119,21 @@ POST /api/demo/chat
 ### CBT Core Endpoints
 
 #### GET /cbt
+
 - **Purpose**: CBT main dashboard interface
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: CBT dashboard with tools and progress
 
 #### GET /api/cbt/exercises
+
 - **Purpose**: Available CBT exercises and techniques
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: List of CBT exercises with descriptions and usage
 
 #### POST /api/cbt/thought-record
+
 - **Purpose**: Submit thought record for cognitive restructuring
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -140,12 +151,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/cbt/thought-records
+
 - **Purpose**: Retrieve user's thought record history
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Paginated thought records with analysis
 
 #### POST /api/cbt/mood-log
+
 - **Purpose**: Log mood data for tracking
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -161,12 +174,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/cbt/mood-trends
+
 - **Purpose**: Mood pattern analysis and trends
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Mood data visualization and insights
 
 #### POST /api/cbt/behavioral-experiment
+
 - **Purpose**: Plan and track behavioral experiments
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -181,12 +196,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/cbt/coping-skills
+
 - **Purpose**: Available CBT coping skills library
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Categorized coping skills with instructions
 
 #### POST /api/cbt/skill-usage
+
 - **Purpose**: Track coping skill usage and effectiveness
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -202,12 +219,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/cbt/cognitive-biases
+
 - **Purpose**: Cognitive bias detection and education
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Detected biases in user patterns
 
 #### POST /api/cbt/activity-schedule
+
 - **Purpose**: Behavioral activation activity scheduling
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -227,18 +246,21 @@ POST /api/demo/chat
 ### DBT Core Endpoints
 
 #### GET /dbt
+
 - **Purpose**: DBT main dashboard interface
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: DBT dashboard with modules and skills
 
 #### GET /api/dbt/skills
+
 - **Purpose**: DBT skills library organized by modules
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Four DBT modules with skills (Mindfulness, Distress Tolerance, Emotion Regulation, Interpersonal Effectiveness)
 
 #### POST /api/dbt/skill-practice
+
 - **Purpose**: Log DBT skill practice session
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -254,12 +276,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/dbt/distress-tolerance
+
 - **Purpose**: Distress tolerance skills and techniques
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Crisis survival skills, distraction techniques, self-soothing methods
 
 #### POST /api/dbt/wise-mind
+
 - **Purpose**: Wise mind practice tracking
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -275,12 +299,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/dbt/emotion-regulation
+
 - **Purpose**: Emotion regulation skills and tracking
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Emotion identification, regulation strategies, mastery activities
 
 #### POST /api/dbt/interpersonal-effectiveness
+
 - **Purpose**: Track interpersonal effectiveness skills usage
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -299,18 +325,21 @@ POST /api/demo/chat
 ### AA Core Endpoints
 
 #### GET /aa
+
 - **Purpose**: AA recovery dashboard interface
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: AA dashboard with steps, meetings, and recovery tools
 
 #### GET /api/aa/steps
+
 - **Purpose**: The 12 Steps of AA with progress tracking
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: All 12 steps with completion status and reflection notes
 
 #### POST /api/aa/step-work
+
 - **Purpose**: Submit step work and reflection
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -325,12 +354,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/aa/daily-readings
+
 - **Purpose**: Daily recovery readings and meditations
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Today's reading with reflection prompts
 
 #### POST /api/aa/meeting-log
+
 - **Purpose**: Log AA meeting attendance
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -345,12 +376,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/aa/sobriety-tracker
+
 - **Purpose**: Sobriety milestone tracking
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Sobriety date, milestones, achievements
 
 #### POST /api/aa/daily-check-in
+
 - **Purpose**: Daily recovery check-in and HALT assessment
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -368,6 +401,7 @@ POST /api/demo/chat
   ```
 
 #### GET /api/aa/big-book-audio
+
 - **Purpose**: Big Book audio content and bookmarks
 - **Methods**: GET
 - **Authentication**: Session or Token
@@ -378,12 +412,14 @@ POST /api/demo/chat
 ### SEED Core Operations
 
 #### GET /api/seed/status
+
 - **Purpose**: Current SEED optimization system status
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Active optimizations, learning progress, system health
 
 #### POST /api/seed/optimize/therapeutic
+
 - **Purpose**: Trigger therapeutic experience optimization
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -398,6 +434,7 @@ POST /api/demo/chat
 - **Response**: Optimization recommendations and implementation plan
 
 #### POST /api/seed/optimize/engagement
+
 - **Purpose**: Optimize user engagement patterns
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -411,6 +448,7 @@ POST /api/demo/chat
   ```
 
 #### POST /api/seed/optimize/comprehensive
+
 - **Purpose**: Run comprehensive multi-domain optimization
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -424,12 +462,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/seed/recommendations
+
 - **Purpose**: Personalized SEED recommendations
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: AI-generated optimization recommendations based on user patterns
 
 #### POST /api/seed/feedback
+
 - **Purpose**: Provide feedback on SEED optimizations
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -444,18 +484,21 @@ POST /api/demo/chat
   ```
 
 #### GET /api/seed/analytics
+
 - **Purpose**: SEED learning analytics and insights
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Learning patterns, optimization success rates, personalization metrics
 
 #### GET /api/seed/dashboard-data
+
 - **Purpose**: SEED dashboard visualization data
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Dashboard metrics, charts, and real-time optimization status
 
 #### POST /api/seed/manual-learning
+
 - **Purpose**: Trigger manual SEED learning cycle
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -469,12 +512,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/seed/optimization-history
+
 - **Purpose**: Historical optimization data and trends
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Past optimizations, effectiveness trends, learning progress
 
 #### POST /api/seed/reset-domain
+
 - **Purpose**: Reset specific optimization domain
 - **Methods**: POST
 - **Authentication**: Admin
@@ -492,12 +537,14 @@ POST /api/demo/chat
 ### Drone Swarm Management
 
 #### GET /api/drone-swarm/status
+
 - **Purpose**: Current swarm operational status
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Active drones, task queues, performance metrics
 
 #### POST /api/drone-swarm/start
+
 - **Purpose**: Start autonomous drone swarm operations
 - **Methods**: POST
 - **Authentication**: Admin
@@ -511,18 +558,21 @@ POST /api/demo/chat
   ```
 
 #### POST /api/drone-swarm/stop
+
 - **Purpose**: Stop drone swarm operations
 - **Methods**: POST
 - **Authentication**: Admin
 - **Response**: Shutdown confirmation and final metrics
 
 #### GET /api/drone-swarm/performance
+
 - **Purpose**: Swarm performance metrics and analytics
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: CPU/memory optimization, response time improvements, cost savings
 
 #### POST /api/drone-swarm/manual-optimization
+
 - **Purpose**: Trigger manual optimization task
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -536,12 +586,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/drone-swarm/activity-log
+
 - **Purpose**: Detailed drone activity and optimization log
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Timestamped drone activities, optimizations performed, results
 
 #### POST /api/drone-swarm/task-queue
+
 - **Purpose**: Add task to drone swarm queue
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -549,18 +601,20 @@ POST /api/demo/chat
   ```json
   {
     "task_type": "performance_monitoring",
-    "parameters": {"threshold": 85, "duration": 3600},
+    "parameters": { "threshold": 85, "duration": 3600 },
     "priority": "medium"
   }
   ```
 
 #### GET /api/drone-swarm/optimization-report
+
 - **Purpose**: Comprehensive optimization impact report
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Before/after metrics, performance gains, resource savings
 
 #### POST /api/drone-swarm/configure
+
 - **Purpose**: Configure swarm operation parameters
 - **Methods**: POST
 - **Authentication**: Admin
@@ -575,6 +629,7 @@ POST /api/demo/chat
   ```
 
 #### GET /api/drone-swarm/health
+
 - **Purpose**: Individual drone health status
 - **Methods**: GET
 - **Authentication**: Session or Token
@@ -585,6 +640,7 @@ POST /api/demo/chat
 ### Therapeutic Chat Integration
 
 #### POST /api/therapeutic/chat
+
 - **Purpose**: Emotion-aware therapeutic conversation
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -611,6 +667,7 @@ POST /api/demo/chat
   ```
 
 #### POST /api/therapeutic/emotion-analysis
+
 - **Purpose**: Analyze emotional content from text or voice
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -624,12 +681,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/therapeutic/skill-recommendations
+
 - **Purpose**: Personalized therapeutic skill recommendations
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Context-aware CBT/DBT/AA skill suggestions
 
 #### POST /api/therapeutic/voice-analysis
+
 - **Purpose**: Voice emotion analysis for therapeutic assessment
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -637,12 +696,14 @@ POST /api/demo/chat
 - **Response**: Emotion detection, stress indicators, therapeutic recommendations
 
 #### GET /api/therapeutic/user-profile
+
 - **Purpose**: Therapeutic user profile and progress
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Therapeutic goals, skill effectiveness, emotional patterns
 
 #### POST /api/therapeutic/crisis-support
+
 - **Purpose**: Crisis intervention and emergency support
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -656,6 +717,7 @@ POST /api/demo/chat
   ```
 
 #### GET /api/therapeutic/context-suggestions
+
 - **Purpose**: Context-aware therapeutic suggestions
 - **Methods**: GET
 - **Authentication**: Session or Token
@@ -666,6 +728,7 @@ POST /api/demo/chat
 ### Voice Intelligence
 
 #### POST /api/voice/process
+
 - **Purpose**: Advanced voice processing with emotion recognition
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -673,12 +736,14 @@ POST /api/demo/chat
 - **Response**: Transcription, emotion analysis, therapeutic insights
 
 #### GET /api/voice/capabilities
+
 - **Purpose**: Available voice processing features
 - **Methods**: GET
 - **Authentication**: Optional
 - **Response**: Supported languages, processing options, quality settings
 
 #### POST /api/voice/emotion-analysis
+
 - **Purpose**: Voice-based emotion detection
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -686,12 +751,14 @@ POST /api/demo/chat
 - **Response**: Emotion classification, intensity, confidence scores
 
 #### GET /api/voice/emotion-history
+
 - **Purpose**: Historical voice emotion patterns
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Emotion trends, pattern analysis, therapeutic insights
 
 #### POST /api/voice/mindfulness-session
+
 - **Purpose**: Guided mindfulness session with voice feedback
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -705,12 +772,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/voice/mindfulness-templates
+
 - **Purpose**: Available mindfulness session templates
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Template library with descriptions and durations
 
 #### POST /api/voice/text-to-speech
+
 - **Purpose**: Generate therapeutic audio content
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -724,6 +793,7 @@ POST /api/demo/chat
   ```
 
 #### POST /api/voice/speech-to-text
+
 - **Purpose**: Convert speech to text for therapeutic processing
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -735,18 +805,21 @@ POST /api/demo/chat
 ### Dashboard Analytics
 
 #### GET /api/analytics/dashboard
+
 - **Purpose**: Comprehensive analytics dashboard data
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: User metrics, engagement patterns, therapeutic progress
 
 #### GET /api/analytics/user-insights
+
 - **Purpose**: AI-generated personalized insights
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Pattern analysis, recommendations, predictive insights
 
 #### POST /api/analytics/track-event
+
 - **Purpose**: Track user interaction events
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -764,18 +837,21 @@ POST /api/demo/chat
   ```
 
 #### GET /api/analytics/engagement-metrics
+
 - **Purpose**: User engagement analytics
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Daily/weekly/monthly engagement patterns
 
 #### GET /api/analytics/therapeutic-progress
+
 - **Purpose**: Therapeutic progress analytics
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Progress trends, milestone achievements, goal completion rates
 
 #### POST /api/analytics/goal-tracking
+
 - **Purpose**: Track progress toward therapeutic goals
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -790,12 +866,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/analytics/mood-patterns
+
 - **Purpose**: Mood pattern analysis and trends
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Mood correlation analysis, trigger identification
 
 #### GET /api/analytics/usage-statistics
+
 - **Purpose**: Platform usage statistics
 - **Methods**: GET
 - **Authentication**: Session or Token
@@ -806,6 +884,7 @@ POST /api/demo/chat
 ### Search Operations
 
 #### GET /api/search/global
+
 - **Purpose**: Universal search across all platform content
 - **Methods**: GET
 - **Authentication**: Session or Token
@@ -813,6 +892,7 @@ POST /api/demo/chat
 - **Response**: Unified search results across therapeutic content, user data, resources
 
 #### POST /api/search/advanced
+
 - **Purpose**: Advanced search with filtering and ranking
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -822,14 +902,15 @@ POST /api/demo/chat
     "query": "anxiety coping skills",
     "filters": {
       "content_type": ["cbt_skills", "dbt_skills"],
-      "effectiveness_rating": {"min": 7},
-      "date_range": {"start": "2025-06-01"}
+      "effectiveness_rating": { "min": 7 },
+      "date_range": { "start": "2025-06-01" }
     },
     "sort_by": "relevance"
   }
   ```
 
 #### GET /api/search/suggestions
+
 - **Purpose**: Real-time search suggestions
 - **Methods**: GET
 - **Authentication**: Optional
@@ -837,12 +918,14 @@ POST /api/demo/chat
 - **Response**: Auto-complete suggestions based on content and user history
 
 #### GET /api/search/recent
+
 - **Purpose**: Recent user searches
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: User's recent search history with quick re-execution
 
 #### POST /api/search/save
+
 - **Purpose**: Save search query for later
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -856,6 +939,7 @@ POST /api/demo/chat
   ```
 
 #### GET /api/search/content-index
+
 - **Purpose**: Search content indexing status
 - **Methods**: GET
 - **Authentication**: Admin
@@ -866,12 +950,14 @@ POST /api/demo/chat
 ### Financial Tracking
 
 #### GET /api/financial/overview
+
 - **Purpose**: Financial overview and dashboard
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Account balances, spending patterns, budget status
 
 #### POST /api/financial/transaction
+
 - **Purpose**: Log or categorize financial transaction
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -888,12 +974,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/financial/budget-tracking
+
 - **Purpose**: Budget tracking and alerts
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Budget categories, spending vs limits, recommendations
 
 #### POST /api/financial/budget-setup
+
 - **Purpose**: Set up or modify budget categories
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -908,12 +996,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/financial/spending-analysis
+
 - **Purpose**: Spending pattern analysis
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Spending trends, therapeutic cost tracking, wellness ROI
 
 #### POST /api/financial/bank-connection
+
 - **Purpose**: Connect bank account for automatic tracking
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -921,6 +1011,7 @@ POST /api/demo/chat
 - **Response**: Connection status, available accounts
 
 #### GET /api/financial/wellness-expenses
+
 - **Purpose**: Track wellness and mental health expenses
 - **Methods**: GET
 - **Authentication**: Session or Token
@@ -931,6 +1022,7 @@ POST /api/demo/chat
 ### Location Services
 
 #### GET /api/maps/nearby-resources
+
 - **Purpose**: Find nearby mental health resources
 - **Methods**: GET
 - **Authentication**: Session or Token
@@ -938,13 +1030,14 @@ POST /api/demo/chat
 - **Response**: Therapists, support groups, crisis centers, hospitals
 
 #### POST /api/maps/location-based-triggers
+
 - **Purpose**: Set location-based therapeutic triggers
 - **Methods**: POST
 - **Authentication**: Session or Token
 - **Request**:
   ```json
   {
-    "location": {"lat": 40.7128, "lng": -74.0060},
+    "location": { "lat": 40.7128, "lng": -74.006 },
     "radius": 500,
     "trigger_type": "mindfulness_reminder",
     "message": "Practice deep breathing while walking"
@@ -952,19 +1045,21 @@ POST /api/demo/chat
   ```
 
 #### GET /api/maps/safe-spaces
+
 - **Purpose**: Personal safe spaces mapping
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: User-defined safe locations with coping resources
 
 #### POST /api/maps/mood-location-tracking
+
 - **Purpose**: Track mood patterns by location
 - **Methods**: POST
 - **Authentication**: Session or Token
 - **Request**:
   ```json
   {
-    "location": {"lat": 40.7128, "lng": -74.0060, "name": "office"},
+    "location": { "lat": 40.7128, "lng": -74.006, "name": "office" },
     "mood": "stressed",
     "intensity": 6,
     "coping_skills_used": ["breathing_exercise"]
@@ -972,6 +1067,7 @@ POST /api/demo/chat
   ```
 
 #### GET /api/maps/crisis-resources
+
 - **Purpose**: Emergency mental health resources by location
 - **Methods**: GET
 - **Authentication**: Optional
@@ -983,6 +1079,7 @@ POST /api/demo/chat
 ### Weather Integration
 
 #### GET /api/weather/current
+
 - **Purpose**: Current weather with mood correlation
 - **Methods**: GET
 - **Authentication**: Session or Token
@@ -990,12 +1087,14 @@ POST /api/demo/chat
 - **Response**: Weather data with mood impact insights
 
 #### GET /api/weather/mood-correlation
+
 - **Purpose**: Weather-mood pattern analysis
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Personal weather-mood correlations, seasonal patterns
 
 #### POST /api/weather/mood-weather-log
+
 - **Purpose**: Log mood with current weather conditions
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1011,12 +1110,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/weather/seasonal-recommendations
+
 - **Purpose**: Seasonal therapeutic recommendations
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Season-specific coping strategies, activity suggestions
 
 #### POST /api/weather/alerts
+
 - **Purpose**: Set weather-based therapeutic alerts
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1034,12 +1135,14 @@ POST /api/demo/chat
 ### Task Operations
 
 #### GET /api/tasks/list
+
 - **Purpose**: User's task list with therapeutic integration
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Tasks organized by priority, therapeutic relevance
 
 #### POST /api/tasks/create
+
 - **Purpose**: Create new task with therapeutic context
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1056,6 +1159,7 @@ POST /api/demo/chat
   ```
 
 #### PUT /api/tasks/{task_id}/complete
+
 - **Purpose**: Mark task complete with mood tracking
 - **Methods**: PUT
 - **Authentication**: Session or Token
@@ -1069,12 +1173,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/tasks/therapeutic-goals
+
 - **Purpose**: Therapeutic goal tracking and progress
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: SMART goals, progress tracking, milestone achievements
 
 #### POST /api/tasks/habit-tracking
+
 - **Purpose**: Track therapeutic habit formation
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1094,12 +1200,14 @@ POST /api/demo/chat
 ### Notification Management
 
 #### GET /api/notifications/list
+
 - **Purpose**: User's notification feed
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Prioritized notifications with therapeutic relevance
 
 #### POST /api/notifications/preferences
+
 - **Purpose**: Configure notification preferences
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1109,11 +1217,12 @@ POST /api/demo/chat
     "therapeutic_reminders": true,
     "mood_check_frequency": "daily",
     "crisis_alerts": "immediate",
-    "quiet_hours": {"start": "22:00", "end": "08:00"}
+    "quiet_hours": { "start": "22:00", "end": "08:00" }
   }
   ```
 
 #### POST /api/notifications/therapeutic-alert
+
 - **Purpose**: Send therapeutic intervention notification
 - **Methods**: POST
 - **Authentication**: System or Admin
@@ -1129,12 +1238,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/notifications/crisis-support
+
 - **Purpose**: Crisis support notification system
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Emergency contacts, crisis resources, immediate support options
 
 #### POST /api/notifications/mark-read
+
 - **Purpose**: Mark notifications as read
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1151,6 +1262,7 @@ POST /api/demo/chat
 ### Music Therapy & Mood Enhancement
 
 #### GET /api/spotify/mood-playlists
+
 - **Purpose**: Get mood-based therapeutic playlists
 - **Methods**: GET
 - **Authentication**: Session or Token
@@ -1158,6 +1270,7 @@ POST /api/demo/chat
 - **Response**: Curated playlists for emotional regulation and therapeutic support
 
 #### POST /api/spotify/mood-music-log
+
 - **Purpose**: Log music listening with mood correlation
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1173,6 +1286,7 @@ POST /api/demo/chat
   ```
 
 #### GET /api/spotify/player-control
+
 - **Purpose**: Control Spotify playback for therapeutic sessions
 - **Methods**: GET, POST
 - **Authentication**: Session or Token
@@ -1180,6 +1294,7 @@ POST /api/demo/chat
 - **Response**: Playback state, currently playing track
 
 #### POST /api/spotify/therapeutic-session
+
 - **Purpose**: Start music-assisted therapeutic session
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1194,12 +1309,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/spotify/music-analytics
+
 - **Purpose**: Music listening patterns and therapeutic insights
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Listening habits, mood correlations, therapeutic music effectiveness
 
 #### POST /api/spotify/create-wellness-playlist
+
 - **Purpose**: Create AI-generated wellness playlist
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1218,12 +1335,14 @@ POST /api/demo/chat
 ### Ultra-Secure AI Processing
 
 #### GET /api/nous-tech/status
+
 - **Purpose**: NOUS Tech system status and capabilities
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Available features, security level, processing capabilities
 
 #### POST /api/nous-tech/secure-inference
+
 - **Purpose**: TEE-secured AI inference for sensitive data
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1238,12 +1357,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/nous-tech/blockchain-audit
+
 - **Purpose**: Blockchain audit trail for therapeutic data access
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Immutable access logs, data integrity verification
 
 #### POST /api/nous-tech/parallel-processing
+
 - **Purpose**: Distributed processing for complex therapeutic analysis
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1258,12 +1379,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/nous-tech/compression-analytics
+
 - **Purpose**: Advanced data compression and analytics
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Compressed data insights, pattern recognition results
 
 #### POST /api/nous-tech/brain-reasoning
+
 - **Purpose**: Advanced AI reasoning system for complex therapeutic decisions
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1278,6 +1401,7 @@ POST /api/demo/chat
   ```
 
 #### GET /api/nous-tech/self-learning-insights
+
 - **Purpose**: System self-learning progress and insights
 - **Methods**: GET
 - **Authentication**: Admin
@@ -1288,6 +1412,7 @@ POST /api/demo/chat
 ### Advanced Authentication
 
 #### POST /api/auth/google-oauth
+
 - **Purpose**: Google OAuth 2.0 authentication
 - **Methods**: POST
 - **Authentication**: None (public)
@@ -1295,12 +1420,14 @@ POST /api/demo/chat
 - **Response**: Access tokens, user profile, session establishment
 
 #### GET /api/auth/session-status
+
 - **Purpose**: Current authentication session status
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: User profile, session expiry, authentication method
 
 #### POST /api/auth/token-refresh
+
 - **Purpose**: Refresh authentication tokens
 - **Methods**: POST
 - **Authentication**: Refresh Token
@@ -1308,18 +1435,21 @@ POST /api/demo/chat
 - **Response**: New access token, updated session
 
 #### POST /api/auth/logout
+
 - **Purpose**: Secure logout with session cleanup
 - **Methods**: POST
 - **Authentication**: Session or Token
 - **Response**: Logout confirmation, session termination
 
 #### GET /api/auth/security-audit
+
 - **Purpose**: User security audit and recommendations
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Security score, vulnerability assessment, recommendations
 
 #### POST /api/auth/two-factor-setup
+
 - **Purpose**: Set up two-factor authentication
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1337,12 +1467,14 @@ POST /api/demo/chat
 ### Personalization & Setup
 
 #### GET /api/setup/wizard-status
+
 - **Purpose**: User onboarding wizard progress
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Completion status, next steps, personalization level
 
 #### POST /api/setup/preferences
+
 - **Purpose**: Set user preferences and customization
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1358,6 +1490,7 @@ POST /api/demo/chat
   ```
 
 #### POST /api/setup/therapeutic-goals
+
 - **Purpose**: Set initial therapeutic goals
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1372,12 +1505,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/setup/recommended-features
+
 - **Purpose**: AI-recommended features based on user profile
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Personalized feature recommendations, usage guidance
 
 #### POST /api/setup/crisis-contacts
+
 - **Purpose**: Set up emergency contacts and crisis plan
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1385,14 +1520,15 @@ POST /api/demo/chat
   ```json
   {
     "emergency_contacts": [
-      {"name": "Dr. Smith", "phone": "+1234567890", "relationship": "therapist"},
-      {"name": "Crisis Hotline", "phone": "988", "relationship": "crisis_line"}
+      { "name": "Dr. Smith", "phone": "+1234567890", "relationship": "therapist" },
+      { "name": "Crisis Hotline", "phone": "988", "relationship": "crisis_line" }
     ],
     "safety_plan": "detailed_safety_plan_text"
   }
   ```
 
 #### POST /api/setup/data-privacy
+
 - **Purpose**: Configure data privacy and sharing preferences
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1411,12 +1547,14 @@ POST /api/demo/chat
 ### Comprehensive Health Tracking
 
 #### GET /api/health/overview
+
 - **Purpose**: Comprehensive health dashboard
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Physical health, mental health, recovery progress, wellness metrics
 
 #### POST /api/health/vitals
+
 - **Purpose**: Log health vitals with mood correlation
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1433,12 +1571,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/health/recovery-tracking
+
 - **Purpose**: Addiction recovery progress tracking
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Sobriety milestones, recovery metrics, support system strength
 
 #### POST /api/health/medication-log
+
 - **Purpose**: Track medication adherence and effects
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1454,12 +1594,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/health/wellness-trends
+
 - **Purpose**: Long-term wellness and recovery trends
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Health trajectory, improvement patterns, risk indicators
 
 #### POST /api/health/therapy-session-log
+
 - **Purpose**: Log therapy session outcomes and insights
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1480,12 +1622,14 @@ POST /api/demo/chat
 ### Platform Management
 
 #### GET /api/admin/system-health
+
 - **Purpose**: Comprehensive system health monitoring
 - **Methods**: GET
 - **Authentication**: Admin
 - **Response**: System metrics, performance indicators, error rates
 
 #### POST /api/admin/feature-toggle
+
 - **Purpose**: Enable/disable platform features
 - **Methods**: POST
 - **Authentication**: Admin
@@ -1500,12 +1644,14 @@ POST /api/demo/chat
   ```
 
 #### GET /api/admin/user-analytics
+
 - **Purpose**: Platform-wide user analytics
 - **Methods**: GET
 - **Authentication**: Admin
 - **Response**: User engagement, feature adoption, therapeutic outcomes
 
 #### POST /api/admin/content-moderation
+
 - **Purpose**: Content moderation and safety monitoring
 - **Methods**: POST
 - **Authentication**: Admin
@@ -1513,6 +1659,7 @@ POST /api/demo/chat
 - **Response**: Moderation decisions, escalation requirements
 
 #### GET /api/admin/performance-metrics
+
 - **Purpose**: Platform performance and optimization metrics
 - **Methods**: GET
 - **Authentication**: Admin
@@ -1525,6 +1672,7 @@ POST /api/demo/chat
 ### Comprehensive Testing
 
 #### Chat API Test
+
 ```bash
 curl -X POST "https://your-domain.com/api/chat" \
   -H "Content-Type: application/json" \
@@ -1536,6 +1684,7 @@ curl -X POST "https://your-domain.com/api/chat" \
 ```
 
 #### CBT Thought Record Test
+
 ```bash
 curl -X POST "https://your-domain.com/api/cbt/thought-record" \
   -H "Content-Type: application/json" \
@@ -1549,6 +1698,7 @@ curl -X POST "https://your-domain.com/api/cbt/thought-record" \
 ```
 
 #### SEED Optimization Test
+
 ```bash
 curl -X POST "https://your-domain.com/api/seed/optimize/therapeutic" \
   -H "Content-Type: application/json" \
@@ -1561,6 +1711,7 @@ curl -X POST "https://your-domain.com/api/seed/optimize/therapeutic" \
 ```
 
 #### Analytics Dashboard Test
+
 ```bash
 curl -X GET "https://your-domain.com/api/analytics/dashboard" \
   -H "Authorization: Bearer YOUR_TOKEN"
@@ -1571,8 +1722,9 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 ## 📋 Complete API Coverage Summary
 
 ### API Categories Documented
+
 - **Core Chat & AI Services**: 8 endpoints
-- **Cognitive Behavioral Therapy (CBT)**: 10 endpoints  
+- **Cognitive Behavioral Therapy (CBT)**: 10 endpoints
 - **Dialectical Behavior Therapy (DBT)**: 7 endpoints
 - **Alcoholics Anonymous (AA) Recovery**: 8 endpoints
 - **SEED Optimization Engine**: 11 endpoints
@@ -1594,6 +1746,7 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 - **System Administration**: 5 endpoints
 
 ### Total Coverage Achievement
+
 - **Comprehensive Endpoints**: 150+ fully documented
 - **Authentication Methods**: 4 (Session, Token, Demo, OAuth)
 - **API Categories**: 21 major therapeutic and platform categories
@@ -1602,6 +1755,7 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 - **Integration Points**: CBT/DBT/AA, SEED learning, drone optimization, Spotify, maps, weather
 
 ### Advanced Features Documented
+
 - **Autonomous Optimization**: SEED learning engine and drone swarm management
 - **Therapeutic Intelligence**: Emotion-aware chat, crisis intervention, skill recommendations
 - **Ultra-Secure Processing**: TEE-secured inference, blockchain audit trails
@@ -1611,7 +1765,7 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 
 ---
 
-*This comprehensive API reference documents all 150+ REST endpoints across the NOUS therapeutic platform. Each endpoint has been verified against the actual codebase implementation and provides complete therapeutic, optimization, and platform capabilities.*
+_This comprehensive API reference documents all 150+ REST endpoints across the NOUS therapeutic platform. Each endpoint has been verified against the actual codebase implementation and provides complete therapeutic, optimization, and platform capabilities._
 
 **Documentation Status**: From Scratch Comprehensive Audit Complete  
 **Last Updated**: July 1, 2025  
@@ -1619,6 +1773,7 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 **Verification**: ✅ All endpoints validated against actual codebase implementation
 
 #### POST /api/enhanced/chat
+
 - **Purpose**: Enhanced chat with adaptive AI and unified services
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1630,12 +1785,14 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
   - Advanced context management
 
 #### GET /api/chat/handlers
+
 - **Purpose**: List all available chat handlers
 - **Methods**: GET
 - **Authentication**: Optional
 - **Response**: List of registered handlers with capabilities
 
 #### GET /api/chat/health
+
 - **Purpose**: Chat API health status
 - **Methods**: GET
 - **Authentication**: None
@@ -1644,12 +1801,14 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 ### Demo Chat API
 
 #### GET /api/demo/chat
+
 - **Purpose**: Public demo chat interface
 - **Methods**: GET
 - **Authentication**: None required
 - **Response**: Demo chat interface
 
 #### POST /api/demo/chat
+
 - **Purpose**: Public demo chat processing
 - **Methods**: POST
 - **Authentication**: None required
@@ -1660,30 +1819,35 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 ### Analytics Endpoints
 
 #### GET /api/analytics/dashboard
+
 - **Purpose**: Comprehensive analytics dashboard data
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Real-time metrics, trends, insights
 
 #### GET /api/analytics/activity
+
 - **Purpose**: User activity patterns and metrics
-- **Methods**: GET  
+- **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Activity logs and pattern analysis
 
 #### GET /api/analytics/insights
+
 - **Purpose**: AI-generated insights and recommendations
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Personalized insights and suggestions
 
 #### POST /api/analytics/goals
+
 - **Purpose**: Goal management and tracking
 - **Methods**: POST, GET, PUT, DELETE
 - **Authentication**: Session or Token
 - **Response**: Goal data and progress tracking
 
 #### GET /api/analytics/metrics
+
 - **Purpose**: Performance and engagement metrics
 - **Methods**: GET
 - **Authentication**: Session or Token
@@ -1692,12 +1856,14 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 ### Adaptive AI Analytics
 
 #### GET /api/adaptive/insights
+
 - **Purpose**: Adaptive AI learning insights
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: AI learning patterns and recommendations
 
 #### POST /api/adaptive/feedback
+
 - **Purpose**: Provide feedback for AI improvement
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1712,6 +1878,7 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
   ```
 
 #### GET /api/adaptive/analytics
+
 - **Purpose**: Adaptive system analytics
 - **Methods**: GET
 - **Authentication**: Session or Token
@@ -1722,18 +1889,21 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 ### Health Monitoring
 
 #### GET /api/health/metrics
+
 - **Purpose**: Health and wellness metrics
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Health data and trends
 
 #### POST /api/health/data
+
 - **Purpose**: Submit health data
 - **Methods**: POST
 - **Authentication**: Session or Token
 - **Request**: Health metrics and measurements
 
 #### GET /api/health/insights
+
 - **Purpose**: AI-generated health insights
 - **Methods**: GET
 - **Authentication**: Session or Token
@@ -1742,18 +1912,21 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 ### System Health
 
 #### GET /health
+
 - **Purpose**: System health check
 - **Methods**: GET
 - **Authentication**: None
 - **Response**: System status and uptime
 
 #### GET /healthz
+
 - **Purpose**: Kubernetes-style health check
 - **Methods**: GET
 - **Authentication**: None
 - **Response**: Simple OK/ERROR status
 
 #### GET /ready
+
 - **Purpose**: Readiness probe for deployment
 - **Methods**: GET
 - **Authentication**: None
@@ -1764,18 +1937,21 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 ### Financial Tracking
 
 #### GET /api/financial/transactions
+
 - **Purpose**: Financial transaction history
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Transaction data and categorization
 
 #### POST /api/financial/budget
+
 - **Purpose**: Budget management
 - **Methods**: POST, GET, PUT
 - **Authentication**: Session or Token
 - **Response**: Budget data and tracking
 
 #### GET /api/financial/analytics
+
 - **Purpose**: Financial analytics and insights
 - **Methods**: GET
 - **Authentication**: Session or Token
@@ -1786,6 +1962,7 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 ### Voice Processing
 
 #### POST /api/v2/voice/process
+
 - **Purpose**: Enhanced voice processing with emotion recognition
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1793,6 +1970,7 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 - **Response**: Processed speech with emotion analysis
 
 #### GET /api/v2/voice/capabilities
+
 - **Purpose**: Voice interface capabilities
 - **Methods**: GET
 - **Authentication**: Optional
@@ -1803,6 +1981,7 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 ### Document Processing
 
 #### POST /api/v2/visual/ocr
+
 - **Purpose**: Optical Character Recognition
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1810,6 +1989,7 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 - **Response**: Extracted text and metadata
 
 #### POST /api/v2/visual/analyze
+
 - **Purpose**: Visual content analysis
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1821,12 +2001,14 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 ### Automation Management
 
 #### GET /api/v2/automation/workflows
+
 - **Purpose**: Automation workflow management
 - **Methods**: GET, POST, PUT, DELETE
 - **Authentication**: Session or Token
 - **Response**: Workflow definitions and status
 
 #### POST /api/v2/automation/trigger
+
 - **Purpose**: Trigger automation workflows
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1837,12 +2019,14 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 ### Configuration
 
 #### GET /api/config
+
 - **Purpose**: System configuration
 - **Methods**: GET
 - **Authentication**: Admin
 - **Response**: System settings and parameters
 
 #### POST /api/config/update
+
 - **Purpose**: Update system configuration
 - **Methods**: POST
 - **Authentication**: Admin
@@ -1851,12 +2035,14 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 ### Plugin Management
 
 #### GET /api/plugins
+
 - **Purpose**: Plugin registry status
 - **Methods**: GET
 - **Authentication**: Optional
 - **Response**: Available plugins and status
 
 #### POST /api/plugins/enable
+
 - **Purpose**: Enable/disable plugins
 - **Methods**: POST
 - **Authentication**: Admin
@@ -1867,6 +2053,7 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 ### AI System Brain
 
 #### POST /nous-tech/brain/query
+
 - **Purpose**: Advanced AI system brain queries
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1874,6 +2061,7 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 - **Response**: Multi-step reasoning results
 
 #### GET /nous-tech/brain/status
+
 - **Purpose**: AI system brain status
 - **Methods**: GET
 - **Authentication**: Session or Token
@@ -1882,12 +2070,14 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 ### Security & Monitoring
 
 #### GET /nous-tech/security/status
+
 - **Purpose**: Security monitoring status
 - **Methods**: GET
 - **Authentication**: Session or Token
 - **Response**: Security metrics and alerts
 
 #### POST /nous-tech/security/audit
+
 - **Purpose**: Security audit logging
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1896,6 +2086,7 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 ### Parallel Processing
 
 #### POST /nous-tech/parallel/execute
+
 - **Purpose**: Execute parallel processing tasks
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -1907,12 +2098,14 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 ### Prometheus Integration
 
 #### GET /api/v1/metrics
+
 - **Purpose**: Prometheus-compatible metrics
 - **Methods**: GET
 - **Authentication**: Optional
 - **Response**: System metrics in Prometheus format
 
 #### GET /api/v1/feedback
+
 - **Purpose**: User feedback collection
 - **Methods**: GET, POST
 - **Authentication**: Session or Token
@@ -1921,6 +2114,7 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 ### Learning Analytics
 
 #### GET /api/v1/analytics
+
 - **Purpose**: Learning analytics and insights
 - **Methods**: GET
 - **Authentication**: Session or Token
@@ -1931,12 +2125,14 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 ### Status Endpoints
 
 #### GET /api/status/messaging
+
 - **Purpose**: Messaging system status
 - **Methods**: GET
 - **Authentication**: Optional
 - **Response**: Real-time messaging status
 
 #### GET /api/status/system
+
 - **Purpose**: Overall system status
 - **Methods**: GET
 - **Authentication**: Optional
@@ -1947,12 +2143,14 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 ### External Service Integration
 
 #### POST /api/integrations/google
+
 - **Purpose**: Google services integration
 - **Methods**: POST
 - **Authentication**: Session or Token
 - **Request**: Google service requests
 
 #### POST /api/integrations/spotify
+
 - **Purpose**: Spotify integration
 - **Methods**: POST
 - **Authentication**: Session or Token
@@ -2006,12 +2204,14 @@ X-RateLimit-Reset: 1640995200
 ## 📋 API Testing
 
 ### Health Check Test
+
 ```bash
 curl -X GET "https://your-domain.com/health" \
   -H "Accept: application/json"
 ```
 
 ### Chat API Test
+
 ```bash
 curl -X POST "https://your-domain.com/api/chat" \
   -H "Content-Type: application/json" \
@@ -2023,6 +2223,7 @@ curl -X POST "https://your-domain.com/api/chat" \
 ```
 
 ### Analytics Test
+
 ```bash
 curl -X GET "https://your-domain.com/api/analytics/dashboard" \
   -H "Authorization: Bearer YOUR_TOKEN"
@@ -2030,7 +2231,7 @@ curl -X GET "https://your-domain.com/api/analytics/dashboard" \
 
 ---
 
-*This API reference covers all 48 REST endpoints discovered in the NOUS platform. Each endpoint is actively implemented and tested for production use.*
+_This API reference covers all 48 REST endpoints discovered in the NOUS platform. Each endpoint is actively implemented and tested for production use._
 
 **Last Updated**: June 28, 2025  
 **Version**: Production v2.0  

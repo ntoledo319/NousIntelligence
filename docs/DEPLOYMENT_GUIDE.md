@@ -5,6 +5,7 @@ This comprehensive guide covers deploying NOUS with all its enhanced features in
 ## 🏗️ Architecture Overview
 
 NOUS is built as a modular Flask application with:
+
 - **20+ Database Models** across analytics, financial, collaboration, and health domains
 - **25+ API Endpoints** for comprehensive feature coverage
 - **Progressive Web App** with offline capabilities
@@ -14,6 +15,7 @@ NOUS is built as a modular Flask application with:
 ## 📋 Prerequisites
 
 ### System Requirements
+
 - **Python**: 3.11+ (recommended 3.12)
 - **Database**: PostgreSQL 13+ (SQLite for development)
 - **Memory**: Minimum 512MB RAM (2GB+ recommended for production)
@@ -21,6 +23,7 @@ NOUS is built as a modular Flask application with:
 - **Network**: HTTPS-capable domain for production
 
 ### Required Services
+
 - **Google Cloud Console**: OAuth2 credentials
 - **OpenRouter**: AI service API key (primary)
 - **HuggingFace**: Free API token (fallback)
@@ -33,6 +36,7 @@ NOUS is built as a modular Flask application with:
 Create a `.env` file or configure in your deployment platform:
 
 #### Core Application
+
 ```bash
 # Flask Configuration
 FLASK_ENV=production
@@ -49,6 +53,7 @@ ALLOWED_HOSTS=your-app.replit.app,localhost
 ```
 
 #### Authentication
+
 ```bash
 # Google OAuth (Required)
 GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
@@ -57,6 +62,7 @@ GOOGLE_REDIRECT_URI=https://your-app.replit.app/oauth/callback
 ```
 
 #### AI Services
+
 ```bash
 # Primary AI Service (Required)
 OPENROUTER_API_KEY=your-openrouter-api-key
@@ -71,6 +77,7 @@ FALLBACK_MODEL=microsoft/DialoGPT-medium
 ```
 
 #### External Integrations (Optional)
+
 ```bash
 # Google Workspace APIs
 GOOGLE_CALENDAR_ENABLED=true
@@ -89,6 +96,7 @@ MAPS_API_KEY=your-google-maps-api-key
 ```
 
 #### Feature Flags
+
 ```bash
 # Analytics System
 ANALYTICS_ENABLED=true
@@ -116,19 +124,23 @@ SEARCH_INDEXING_ENABLED=true
 ### Method 1: Replit Cloud (Recommended)
 
 #### 1. Repository Setup
+
 ```bash
 # Clone or import the repository to Replit
 git clone https://github.com/your-username/nous-assistant.git
 ```
 
 #### 2. Environment Configuration
+
 1. Open Replit Console
 2. Navigate to "Secrets" in sidebar
 3. Add all required environment variables
 4. Replit automatically provides `DATABASE_URL` for PostgreSQL
 
 #### 3. Dependency Installation
+
 Replit automatically installs dependencies from `requirements.txt`:
+
 ```txt
 Flask==3.0.0
 SQLAlchemy==2.0.23
@@ -142,13 +154,16 @@ werkzeug==3.0.1
 ```
 
 #### 4. Database Setup
+
 ```python
 # Database tables are created automatically on first run
 # No manual migration needed
 ```
 
 #### 5. Launch Application
+
 Click "Run" in Replit interface or:
+
 ```bash
 python main.py
 ```
@@ -156,6 +171,7 @@ python main.py
 ### Method 2: Local Development
 
 #### 1. Environment Setup
+
 ```bash
 # Create virtual environment
 python -m venv venv
@@ -167,6 +183,7 @@ pip install -r requirements.txt
 ```
 
 #### 2. Database Setup
+
 ```bash
 # For PostgreSQL
 createdb nous_development
@@ -176,6 +193,7 @@ createdb nous_development
 ```
 
 #### 3. Environment Variables
+
 ```bash
 # Copy environment template
 cp .env.example .env
@@ -183,6 +201,7 @@ cp .env.example .env
 ```
 
 #### 4. Run Application
+
 ```bash
 python main.py
 ```
@@ -190,6 +209,7 @@ python main.py
 ### Method 3: Docker Deployment
 
 #### 1. Dockerfile
+
 ```dockerfile
 FROM python:3.12-slim
 
@@ -206,6 +226,7 @@ CMD ["python", "main.py"]
 ```
 
 #### 2. Docker Compose
+
 ```yaml
 version: '3.8'
 
@@ -213,7 +234,7 @@ services:
   nous:
     build: .
     ports:
-      - "5000:5000"
+      - '5000:5000'
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/nous
       - SECRET_KEY=your-secret-key
@@ -234,6 +255,7 @@ volumes:
 ```
 
 #### 3. Deploy
+
 ```bash
 docker-compose up -d
 ```
@@ -241,6 +263,7 @@ docker-compose up -d
 ## 🗄️ Database Configuration
 
 ### Automatic Migrations
+
 NOUS automatically creates and updates database tables:
 
 ```python
@@ -253,12 +276,14 @@ with app.app_context():
 ### Database Models Overview
 
 #### Analytics Models
+
 - `UserActivity` - User interaction tracking
 - `UserMetrics` - Calculated performance metrics
 - `UserInsight` - AI-generated insights
 - `UserGoal` - Goal management and tracking
 
 #### Financial Models
+
 - `BankAccount` - Linked bank accounts
 - `Transaction` - Financial transactions
 - `Budget` - Budget management
@@ -266,18 +291,21 @@ with app.app_context():
 - `FinancialGoal` - Financial objectives
 
 #### Collaboration Models
+
 - `Family` - Family group management
 - `FamilyMember` - Member roles and permissions
 - `SharedTask` - Shared task coordination
 - `ActivityLog` - Family activity tracking
 
 #### Health Models
+
 - `HealthMetric` - Health and wellness data
 - `HealthGoal` - Wellness objectives
 - `WellnessInsight` - Health insights
 - `MoodEntry` - Mood tracking
 
 ### Database Optimization
+
 ```sql
 -- Recommended indexes for performance
 CREATE INDEX idx_user_activity_user_id ON user_activity(user_id);
@@ -291,17 +319,19 @@ CREATE INDEX idx_notifications_user_priority ON notification_queue(user_id, prio
 ### SSL/TLS Setup
 
 #### Replit (Automatic)
+
 Replit automatically provides SSL certificates and HTTPS.
 
 #### Custom Domain
+
 ```nginx
 server {
     listen 443 ssl;
     server_name your-domain.com;
-    
+
     ssl_certificate /path/to/certificate.crt;
     ssl_certificate_key /path/to/private.key;
-    
+
     location / {
         proxy_pass http://localhost:5000;
         proxy_set_header Host $host;
@@ -311,6 +341,7 @@ server {
 ```
 
 ### Security Headers
+
 ```python
 # app.py - Security headers configuration
 @app.after_request
@@ -323,6 +354,7 @@ def after_request(response):
 ```
 
 ### OAuth Configuration
+
 ```python
 # Google OAuth Setup
 GOOGLE_OAUTH = {
@@ -344,6 +376,7 @@ GOOGLE_OAUTH = {
 ### Application Monitoring
 
 #### Health Endpoints
+
 ```bash
 # Basic health check
 curl https://your-app.com/health
@@ -353,6 +386,7 @@ curl https://your-app.com/healthz
 ```
 
 #### Response Examples
+
 ```json
 // /health
 {
@@ -382,6 +416,7 @@ curl https://your-app.com/healthz
 ```
 
 ### Performance Monitoring
+
 ```python
 # utils/monitoring.py
 import time
@@ -391,13 +426,13 @@ from flask import g
 def track_request_metrics():
     """Track request performance metrics"""
     g.start_time = time.time()
-    
+
 def log_request_completion():
     """Log request completion metrics"""
     duration = time.time() - g.start_time
     memory_usage = psutil.virtual_memory().percent
     cpu_usage = psutil.cpu_percent()
-    
+
     # Log to analytics system
     analytics_service.track_performance_metric({
         'duration': duration,
@@ -409,6 +444,7 @@ def log_request_completion():
 ## 🚦 Load Balancing & Scaling
 
 ### Horizontal Scaling
+
 ```yaml
 # kubernetes-deployment.yaml
 apiVersion: apps/v1
@@ -426,19 +462,20 @@ spec:
         app: nous
     spec:
       containers:
-      - name: nous
-        image: nous:latest
-        ports:
-        - containerPort: 5000
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: nous-secrets
-              key: database-url
+        - name: nous
+          image: nous:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: nous-secrets
+                  key: database-url
 ```
 
 ### Load Balancer Configuration
+
 ```nginx
 upstream nous_backend {
     server 127.0.0.1:5001;
@@ -449,7 +486,7 @@ upstream nous_backend {
 server {
     listen 80;
     server_name your-app.com;
-    
+
     location / {
         proxy_pass http://nous_backend;
         proxy_set_header Host $host;
@@ -462,6 +499,7 @@ server {
 ## 🔄 Backup & Recovery
 
 ### Database Backup
+
 ```bash
 # PostgreSQL backup
 pg_dump $DATABASE_URL > backup_$(date +%Y%m%d_%H%M%S).sql
@@ -475,6 +513,7 @@ find $BACKUP_DIR -name "nous_backup_*.sql" -mtime +7 -delete
 ```
 
 ### Application Backup
+
 ```bash
 # Backup application files and user data
 tar -czf nous_app_backup_$(date +%Y%m%d).tar.gz \
@@ -486,6 +525,7 @@ tar -czf nous_app_backup_$(date +%Y%m%d).tar.gz \
 ```
 
 ### Recovery Procedures
+
 ```bash
 # Database restoration
 psql $DATABASE_URL < backup_20241227_120000.sql
@@ -501,6 +541,7 @@ python main.py
 ### Common Issues
 
 #### Database Connection Issues
+
 ```python
 # Check database connectivity
 def test_database_connection():
@@ -513,6 +554,7 @@ def test_database_connection():
 ```
 
 #### Performance Issues
+
 ```bash
 # Check system resources
 htop  # Monitor CPU and memory usage
@@ -521,6 +563,7 @@ netstat -tulpn | grep :5000  # Check port usage
 ```
 
 #### API Response Issues
+
 ```python
 # Debug API responses
 import logging
@@ -531,6 +574,7 @@ app.config['DEBUG'] = True
 ```
 
 ### Logs and Debugging
+
 ```python
 # Enhanced logging configuration
 import logging
@@ -538,8 +582,8 @@ from logging.handlers import RotatingFileHandler
 
 if not app.debug:
     file_handler = RotatingFileHandler(
-        'logs/nous.log', 
-        maxBytes=10240000, 
+        'logs/nous.log',
+        maxBytes=10240000,
         backupCount=10
     )
     file_handler.setFormatter(logging.Formatter(
@@ -550,6 +594,7 @@ if not app.debug:
 ```
 
 ### Health Check Script
+
 ```bash
 #!/bin/bash
 # health_check.sh
@@ -579,6 +624,7 @@ echo "🎉 All health checks passed"
 ## 📈 Performance Optimization
 
 ### Database Optimization
+
 ```sql
 -- Optimize query performance
 EXPLAIN ANALYZE SELECT * FROM user_activity WHERE user_id = $1 ORDER BY timestamp DESC LIMIT 100;
@@ -589,6 +635,7 @@ CREATE INDEX CONCURRENTLY idx_notifications_created ON notification_queue(create
 ```
 
 ### Application Optimization
+
 ```python
 # Connection pooling
 from sqlalchemy import create_engine
@@ -604,27 +651,21 @@ engine = create_engine(
 ```
 
 ### Frontend Optimization
+
 ```javascript
 // Service worker for caching
 const CACHE_NAME = 'nous-v2.0.0';
-const urlsToCache = [
-    '/',
-    '/static/styles.css',
-    '/static/app.js',
-    '/static/manifest.json'
-];
+const urlsToCache = ['/', '/static/styles.css', '/static/app.js', '/static/manifest.json'];
 
-self.addEventListener('install', event => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(urlsToCache))
-    );
+self.addEventListener('install', (event) => {
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache)));
 });
 ```
 
 ## 🎯 Production Checklist
 
 ### Pre-Deployment
+
 - [ ] Environment variables configured
 - [ ] Database migrations tested
 - [ ] SSL certificates installed
@@ -634,6 +675,7 @@ self.addEventListener('install', event => {
 - [ ] Backup procedures established
 
 ### Post-Deployment
+
 - [ ] Health endpoints responding
 - [ ] Analytics tracking working
 - [ ] Search functionality operational
@@ -644,6 +686,7 @@ self.addEventListener('install', event => {
 - [ ] Performance metrics within targets
 
 ### Ongoing Maintenance
+
 - [ ] Regular database backups
 - [ ] Security updates applied
 - [ ] Performance monitoring active
@@ -654,4 +697,4 @@ self.addEventListener('install', event => {
 
 ---
 
-This deployment guide provides comprehensive instructions for deploying NOUS with all its enhanced features. Follow the appropriate method for your infrastructure and ensure all security and monitoring considerations are addressed. 
+This deployment guide provides comprehensive instructions for deploying NOUS with all its enhanced features. Follow the appropriate method for your infrastructure and ensure all security and monitoring considerations are addressed.

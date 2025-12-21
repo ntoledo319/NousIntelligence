@@ -42,25 +42,25 @@ import Button from './components/Button';
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `variant` | `'primary' \| 'secondary' \| 'tertiary' \| 'danger' \| 'outline' \| 'ghost'` | `'primary'` | Button visual style |
-| `size` | `'small' \| 'medium' \| 'large'` | `'medium'` | Button size |
-| `fullWidth` | `boolean` | `false` | If true, button takes full width of container |
-| `isLoading` | `boolean` | `false` | Shows loading spinner |
-| `loadingText` | `string` | `undefined` | Text to show during loading |
-| `loadingPosition` | `'left' \| 'right'` | `'left'` | Position of loading spinner |
-| `icon` | `ReactNode` | `undefined` | Icon to display |
-| `iconPosition` | `'left' \| 'right'` | `'left'` | Position of icon |
-| `spinner` | `ReactNode` | `undefined` | Custom loading spinner |
-| `disabledTooltip` | `string` | `undefined` | Tooltip shown when button is disabled |
-| `children` | `ReactNode` | Required | Button content |
-| `...props` | - | - | All other button HTML attributes |
+| Prop              | Type                                                                         | Default     | Description                                   |
+| ----------------- | ---------------------------------------------------------------------------- | ----------- | --------------------------------------------- |
+| `variant`         | `'primary' \| 'secondary' \| 'tertiary' \| 'danger' \| 'outline' \| 'ghost'` | `'primary'` | Button visual style                           |
+| `size`            | `'small' \| 'medium' \| 'large'`                                             | `'medium'`  | Button size                                   |
+| `fullWidth`       | `boolean`                                                                    | `false`     | If true, button takes full width of container |
+| `isLoading`       | `boolean`                                                                    | `false`     | Shows loading spinner                         |
+| `loadingText`     | `string`                                                                     | `undefined` | Text to show during loading                   |
+| `loadingPosition` | `'left' \| 'right'`                                                          | `'left'`    | Position of loading spinner                   |
+| `icon`            | `ReactNode`                                                                  | `undefined` | Icon to display                               |
+| `iconPosition`    | `'left' \| 'right'`                                                          | `'left'`    | Position of icon                              |
+| `spinner`         | `ReactNode`                                                                  | `undefined` | Custom loading spinner                        |
+| `disabledTooltip` | `string`                                                                     | `undefined` | Tooltip shown when button is disabled         |
+| `children`        | `ReactNode`                                                                  | Required    | Button content                                |
+| `...props`        | -                                                                            | -           | All other button HTML attributes              |
 
 ## Features
 
 - TypeScript support with comprehensive prop types
-- Accessible: follows WAI-ARIA guidelines 
+- Accessible: follows WAI-ARIA guidelines
 - Keyboard navigation with focus-visible styling
 - Ripple effect on click
 - Support for icons on left or right

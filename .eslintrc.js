@@ -84,6 +84,7 @@ module.exports = {
           '**/*.spec.{js,jsx,ts,tsx}',
           '**/*.stories.{js,jsx,ts,tsx}',
           '**/test-utils/**/*.{js,jsx,ts,tsx}',
+          '**/setupTests.{js,ts}',
           '**/jest.setup.{js,ts}',
           '**/webpack.*.js',
           '**/postcss.config.js',
@@ -106,7 +107,7 @@ module.exports = {
             group: 'internal',
           },
         ],
-        pathGroupsExcludeImportTypes: ['react'],
+        pathGroupsExcludedImportTypes: ['react'],
         'newlines-between': 'always',
         alphabetize: {
           order: 'asc',

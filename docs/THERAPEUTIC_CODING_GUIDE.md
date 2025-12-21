@@ -9,15 +9,19 @@ This guide explains how we embed wellness principles, mindfulness, and compassio
 ## 🎯 Core Principles
 
 ### 1. **Compassionate Code**
+
 Every function, variable, and error message should radiate kindness and support.
 
 ### 2. **Mindful Development**
+
 Code with awareness, intention, and presence. Every feature is an opportunity to support wellbeing.
 
 ### 3. **Therapeutic Patterns, Not Treatment**
+
 We use CBT/DBT-inspired patterns for better user experience, not clinical intervention.
 
 ### 4. **Clear Boundaries**
+
 Always maintain the distinction: wellness support, not therapy.
 
 ---
@@ -25,6 +29,7 @@ Always maintain the distinction: wellness support, not therapy.
 ## 🧘‍♀️ The Therapeutic Code Framework
 
 ### Import the Magic
+
 ```python
 from utils.therapeutic_code_framework import (
     stop_skill,                # DBT STOP technique
@@ -44,6 +49,7 @@ from utils.therapeutic_code_framework import (
 ## 💝 Practical Applications
 
 ### 1. **Therapeutic Variable Names**
+
 Transform boring variables into moments of mindfulness:
 
 ```python
@@ -61,6 +67,7 @@ resiliencePoints = 3
 ```
 
 ### 2. **Compassionate Error Handling**
+
 Every error is a teacher:
 
 ```python
@@ -82,6 +89,7 @@ def process_user_request(request):
 ```
 
 ### 3. **Mindful API Endpoints**
+
 Every endpoint as a moment of connection:
 
 ```python
@@ -99,6 +107,7 @@ def wellness_check():
 ```
 
 ### 4. **DBT-Inspired Flow Control**
+
 Use DBT skills for better code structure:
 
 ```python
@@ -115,6 +124,7 @@ def handle_user_input(data):
 ```
 
 ### 5. **Growth-Oriented Loops**
+
 Transform retries into learning opportunities:
 
 ```python
@@ -130,25 +140,28 @@ def fetch_wellness_resource():
 ## 🌟 Best Practices
 
 ### 1. **Comments as Micro-Interventions**
+
 ```python
 def process_data(data):
     # 💭 Take a breath before we begin
     validate_input(data)
-    
+
     # 🌱 Each step forward is progress
     transformed = transform_data(data)
-    
+
     # 🎉 Celebrate this small victory!
     return save_data(transformed)
 ```
 
 ### 2. **Logging with Love**
+
 ```python
 log_with_self_compassion('info', 'Starting new journey with user')
 log_with_self_compassion('error', 'Encountered challenge', affirmation=True)
 ```
 
 ### 3. **Test Names that Inspire**
+
 ```python
 def test_user_can_find_peace_in_meditation_feature():
     """Ensures our meditation timer brings tranquility"""
@@ -160,18 +173,19 @@ def test_resilience_after_connection_timeout():
 ```
 
 ### 4. **Documentation as Care Instructions**
+
 ```python
 def create_wellness_reminder(user_id: str, message: str) -> Dict:
     """
     Creates a gentle wellness reminder for the user.
-    
+
     This is a supportive nudge, not medical advice.
     Users maintain full autonomy over their wellness journey.
-    
+
     Args:
         user_id: The explorer's unique identifier
         message: A kind, non-prescriptive suggestion
-    
+
     Returns:
         A reminder wrapped in compassion and choice
     """
@@ -182,13 +196,15 @@ def create_wellness_reminder(user_id: str, message: str) -> Dict:
 ## 🚨 Important Boundaries
 
 ### What We DO:
+
 - ✅ Offer wellness tools and coping strategies
-- ✅ Provide emotional support and validation  
+- ✅ Provide emotional support and validation
 - ✅ Share mindfulness and self-care techniques
 - ✅ Create a compassionate user experience
 - ✅ Encourage users to seek professional help when needed
 
 ### What We DON'T:
+
 - ❌ Diagnose mental health conditions
 - ❌ Provide therapy or clinical treatment
 - ❌ Replace professional mental health care
@@ -216,12 +232,12 @@ def daily_wellness_check():
         # Receive with gratitude
         wellnessData = request.get_json()
         currentMood = wellnessData.get('mood', 'present')
-        
+
         # Process with compassion
         with TherapeuticContext("wellness processing"):
             insights = generate_wellness_insights(currentMood)
             suggestions = gather_gentle_suggestions(currentMood)
-        
+
         # Respond with love
         return jsonify({
             'acknowledged': True,
@@ -234,7 +250,7 @@ def daily_wellness_check():
                 'resources': '/professional-support'
             }
         })
-        
+
     except Exception as e:
         log_with_self_compassion('error', f'Wellness check challenge: {e}')
         return jsonify({
@@ -254,4 +270,4 @@ Every line of code we write has the power to make someone's day a little brighte
 
 ---
 
-*"In this codebase, bugs are teachers, errors are growth opportunities, and every function call is a chance to practice mindfulness."* 
+_"In this codebase, bugs are teachers, errors are growth opportunities, and every function call is a chance to practice mindfulness."_

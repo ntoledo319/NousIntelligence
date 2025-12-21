@@ -30,17 +30,20 @@ Browser → Replit Cloud → app.py → Google OAuth → routes/ → templates/
 ## Frontend Architecture
 
 ### Templates Structure
+
 - **Base Template**: Shared layout with theme support
 - **Landing Page**: `templates/landing.html` - Public access with Google OAuth
 - **Chat Interface**: `templates/app.html` - Authenticated chat application
 - **Admin Interface**: Beta management console (restricted access)
 
 ### Static Assets
+
 - **CSS**: `static/styles.css` - 6 themes with mobile-first responsive design
-- **JavaScript**: `static/app.js` - Chat functionality and PWA features  
+- **JavaScript**: `static/app.js` - Chat functionality and PWA features
 - **PWA**: `static/manifest.json`, `static/sw.js` - Progressive Web App support
 
 ### UI Architecture
+
 - **Design System**: CSS custom properties for theme variables
 - **Responsive Design**: CSS Grid and Flexbox with 5 breakpoints (320px-1920px+)
 - **Performance**: Service worker caching, lazy loading, optimized assets
@@ -48,12 +51,14 @@ Browser → Replit Cloud → app.py → Google OAuth → routes/ → templates/
 ## Backend Architecture
 
 ### Flask Application (`app.py`)
+
 - **Application Factory**: `create_app()` function for configuration
 - **Middleware**: ProxyFix for Replit deployment
 - **Security**: CORS headers, session management, input validation
 - **Health Monitoring**: System metrics and uptime tracking
 
 ### Route Organization
+
 ```
 routes/
 ├── api/                 # API endpoints
@@ -65,6 +70,7 @@ routes/
 ```
 
 ### Utility Modules (64 modules)
+
 ```
 utils/
 ├── Core Services/
@@ -86,6 +92,7 @@ utils/
 ## Data Architecture
 
 ### Database Models
+
 ```python
 models/
 ├── user.py           # User accounts and authentication
@@ -94,12 +101,14 @@ models/
 ```
 
 ### Database Configuration
+
 - **Development**: SQLite for local development
 - **Production**: PostgreSQL with connection pooling
 - **ORM**: SQLAlchemy with declarative base
 - **Migrations**: Automatic table creation
 
 ### Session Management
+
 - **Storage**: Server-side session storage
 - **Security**: Secure cookies with SameSite protection
 - **Lifetime**: 24-hour session timeout
@@ -107,6 +116,7 @@ models/
 ## Authentication & Security
 
 ### Google OAuth Integration
+
 ```
 User → Google OAuth → Callback → Session Creation → Access Control
 ```
@@ -117,6 +127,7 @@ User → Google OAuth → Callback → Session Creation → Access Control
 - **Security**: State parameter validation, CSRF protection
 
 ### Security Measures
+
 - **HTTPS Enforcement**: Secure cookie settings
 - **CORS Policy**: Configured for public API access
 - **Input Validation**: Request sanitization and validation
@@ -125,15 +136,18 @@ User → Google OAuth → Callback → Session Creation → Access Control
 ## API Architecture
 
 ### Health Endpoints
+
 - `GET /health` - Basic application health
 - `GET /healthz` - Detailed system metrics (CPU, memory, uptime)
 
-### Authentication Endpoints  
+### Authentication Endpoints
+
 - `GET /login` - Initiate Google OAuth flow
 - `GET /oauth/callback` - OAuth callback handler
 - `GET /logout` - Session termination
 
 ### Application Endpoints
+
 - `POST /api/chat` - Chat message processing
 - `POST /api/feedback/submit` - User feedback collection
 - `GET /api/feedback/status` - Feedback system status
@@ -141,6 +155,7 @@ User → Google OAuth → Callback → Session Creation → Access Control
 ## Deployment Architecture
 
 ### Replit Cloud Configuration
+
 ```yaml
 # replit.toml
 [deployment]
@@ -155,12 +170,14 @@ GOOGLE_CLIENT_SECRET = "..."
 ```
 
 ### Environment Configuration
+
 - **Host**: 0.0.0.0 (public access)
 - **Port**: 5000 (Replit standard)
 - **Debug**: False (production)
 - **Database**: PostgreSQL connection string
 
 ### Performance Optimizations
+
 - **Connection Pooling**: SQLAlchemy pool configuration
 - **Static Assets**: Efficient serving with caching headers
 - **Health Monitoring**: Real-time system metrics
@@ -169,12 +186,14 @@ GOOGLE_CLIENT_SECRET = "..."
 ## Development Architecture
 
 ### Code Organization
+
 - **Single Entry Point**: `main.py` → `app.py`
 - **Configuration**: Centralized in `config/` directory
 - **Testing**: Test suite in `tests/` directory
 - **Documentation**: Consolidated in `docs/` directory
 
 ### Development Workflow
+
 1. Local development with SQLite
 2. Feature development in utility modules
 3. Integration testing with health endpoints
@@ -183,17 +202,20 @@ GOOGLE_CLIENT_SECRET = "..."
 ## Monitoring & Maintenance
 
 ### Health Monitoring
+
 - **System Metrics**: CPU, memory, disk usage
 - **Application Metrics**: Uptime, response times
 - **Database Health**: Connection status, query performance
 
 ### Logging
+
 - **Application Logs**: `logs/app.log`
-- **Access Logs**: `logs/access.log`  
+- **Access Logs**: `logs/access.log`
 - **Error Logs**: `logs/error.log`
 - **Health Logs**: `logs/health_check.log`
 
 ### Performance Monitoring
+
 - **Database Optimization**: Query performance tracking
 - **Response Times**: Endpoint performance metrics
 - **Resource Usage**: System resource monitoring

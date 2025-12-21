@@ -47,9 +47,7 @@ module.exports = (env, argv) => {
                 importLoaders: 1,
                 modules: {
                   auto: true,
-                  localIdentName: isProduction
-                    ? '[hash:base64:8]'
-                    : '[path][name]__[local]',
+                  localIdentName: isProduction ? '[hash:base64:8]' : '[path][name]__[local]',
                 },
               },
             },
@@ -83,7 +81,9 @@ module.exports = (env, argv) => {
       }),
       new MiniCssExtractPlugin({
         filename: isProduction ? 'css/[name].[contenthash:8].css' : 'css/[name].css',
-        chunkFilename: isProduction ? 'css/[name].[contenthash:8].chunk.css' : 'css/[name].chunk.css',
+        chunkFilename: isProduction
+          ? 'css/[name].[contenthash:8].chunk.css'
+          : 'css/[name].chunk.css',
       }),
       new WebpackManifestPlugin({
         fileName: 'asset-manifest.json',

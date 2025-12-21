@@ -1,4 +1,5 @@
 # NOUS Intelligence Platform
+
 ## The $0.66 Mental Health Revolution
 
 [![Deploy Status](https://img.shields.io/badge/deploy-production%20ready-success)](https://nous-intelligence.replit.app)
@@ -12,6 +13,7 @@
 ## 🚀 What Makes NOUS Impossible
 
 ### The Numbers That Shouldn't Exist
+
 - **Cost**: $0.25-0.66/user/month (97-99% cheaper than competitors)
 - **Features**: 374+ distinct capabilities across 192 database models
 - **Security**: 95/100 enterprise-grade security score
@@ -20,7 +22,9 @@
 - **Architecture**: Single instance serving 100K+ users
 
 ### The Revolution in Mental Health Access
+
 While BetterHelp charges $240-320/month and ChatGPT costs $20/month, NOUS delivers:
+
 - Complete CBT (Cognitive Behavioral Therapy) implementation
 - Full DBT (Dialectical Behavior Therapy) support
 - Comprehensive AA (Alcoholics Anonymous) recovery tools
@@ -31,6 +35,7 @@ While BetterHelp charges $240-320/month and ChatGPT costs $20/month, NOUS delive
 ## 🏗️ Architecture Overview
 
 ### Impossible Technical Achievements
+
 ```
 192 Database Models → 13 Specialized Files → 74 Route Files → 21 Blueprints
      ↓                    ↓                    ↓               ↓
@@ -39,14 +44,18 @@ Mental Health    →    Personal Mgmt    →    AI Systems   →   Security
 ```
 
 ### The SEED Optimization Engine
+
 Self-learning system that achieves 75-85% cost reduction through:
+
 - **Intelligent Query Routing**: 70% processed locally (free)
 - **Multi-Provider Arbitrage**: Cheapest AI service per query type
 - **Predictive Caching**: Reduces redundant API calls
 - **Pattern Recognition**: Learns user preferences and optimizes responses
 
 ### Drone Swarm Monitoring System
+
 Autonomous agents providing 24/7 optimization:
+
 - **VerificationDrone**: Continuous system health checks
 - **OptimizationDrone**: Real-time performance tuning
 - **SelfHealingDrone**: Automatic issue resolution
@@ -57,6 +66,7 @@ Autonomous agents providing 24/7 optimization:
 ### 🧠 Mental Health & Therapeutic Support (40+ Models)
 
 #### CBT (Cognitive Behavioral Therapy)
+
 - **Thought Records**: Advanced cognitive restructuring tools
 - **Cognitive Bias Detection**: Automated identification of 10+ distortions
 - **Mood Analytics**: Pattern recognition with trigger identification
@@ -65,6 +75,7 @@ Autonomous agents providing 24/7 optimization:
 - **Progress Tracking**: Comprehensive therapeutic advancement monitoring
 
 #### DBT (Dialectical Behavior Therapy)
+
 - **Four Core Modules**: Mindfulness, Distress Tolerance, Emotion Regulation, Interpersonal Effectiveness
 - **Digital Diary Cards**: Therapeutic tracking with pattern analysis
 - **Crisis Intervention**: Emergency support with automated detection
@@ -72,6 +83,7 @@ Autonomous agents providing 24/7 optimization:
 - **Therapeutic Integration**: Real-time application of DBT principles
 
 #### AA Recovery Support (20+ Models)
+
 - **Digital Big Book**: Complete text with audio and study guides
 - **Sobriety Tracking**: Milestone celebrations and progress visualization
 - **Meeting Finder**: Location-based meeting directory
@@ -81,6 +93,7 @@ Autonomous agents providing 24/7 optimization:
 ### 🤖 AI & Intelligence Systems (20+ Models)
 
 #### Multi-Provider AI Orchestration
+
 - **OpenRouter**: Primary provider with free tier maximization
 - **Google Gemini**: Therapeutic responses on free tier
 - **HuggingFace**: Specialized models for specific tasks
@@ -88,6 +101,7 @@ Autonomous agents providing 24/7 optimization:
 - **Cost Optimization**: Intelligent routing saves 97-99% vs direct usage
 
 #### Advanced AI Capabilities
+
 - **Context Management**: Conversation memory across sessions
 - **Emotion Detection**: Voice and text sentiment analysis
 - **Predictive Analytics**: Behavioral pattern recognition
@@ -97,6 +111,7 @@ Autonomous agents providing 24/7 optimization:
 ### 💼 Personal Management Tools (60+ Models)
 
 #### Financial Management (16+ Models)
+
 - **Bank Integration**: OAuth-based secure connections
 - **Transaction Tracking**: Automated categorization and analysis
 - **Budget Management**: Category-based with smart alerts
@@ -104,12 +119,14 @@ Autonomous agents providing 24/7 optimization:
 - **Bill Reminders**: Automated payment alerts
 
 #### Collaboration Features (16+ Models)
+
 - **Family Management**: Shared dashboards and coordination
 - **Support Groups**: Community features with privacy controls
 - **Shopping Lists**: Real-time collaborative management
 - **Event Planning**: Shared calendar and coordination tools
 
 #### Language Learning (24+ Models)
+
 - **Progress Tracking**: Advancement across multiple languages
 - **Vocabulary Management**: Spaced repetition optimization
 - **Practice Sessions**: Detailed performance analytics
@@ -118,6 +135,7 @@ Autonomous agents providing 24/7 optimization:
 ### 🔐 Security & Compliance
 
 #### Enterprise-Grade Security (95/100 Score)
+
 - **Multi-Method Authentication**: Google OAuth, Sessions, Tokens, Demo
 - **HIPAA Compliance**: Medical data protection standards
 - **Encryption**: At rest, in transit, and token layers
@@ -125,6 +143,7 @@ Autonomous agents providing 24/7 optimization:
 - **Audit Trails**: Comprehensive activity logging
 
 #### Crisis Safety Features
+
 - **Crisis Hotlines**: Always accessible without login
 - **Safety Planning**: Customizable crisis intervention tools
 - **Automated Detection**: AI identifies crisis keywords
@@ -133,6 +152,7 @@ Autonomous agents providing 24/7 optimization:
 ## 🚀 Quick Start
 
 ### Option 1: Replit Cloud (Recommended)
+
 ```bash
 # Fork the repository on Replit
 # Set environment variables in Secrets:
@@ -146,6 +166,7 @@ python3 main.py
 ```
 
 ### Option 2: Local Development
+
 ```bash
 # Clone repository
 git clone https://github.com/ntoledo319/NousIntelligence.git
@@ -170,6 +191,7 @@ python main.py
 ```
 
 ### Option 3: Docker Deployment
+
 ```dockerfile
 FROM python:3.13-slim
 COPY . /app
@@ -182,14 +204,16 @@ CMD ["python3", "main.py"]
 ## 💰 The Cost Revolution
 
 ### Monthly Cost Comparison (30 Users)
-| Service | NOUS | Competitor | Savings |
-|---------|------|------------|---------|
-| **Mental Health** | $19.83 | $7,200 (BetterHelp) | 99.7% |
-| **AI Assistant** | $19.83 | $600 (ChatGPT Teams) | 96.7% |
-| **Personal Management** | $19.83 | $300 (Notion AI) | 93.4% |
-| **Total Platform** | $19.83 | $8,100+ | 99.75% |
+
+| Service                 | NOUS   | Competitor           | Savings |
+| ----------------------- | ------ | -------------------- | ------- |
+| **Mental Health**       | $19.83 | $7,200 (BetterHelp)  | 99.7%   |
+| **AI Assistant**        | $19.83 | $600 (ChatGPT Teams) | 96.7%   |
+| **Personal Management** | $19.83 | $300 (Notion AI)     | 93.4%   |
+| **Total Platform**      | $19.83 | $8,100+              | 99.75%  |
 
 ### How We Achieve This
+
 1. **Local Processing**: 70% of queries handled without AI costs
 2. **Smart Routing**: Use free tiers and cheapest providers
 3. **Caching**: 75% reduction in redundant API calls
@@ -199,17 +223,20 @@ CMD ["python3", "main.py"]
 ## 🌍 Environmental Impact
 
 ### Carbon Footprint Comparison (Annual)
+
 - **NOUS**: 4.8 kg CO2 (like driving 10.5 miles)
 - **ChatGPT**: 58.3 kg CO2 (like driving 127 miles)
 - **Reduction**: 91.8% lower environmental impact
 
 ### Energy Consumption
+
 - **NOUS**: 0.86 kWh/month (like running a laptop for 1 day)
 - **Traditional Solutions**: 10.35 kWh/month (10 laptops continuously)
 
 ## 📊 Production Readiness
 
 ### Current Status: ✅ 95% Production Ready
+
 - **Response Time**: < 100ms average
 - **Uptime**: 99.9%+ (Replit SLA)
 - **Security Score**: 95/100 enterprise-grade
@@ -218,6 +245,7 @@ CMD ["python3", "main.py"]
 - **API Coverage**: 74 route files with comprehensive endpoints
 
 ### Performance Metrics
+
 - **Concurrent Users**: 100-500 on single instance
 - **Memory Usage**: 200-800MB (highly efficient)
 - **CPU Usage**: 5-20% average (burst to 100%)
@@ -226,21 +254,24 @@ CMD ["python3", "main.py"]
 ## 🔮 Scaling Architecture
 
 ### Current Capacity
+
 - **Phase 1**: Single Replit instance (100-500 users)
 - **Phase 2**: Add Redis cache (1K users)
 - **Phase 3**: Multiple instances + load balancer (10K users)
 - **Phase 4**: Dedicated database + CDN (100K users)
 
 ### Cost Scaling
-| Users | NOUS Annual Cost | Competitor Cost | Savings |
-|-------|------------------|-----------------|---------|
-| 100 | $792 | $24,000 | 96.7% |
-| 1,000 | $7,920 | $240,000 | 96.7% |
-| 10,000 | $79,200 | $2,400,000 | 96.7% |
+
+| Users  | NOUS Annual Cost | Competitor Cost | Savings |
+| ------ | ---------------- | --------------- | ------- |
+| 100    | $792             | $24,000         | 96.7%   |
+| 1,000  | $7,920           | $240,000        | 96.7%   |
+| 10,000 | $79,200          | $2,400,000      | 96.7%   |
 
 ## 📖 Documentation
 
 ### Core Documentation
+
 - [📐 Architecture Overview](COMPUTE_ARCHITECTURE.md)
 - [💰 Cost Analysis](COST_ANALYSIS.md)
 - [🔒 Security Features](SECURITY.md)
@@ -248,6 +279,7 @@ CMD ["python3", "main.py"]
 - [🌍 Environmental Impact](CHATGPT_VS_NOUS_ENVIRONMENTAL_BREAKDOWN.md)
 
 ### Feature Documentation
+
 - [🎯 Complete Features Guide](docs/UNIFIED_FEATURES_DOCUMENTATION.md)
 - [🧠 Mental Health Tools](docs/FEATURES.md)
 - [🤖 AI Integration](docs/ADAPTIVE_AI_GUIDE.md)
@@ -255,6 +287,7 @@ CMD ["python3", "main.py"]
 - [🚁 Drone Swarm](docs/DRONE_SWARM_GUIDE.md)
 
 ### Development Guides
+
 - [🛠️ Developer Guide](docs/DEVELOPER_GUIDE.md)
 - [🚀 Deployment Guide](docs/DEPLOYMENT_GUIDE.md)
 - [📊 API Reference](docs/API_REFERENCE.md)
@@ -263,6 +296,7 @@ CMD ["python3", "main.py"]
 ## 🧪 Testing
 
 ### Automated Testing
+
 ```bash
 # Run all tests
 python -m pytest
@@ -277,6 +311,7 @@ python -m pytest tests/ai/
 ```
 
 ### Manual Testing
+
 ```bash
 # Health check
 curl https://your-domain.com/api/health
@@ -293,6 +328,7 @@ python security_audit_validator.py
 We welcome contributions! This project represents a $2.6M development effort focused on democratizing mental health access.
 
 ### Ways to Contribute
+
 1. **Code Contributions**: Features, bug fixes, optimizations
 2. **Documentation**: Improve guides and examples
 3. **Testing**: Add test cases and validation
@@ -300,6 +336,7 @@ We welcome contributions! This project represents a $2.6M development effort foc
 5. **Clinical Input**: Mental health professional guidance
 
 ### Development Process
+
 1. Fork the repository
 2. Create feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit changes (`git commit -m 'Add amazing feature'`)
@@ -311,6 +348,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 ## 🏆 Achievements
 
 ### Technical Accomplishments
+
 - **192 Database Models**: Comprehensive data architecture
 - **74 Route Files**: Complete API coverage
 - **21 Blueprints**: Modular, scalable architecture
@@ -318,12 +356,14 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 - **97-99% Cost Savings**: Revolutionary cost optimization
 
 ### Clinical Innovation
+
 - **Evidence-Based**: CBT, DBT, AA methodologies
 - **Crisis Safety**: Automated detection and intervention
 - **HIPAA Compliance**: Medical-grade data protection
 - **24/7 Availability**: Always-on therapeutic support
 
 ### Environmental Leadership
+
 - **91.8% Lower Carbon**: Compared to traditional solutions
 - **Ultra-Efficient**: Single instance serves hundreds of users
 - **Sustainable Model**: Aligned incentives for efficiency
@@ -331,13 +371,16 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 ## 📞 Support & Community
 
 ### Getting Help
+
 - 📧 **Email**: [Open an issue](https://github.com/ntoledo319/NousIntelligence/issues)
 - 📖 **Documentation**: [docs/](docs/)
 - 🐛 **Bug Reports**: [GitHub Issues](https://github.com/ntoledo319/NousIntelligence/issues)
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/ntoledo319/NousIntelligence/discussions)
 
 ### Crisis Resources
-**⚠️ If you're in crisis**: 
+
+**⚠️ If you're in crisis**:
+
 - 🇺🇸 **National Suicide Prevention Lifeline**: 988
 - 🇺🇸 **Crisis Text Line**: Text HOME to 741741
 - 🌍 **International**: Visit `/resources/crisis` on any NOUS instance
@@ -382,4 +425,4 @@ python main.py
 
 ---
 
-*Built with ❤️ and radical efficiency. No venture capital required.*
+_Built with ❤️ and radical efficiency. No venture capital required._

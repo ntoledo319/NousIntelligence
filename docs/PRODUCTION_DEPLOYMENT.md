@@ -112,10 +112,10 @@ server {
 server {
     listen 443 ssl http2;
     server_name your-domain.com;
-    
+
     ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
-    
+
     location / {
         proxy_pass http://127.0.0.1:8000;
         proxy_set_header Host $host;
@@ -181,6 +181,7 @@ sudo tail -f /var/log/nginx/error.log
 ### Drone Swarm Deployment
 
 The autonomous drone swarm system runs automatically in production:
+
 - Continuous system optimization
 - Self-healing capabilities
 - Performance monitoring
@@ -189,6 +190,7 @@ The autonomous drone swarm system runs automatically in production:
 ### SEED Engine Optimization
 
 The SEED learning engine provides:
+
 - Adaptive performance tuning
 - Personalized user experiences
 - Cost optimization
@@ -213,10 +215,11 @@ The SEED learning engine provides:
 ### Support
 
 For deployment support:
+
 - Check application logs: `sudo journalctl -u nous`
 - Review documentation
 - Contact support team
 
 ---
 
-*Last updated: 2025-07-01*
+_Last updated: 2025-07-01_

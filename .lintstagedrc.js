@@ -8,8 +8,7 @@ module.exports = {
   ],
 
   // Format MarkDown, JSON, and other files
-  '**/*.{md,json,yml,yaml}': (filenames) =>
-    `prettier --write ${filenames.join(' ')}`,
+  '**/*.{md,json,yml,yaml}': (filenames) => `prettier --write ${filenames.join(' ')}`,
 
   // Format CSS, SCSS, and other style files
   '**/*.{css,scss,less}': (filenames) => [

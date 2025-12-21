@@ -3,6 +3,7 @@
 This guide provides instructions for setting up the NOUS development environment, understanding the architecture, and contributing to the project.
 
 ## Table of Contents
+
 1. [Environment Setup](#environment-setup)
 2. [Project Structure](#project-structure)
 3. [Key Components & Feature Modules](#key-components-feature-modules)
@@ -14,10 +15,12 @@ This guide provides instructions for setting up the NOUS development environment
 ## Environment Setup
 
 ### Prerequisites
+
 - A Replit account
 - Access to the NOUS project on Replit
 
 ### Setting Up the Development Environment
+
 The project is configured to run directly on Replit, which handles the environment and dependencies automatically.
 
 1. **Open the project in Replit.**
@@ -36,6 +39,7 @@ The project is configured to run directly on Replit, which handles the environme
 The database is managed by Replit, and schema is created automatically on application startup.
 
 ## Project Structure
+
 ```
 nous/
 ├── app.py                 # Main Flask application and app factory
@@ -61,6 +65,7 @@ nous/
 ## Key Components & Feature Modules
 
 ### Core Architecture
+
 - **`app.py`**: Contains the `create_app` factory, which initializes the Flask app, loads configuration, and registers all blueprints.
 - **`routes/`**: Contains all route blueprints, organized by feature including new analytics, search, notification, financial, and collaboration routes.
 - **`models/`**: Database models organized into feature-specific files with 20+ models for comprehensive data management.
@@ -70,38 +75,45 @@ nous/
 ### New Feature Architecture (v2.0)
 
 #### Analytics System
+
 - **Models**: `models/analytics_models.py` - UserActivity, UserMetrics, UserInsight, UserGoal
 - **Routes**: `routes/analytics_routes.py` - Dashboard, activity tracking, goal management, insights generation
 - **Service**: `utils/analytics_service.py` - Data processing, pattern recognition, AI insight generation
 - **Frontend**: Real-time dashboard with charts, goal tracking, and personalized recommendations
 
 #### Global Search System
+
 - **Routes**: `routes/search_routes.py` - Global search, suggestions, content indexing
 - **Service**: `utils/search_service.py` - Real-time search, content ranking, suggestion engine
 - **Frontend**: Instant search with `Ctrl+K` shortcut, real-time suggestions, category filtering
 
 #### Notification System
+
 - **Models**: Enhanced NotificationQueue in core models
 - **Routes**: `routes/notification_routes.py` - Notification management, priority handling
 - **Service**: `utils/notification_service.py` - Smart prioritization, multi-channel delivery
 - **Frontend**: Notification center with priority indicators and action buttons
 
 #### Financial Management
+
 - **Models**: `models/financial_models.py` - BankAccount, Transaction, Budget, ExpenseCategory, FinancialGoal
 - **Routes**: `routes/financial_routes.py` - Account management, transaction tracking, budget monitoring
 - **Frontend**: Comprehensive financial dashboard with budget tracking and spending insights
 
 #### Collaboration Features
+
 - **Models**: `models/collaboration_models.py` - Family, FamilyMember, SharedTask, ActivityLog
 - **Routes**: `routes/collaboration_routes.py` - Family management, shared task coordination
 - **Frontend**: Family dashboard with member management and shared task tracking
 
 #### Enhanced Health Tracking
+
 - **Models**: `models/enhanced_health_models.py` - HealthMetric, HealthGoal, WellnessInsight, MoodEntry
 - **Integration**: Enhanced health tracking with goal setting and AI-powered insights
 - **Frontend**: Comprehensive wellness dashboard with progress tracking
 
 ### Progressive Web App Enhancements
+
 - **Service Worker**: Offline functionality and intelligent caching
 - **Mobile Optimization**: Touch-friendly interface with gesture support
 - **Keyboard Shortcuts**: Comprehensive shortcut system for power users
@@ -109,6 +121,7 @@ nous/
 - **Real-time Updates**: Live data updates with polling mechanisms
 
 ### Voice Emotion Analysis
+
 - **Description**: This feature analyzes an audio file to determine the emotion of the speaker.
 - **How it works**:
   1. The user uploads an audio file via the `voice_routes.py` endpoint or uses the voice interface.
@@ -121,6 +134,7 @@ nous/
   - `templates/voice_interface.html`
 
 ### Mindfulness Voice Assistant
+
 - **Description**: Provides users with pre-defined or AI-generated guided mindfulness exercises.
 - **How it works**:
   1. The user interacts with the `voice_mindfulness_routes.py` endpoints.
@@ -134,6 +148,7 @@ nous/
   - `templates/voice_mindfulness/exercise.html`
 
 ### Image Analysis & Gallery
+
 - **Description**: Allows users to upload images for various types of analysis and view them in an organized gallery.
 - **How it works**:
   1. The user uploads an image via `routes/image_routes.py`.
@@ -149,6 +164,7 @@ nous/
   - `templates/image_results.html`
 
 ### Maps & Navigation
+
 - **Description**: Provides an interactive map with directions and search functionality.
 - **How it works**:
   1. The `routes/maps_routes.py` provides the endpoints for the maps page.
@@ -160,6 +176,7 @@ nous/
   - `templates/maps.html`
 
 ### Weather Dashboard
+
 - **Description**: Displays detailed weather information.
 - **How it works**:
   1. The `routes/weather_routes.py` provides the endpoints for the weather dashboard.
@@ -170,6 +187,7 @@ nous/
   - `templates/weather.html`
 
 ### Task Management
+
 - **Description**: Allows users to manage a to-do list and sync with Google Tasks.
 - **How it works**:
   1. `routes/tasks_routes.py` provides endpoints for the tasks dashboard.
@@ -182,6 +200,7 @@ nous/
   - `templates/tasks.html`
 
 ### Recovery Insights
+
 - **Description**: A dashboard for tracking and visualizing recovery progress.
 - **How it works**:
   1. `routes/recovery_routes.py` provides the endpoint for the insights dashboard.
@@ -201,6 +220,7 @@ Click the "Run" button at the top of the Replit interface. Replit will install d
 The project uses `pytest`. Tests are located in the `tests/` directory.
 
 To run all tests, open the "Shell" tab in Replit and run:
+
 ```bash
 pytest
 ```
@@ -228,4 +248,4 @@ The project follows PEP 8 style guidelines with the following tools:
 
 ## Getting Help
 
-If you encounter issues not covered here, please check existing GitHub issues or discuss with the team. 
+If you encounter issues not covered here, please check existing GitHub issues or discuss with the team.

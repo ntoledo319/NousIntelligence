@@ -1,9 +1,12 @@
 import { CSSProperties } from 'react';
 
-export const createRipple = (event: React.MouseEvent<HTMLElement>, color = 'rgba(255, 255, 255, 0.5)') => {
+export const createRipple = (
+  event: React.MouseEvent<HTMLElement>,
+  color = 'rgba(255, 255, 255, 0.5)'
+) => {
   const button = event.currentTarget;
   const rect = button.getBoundingClientRect();
-  
+
   const circle = document.createElement('span');
   const diameter = Math.max(rect.width, rect.height);
   const radius = diameter / 2;

@@ -8,9 +8,7 @@
         "service_available": true,
         "token_encryption": true
       },
-      "issues": [
-        "State validation unavailable"
-      ]
+      "issues": ["State validation unavailable"]
     },
     "health": {
       "operational": false,

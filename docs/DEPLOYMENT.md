@@ -1,6 +1,7 @@
 # NOUS Platform Deployment Guide
 
 ## Table of Contents
+
 - [Prerequisites](#prerequisites)
 - [Environment Setup](#environment-setup)
 - [Database Setup](#database-setup)
@@ -12,6 +13,7 @@
 ## Prerequisites
 
 ### System Requirements
+
 - **Python**: 3.9 or higher
 - **Database**: PostgreSQL 13+ (recommended) or SQLite for development
 - **Cache**: Redis 6+ (optional but recommended)
@@ -20,6 +22,7 @@
 - **Storage**: 10GB+ available space
 
 ### External Services
+
 - Google OAuth (for authentication)
 - Email service (SMTP)
 - AI API keys (OpenAI, etc.)
@@ -27,12 +30,14 @@
 ## Environment Setup
 
 ### 1. Clone Repository
+
 ```bash
 git clone https://github.com/nous/platform.git
 cd platform
 ```
 
 ### 2. Create Virtual Environment
+
 ```bash
 python -m venv venv
 
@@ -44,6 +49,7 @@ venv\Scripts\activate
 ```
 
 ### 3. Install Dependencies
+
 ```bash
 # Python dependencies
 pip install -r requirements.txt
@@ -56,6 +62,7 @@ npm install
 ```
 
 ### 4. Environment Variables
+
 ```bash
 # Copy environment template
 cp .env.example .env
@@ -65,6 +72,7 @@ nano .env
 ```
 
 Required environment variables:
+
 ```bash
 # Database
 DATABASE_URL=postgresql://username:password@localhost/nous_platform
@@ -93,6 +101,7 @@ REDIS_URL=redis://localhost:6379/0
 ## Database Setup
 
 ### PostgreSQL (Recommended)
+
 ```bash
 # Install PostgreSQL
 sudo apt-get install postgresql postgresql-contrib
@@ -106,6 +115,7 @@ GRANT ALL PRIVILEGES ON DATABASE nous_platform TO nous_user;
 ```
 
 ### Run Migrations
+
 ```bash
 # Initialize database
 flask db init
@@ -120,6 +130,7 @@ flask db upgrade
 ## Application Deployment
 
 ### Development
+
 ```bash
 # Start development server
 flask run
@@ -131,6 +142,7 @@ FLASK_ENV=development flask run --reload
 ### Production
 
 #### Using Gunicorn
+
 ```bash
 # Install Gunicorn
 pip install gunicorn
@@ -140,6 +152,7 @@ gunicorn -c gunicorn.conf.py app:app
 ```
 
 #### Using Docker
+
 ```bash
 # Build image
 docker build -t nous-platform .
@@ -153,6 +166,7 @@ docker run -d \
 ```
 
 #### Using Docker Compose
+
 ```bash
 # Start all services
 docker-compose up -d
@@ -167,11 +181,12 @@ docker-compose down
 ## Production Configuration
 
 ### Nginx Configuration
+
 ```nginx
 server {
     listen 80;
     server_name yourdomain.com;
-    
+
     location / {
         proxy_pass http://127.0.0.1:8000;
         proxy_set_header Host $host;
@@ -179,7 +194,7 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
-    
+
     location /static {
         alias /path/to/nous/static;
         expires 1y;
@@ -189,6 +204,7 @@ server {
 ```
 
 ### SSL Certificate (Let's Encrypt)
+
 ```bash
 # Install Certbot
 sudo apt-get install certbot python3-certbot-nginx
@@ -202,6 +218,7 @@ sudo crontab -e
 ```
 
 ### System Service
+
 ```bash
 # Create systemd service
 sudo nano /etc/systemd/system/nous.service
@@ -234,12 +251,14 @@ sudo systemctl status nous.service
 ## Monitoring & Maintenance
 
 ### Health Checks
+
 - **Application**: `GET /api/health/health`
 - **Database**: Monitor connection pool
 - **Cache**: Monitor Redis if used
 - **Disk Space**: Monitor logs and uploads
 
 ### Log Management
+
 ```bash
 # View application logs
 tail -f /var/log/nous/app.log
@@ -249,6 +268,7 @@ sudo logrotate /etc/logrotate.d/nous
 ```
 
 ### Backup Strategy
+
 ```bash
 # Database backup
 pg_dump nous_platform > backup_$(date +%Y%m%d).sql
@@ -258,6 +278,7 @@ tar -czf app_backup_$(date +%Y%m%d).tar.gz /path/to/nous
 ```
 
 ### Updates
+
 ```bash
 # Pull latest code
 git pull origin main
@@ -277,6 +298,7 @@ sudo systemctl restart nous.service
 ### Common Issues
 
 #### Database Connection Error
+
 ```bash
 # Check PostgreSQL status
 sudo systemctl status postgresql
@@ -286,6 +308,7 @@ psql -h localhost -U nous_user -d nous_platform
 ```
 
 #### Permission Errors
+
 ```bash
 # Fix file permissions
 sudo chown -R www-data:www-data /path/to/nous
@@ -293,6 +316,7 @@ sudo chmod -R 755 /path/to/nous
 ```
 
 #### Memory Issues
+
 ```bash
 # Check memory usage
 free -h
@@ -303,12 +327,14 @@ sudo systemctl restart nous.service
 ```
 
 ### Performance Issues
+
 - Enable Redis caching
 - Optimize database queries
 - Use CDN for static files
 - Monitor application metrics
 
 ### Support
+
 - Check logs: `/var/log/nous/`
 - GitHub Issues: https://github.com/nous/platform/issues
 - Documentation: https://docs.nous-platform.com

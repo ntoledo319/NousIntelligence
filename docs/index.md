@@ -103,8 +103,8 @@ docs/
 
 ---
 
-This documentation is continuously updated to reflect the latest features and improvements in NOUS. For the most current information, always refer to the latest version in the repository. 
+This documentation is continuously updated to reflect the latest features and improvements in NOUS. For the most current information, always refer to the latest version in the repository.
 
 ---
 
-*Last updated: 2025-07-01*
+_Last updated: 2025-07-01_

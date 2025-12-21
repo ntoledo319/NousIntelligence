@@ -1,6 +1,6 @@
 # NOUS Environment Setup Guide
 
-*Zero to Production in 10 Minutes*
+_Zero to Production in 10 Minutes_
 
 ## 🚀 Quick Start (Replit)
 
@@ -16,6 +16,7 @@ That's it. Seriously.
 ### 🔴 Required Variables (Must Set)
 
 #### Authentication
+
 ```bash
 # Google OAuth (Get from console.cloud.google.com)
 GOOGLE_CLIENT_ID=123456789.apps.googleusercontent.com
@@ -26,6 +27,7 @@ SESSION_SECRET=your-very-long-random-string-here
 ```
 
 #### Database
+
 ```bash
 # Production PostgreSQL
 DATABASE_URL=postgresql://user:password@host:5432/dbname
@@ -37,6 +39,7 @@ DATABASE_URL=sqlite:///nous.db
 ### 🟡 Recommended Variables (For Full Features)
 
 #### AI Services
+
 ```bash
 # Primary AI Provider (https://openrouter.ai)
 OPENROUTER_API_KEY=sk-or-v1-xxxxx
@@ -49,6 +52,7 @@ GOOGLE_API_KEY=AIzaSyxxxxx
 ```
 
 #### External Integrations
+
 ```bash
 # Spotify (https://developer.spotify.com)
 SPOTIFY_CLIENT_ID=xxxxx
@@ -61,6 +65,7 @@ WEATHER_API_KEY=xxxxx
 ### 🟢 Optional Variables (Advanced Features)
 
 #### Application Configuration
+
 ```bash
 # Server Settings
 PORT=8080                    # Default: 5000
@@ -77,6 +82,7 @@ REDIS_URL=redis://localhost:6379/0  # For caching
 ```
 
 #### Beta & Feature Management
+
 ```bash
 # Beta Program
 ENABLE_BETA_MODE=true
@@ -92,12 +98,14 @@ ENABLE_PREDICTIVE_ANALYTICS=false
 ## 📦 Installation Methods
 
 ### Method 1: Replit (Recommended)
+
 ```bash
 # No installation needed!
 # Just fork and run
 ```
 
 ### Method 2: Local Development
+
 ```bash
 # Clone repository
 git clone https://github.com/nous/nous
@@ -119,6 +127,7 @@ python main.py
 ```
 
 ### Method 3: Docker
+
 ```bash
 # Build image
 docker build -t nous .
@@ -133,6 +142,7 @@ docker run -p 8080:8080 \
 ```
 
 ### Method 4: Production Server
+
 ```bash
 # Ubuntu/Debian setup
 sudo apt update
@@ -157,6 +167,7 @@ sudo systemctl restart nginx
 ## 🔐 Getting API Keys
 
 ### Google OAuth Setup
+
 1. Go to [Google Cloud Console](https://console.cloud.google.com)
 2. Create new project or select existing
 3. Enable Google+ API
@@ -167,11 +178,13 @@ sudo systemctl restart nginx
    - `https://your-domain.com/callback/google` (production)
 
 ### OpenRouter API
+
 1. Sign up at [openrouter.ai](https://openrouter.ai)
 2. Add credit ($5 lasts months for testing)
 3. Copy API key from dashboard
 
 ### Other Services
+
 - **HuggingFace**: Free at [huggingface.co/settings/tokens]
 - **Spotify**: Free at [developer.spotify.com/dashboard]
 - **Weather**: Free tier at [openweathermap.org/api]
@@ -179,17 +192,20 @@ sudo systemctl restart nginx
 ## 🗄️ Database Setup
 
 ### PostgreSQL (Production)
+
 ```sql
 -- No manual setup needed!
 -- Tables are created automatically on first run
 ```
 
 ### Connection String Format
+
 ```
 postgresql://username:password@host:port/database
 ```
 
 ### Free PostgreSQL Options
+
 - **Supabase**: 500MB free (supabase.com)
 - **Neon**: 0.5GB free (neon.tech)
 - **ElephantSQL**: 20MB free (elephantsql.com)
@@ -198,18 +214,21 @@ postgresql://username:password@host:port/database
 ## 🚨 Common Issues & Solutions
 
 ### Issue: "SESSION_SECRET environment variable is required"
+
 ```bash
 # Solution: Set SESSION_SECRET
 export SESSION_SECRET=$(openssl rand -hex 32)
 ```
 
 ### Issue: Google OAuth redirect mismatch
+
 ```bash
 # Solution: Add exact callback URL to Google Console
 # Must match exactly including http/https and trailing slashes
 ```
 
 ### Issue: Database connection failed
+
 ```bash
 # Solution: Check DATABASE_URL format
 # PostgreSQL: postgresql://user:pass@host/db
@@ -217,6 +236,7 @@ export SESSION_SECRET=$(openssl rand -hex 32)
 ```
 
 ### Issue: AI features not working
+
 ```bash
 # Solution: Add at least one AI provider key
 # OPENROUTER_API_KEY or GOOGLE_API_KEY
@@ -225,6 +245,7 @@ export SESSION_SECRET=$(openssl rand -hex 32)
 ## 📊 Environment Templates
 
 ### Minimal Setup (.env.minimal)
+
 ```bash
 DATABASE_URL=sqlite:///nous.db
 SESSION_SECRET=dev-secret-key-change-in-production
@@ -233,6 +254,7 @@ GOOGLE_CLIENT_SECRET=your-google-secret
 ```
 
 ### Development Setup (.env.development)
+
 ```bash
 # Core
 DATABASE_URL=sqlite:///nous_dev.db
@@ -249,6 +271,7 @@ OPENROUTER_API_KEY=sk-or-v1-dev-key
 ```
 
 ### Production Setup (.env.production)
+
 ```bash
 # Core
 DATABASE_URL=postgresql://user:pass@db.example.com:5432/nous_prod
@@ -272,22 +295,26 @@ SENTRY_DSN=https://xxx@sentry.io/xxx
 ## 🔍 Verification Steps
 
 ### 1. Check Environment
+
 ```bash
 python -c "import os; print('SESSION_SECRET set:', bool(os.getenv('SESSION_SECRET')))"
 python -c "import os; print('DATABASE_URL:', os.getenv('DATABASE_URL', 'Not set'))"
 ```
 
 ### 2. Test Database Connection
+
 ```bash
 python -c "from app import app; print('Database OK')"
 ```
 
 ### 3. Verify OAuth Setup
+
 ```bash
 curl http://localhost:5000/auth/status
 ```
 
 ### 4. Health Check
+
 ```bash
 curl http://localhost:5000/health
 ```
@@ -295,18 +322,21 @@ curl http://localhost:5000/health
 ## 🎯 Best Practices
 
 ### Security
+
 1. **Never commit secrets** to version control
 2. **Use strong SESSION_SECRET** (32+ characters)
 3. **Rotate keys regularly** in production
 4. **Use HTTPS always** in production
 
 ### Performance
+
 1. **Use PostgreSQL** for production (not SQLite)
 2. **Enable Redis** for caching if >1000 users
 3. **Set connection pooling** for database
 4. **Monitor AI costs** via dashboard
 
 ### Development
+
 1. **Use .env files** for local development
 2. **Keep separate configs** for dev/staging/prod
 3. **Document custom variables** in your fork
@@ -333,4 +363,4 @@ curl http://localhost:5000/health
 
 ---
 
-*Remember: The beauty of NOUS is that it works with minimal configuration. Start simple, add features as needed.* 
+_Remember: The beauty of NOUS is that it works with minimal configuration. Start simple, add features as needed._

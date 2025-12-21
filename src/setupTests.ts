@@ -68,12 +68,20 @@ class MockIntersectionObserver {
   readonly root: Element | null = null;
   readonly rootMargin: string = '';
   readonly thresholds: ReadonlyArray<number> = [];
-  
-  constructor() {}
-  
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+
+  constructor(public callback: IntersectionObserverCallback) {
+    void callback;
+  }
+
+  observe() {
+    return undefined;
+  }
+  unobserve() {
+    return undefined;
+  }
+  disconnect() {
+    return undefined;
+  }
   takeRecords(): IntersectionObserverEntry[] {
     return [];
   }
@@ -87,10 +95,18 @@ Object.defineProperty(window, 'IntersectionObserver', {
 
 // Mock ResizeObserver
 class MockResizeObserver {
-  constructor(public callback: ResizeObserverCallback) {}
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+  constructor(public callback: ResizeObserverCallback) {
+    void callback;
+  }
+  observe() {
+    return undefined;
+  }
+  unobserve() {
+    return undefined;
+  }
+  disconnect() {
+    return undefined;
+  }
 }
 
 Object.defineProperty(window, 'ResizeObserver', {
@@ -99,8 +115,39 @@ Object.defineProperty(window, 'ResizeObserver', {
   value: MockResizeObserver,
 });
 
-// Add a global mock for fetch
-const mockFetch = jest.fn();
+// Add a global mock for fetch with safe defaults.
+// Individual tests can override `global.fetch.mockResolvedValueOnce(...)` as needed.
+const mockFetch = jest.fn().mockImplementation((input: RequestInfo, init?: RequestInit) => {
+  const url = typeof input === 'string' ? input : (input as any)?.url || '';
+  const method = (init?.method || 'GET').toUpperCase();
+
+  const ok = true;
+  const status = 200;
+
+  let payload: any = {};
+  if (url.includes('/api/v2/mood/recent')) payload = { ok: true, items: [] };
+  else if (url.includes('/api/v2/mood/log') && method === 'POST') payload = { ok: true };
+  else if (url.includes('/api/v2/journal/append') && method === 'POST')
+    payload = { ok: true, stored: true };
+  else if (url.includes('/api/v2/thought-record/create') && method === 'POST')
+    payload = { ok: true, record: { id: 't', ts: 0 } };
+  else if (url.includes('/api/v2/safety-plan') && method === 'GET')
+    payload = { ok: true, plan: null };
+  else if (url.includes('/api/v2/safety-plan') && method === 'POST')
+    payload = { ok: true, saved: true };
+  else if (url.includes('/resources/api/crisis')) payload = { resources: [] };
+  else if (url.includes('/api/v2/export/text')) payload = { ok: true, text: '' };
+  else if (url.includes('/api/v1/chat') && method === 'POST') payload = { response: 'ok' };
+
+  const body = JSON.stringify(payload);
+
+  return Promise.resolve({
+    ok,
+    status,
+    text: async () => body,
+    json: async () => payload,
+  } as any);
+});
 global.fetch = mockFetch as unknown as typeof window.fetch;
 
 // Add a global mock for requestIdleCallback
@@ -131,6 +178,12 @@ beforeAll(() => {
 
   // Mock console.warn to fail tests on React warnings
   console.warn = (...args) => {
+    const msg = String(args[0] ?? '');
+    // React Router v6 emits a known "future flag" warning at runtime.
+    // This is not actionable for unit tests, and failing tests on it is noisy.
+    if (msg.includes('React Router Future Flag Warning')) {
+      return;
+    }
     originalConsoleWarn(...args);
     throw new Error('Console warn was called. This is often caused by a React warning.');
   };

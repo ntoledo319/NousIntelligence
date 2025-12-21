@@ -1,5 +1,6 @@
 # NOUS Platform Features - Complete Documentation
-*Unified Documentation | July 2, 2025*
+
+_Unified Documentation | July 2, 2025_
 
 > **Note**: This is the single, authoritative features document for NOUS. All previous feature documents have been consolidated here.
 
@@ -8,6 +9,7 @@ For complete features documentation, see: [UNIFIED_FEATURES_DOCUMENTATION.md](UN
 ## Quick Overview
 
 NOUS is a **comprehensive mental health and personal assistant platform** with:
+
 - **192 database models** across 13 specialized files
 - **74 route files** with extensive API coverage
 - **40+ health models** focused on CBT/DBT/AA therapeutic support
@@ -29,6 +31,7 @@ See the unified documentation for complete details on all features and capabilit
 ### 1. Mental Health & Therapy Suite
 
 #### CBT (Cognitive Behavioral Therapy)
+
 - **Thought Records**: Track negative thoughts and cognitive restructuring
 - **Cognitive Bias Detection**: 10+ bias patterns identified automatically
 - **Mood Logging**: Daily mood tracking with pattern analysis
@@ -38,6 +41,7 @@ See the unified documentation for complete details on all features and capabilit
 - **Goal Setting**: SMART goals for mental health improvement
 
 #### DBT (Dialectical Behavior Therapy)
+
 - **Skill Modules**: Distress tolerance, emotion regulation, mindfulness, interpersonal effectiveness
 - **Diary Cards**: Daily tracking of skills usage and effectiveness
 - **Crisis Resources**: Emergency support and intervention tools
@@ -45,6 +49,7 @@ See the unified documentation for complete details on all features and capabilit
 - **Emotion Tracking**: Real-time emotional state monitoring
 
 #### AA Recovery Support
+
 - **Big Book Access**: Full text with audio recordings
 - **Speaker Recordings**: Library of recovery talks
 - **Sobriety Tracker**: Milestone tracking and achievements
@@ -55,6 +60,7 @@ See the unified documentation for complete details on all features and capabilit
 ### 2. AI & Intelligence Systems
 
 #### Multi-Provider AI Orchestration
+
 - **Cost-Optimized Routing**: Intelligent selection between providers
 - **Providers Integrated**:
   - OpenRouter (primary, most cost-effective)
@@ -65,6 +71,7 @@ See the unified documentation for complete details on all features and capabilit
 - **Emotion Detection**: Voice and text sentiment analysis
 
 #### SEED Optimization Engine
+
 - **Self-Learning System**: Adapts based on user interactions
 - **Therapeutic Optimization**: Personalizes intervention timing
 - **Cost Optimization**: Reduces AI expenses by 75-85%
@@ -72,6 +79,7 @@ See the unified documentation for complete details on all features and capabilit
 - **Recommendation Engine**: Suggests optimal therapeutic approaches
 
 #### Drone Swarm System
+
 - **Autonomous Agents**: Background optimization and monitoring
 - **Types**: VerificationDrone, DataCollectionDrone, SelfHealingDrone, OptimizationDrone
 - **Continuous Improvement**: 24/7 system optimization
@@ -81,12 +89,14 @@ See the unified documentation for complete details on all features and capabilit
 ### 3. Personal Management Tools
 
 #### Task & Productivity
+
 - **Task Management**: Create, track, prioritize tasks
 - **Goal Tracking**: Personal and professional goal management
 - **Analytics Dashboard**: Productivity insights and trends
 - **Workflow Automation**: Smart triggers and templates
 
 #### Financial Management
+
 - **Bank Account Integration**: OAuth-based secure connections
 - **Transaction Tracking**: Automatic categorization
 - **Budget Management**: Category-based budgeting
@@ -95,6 +105,7 @@ See the unified documentation for complete details on all features and capabilit
 - **Financial Goals**: Savings and investment targets
 
 #### Collaborative Features
+
 - **Family Management**: Shared tasks and events
 - **Support Groups**: Community features for recovery
 - **Shopping Lists**: Collaborative list management
@@ -103,18 +114,21 @@ See the unified documentation for complete details on all features and capabilit
 ### 4. Advanced Capabilities
 
 #### Voice & Audio
+
 - **Speech-to-Text**: Multiple provider support
 - **Text-to-Speech**: Natural voice synthesis
 - **Emotion Recognition**: Voice sentiment analysis
 - **Mindfulness Sessions**: Guided meditation audio
 
 #### Visual Intelligence
+
 - **OCR Processing**: Document text extraction
 - **Image Analysis**: Content understanding
 - **Task Generation**: Create tasks from images
 - **Document Management**: Smart filing system
 
 #### Predictive Analytics
+
 - **Behavior Prediction**: Anticipate user needs
 - **Pattern Analysis**: Identify trends and triggers
 - **Proactive Suggestions**: Context-aware recommendations
@@ -123,18 +137,21 @@ See the unified documentation for complete details on all features and capabilit
 ## 🏗️ Architecture & Infrastructure
 
 ### Database Architecture
+
 - **Models**: 90+ SQLAlchemy models
 - **Categories**: Health, Financial, Collaboration, Analytics, AI, Products, Languages
 - **Relationships**: Complex foreign key constraints
 - **Performance**: Connection pooling, query optimization
 
 ### Security & Compliance
+
 - **Authentication**: Google OAuth 2.0 + session management
 - **HIPAA Considerations**: Medical data protection patterns
 - **Encryption**: Secure data storage
 - **Audit Trails**: Comprehensive activity logging
 
 ### Deployment & Scaling
+
 - **Platform**: Replit Cloud deployment
 - **Database**: PostgreSQL with SQLite fallback
 - **Auto-scaling**: Handles load dynamically
@@ -143,12 +160,14 @@ See the unified documentation for complete details on all features and capabilit
 ## 💰 The Cost Revolution
 
 ### Operational Costs (30 Users/Month)
+
 - **NOUS**: $7.44-19.83 total ($0.25-0.66 per user)
 - **ChatGPT Teams**: $600 ($20 per user)
 - **BetterHelp**: $7,200 ($60/week per user)
 - **Savings**: 97-99% cost reduction
 
 ### How We Achieve This
+
 1. **Local Processing**: 70% of queries handled without AI
 2. **Smart Routing**: Use cheapest provider for each query type
 3. **Caching**: Reduce redundant API calls by 75%
@@ -157,18 +176,21 @@ See the unified documentation for complete details on all features and capabilit
 ## 🚀 Unique Value Propositions
 
 ### For Mental Health
+
 - **Comprehensive**: CBT + DBT + AA in one platform
 - **24/7 Availability**: Always-on therapeutic support
 - **Privacy-First**: No data mining or selling
 - **Evidence-Based**: Clinically-informed interventions
 
 ### For Personal Management
+
 - **All-in-One**: Replaces 10+ specialized apps
 - **AI-Powered**: Intelligent assistance throughout
 - **Collaborative**: Family and group features
 - **Accessible**: Works on any device with a browser
 
 ### For Developers
+
 - **Open Architecture**: Modular blueprint system
 - **Extensible**: Easy to add new features
 - **Well-Documented**: Comprehensive API documentation
@@ -177,16 +199,19 @@ See the unified documentation for complete details on all features and capabilit
 ## 🎭 The Hidden Gems
 
 ### Language Learning System
+
 - **12 models** for language education
 - Progress tracking, vocabulary management
 - Conversation templates and prompts
 
 ### Product & Shopping Intelligence
+
 - **10 models** for e-commerce features
 - Price tracking, wishlists, deal alerts
 - Shopping session management
 
 ### Beta Management System
+
 - **Feature flags** for gradual rollouts
 - User feedback collection
 - A/B testing infrastructure
@@ -194,6 +219,7 @@ See the unified documentation for complete details on all features and capabilit
 ## 🔮 What's Real vs What's Aspirational
 
 ### Actually Working
+
 ✅ Mental health therapy tools (CBT/DBT/AA)
 ✅ AI chat with cost optimization
 ✅ Task and goal management
@@ -204,12 +230,14 @@ See the unified documentation for complete details on all features and capabilit
 ✅ Drone swarm system
 
 ### Partially Implemented
+
 ⚡ Voice processing (providers integrated, UI minimal)
 ⚡ Visual intelligence (backend ready, needs UI)
 ⚡ Predictive analytics (models exist, training needed)
 ⚡ Collaboration features (database ready, routes partial)
 
 ### Database Models Without Full Implementation
+
 🔨 Language learning (models only)
 🔨 Product tracking (models only)
 🔨 Some financial features (models exceed routes)
@@ -222,4 +250,4 @@ NOUS is a **production-ready mental health platform** with **enterprise-grade ar
 
 ---
 
-*Generated by CURSOR after examining every file in this sprawling codebase. No marketing fluff, just code truth.*
+_Generated by CURSOR after examining every file in this sprawling codebase. No marketing fluff, just code truth._

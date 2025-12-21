@@ -7,20 +7,25 @@ The NOUS platform now features sophisticated mental health support directly inte
 ## 🎯 Key Features
 
 ### 1. Enhanced Crisis Detection
+
 - **Multi-level severity detection** (immediate, high, moderate)
 - **False positive filtering** to avoid triggering on casual expressions
 - **Contextual understanding** of mental health discussions
 - **Immediate response** for high-severity situations
 
 ### 2. Natural Language Resource Discovery
+
 Users can find mental health resources through natural conversation:
+
 - "I need to talk to someone"
 - "Find me a therapist near me"
 - "I can't afford therapy"
 - "Show me crisis hotlines"
 
 ### 3. Smart Resource Recommendations
+
 The system provides personalized recommendations based on:
+
 - **Location** - Local providers and resources
 - **Financial situation** - Sliding scale and free options
 - **Urgency** - Immediate crisis support vs. ongoing care
@@ -29,25 +34,33 @@ The system provides personalized recommendations based on:
 ## 📡 API Endpoints
 
 ### Enhanced Chat API
+
 **Endpoint**: `/api/enhanced/chat`
+
 - Automatically detects mental health content
 - Provides immediate crisis support when needed
 - Integrates with gamification for positive reinforcement
 
 ### Dedicated Mental Health Chat
+
 **Endpoint**: `/api/mental-health/chat`
+
 - Specialized handling for mental health conversations
 - Enhanced crisis detection algorithms
 - Structured response format for better UX
 
 ### Mental Health Check-ins
+
 **Endpoint**: `/api/mental-health/check-in`
+
 - Regular mood check-ins
 - Proactive support based on mood ratings
 - Gamification rewards for positive check-ins
 
 ### Resource Search
+
 **Endpoint**: `/api/mental-health/resources/search`
+
 - Location-based provider search
 - Filters for affordability, specializations, availability
 - Fallback online resources when local options unavailable
@@ -55,10 +68,11 @@ The system provides personalized recommendations based on:
 ## 💬 Chat Integration Examples
 
 ### Example 1: Crisis Detection
+
 ```
 User: "I can't do this anymore. I want to end it all."
 
-NOUS: I hear you, and I'm deeply concerned about what you're going through. 
+NOUS: I hear you, and I'm deeply concerned about what you're going through.
 Your life has value, and there are people who want to help you right now.
 
 Here are crisis support services available 24/7:
@@ -78,10 +92,11 @@ Are you safe right now? If you're in immediate danger, please call 911.
 ```
 
 ### Example 2: Therapy Search
+
 ```
 User: "I need to find an affordable therapist near me"
 
-NOUS: I'll help you find the mental health support you need. 
+NOUS: I'll help you find the mental health support you need.
 Let me show you some options.
 
 To find providers near you, I'll need your location. You can share:
@@ -102,10 +117,11 @@ For ongoing therapy support:
 ```
 
 ### Example 3: General Mental Health Support
+
 ```
 User: "I've been feeling really anxious lately"
 
-NOUS: Thank you for sharing what you're going through. 
+NOUS: Thank you for sharing what you're going through.
 It's important to talk about these feelings.
 
 I can help you in several ways:
@@ -124,6 +140,7 @@ If you need someone to talk to right away:
 ## 🔧 Implementation Details
 
 ### Crisis Detection Algorithm
+
 ```python
 # Severity levels and patterns
 crisis_patterns = {
@@ -146,14 +163,18 @@ crisis_patterns = {
 ```
 
 ### False Positive Prevention
+
 The system filters out casual expressions like:
+
 - "Killing it at work"
 - "Dying of laughter"
 - References to games, movies, or fiction
 - Academic stress contexts
 
 ### Response Structure
+
 Mental health responses include multiple parts:
+
 1. **Validation** - Acknowledge and validate feelings
 2. **Resources** - Provide appropriate support options
 3. **Safety Check** - Ensure immediate safety
@@ -163,6 +184,7 @@ Mental health responses include multiple parts:
 ## 🏆 Gamification Integration
 
 Users earn points and achievements for:
+
 - Reaching out for help during crisis
 - Saving mental health resources
 - Regular mental health check-ins
@@ -180,12 +202,14 @@ Users earn points and achievements for:
 ## 📊 Analytics & Follow-up
 
 The system tracks (anonymized):
+
 - Crisis interaction frequency
 - Resource utilization
 - Check-in patterns
 - Response effectiveness
 
 This enables:
+
 - Automated follow-up scheduling
 - Resource recommendation improvement
 - Crisis response optimization
@@ -209,6 +233,7 @@ This enables:
 ## 🆘 Emergency Fallbacks
 
 If the system fails, these resources are always available:
+
 - `/resources/crisis` - Works without authentication
 - `/api/crisis` - Returns hardcoded crisis resources
 - Error messages include crisis support information

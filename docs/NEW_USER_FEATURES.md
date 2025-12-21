@@ -9,6 +9,7 @@ This document describes the new user features added to the NOUS platform to enha
 ### 1. Social & Community Features 🤝
 
 #### Support Groups
+
 - **Purpose**: Create safe spaces for users to connect over shared experiences
 - **Features**:
   - Create and join support groups by category (anxiety, depression, addiction, etc.)
@@ -18,6 +19,7 @@ This document describes the new user features added to the NOUS platform to enha
   - Member notifications
 
 #### Peer Connections
+
 - **Purpose**: Build supportive relationships between users
 - **Types**:
   - Peer connections (friends)
@@ -28,6 +30,7 @@ This document describes the new user features added to the NOUS platform to enha
   - Private messaging (future feature)
 
 #### Anonymous Sharing
+
 - **Purpose**: Allow users to share experiences without revealing identity
 - **Features**:
   - Share stories anonymously
@@ -38,6 +41,7 @@ This document describes the new user features added to the NOUS platform to enha
 ### 2. Gamification Features 🎮
 
 #### Achievements & Badges
+
 - **Purpose**: Recognize and celebrate user progress
 - **Categories**:
   - Wellness achievements
@@ -47,6 +51,7 @@ This document describes the new user features added to the NOUS platform to enha
 - **Rarity Levels**: Common, Rare, Epic, Legendary
 
 #### Points & Levels
+
 - **Purpose**: Quantify progress and engagement
 - **Point Categories**:
   - Wellness points
@@ -56,6 +61,7 @@ This document describes the new user features added to the NOUS platform to enha
 - **Level System**: Progressive levels with increasing point requirements
 
 #### Wellness Streaks
+
 - **Purpose**: Encourage consistent healthy behaviors
 - **Tracked Activities**:
   - Mood logging
@@ -65,6 +71,7 @@ This document describes the new user features added to the NOUS platform to enha
   - DBT/CBT skills practice
 
 #### Leaderboards
+
 - **Purpose**: Foster friendly competition
 - **Types**:
   - Weekly leaderboards
@@ -73,6 +80,7 @@ This document describes the new user features added to the NOUS platform to enha
 - **Privacy**: Optional participation
 
 #### Challenges
+
 - **Purpose**: Time-limited goals for community engagement
 - **Types**:
   - Daily challenges
@@ -83,6 +91,7 @@ This document describes the new user features added to the NOUS platform to enha
 ### 3. Personal Growth Features 🌱
 
 #### Goal Setting & Tracking
+
 - **Purpose**: Help users achieve personal objectives
 - **Features**:
   - SMART goal framework
@@ -92,6 +101,7 @@ This document describes the new user features added to the NOUS platform to enha
   - Sub-goals and goal hierarchies
 
 #### Habit Tracking
+
 - **Purpose**: Build and maintain positive habits
 - **Features**:
   - Daily/weekly/custom frequency habits
@@ -101,6 +111,7 @@ This document describes the new user features added to the NOUS platform to enha
   - Habit categories
 
 #### Journaling
+
 - **Purpose**: Encourage self-reflection and emotional processing
 - **Entry Types**:
   - General journal entries
@@ -115,6 +126,7 @@ This document describes the new user features added to the NOUS platform to enha
   - Attachments (future feature)
 
 #### Vision Boards
+
 - **Purpose**: Visualize goals and aspirations
 - **Features**:
   - Create multiple vision boards
@@ -126,6 +138,7 @@ This document describes the new user features added to the NOUS platform to enha
 ### 4. Mental Health Resources 🏥
 
 #### Crisis Support (Always Accessible)
+
 - **Purpose**: Provide immediate help in mental health emergencies
 - **Features**:
   - 24/7 crisis hotlines and text lines
@@ -135,6 +148,7 @@ This document describes the new user features added to the NOUS platform to enha
   - Specialized support (veterans, LGBTQ+, etc.)
 
 #### Therapy Provider Search
+
 - **Purpose**: Find affordable therapy options
 - **Features**:
   - Location-based search
@@ -145,6 +159,7 @@ This document describes the new user features added to the NOUS platform to enha
   - Save preferred providers
 
 #### Psychiatry Provider Search
+
 - **Purpose**: Find medication management providers
 - **Features**:
   - Location-based search
@@ -154,6 +169,7 @@ This document describes the new user features added to the NOUS platform to enha
   - New patient availability
 
 #### Community Resources
+
 - **Purpose**: Access free/low-cost mental health services
 - **Features**:
   - Local support groups
@@ -164,6 +180,7 @@ This document describes the new user features added to the NOUS platform to enha
 ## API Endpoints
 
 ### Social Endpoints
+
 ```
 GET  /social/groups                      - View support groups
 POST /api/social/groups                  - Create support group
@@ -177,6 +194,7 @@ POST /api/social/shares/:id/support      - Add support to share
 ```
 
 ### Gamification Endpoints
+
 ```
 GET  /gamification/                      - Gamification dashboard
 GET  /api/gamification/achievements      - Get user achievements
@@ -187,6 +205,7 @@ POST /api/gamification/challenges/:id/join - Join challenge
 ```
 
 ### Personal Growth Endpoints
+
 ```
 GET  /growth/                           - Growth dashboard
 POST /api/growth/goals                  - Create goal
@@ -198,6 +217,7 @@ POST /api/growth/vision-boards          - Create vision board
 ```
 
 ### Mental Health Resources Endpoints
+
 ```
 GET  /resources/crisis                  - Crisis resources (NO AUTH REQUIRED)
 GET  /api/crisis                        - Crisis API (NO AUTH REQUIRED)
@@ -211,6 +231,7 @@ GET  /api/resources/saved               - Get saved resources
 ## Implementation Guide
 
 ### Running the Migration
+
 ```bash
 python migrations/add_user_features_tables.py
 ```
@@ -234,25 +255,31 @@ python migrations/add_user_features_tables.py
 ## UI/UX Guidelines
 
 ### Navigation
+
 Add new menu items:
+
 - Community (for social features)
 - Progress (for gamification)
 - Growth (for personal development)
 - Resources (for mental health support - prominently displayed)
 
 ### Mobile Responsiveness
+
 All features should be mobile-friendly with:
+
 - Touch-optimized interfaces
 - Simplified layouts for small screens
 - Offline capability for journaling
 
 ### Accessibility
+
 - ARIA labels for all interactive elements
 - Keyboard navigation support
 - High contrast mode support
 - Screen reader compatibility
 
 ### Crisis Support Visibility
+
 - Crisis resources link should be visible on all pages
 - Use recognizable crisis support iconography
 - Clear, non-stigmatizing language
@@ -261,11 +288,13 @@ All features should be mobile-friendly with:
 ## Future Enhancements
 
 1. **Social Features**:
+
    - Private messaging between connections
    - Video support groups
    - Expert-led group sessions
 
 2. **Gamification**:
+
    - Custom challenges creation
    - Team challenges
    - Reward marketplace
@@ -278,6 +307,7 @@ All features should be mobile-friendly with:
 ## Monitoring & Analytics
 
 Track these metrics:
+
 - User engagement rates
 - Feature adoption
 - Streak retention
@@ -287,11 +317,13 @@ Track these metrics:
 ## Support & Troubleshooting
 
 Common issues:
+
 1. **Migration fails**: Check database permissions
 2. **Routes not loading**: Ensure blueprints are registered
 3. **Points not updating**: Check gamification service initialization
 
 For support, check logs in:
+
 - Application logs for errors
 - Database logs for migration issues
 - Service logs for business logic errors
@@ -300,4 +332,4 @@ For support, check logs in:
 
 **Last Updated**: December 2024
 **Version**: 1.0.0
-**Status**: Ready for deployment 
+**Status**: Ready for deployment
