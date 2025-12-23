@@ -1,0 +1,81 @@
+{
+  "cbt": {
+    "thought_record": {
+      "steps": [
+        {
+          "id": "identify_situation",
+          "prompt": "Let's pause and look at what just happened. Can you describe the situation that triggered this feeling?",
+          "next": "identify_emotion"
+        },
+        {
+          "id": "identify_emotion",
+          "prompt": "Thanks. Now, what emotion are you feeling right now, and how intense is it (1-10)?",
+          "next": "automatic_thought"
+        },
+        {
+          "id": "automatic_thought",
+          "prompt": "I understand. What was the exact thought that went through your mind when you felt that?",
+          "next": "evidence_for"
+        },
+        {
+          "id": "evidence_for",
+          "prompt": "Let's examine that thought like a scientist. What evidence do you have that this thought is 100% true?",
+          "next": "evidence_against"
+        },
+        {
+          "id": "evidence_against",
+          "prompt": "Now, is there any evidence that this thought might NOT be completely true, or that there's another way to look at it?",
+          "next": "reframe"
+        },
+        {
+          "id": "reframe",
+          "prompt": "Considering all the evidence, can we come up with a more balanced thought? One that acknowledges the situation but is less extreme?",
+          "next": "check_emotion"
+        },
+        {
+          "id": "check_emotion",
+          "prompt": "Read that new thought to yourself. How do you feel now compared to the start (1-10)?",
+          "next": "complete"
+        }
+      ]
+    }
+  },
+  "dbt": {
+    "tipp": {
+      "steps": [
+        {
+          "id": "temperature",
+          "prompt": "We're going to use TIPP to bring your arousal down fast. First: **Temperature**. Splash cold water on your face or hold an ice cube for 30 seconds. Type 'done' when you're back.",
+          "next": "intense_exercise"
+        },
+        {
+          "id": "intense_exercise",
+          "prompt": "Great. Next: **Intense Exercise**. Do jumping jacks or run in place for 60 seconds to burn off that adrenaline. Go!",
+          "next": "paced_breathing"
+        },
+        {
+          "id": "paced_breathing",
+          "prompt": "Now, slow it down. **Paced Breathing**. Breathe in for 4 seconds, hold for 2, breathe out for 6. Let's do this for 1 minute.",
+          "next": "complete"
+        }
+      ]
+    }
+  },
+  "act": {
+    "leaves_on_stream": {
+      "text": "Imagine you are sitting by a gently flowing stream with leaves floating along the surface of the water. For each thought that comes into your mind, place it on a leaf and let it float on by."
+    }
+  },
+  "psychoeducation": [
+    {
+      "id": "what_is_cbt",
+      "title": "What is CBT?",
+      "content": "Cognitive Behavioral Therapy (CBT) is based on the idea that our thoughts, feelings, and behaviors are interconnected. By changing negative thought patterns, we can change how we feel."
+    },
+    {
+      "id": "anxiety_101",
+      "title": "Understanding Anxiety",
+      "content": "Anxiety is a natural response to stress. It's your body's alarm system. It becomes a problem when the alarm goes off when there is no danger."
+    }
+  ]
+}

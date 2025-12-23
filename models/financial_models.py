@@ -30,7 +30,7 @@ class BankAccount(db.Model):
     
     # Relationships
     user = db.relationship('User', backref=db.backref('bank_accounts', lazy=True))
-    transactions = db.relationship('Transaction', backref='account', lazy=True)
+    # Transactions relationship defined in Transaction model via backref
 
     def to_dict(self):
         return {
@@ -67,7 +67,7 @@ class Transaction(db.Model):
     
     # Relationships
     user = db.relationship('User', backref=db.backref('transactions', lazy=True))
-    account = db.relationship('BankAccount', backref='transactions')
+    account = db.relationship('BankAccount', backref=db.backref('transactions', lazy=True))
 
     def to_dict(self):
         return {

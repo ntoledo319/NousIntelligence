@@ -24,6 +24,10 @@ FinancialTransaction = None
 Budget = None
 FinancialGoal = None
 SpotifyToken = None
+TherapySession = None
+MoodLog = None
+CrisisPlan = None
+TherapyProfile = None
 
 try:
     from .oauth_token import OAuthToken
@@ -95,6 +99,11 @@ try:
 except (ImportError, ModuleNotFoundError):
     pass
 
+try:
+    from .therapeutic import TherapySession, MoodLog, CrisisPlan, TherapyProfile
+except (ImportError, ModuleNotFoundError):
+    pass
+
 __all__ = [
     "User",
     "OAuthToken",
@@ -113,4 +122,8 @@ __all__ = [
     "Budget",
     "FinancialGoal",
     "SpotifyToken",
+    "TherapySession",
+    "MoodLog",
+    "CrisisPlan",
+    "TherapyProfile",
 ]

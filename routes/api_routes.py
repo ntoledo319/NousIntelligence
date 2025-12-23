@@ -88,14 +88,42 @@ def chat_api():
     if len(msg) > MAX_MESSAGE_LEN:
         return jsonify({"ok": False, "error": "message_too_long", "limit": MAX_MESSAGE_LEN}), 413
 
-    # Optional: store to nous_core runtime if present
+    # Use DialogueManager for processing
     try:
-        from services.runtime_service import init_runtime
-        from flask import current_app
-        rt = init_runtime(current_app)
-        rt["bus"].publish("chat.message", {"message": msg})
-        rt["semantic"].upsert(f"chat:{time.time()}", msg, {"kind": "chat"})
-    except Exception:
-        pass
+        from services.dialogue_manager import DialogueManager
+        # In a real app, instantiate once or via factory
+        dm = DialogueManager()
 
-    return jsonify({"response": _demo_response(msg)})
+        # Get user ID from session
+        user_id = session.get('user_id')
+        if not user_id:
+             # Handle demo user / guest case
+             # For now, if no user_id, we might need a dummy user or return error
+             # But the PDF implies logged-in state for therapy.
+             # We'll rely on the existing auth check. If guest, maybe 0?
+             # Let's check session structure.
+             user = session.get('user')
+             if user and isinstance(user, dict):
+                 user_id = user.get('id')
+
+        if not user_id:
+            # Create a temporary guest user if none exists (for demo)
+            # This requires database write access which might be tricky in pure GET/POST flow without login
+            # Fallback to demo response if no user context
+             return jsonify({"response": _demo_response(msg)})
+
+        response_data = dm.process_message(int(user_id), msg)
+
+        # Format for frontend
+        return jsonify({
+            "ok": True,
+            "response": response_data.get('text', ''),
+            "type": response_data.get('type'),
+            "suggested_actions": response_data.get('suggested_actions', []),
+            "resources": response_data.get('resources', [])
+        })
+
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Dialogue processing error: {e}")
+        return jsonify({"ok": False, "error": "internal_error", "details": str(e)}), 500
