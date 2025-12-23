@@ -5,9 +5,10 @@ This module defines models for persistent state tracking in therapeutic contexts
 including session state, mood logs, crisis plans, and clinical profiles.
 """
 
-from models.database import db
 from datetime import datetime
-from sqlalchemy.dialects.postgresql import JSONB
+
+from models.database import db
+
 
 class TherapySession(db.Model):
     """Tracks the state of an active therapeutic interaction (e.g. CBT Thought Record)"""

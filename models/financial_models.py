@@ -5,12 +5,12 @@ This module contains financial management models for the NOUS application,
 supporting expense tracking, budgeting, and financial insights.
 """
 
-from datetime import datetime, timedelta
-from decimal import Decimal
-from sqlalchemy import func
+from datetime import datetime
+
 from sqlalchemy.ext.hybrid import hybrid_property
+
 from models.database import db
-import json
+
 
 class BankAccount(db.Model):
     """User bank accounts for expense tracking"""

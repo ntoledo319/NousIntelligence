@@ -6,7 +6,8 @@ Defusion ("Leaves on a stream") and Mindfulness.
 """
 
 import logging
-from typing import Dict, Any
+from typing import Dict
+
 from services.content_service import get_content_service
 
 logger = logging.getLogger(__name__)

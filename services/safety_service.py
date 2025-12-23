@@ -5,11 +5,9 @@ Implements the multi-layer crisis detection and response protocol.
 Integrates with mental_health_resources models for location-aware referrals.
 """
 
-import re
 import logging
-from typing import Dict, List, Optional, Tuple, Any
-from models.mental_health_resources import CrisisResource
-from models.therapeutic import CrisisPlan
+import re
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 

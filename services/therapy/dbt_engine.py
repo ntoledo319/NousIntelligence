@@ -7,7 +7,8 @@ and empathic validation.
 
 import logging
 import random
-from typing import Dict, Any
+from typing import Any, Dict
+
 from services.content_service import get_content_service
 
 logger = logging.getLogger(__name__)

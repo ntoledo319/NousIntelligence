@@ -6,10 +6,11 @@ tailor the therapeutic experience.
 """
 
 import logging
-from typing import Dict, Any, Optional
 from datetime import datetime
+from typing import Any, Dict
+
 from models.database import db
-from models.therapeutic import MoodLog, TherapyProfile, TherapySession
+from models.therapeutic import MoodLog, TherapyProfile
 from models.user import User
 
 # Try to import textblob for sentiment, else fallback

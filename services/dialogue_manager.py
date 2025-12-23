@@ -7,19 +7,18 @@ Manages persistent state across requests.
 """
 
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict
+
 from models.database import db
 from models.therapeutic import TherapySession
 from models.user import User
-
-from services.safety_service import SafetyService
 from services.content_service import get_content_service
-from services.personalization_service import PersonalizationService
 from services.llm_service import LLMService
-
+from services.personalization_service import PersonalizationService
+from services.safety_service import SafetyService
+from services.therapy.act_engine import ACTEngine
 from services.therapy.cbt_engine import CBTEngine
 from services.therapy.dbt_engine import DBTEngine
-from services.therapy.act_engine import ACTEngine
 
 logger = logging.getLogger(__name__)
 

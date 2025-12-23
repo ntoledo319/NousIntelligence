@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import html
-import time
 import re
-from typing import Any, Dict
+import time
 
 from flask import Blueprint, jsonify, request, session
 

@@ -6,10 +6,10 @@ Implements the "Therapist Persona" constraints and Safety Guardrails.
 Supports fallback to a Mock LLM if external APIs are unavailable.
 """
 
+import json
 import logging
 import os
-import json
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 

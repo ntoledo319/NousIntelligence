@@ -6,7 +6,9 @@ Thought Record state machine and Behavioral Activation.
 """
 
 import logging
-from typing import Dict, Any, Optional
+import re
+from typing import Any, Dict
+
 from services.content_service import get_content_service
 
 logger = logging.getLogger(__name__)
@@ -62,12 +64,14 @@ class CBTEngine:
         """Finalizes the exercise and generates a summary"""
 
         # Calculate mood shift (if numeric)
+        # We try to parse digits from emotion answers, but if it fails, we ignore improvement metric.
         try:
             initial = int(re.search(r'\d+', session_state.get('identify_emotion', '0')).group())
             final = int(re.search(r'\d+', session_state.get('check_emotion', '0')).group())
-            improvement = initial - final
-        except:
-            improvement = None
+            # improvement calculated for logging but not currently used in message
+            _ = initial - final
+        except Exception:
+            pass
 
         summary = (
             f"Great job. You identified that the situation '{session_state.get('identify_situation')}' "
@@ -93,5 +97,3 @@ class CBTEngine:
             return "Maybe a 10-minute walk or tidying up one small area?"
         else:
             return "You seem to have some energy! How about a workout or tackling a hobby project?"
-
-import re
