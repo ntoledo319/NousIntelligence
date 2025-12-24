@@ -275,22 +275,24 @@ def profile():
 
 def get_deployment_callback_uri():
     """Get the correct callback URI for the current deployment environment"""
-    
+
     deployment_url = None
-    
-    # First try to get from Flask request context
-    try:
-        from flask import request, has_request_context
-        if has_request_context() and request:
-            # Get the host from the current request
-            scheme = 'https' if request.is_secure else 'http'
-            host = request.host
-            deployment_url = f"{scheme}://{host}"
-            logger.info(f"Got deployment URL from request: {deployment_url}")
-    except Exception as e:
-        logger.debug(f"Could not get URL from request: {e}")
-    
-    # If no request context, check environment variables
+
+    # Check for Render deployment first (most specific)
+    if os.environ.get('RENDER'):
+        # Render provides RENDER_EXTERNAL_URL which is the full public URL
+        render_url = os.environ.get('RENDER_EXTERNAL_URL')
+        if render_url:
+            deployment_url = render_url
+            logger.info(f"Detected Render deployment: {deployment_url}")
+        else:
+            # Fallback to constructing from hostname
+            hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+            if hostname:
+                deployment_url = f"https://{hostname}"
+                logger.info(f"Constructed Render URL from hostname: {deployment_url}")
+
+    # Check for Replit deployment
     if not deployment_url:
         for env_var in ['REPL_URL', 'REPLIT_DOMAIN']:
             env_value = os.environ.get(env_var)
@@ -300,18 +302,32 @@ def get_deployment_callback_uri():
                     deployment_url = f"https://{env_value}"
                 else:
                     deployment_url = env_value
-                logger.info(f"Got deployment URL from {env_var}: {deployment_url}")
+                logger.info(f"Detected Replit deployment from {env_var}: {deployment_url}")
                 break
-    
-    # Final fallback - use localhost for testing
+
+    # Try to get from Flask request context as fallback
+    if not deployment_url:
+        try:
+            from flask import request, has_request_context
+            if has_request_context() and request:
+                # Get the host from the current request
+                # Check X-Forwarded-Proto header for proxied HTTPS
+                scheme = 'https' if (request.is_secure or request.headers.get('X-Forwarded-Proto') == 'https') else 'http'
+                host = request.host
+                deployment_url = f"{scheme}://{host}"
+                logger.info(f"Got deployment URL from request context: {deployment_url}")
+        except Exception as e:
+            logger.debug(f"Could not get URL from request context: {e}")
+
+    # Final fallback - use localhost for local testing
     if not deployment_url:
         deployment_url = "http://localhost:8080"
-        logger.warning(f"Using fallback deployment URL: {deployment_url}")
-    
+        logger.warning(f"Using localhost fallback URL: {deployment_url}")
+
     # Use /callback/google format to match existing Google Cloud Console configuration
     callback_uri = f"{deployment_url}/callback/google"
     logger.info(f"Final callback URI: {callback_uri}")
-    
+
     return callback_uri
 
 # Export the blueprint
