@@ -82,18 +82,34 @@ class OAuthConfigManager:
     
     def _get_redirect_uri(self) -> str:
         """Get redirect URI based on deployment environment"""
-        # Check for Replit deployment
-        replit_url = os.environ.get('REPL_URL')
+        explicit_uri = (
+            os.environ.get('OAUTH_REDIRECT_URI')
+            or os.environ.get('GOOGLE_REDIRECT_URI')
+            or os.environ.get('GOOGLE_OAUTH_REDIRECT_URI')
+        )
+        if explicit_uri:
+            return explicit_uri
+
+        if os.environ.get('RENDER'):
+            render_url = os.environ.get('RENDER_EXTERNAL_URL')
+            if render_url:
+                return f"{render_url}/callback/google"
+
+            hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+            if hostname:
+                return f"https://{hostname}/callback/google"
+
+        replit_url = os.environ.get('REPL_URL') or os.environ.get('REPLIT_DOMAIN')
         if replit_url:
-            return f"{replit_url}/auth/google/callback"
-        
-        # Check for custom domain
+            if not replit_url.startswith('http'):
+                replit_url = f"https://{replit_url}"
+            return f"{replit_url}/callback/google"
+
         domain = os.environ.get('CUSTOM_DOMAIN')
         if domain:
-            return f"https://{domain}/auth/google/callback"
-        
-        # Development fallback
-        return "http://localhost:5000/auth/google/callback"
+            return f"https://{domain}/callback/google"
+
+        return "http://localhost:8080/callback/google"
     
     def _get_required_scopes(self) -> List[str]:
         """Get minimal required OAuth scopes (no unused scopes)"""
