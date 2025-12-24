@@ -163,16 +163,25 @@ class GoogleOAuthService:
         return self.google.authorize_redirect(redirect_uri, state=state)
     
     def _fix_redirect_uri(self, redirect_uri):
-        """Fix redirect URI for Replit deployment"""
+        """Fix redirect URI for deployment environments (Render, Replit, etc.)"""
+        # Check for Render deployment
+        if os.environ.get('RENDER'):
+            render_url = os.environ.get('RENDER_EXTERNAL_URL')
+            if render_url:
+                return f"{render_url}/callback/google"
+            hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+            if hostname:
+                return f"https://{hostname}/callback/google"
+
         # If we're on Replit, ensure we use the correct domain
         if 'replit.dev' in redirect_uri or 'replit.app' in redirect_uri:
             return redirect_uri
-            
+
         # Check for common Replit patterns in environment
         repl_url = os.environ.get('REPL_URL')
         if repl_url:
-            return f"{repl_url}/auth/google/callback"
-            
+            return f"{repl_url}/callback/google"
+
         # For local development or other deployments, use as-is
         return redirect_uri
     
@@ -339,19 +348,32 @@ class GoogleOAuthService:
     def get_deployment_url(self):
         """Get the current deployment URL"""
         from flask import request, has_request_context
-        
-        # Try environment variables first
+
+        # Check for Render deployment first
+        if os.environ.get('RENDER'):
+            render_url = os.environ.get('RENDER_EXTERNAL_URL')
+            if render_url:
+                return render_url
+            hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+            if hostname:
+                return f"https://{hostname}"
+
+        # Try Replit environment variables
         for env_var in ['REPL_URL', 'REPLIT_DOMAIN']:
-            if os.environ.get(env_var):
-                return os.environ.get(env_var)
-        
+            env_value = os.environ.get(env_var)
+            if env_value:
+                if not env_value.startswith('http'):
+                    return f"https://{env_value}"
+                return env_value
+
         # Try to get from request context
         if has_request_context():
-            scheme = 'https' if request.is_secure else 'http'
+            # Check X-Forwarded-Proto for proxied HTTPS
+            scheme = 'https' if (request.is_secure or request.headers.get('X-Forwarded-Proto') == 'https') else 'http'
             return f"{scheme}://{request.host}"
-        
-        # Fallback to common Replit URL
-        return "https://nous.replit.app"
+
+        # Fallback for local development
+        return "http://localhost:8080"
 
 
 # Global OAuth service instance

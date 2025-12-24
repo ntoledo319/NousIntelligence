@@ -105,7 +105,7 @@ function addRetryButton(notification, errorCode) {
         const attempts = parseInt(sessionStorage.getItem('oauth_retry_attempts') || '0');
         if (attempts < OAUTH_CONFIG.retryAttempts) {
             sessionStorage.setItem('oauth_retry_attempts', (attempts + 1).toString());
-            window.location.href = '/auth/login';
+            window.location.href = '/auth/google';
         } else {
             retryButton.textContent = 'Max retries reached';
             retryButton.disabled = true;
