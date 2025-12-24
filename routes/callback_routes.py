@@ -5,6 +5,7 @@ Handles Google OAuth callbacks at the root level to match Google Cloud Console c
 """
 
 import logging
+import os
 from flask import Blueprint, redirect, request, session, flash
 from flask_login import login_user
 from utils.google_oauth import oauth_service
@@ -15,25 +16,47 @@ logger = logging.getLogger(__name__)
 # Create callback blueprint for root-level callbacks
 callback_bp = Blueprint('callback', __name__)
 
+def get_deployment_callback_uri():
+    """Get the correct callback URI for Render/Replit/local deployment"""
+    # Check for Render deployment first
+    if os.environ.get('RENDER'):
+        render_url = os.environ.get('RENDER_EXTERNAL_URL')
+        if render_url:
+            return f"{render_url}/callback/google"
+        hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+        if hostname:
+            return f"https://{hostname}/callback/google"
+
+    # Check for Replit deployment
+    for env_var in ['REPL_URL', 'REPLIT_DOMAIN']:
+        env_value = os.environ.get(env_var)
+        if env_value:
+            if not env_value.startswith('http'):
+                return f"https://{env_value}/callback/google"
+            return f"{env_value}/callback/google"
+
+    # Fall back to request context with proper proxy detection
+    scheme = 'https' if (request.is_secure or request.headers.get('X-Forwarded-Proto') == 'https') else 'http'
+    host = request.host
+    return f"{scheme}://{host}/callback/google"
+
+
 @callback_bp.route('/callback/google')
 @oauth_rate_limit
 def google_callback():
     """Handle Google OAuth callback at root level (/callback/google)"""
     try:
         logger.info("Google OAuth callback received at /callback/google")
-        
+
         # Check if OAuth is configured
         if not oauth_service.is_configured():
             logger.error("Google OAuth is not configured")
             flash('Google OAuth is not configured.', 'error')
             return redirect('/')
-        
-        # Get the correct callback URI for token exchange
-        from flask import request
-        scheme = 'https' if request.is_secure else 'http'
-        host = request.host
-        callback_uri = f"{scheme}://{host}/callback/google"
-        
+
+        # Get the correct callback URI for token exchange (deployment-aware)
+        callback_uri = get_deployment_callback_uri()
+
         logger.info(f"Processing OAuth callback with URI: {callback_uri}")
         
         # Handle OAuth callback
