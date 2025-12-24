@@ -2,23 +2,29 @@
 """
 Google OAuth 2.0 Authentication Service
 Implements secure Google OAuth flow for NOUS application
+
+Security Features:
+- CSRF protection with signed state tokens
+- Client fingerprinting (IP + User-Agent)
+- Token encryption at rest
+- Secure redirect URI validation
+- Automatic token refresh
 """
 
 import os
 import logging
+import hmac
+import hashlib
+import secrets
+from datetime import datetime, timedelta
 from authlib.integrations.flask_client import OAuth
-from flask import session, redirect, url_for, request, flash
+from flask import session, redirect, url_for, request, flash, current_app, has_request_context
 from flask_login import login_user, logout_user, current_user
 from models.user import User
 from models.database import db
-from datetime import datetime
 from utils.secret_manager import SecretManager
 
 logger = logging.getLogger(__name__)
-
-
-# Production Render deployment URL (hardcoded fallback)
-RENDER_PRODUCTION_URL = "https://nousintelligence.onrender.com"
 
 
 class GoogleOAuthService:
@@ -135,77 +141,179 @@ class GoogleOAuthService:
         client_secret = os.environ.get('GOOGLE_CLIENT_SECRET') or os.environ.get('GOOGLE_OAUTH_CLIENT_SECRET')
         return self.google is not None and client_id and client_secret
     
+    def _generate_secure_state(self):
+        """Generate cryptographically secure state token with HMAC"""
+        timestamp = int(datetime.utcnow().timestamp())
+        nonce = secrets.token_urlsafe(16)
+        user_ip = request.headers.get('X-Forwarded-For', request.remote_addr) or '127.0.0.1'
+        user_agent = request.headers.get('User-Agent', '')[:100]  # Limit length
+
+        # Create fingerprint
+        fingerprint_data = f"{user_ip}:{user_agent}"
+        fingerprint = hashlib.sha256(fingerprint_data.encode()).hexdigest()[:16]
+
+        # Combine data
+        state_data = f"{timestamp}:{nonce}:{fingerprint}"
+
+        # Sign with HMAC
+        signature = hmac.new(
+            current_app.secret_key.encode(),
+            state_data.encode(),
+            hashlib.sha256
+        ).hexdigest()[:32]
+
+        full_state = f"{state_data}:{signature}"
+
+        # Store metadata for validation
+        session['oauth_state'] = full_state
+        session['oauth_timestamp'] = timestamp
+        session['oauth_fingerprint'] = fingerprint
+        session.modified = True
+
+        return full_state
+
+    def _validate_state(self, received_state):
+        """Validate OAuth state with comprehensive security checks"""
+        stored_state = session.pop('oauth_state', None)
+        stored_timestamp = session.pop('oauth_timestamp', None)
+        stored_fingerprint = session.pop('oauth_fingerprint', None)
+
+        if not all([stored_state, received_state, stored_timestamp, stored_fingerprint]):
+            logger.warning("OAuth state validation failed: Missing data")
+            return False
+
+        # Timing-safe comparison
+        if not hmac.compare_digest(stored_state, received_state):
+            logger.warning("OAuth state mismatch - possible CSRF attack")
+            return False
+
+        # Check expiration (10 minutes)
+        if datetime.utcnow().timestamp() - stored_timestamp > 600:
+            logger.warning("OAuth state expired")
+            return False
+
+        # Verify fingerprint
+        user_ip = request.headers.get('X-Forwarded-For', request.remote_addr) or '127.0.0.1'
+        user_agent = request.headers.get('User-Agent', '')[:100]
+        expected_fingerprint = hashlib.sha256(f"{user_ip}:{user_agent}".encode()).hexdigest()[:16]
+
+        if not hmac.compare_digest(stored_fingerprint, expected_fingerprint):
+            logger.warning("OAuth fingerprint mismatch - possible session hijacking")
+            # Don't fail on fingerprint mismatch (mobile networks can change IPs)
+            # but log it for security monitoring
+
+        # Verify HMAC signature
+        parts = received_state.split(':')
+        if len(parts) != 4:
+            return False
+
+        state_data = ':'.join(parts[:3])
+        provided_sig = parts[3]
+        expected_sig = hmac.new(
+            current_app.secret_key.encode(),
+            state_data.encode(),
+            hashlib.sha256
+        ).hexdigest()[:32]
+
+        if not hmac.compare_digest(provided_sig, expected_sig):
+            logger.warning("OAuth state signature invalid")
+            return False
+
+        return True
+
     def get_authorization_url(self, redirect_uri):
         """Get Google OAuth authorization URL with enhanced CSRF protection"""
         if not self.google:
             raise ValueError("OAuth not initialized - missing credentials")
-        
-        # Fix redirect URI for Replit deployment
-        redirect_uri = self._fix_redirect_uri(redirect_uri)
+
+        # Get deployment-aware redirect URI
+        redirect_uri = self._get_redirect_uri()
         logger.info(f"Using redirect URI: {redirect_uri}")
-        
-        # Get user fingerprint data for enhanced security
-        user_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-        user_agent = request.headers.get('User-Agent', '')
-        
-        # Generate secure state using enhanced state manager
-        try:
-            from utils.oauth_state_manager import OAuthStateManager
-            from flask import current_app
-            state_manager = OAuthStateManager(current_app.secret_key)
-            state = state_manager.generate_state(user_ip, user_agent)
-        except ImportError:
-            # Fallback to simple state generation
-            import secrets
-            state = secrets.token_urlsafe(32)
-        
-        # Store state with additional validation data
-        session['oauth_state'] = state
-        session['oauth_state_timestamp'] = datetime.utcnow().timestamp()
-        session['oauth_state_ip'] = user_ip
-        
+
+        # Generate secure state with HMAC signature
+        state = self._generate_secure_state()
+
         return self.google.authorize_redirect(redirect_uri, state=state)
     
-    def _fix_redirect_uri(self, redirect_uri):
-        """Fix redirect URI for deployment environments (Render, Replit, etc.)"""
-        # Check for Render deployment
+    def _get_redirect_uri(self):
+        """
+        Get the correct OAuth callback redirect URI for current deployment.
+
+        Priority order:
+        1. OAUTH_REDIRECT_URI environment variable (explicit override)
+        2. RENDER_EXTERNAL_URL (Render deployment)
+        3. REPL_URL/REPLIT_DOMAIN (Replit deployment)
+        4. Request context (runtime detection)
+        5. Localhost fallback (local development)
+        """
+        # 1. Check for explicit override
+        explicit_uri = os.environ.get('OAUTH_REDIRECT_URI')
+        if explicit_uri:
+            logger.info(f"Using explicit OAuth redirect URI from environment: {explicit_uri}")
+            return explicit_uri
+
+        # 2. Check for Render deployment
         if os.environ.get('RENDER'):
             render_url = os.environ.get('RENDER_EXTERNAL_URL')
             if render_url:
-                return f"{render_url}/callback/google"
+                uri = f"{render_url}/callback/google"
+                logger.info(f"Using Render deployment URL: {uri}")
+                return uri
+
             hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
             if hostname:
-                return f"https://{hostname}/callback/google"
-            # Fallback to hardcoded production URL
-            return f"{RENDER_PRODUCTION_URL}/callback/google"
+                uri = f"https://{hostname}/callback/google"
+                logger.info(f"Using Render hostname: {uri}")
+                return uri
 
-        # If we're on Replit, ensure we use the correct domain
-        if 'replit.dev' in redirect_uri or 'replit.app' in redirect_uri:
-            return redirect_uri
-
-        # Check for common Replit patterns in environment
-        repl_url = os.environ.get('REPL_URL')
+        # 3. Check for Replit deployment
+        repl_url = os.environ.get('REPL_URL') or os.environ.get('REPLIT_DOMAIN')
         if repl_url:
-            return f"{repl_url}/callback/google"
+            if not repl_url.startswith('http'):
+                repl_url = f"https://{repl_url}"
+            uri = f"{repl_url}/callback/google"
+            logger.info(f"Using Replit URL: {uri}")
+            return uri
 
-        # For local development or other deployments, use as-is
-        return redirect_uri
+        # 4. Try to get from Flask request context
+        if has_request_context():
+            scheme = 'https' if (request.is_secure or request.headers.get('X-Forwarded-Proto') == 'https') else 'http'
+            host = request.host
+            uri = f"{scheme}://{host}/callback/google"
+            logger.info(f"Using request context URL: {uri}")
+            return uri
+
+        # 5. Fallback for local development
+        fallback_uri = "http://localhost:8080/callback/google"
+        logger.warning(f"Using localhost fallback: {fallback_uri}")
+        return fallback_uri
     
-    def handle_callback(self, redirect_uri):
-        """Handle OAuth callback and create/login user"""
+    def handle_callback(self, redirect_uri=None):
+        """
+        Handle OAuth callback and create/login user.
+
+        Args:
+            redirect_uri: Optional override for redirect URI. If not provided, will be auto-detected.
+
+        Returns:
+            User object if successful, None otherwise
+
+        Raises:
+            ValueError: If OAuth state validation fails or credentials are invalid
+        """
         if not self.google:
-            raise ValueError("OAuth not initialized")
-        
-        # Fix redirect URI for consistency
-        redirect_uri = self._fix_redirect_uri(redirect_uri)
-        logger.info(f"Processing callback with redirect URI: {redirect_uri}")
-        
+            raise ValueError("OAuth not initialized - missing credentials")
+
+        # Get the redirect URI (auto-detect if not provided)
+        if not redirect_uri:
+            redirect_uri = self._get_redirect_uri()
+
+        logger.info(f"Processing OAuth callback with redirect URI: {redirect_uri}")
+
         # Validate state parameter for CSRF protection
         received_state = request.args.get('state')
-        stored_state = session.pop('oauth_state', None)
-        
-        if not received_state or not stored_state or received_state != stored_state:
-            raise ValueError("Invalid OAuth state parameter - possible CSRF attack")
+        if not self._validate_state(received_state):
+            raise ValueError("OAuth state validation failed - possible CSRF attack")
         
         try:
             # Get access token from callback
@@ -353,31 +461,37 @@ class GoogleOAuthService:
         return None
     
     def get_deployment_url(self):
-        """Get the current deployment URL"""
-        from flask import request, has_request_context
+        """
+        Get the current deployment base URL (without path).
 
-        # Check for Render deployment first
+        Returns:
+            str: Base URL for current deployment (e.g., 'https://example.com')
+        """
+        # Check for explicit base URL override
+        base_url = os.environ.get('BASE_URL')
+        if base_url:
+            return base_url.rstrip('/')
+
+        # Check for Render deployment
         if os.environ.get('RENDER'):
             render_url = os.environ.get('RENDER_EXTERNAL_URL')
             if render_url:
-                return render_url
+                return render_url.rstrip('/')
+
             hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
             if hostname:
                 return f"https://{hostname}"
-            # Fallback to hardcoded production URL
-            return RENDER_PRODUCTION_URL
 
-        # Try Replit environment variables
+        # Check for Replit deployment
         for env_var in ['REPL_URL', 'REPLIT_DOMAIN']:
             env_value = os.environ.get(env_var)
             if env_value:
                 if not env_value.startswith('http'):
                     return f"https://{env_value}"
-                return env_value
+                return env_value.rstrip('/')
 
         # Try to get from request context
         if has_request_context():
-            # Check X-Forwarded-Proto for proxied HTTPS
             scheme = 'https' if (request.is_secure or request.headers.get('X-Forwarded-Proto') == 'https') else 'http'
             return f"{scheme}://{request.host}"
 

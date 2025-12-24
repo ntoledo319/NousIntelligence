@@ -43,9 +43,6 @@ except ImportError:
 # Create auth blueprint with consistent naming
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
-# Production Render deployment URL (hardcoded fallback)
-RENDER_PRODUCTION_URL = "https://nousintelligence.onrender.com"
-
 @auth_bp.route('/login')
 def login():
     """Display login page with Google OAuth option"""
@@ -74,108 +71,40 @@ def login():
 @auth_bp.route('/google', methods=['GET', 'POST'])
 @oauth_rate_limit
 def google_login():
-    """Initiate Google OAuth login with enhanced error handling"""
-    if not oauth_service or not oauth_service.is_configured():
-        logger.warning("Google OAuth is not configured - missing credentials")
-        # Redirect back with specific error code
-        return redirect(url_for('main.index', oauth_error='not_configured'))
-    
-    try:
-        # Store the original referrer for post-login redirect
-        session['oauth_referrer'] = request.referrer or url_for('main.index')
-        
-        # Get deployment-aware redirect URI
-        redirect_uri = get_deployment_callback_uri()
-        logger.info(f"Initiating OAuth with redirect URI: {redirect_uri}")
-        
-        # Add login hint if user provided email
-        auth_url = oauth_service.get_authorization_url(redirect_uri)
-        
-        return auth_url
-        
-    except Exception as e:
-        logger.error(f"OAuth initiation failed: {str(e)}")
-        error_code = 'server_error'
-        
-        # Provide more specific error codes based on exception type
-        if 'network' in str(e).lower():
-            error_code = 'network_error'
-        elif 'timeout' in str(e).lower():
-            error_code = 'timeout_error'
-            
-        return redirect(url_for('main.index', oauth_error=error_code))
+    """
+    Initiate Google OAuth login flow.
 
-@auth_bp.route('/google/callback')
-@auth_bp.route('/callback/google')  # Support existing Google Cloud Console configuration
-def google_callback():
-    """Handle Google OAuth callback with enhanced error handling"""
+    This endpoint starts the OAuth process by redirecting the user to Google's
+    authorization page. After user grants permission, Google redirects back to
+    /callback/google with an authorization code.
+
+    Returns:
+        Redirect to Google authorization URL or error page
+    """
+    if not oauth_service or not oauth_service.is_configured():
+        logger.warning("Google OAuth is not configured - missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET")
+        flash('Google Sign-In is not available. Please contact support.', 'error')
+        return redirect(url_for('auth.login'))
+
     try:
-        # Check for OAuth errors from Google
-        error = request.args.get('error')
-        if error:
-            error_description = request.args.get('error_description', 'Unknown error')
-            logger.warning(f"OAuth error from Google: {error} - {error_description}")
-            
-            # Map Google errors to user-friendly messages
-            if error == 'access_denied':
-                return redirect(url_for('main.index', oauth_error='access_denied'))
-            else:
-                return redirect(url_for('main.index', oauth_error='oauth_error'))
-        
-        # Enhanced state validation
-        state = request.args.get('state')
-        stored_state = session.pop('oauth_state', None)
-        
-        if not state or not stored_state or state != stored_state:
-            logger.warning("OAuth state mismatch - possible CSRF attack")
-            return redirect(url_for('main.index', oauth_error='invalid_state'))
-        
-        # Validate state timestamp (should be within 10 minutes)
-        state_timestamp = session.pop('oauth_state_timestamp', None)
-        if state_timestamp:
-            from datetime import datetime
-            if datetime.utcnow().timestamp() - state_timestamp > 600:
-                logger.warning("OAuth state expired")
-                return redirect(url_for('main.index', oauth_error='state_expired'))
-        
-        # Get deployment-aware redirect URI for token exchange
-        redirect_uri = get_deployment_callback_uri()
-        
-        # Handle OAuth callback with enhanced error tracking
-        user = oauth_service.handle_callback(redirect_uri)
-        
-        if user:
-            login_user(user, remember=True)
-            logger.info(f"User {user.email} successfully authenticated via Google OAuth")
-            
-            # Clear any OAuth error flags
-            session.pop('oauth_error', None)
-            
-            # Redirect to intended page or dashboard
-            referrer = session.pop('oauth_referrer', None)
-            next_page = request.args.get('next')
-            
-            if next_page:
-                return redirect(next_page)
-            elif referrer and 'login' not in referrer:
-                return redirect(referrer)
-            else:
-                return redirect(url_for('main.dashboard'))
-        else:
-            logger.error("OAuth callback succeeded but no user was created")
-            return redirect(url_for('main.index', oauth_error='user_creation_failed'))
-            
+        # Store intended next page for post-login redirect
+        next_page = request.args.get('next') or request.referrer
+        if next_page and next_page.startswith('/'):  # Security: only allow relative URLs
+            session['oauth_next'] = next_page
+
+        # Get authorization URL (auto-detects redirect URI)
+        auth_response = oauth_service.get_authorization_url(None)
+
+        logger.info(f"Redirecting user to Google OAuth authorization")
+        return auth_response
+
     except Exception as e:
-        logger.error(f"OAuth callback failed: {str(e)}")
-        
-        # Map specific exceptions to error codes
-        error_code = 'callback_error'
-        if 'network' in str(e).lower():
-            error_code = 'network_error'
-        elif 'token' in str(e).lower():
-            error_code = 'token_error'
-            
-        return redirect(url_for('main.index', oauth_error=error_code))
+        logger.error(f"OAuth initiation failed: {str(e)}", exc_info=True)
+        flash('Failed to initiate Google Sign-In. Please try again.', 'error')
+        return redirect(url_for('auth.login'))
+
+# NOTE: The OAuth callback is now handled by routes/callback_routes.py at /callback/google
+# This avoids duplication and ensures a single callback endpoint is configured in Google Console
 
 @auth_bp.route('/demo-mode', methods=['POST'])
 def demo_mode():
@@ -275,67 +204,6 @@ def profile():
     """Display user profile"""
     user_data = session.get('user', {})
     return render_template('auth/profile.html', user=user_data)
-
-def get_deployment_callback_uri():
-    """Get the correct callback URI for the current deployment environment"""
-
-    deployment_url = None
-
-    # Check for Render deployment first (most specific)
-    if os.environ.get('RENDER'):
-        # Render provides RENDER_EXTERNAL_URL which is the full public URL
-        render_url = os.environ.get('RENDER_EXTERNAL_URL')
-        if render_url:
-            deployment_url = render_url
-            logger.info(f"Detected Render deployment: {deployment_url}")
-        else:
-            # Fallback to constructing from hostname
-            hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-            if hostname:
-                deployment_url = f"https://{hostname}"
-                logger.info(f"Constructed Render URL from hostname: {deployment_url}")
-            else:
-                # Fallback to hardcoded production URL
-                deployment_url = RENDER_PRODUCTION_URL
-                logger.info(f"Using hardcoded Render production URL: {deployment_url}")
-
-    # Check for Replit deployment
-    if not deployment_url:
-        for env_var in ['REPL_URL', 'REPLIT_DOMAIN']:
-            env_value = os.environ.get(env_var)
-            if env_value:
-                # Ensure it starts with https://
-                if not env_value.startswith('http'):
-                    deployment_url = f"https://{env_value}"
-                else:
-                    deployment_url = env_value
-                logger.info(f"Detected Replit deployment from {env_var}: {deployment_url}")
-                break
-
-    # Try to get from Flask request context as fallback
-    if not deployment_url:
-        try:
-            from flask import request, has_request_context
-            if has_request_context() and request:
-                # Get the host from the current request
-                # Check X-Forwarded-Proto header for proxied HTTPS
-                scheme = 'https' if (request.is_secure or request.headers.get('X-Forwarded-Proto') == 'https') else 'http'
-                host = request.host
-                deployment_url = f"{scheme}://{host}"
-                logger.info(f"Got deployment URL from request context: {deployment_url}")
-        except Exception as e:
-            logger.debug(f"Could not get URL from request context: {e}")
-
-    # Final fallback - use localhost for local testing
-    if not deployment_url:
-        deployment_url = "http://localhost:8080"
-        logger.warning(f"Using localhost fallback URL: {deployment_url}")
-
-    # Use /callback/google format to match existing Google Cloud Console configuration
-    callback_uri = f"{deployment_url}/callback/google"
-    logger.info(f"Final callback URI: {callback_uri}")
-
-    return callback_uri
 
 # Export the blueprint
 __all__ = ['auth_bp']
