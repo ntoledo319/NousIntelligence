@@ -209,7 +209,8 @@ class GoogleOAuthService:
         
         try:
             # Get access token from callback
-            token = self.google.authorize_access_token()
+            # CRITICAL: redirect_uri must match exactly what was sent to Google
+            token = self.google.authorize_access_token(redirect_uri=redirect_uri)
             user_info = token.get('userinfo')
             
             if not user_info:
