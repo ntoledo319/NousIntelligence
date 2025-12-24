@@ -16,6 +16,9 @@ logger = logging.getLogger(__name__)
 # Create callback blueprint for root-level callbacks
 callback_bp = Blueprint('callback', __name__)
 
+# Production Render deployment URL (hardcoded fallback)
+RENDER_PRODUCTION_URL = "https://nousintelligence.onrender.com"
+
 def get_deployment_callback_uri():
     """Get the correct callback URI for Render/Replit/local deployment"""
     # Check for Render deployment first
@@ -26,6 +29,8 @@ def get_deployment_callback_uri():
         hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
         if hostname:
             return f"https://{hostname}/callback/google"
+        # Fallback to hardcoded production URL for Render
+        return f"{RENDER_PRODUCTION_URL}/callback/google"
 
     # Check for Replit deployment
     for env_var in ['REPL_URL', 'REPLIT_DOMAIN']:

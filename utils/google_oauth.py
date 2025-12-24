@@ -17,9 +17,13 @@ from utils.secret_manager import SecretManager
 logger = logging.getLogger(__name__)
 
 
+# Production Render deployment URL (hardcoded fallback)
+RENDER_PRODUCTION_URL = "https://nousintelligence.onrender.com"
+
+
 class GoogleOAuthService:
     """Google OAuth 2.0 service for user authentication"""
-    
+
     def __init__(self, app=None):
         self.oauth = OAuth()
         self.google = None
@@ -172,6 +176,8 @@ class GoogleOAuthService:
             hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
             if hostname:
                 return f"https://{hostname}/callback/google"
+            # Fallback to hardcoded production URL
+            return f"{RENDER_PRODUCTION_URL}/callback/google"
 
         # If we're on Replit, ensure we use the correct domain
         if 'replit.dev' in redirect_uri or 'replit.app' in redirect_uri:
@@ -357,6 +363,8 @@ class GoogleOAuthService:
             hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
             if hostname:
                 return f"https://{hostname}"
+            # Fallback to hardcoded production URL
+            return RENDER_PRODUCTION_URL
 
         # Try Replit environment variables
         for env_var in ['REPL_URL', 'REPLIT_DOMAIN']:
