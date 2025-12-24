@@ -43,6 +43,9 @@ except ImportError:
 # Create auth blueprint with consistent naming
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
+# Production Render deployment URL (hardcoded fallback)
+RENDER_PRODUCTION_URL = "https://nousintelligence.onrender.com"
+
 @auth_bp.route('/login')
 def login():
     """Display login page with Google OAuth option"""
@@ -291,6 +294,10 @@ def get_deployment_callback_uri():
             if hostname:
                 deployment_url = f"https://{hostname}"
                 logger.info(f"Constructed Render URL from hostname: {deployment_url}")
+            else:
+                # Fallback to hardcoded production URL
+                deployment_url = RENDER_PRODUCTION_URL
+                logger.info(f"Using hardcoded Render production URL: {deployment_url}")
 
     # Check for Replit deployment
     if not deployment_url:
