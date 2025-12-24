@@ -247,7 +247,11 @@ class GoogleOAuthService:
         5. Localhost fallback (local development)
         """
         # 1. Check for explicit override
-        explicit_uri = os.environ.get('OAUTH_REDIRECT_URI')
+        explicit_uri = (
+            os.environ.get('OAUTH_REDIRECT_URI')
+            or os.environ.get('GOOGLE_REDIRECT_URI')
+            or os.environ.get('GOOGLE_OAUTH_REDIRECT_URI')
+        )
         if explicit_uri:
             logger.info(f"Using explicit OAuth redirect URI from environment: {explicit_uri}")
             return explicit_uri

@@ -9,8 +9,17 @@ Configure this exact URL in your Google Cloud Console OAuth settings.
 
 import logging
 from flask import Blueprint, redirect, request, session, flash, url_for
-from flask_login import login_user
-from utils.google_oauth import oauth_service
+try:
+    from flask_login import login_user
+except Exception:  # pragma: no cover - fallback for optional dependency
+    def login_user(user, remember=False):  # type: ignore[override]
+        session["user"] = getattr(user, "to_dict", lambda: {"email": getattr(user, "email", "")})()
+        return True
+
+try:
+    from utils.google_oauth import oauth_service
+except Exception:
+    oauth_service = None
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +36,8 @@ callback_bp = Blueprint('callback', __name__)
 
 
 @callback_bp.route('/callback/google')
+@callback_bp.route('/auth/google/callback')
+@callback_bp.route('/oauth2callback')
 @oauth_rate_limit
 def google_callback():
     """
@@ -46,7 +57,7 @@ def google_callback():
         Redirect to dashboard on success, login page on failure
     """
     try:
-        logger.info("Google OAuth callback received at /callback/google")
+        logger.info("Google OAuth callback received at %s", request.path)
 
         # Check for OAuth errors from Google
         error = request.args.get('error')
