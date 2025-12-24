@@ -8,6 +8,9 @@ dist/
 build/
 *.egg-info/
 
+# Misc attachments and prompt dumps
+attached_assets/
+
 # Flask sessions
 flask_session/
 
@@ -54,6 +57,12 @@ Thumbs.db
 .project
 .pydevproject
 .settings/
+
+# AI tool configs
+.claude/
+
+# Local install markers
+.deps_installed
 
 # Cached files
 .cache/
