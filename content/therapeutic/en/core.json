@@ -1,0 +1,164 @@
+[
+  {
+    "id": "dbt_tipp_quick",
+    "locale": "en",
+    "title": "Rapid TIPP reset for high distress",
+    "type": "dbt_distress_tolerance",
+    "tags": ["dbt_tipp", "distress", "panic_attack_skill", "crisis_gate"],
+    "summary": "Rapid DBT sequence to downshift the nervous system when emotions feel unmanageable.",
+    "steps": [
+      "Temperature: splash cool water on your face or hold an ice cube for 20-30 seconds to trigger the dive reflex.",
+      "Intense exercise: 60 seconds of jumping jacks, running in place, or wall pushups to burn off adrenaline.",
+      "Paced breathing: inhale for 4 seconds, exhale for 6 seconds for 1-2 minutes.",
+      "Progressive muscle relaxation: tense and release shoulders, hands, and jaw to signal safety."
+    ],
+    "quick_replies": ["Start paced breathing", "Show grounding exercise", "Contact crisis resources"],
+    "immediate_actions": [
+      "If you feel unsafe, call 988 (US) or your local emergency number.",
+      "Stay where you are and focus on your breath for one minute."
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "clinical_reviewed": true,
+      "updated_at": "2025-01-05",
+      "author": "NOUS clinical set"
+    },
+    "safety": {"crisis": true, "not_medical": true}
+  },
+  {
+    "id": "regional_crisis_us_general",
+    "locale": "en",
+    "title": "Crisis lines (US)",
+    "type": "crisis",
+    "tags": ["crisis", "safety_plan", "hotline", "usa"],
+    "summary": "If you feel unsafe, reach out now. People are ready 24/7.",
+    "steps": [
+      "Call or text 988 (Suicide & Crisis Lifeline).",
+      "Text 'HELLO' to 741741 (Crisis Text Line).",
+      "If in immediate danger, dial 911."
+    ],
+    "quick_replies": ["Show grounding", "Invite support person", "Share my safety plan"],
+    "immediate_actions": [
+      "Move to a safe space and remove harmful items if possible.",
+      "Call 988 or a trusted person to stay with you."
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "clinical_reviewed": true,
+      "updated_at": "2025-01-05",
+      "author": "NOUS clinical set"
+    },
+    "safety": {"crisis": true, "not_medical": true, "requires_supervision": true}
+  },
+  {
+    "id": "grounding_54321",
+    "locale": "en",
+    "title": "5-4-3-2-1 grounding",
+    "type": "mindfulness_grounding",
+    "tags": ["grounding", "anxiety", "panic_attack_skill", "mindfulness"],
+    "summary": "Use the senses to anchor in the present and lower anxious arousal.",
+    "steps": [
+      "Name 5 things you can see.",
+      "Name 4 things you can touch or feel.",
+      "Name 3 things you can hear.",
+      "Name 2 things you can smell.",
+      "Name 1 thing you can taste or a slow sip of water."
+    ],
+    "quick_replies": ["Walk me through 5-4-3-2-1", "Add a 2 minute timer", "Save to my toolkit"],
+    "metadata": {
+      "version": "1.0.0",
+      "clinical_reviewed": true,
+      "updated_at": "2025-01-05",
+      "author": "NOUS clinical set"
+    },
+    "safety": {"crisis": false, "not_medical": true}
+  },
+  {
+    "id": "cbt_thought_record",
+    "locale": "en",
+    "title": "CBT thought check",
+    "type": "cbt_restructure",
+    "tags": ["cbt_thought_record", "cognitive_restructuring", "anxious", "sad"],
+    "summary": "Gently challenge a sticky thought and find a balanced alternative.",
+    "steps": [
+      "Situation: briefly note what happened.",
+      "Thought: write the tough thought in a sentence.",
+      "Emotion: name the feeling and rate intensity 0-10.",
+      "Evidence for/against: list 2-3 facts on each side.",
+      "Balanced thought: craft a kinder, truer line to hold."
+    ],
+    "quick_replies": ["Start a thought record", "Offer common distortions", "Save to journal"],
+    "metadata": {
+      "version": "1.0.0",
+      "clinical_reviewed": true,
+      "updated_at": "2025-01-05",
+      "author": "NOUS clinical set"
+    },
+    "safety": {"crisis": false, "not_medical": true}
+  },
+  {
+    "id": "behavioral_activation_microtask",
+    "locale": "en",
+    "title": "Behavioral activation micro-task",
+    "type": "behavioral_activation",
+    "tags": ["behavioral_activation", "motivation", "depression", "productivity_bridge"],
+    "summary": "Pair mood support with a tiny, meaningful action that fits your energy.",
+    "steps": [
+      "Pick a value: connection, health, learning, or calm.",
+      "Choose a 5 minute action (text a friend, stretch, tidy one surface, step outside).",
+      "Schedule it in the next hour with an optional reminder.",
+      "After doing it, note your mood shift on a 0-10 scale."
+    ],
+    "quick_replies": ["Schedule a 5 minute action", "Add to tasks", "Set a reminder"],
+    "metadata": {
+      "version": "1.0.0",
+      "clinical_reviewed": true,
+      "updated_at": "2025-01-05",
+      "author": "NOUS clinical set"
+    },
+    "safety": {"crisis": false, "not_medical": true}
+  },
+  {
+    "id": "mi_change_talk",
+    "locale": "en",
+    "title": "Motivational interviewing check-in",
+    "type": "motivational_interviewing",
+    "tags": ["motivational_interviewing", "ambivalence", "behavior_change"],
+    "summary": "Evoke your own reasons for change with gentle prompts.",
+    "steps": [
+      "Importance: on 0-10, how important is this change? Why not a lower number?",
+      "Confidence: on 0-10, how confident are you? What bumps it up by 1 point?",
+      "Next best step: name one action within 24 hours that feels doable."
+    ],
+    "quick_replies": ["Log importance/confidence", "Brainstorm tiny steps", "Share a win"],
+    "metadata": {
+      "version": "1.0.0",
+      "clinical_reviewed": true,
+      "updated_at": "2025-01-05",
+      "author": "NOUS clinical set"
+    },
+    "safety": {"crisis": false, "not_medical": true}
+  },
+  {
+    "id": "crisis_safety_plan",
+    "locale": "en",
+    "title": "Crisis safety script",
+    "type": "crisis",
+    "tags": ["crisis", "suicide", "safety_plan", "hotline", "overdose"],
+    "summary": "Calm validation, immediate safety steps, and quick access to help.",
+    "steps": [
+      "Validation: your safety matters; thank you for telling me.",
+      "Environment: remove items that could cause harm and stay with someone safe if you can.",
+      "Reach out: call 988 (US) or your local crisis line; text 741741; if in immediate danger call emergency services.",
+      "Ground: try one TIPP step (cool water or paced breathing) while we keep this brief."
+    ],
+    "quick_replies": ["Show crisis numbers", "Offer grounding", "Share my safety plan"],
+    "metadata": {
+      "version": "1.0.0",
+      "clinical_reviewed": true,
+      "updated_at": "2025-01-05",
+      "author": "NOUS clinical set"
+    },
+    "safety": {"crisis": true, "not_medical": true, "requires_supervision": true}
+  }
+]

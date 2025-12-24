@@ -9,6 +9,8 @@ import asyncio
 import json
 
 from .dispatcher import ChatDispatcher
+from services.nlu_service import nlu_service
+from services.therapeutic_content_service import therapeutic_content_service
 
 # Create blueprint
 chat_bp = Blueprint('chat', __name__, url_prefix='/core/chat')
@@ -189,15 +191,50 @@ def setup_default_handlers():
         context['timestamp'] = time.time()
         
         return message, context
+
+    # NLU + safety tagging middleware
+    def apply_nlu(message: str, context: Dict[str, Any]) -> tuple:
+        """Tag message with intents, language, and crisis signals"""
+        nlu_result = nlu_service.analyze(message, context.get('user_id'), context=context)
+        context['nlu'] = nlu_result.to_dict()
+        context['locale'] = context.get('locale') or nlu_result.language
+        context['dialogue_mode'] = context.get('dialogue_mode') or ('crisis' if nlu_result.crisis else 'wellness')
+        return message, context
     
     # Default fallback handler
     def default_fallback(message: str, context: Dict[str, Any]) -> str:
         """Default fallback when no handler matches"""
         return f"I understand you said: '{message}', but I don't have a specific handler for that yet. Try asking about available commands or features."
+
+    def retrieval_first_fallback(message: str, context: Dict[str, Any]) -> Any:
+        """Fallback that prefers vetted therapeutic content before a generic reply"""
+        nlu_payload = context.get('nlu', {})
+        locale = context.get('locale') or nlu_payload.get('language') or 'en'
+        tags = nlu_payload.get('tags', [])
+        content = therapeutic_content_service.get_best_content(
+            tags=tags,
+            locale=locale,
+            intent=nlu_payload.get('primary_intent'),
+            emotion=nlu_payload.get('emotion')
+        )
+
+        if content:
+            return {
+                'text': content.get('summary') or default_fallback(message, context),
+                'title': content.get('title'),
+                'steps': content.get('steps', []),
+                'quick_replies': content.get('quick_replies', []),
+                'locale': locale,
+                'safety': content.get('safety', {}),
+                'type': 'retrieval_fallback'
+            }
+
+        return default_fallback(message, context)
     
     # Register defaults
     dispatcher.add_middleware(preprocess_message)
-    dispatcher.set_fallback_handler(default_fallback)
+    dispatcher.add_middleware(apply_nlu)
+    dispatcher.set_fallback_handler(retrieval_first_fallback)
 
 # Initialize defaults when blueprint is imported
 setup_default_handlers()

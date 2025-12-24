@@ -27,7 +27,7 @@
                 {% endif %}
             </div>
         </header>
-        
+
         <div class="chat-messages" id="chatMessages" style="flex: 1; padding: 1.25rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; background: var(--background-color);">
             <div class="welcome-message" style="text-align: center; color: var(--text-secondary); padding: 1.5rem; background: var(--surface-color); border-radius: var(--border-radius); border: 1px solid var(--border-color);">
                 <p style="margin: 0 0 0.5rem 0; font-size: 1.1rem;">👋 Welcome to NOUS!</p>
@@ -57,30 +57,152 @@
                 Send
             </button>
         </div>
+
+        <div id="quickReplies" style="padding: 0.75rem 1rem 1rem; background: var(--surface-color); border-top: 1px solid var(--border-color); display: flex; flex-wrap: wrap; gap: 0.5rem;">
+        </div>
     </div>
 
     <script>
         const chatMessages = document.getElementById('chatMessages');
         const chatInput = document.getElementById('chatInput');
         const sendButton = document.getElementById('sendButton');
+        const quickReplies = document.getElementById('quickReplies');
+        const controlBar = document.createElement('div');
+        controlBar.className = 'control-bar';
+        controlBar.innerHTML = `
+            <div class="locale-toggle">
+                <span class="locale-label">Locale</span>
+                <button id="localeEn" class="pill" style="cursor:pointer;">EN</button>
+                <button id="localeEs" class="pill" style="cursor:pointer;">ES</button>
+            </div>
+            <div class="assist-toggle">
+                <button id="modeWellness" class="pill active" style="cursor:pointer;">Wellness</button>
+                <button id="modeTask" class="pill" style="cursor:pointer;">Tasks</button>
+            </div>
+        `;
+        document.querySelector('.app-header')?.appendChild(controlBar);
+
+        let currentLocale = 'en';
+        let lastContentId = null;
+        let lastTags = [];
+        let lastLocale = 'en';
+        let dialogueMode = 'wellness';
         
         function addMessage(content, isUser = false) {
             const messageDiv = document.createElement('div');
-            messageDiv.style.cssText = `
-                max-width: 80%;
-                padding: 0.875rem 1.25rem;
-                border-radius: 1.25rem;
-                font-size: 0.95rem;
-                line-height: 1.5;
-                animation: fadeIn 0.3s ease-out;
-                ${isUser ? 
-                    'background: var(--button-gradient); color: var(--text-inverse); align-self: flex-end; margin-left: auto; border-bottom-right-radius: 0.25rem;' : 
-                    'background: var(--surface-color); color: var(--text-primary); align-self: flex-start; border: 1px solid var(--border-color); border-bottom-left-radius: 0.25rem;'
-                }
-            `;
+            messageDiv.className = isUser ? 'bubble bubble-user' : 'bubble bubble-assistant';
             messageDiv.textContent = content;
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addStructuredAssistantMessage(data) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'bubble bubble-assistant';
+
+            const text = document.createElement('div');
+            text.textContent = data.response || data.text || "I'm here with you.";
+            wrapper.appendChild(text);
+
+            if (data.immediate_actions && data.immediate_actions.length) {
+                const actionsTitle = document.createElement('div');
+                actionsTitle.className = 'meta-title';
+                actionsTitle.textContent = 'Immediate steps';
+                wrapper.appendChild(actionsTitle);
+                const list = document.createElement('ul');
+                list.className = 'meta-list';
+                data.immediate_actions.slice(0, 3).forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item;
+                    list.appendChild(li);
+                });
+                wrapper.appendChild(list);
+            }
+
+            if (data.follow_up_suggestions && data.follow_up_suggestions.length) {
+                const followTitle = document.createElement('div');
+                followTitle.className = 'meta-title';
+                followTitle.textContent = 'Next ideas';
+                wrapper.appendChild(followTitle);
+                const list = document.createElement('ul');
+                list.className = 'meta-list';
+                data.follow_up_suggestions.slice(0, 3).forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item;
+                    list.appendChild(li);
+                });
+                wrapper.appendChild(list);
+            }
+
+            if (data.content_title || (data.content_steps && data.content_steps.length)) {
+                const contentTitle = document.createElement('div');
+                contentTitle.className = 'meta-title';
+                contentTitle.textContent = data.content_title || 'Suggested steps';
+                wrapper.appendChild(contentTitle);
+                const list = document.createElement('ul');
+                list.className = 'meta-list';
+                (data.content_steps || []).slice(0, 5).forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item;
+                    list.appendChild(li);
+                });
+                wrapper.appendChild(list);
+            }
+
+            if (data.content_safety && data.content_safety.crisis) {
+                const crisisCard = document.createElement('div');
+                crisisCard.className = 'crisis-card';
+                crisisCard.innerHTML = `
+                    <div class="crisis-title">Crisis resources</div>
+                    <div class="crisis-body">If you feel unsafe, contact local emergency services or a crisis line immediately.</div>
+                    <div class="crisis-chip">988 (US)</div><div class="crisis-chip">911 / 112</div><div class="crisis-chip">Texto 741741</div>
+                `;
+                if (data.immediate_actions && data.immediate_actions.length) {
+                    const list = document.createElement('ul');
+                    list.className = 'meta-list';
+                    data.immediate_actions.slice(0, 3).forEach(item => {
+                        const li = document.createElement('li');
+                        li.textContent = item;
+                        list.appendChild(li);
+                    });
+                    crisisCard.appendChild(list);
+                }
+                wrapper.appendChild(crisisCard);
+            }
+
+            const pills = [];
+            if (data.content_used) pills.push(`Content: ${data.content_used}`);
+            if (data.dialogue_mode) pills.push(`Mode: ${data.dialogue_mode}`);
+            if (data.locale) pills.push(`Locale: ${data.locale}`);
+            if (pills.length) {
+                const pillRow = document.createElement('div');
+                pillRow.className = 'pill-row';
+                pills.forEach(pill => {
+                    const span = document.createElement('span');
+                    span.className = 'pill';
+                    span.textContent = pill;
+                    pillRow.appendChild(span);
+                });
+                wrapper.appendChild(pillRow);
+            }
+
+            chatMessages.appendChild(wrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function renderQuickReplies(replies = []) {
+            quickReplies.innerHTML = '';
+            if (!replies || !replies.length) return;
+            replies.slice(0, 8).forEach(reply => {
+                const btn = document.createElement('button');
+                btn.textContent = reply;
+                btn.className = 'chip';
+                btn.addEventListener('click', () => {
+                    chatInput.value = reply;
+                    sendMessage();
+                });
+                quickReplies.appendChild(btn);
+            });
         }
         
         async function sendMessage() {
@@ -94,17 +216,26 @@
             sendButton.textContent = '...';
             
             try {
-                const response = await fetch('/api/v1/chat', {
+                const response = await fetch('/api/therapeutic/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ message: message })
+                    body: JSON.stringify({ message: message, context: { locale: currentLocale, dialogue_mode: dialogueMode } })
                 });
                 
                 if (response.ok) {
                     const data = await response.json();
-                    addMessage(data.response || "I'm processing your request...");
+                    if (data.response && typeof data.response === 'string' && !data.content_used) {
+                        addMessage(data.response || "I'm here with you.");
+                    } else {
+                        addStructuredAssistantMessage(data);
+                    }
+                    renderQuickReplies(data.quick_replies || []);
+                    lastContentId = data.content_used || null;
+                    lastTags = data.nlu_tags || [];
+                    lastLocale = data.locale || currentLocale;
+                    renderFeedbackBar();
                 } else {
                     addMessage("Sorry, I'm having trouble connecting right now. Please try again.");
                 }
@@ -123,6 +254,79 @@
                 sendMessage();
             }
         });
+
+        function renderFeedbackBar() {
+            let bar = document.getElementById('feedbackBar');
+            if (!bar) {
+                bar = document.createElement('div');
+                bar.id = 'feedbackBar';
+                bar.className = 'feedback-bar';
+                document.querySelector('.chat-app').appendChild(bar);
+            }
+            bar.innerHTML = '';
+            if (!lastContentId) {
+                bar.style.display = 'none';
+                return;
+            }
+            bar.style.display = 'flex';
+            const label = document.createElement('span');
+            label.textContent = 'Was this helpful?';
+            label.className = 'feedback-label';
+            bar.appendChild(label);
+            const yesBtn = document.createElement('button');
+            yesBtn.textContent = '👍 Yes';
+            yesBtn.className = 'pill';
+            yesBtn.style.cursor = 'pointer';
+            yesBtn.onclick = () => sendFeedback(true, yesBtn, bar);
+            const noBtn = document.createElement('button');
+            noBtn.textContent = '👎 No';
+            noBtn.className = 'pill';
+            noBtn.style.cursor = 'pointer';
+            noBtn.onclick = () => sendFeedback(false, noBtn, bar);
+            bar.appendChild(yesBtn);
+            bar.appendChild(noBtn);
+        }
+
+        async function sendFeedback(helpful, buttonEl, bar) {
+            if (!lastContentId) return;
+            try {
+                await fetch('/api/therapeutic/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content_id: lastContentId,
+                        helpful: helpful,
+                        tags: lastTags,
+                        locale: lastLocale
+                    })
+                });
+                renderQuickReplies([]);
+                if (buttonEl) {
+                    buttonEl.classList.add('active');
+                    buttonEl.textContent = helpful ? 'Thanks! 👍' : 'Logged 👎';
+                }
+                if (bar) {
+                    bar.style.opacity = '0.7';
+                }
+            } catch (e) {
+                console.error('Feedback error', e);
+            }
+        }
+
+        document.getElementById('localeEn').onclick = () => { currentLocale = 'en'; document.getElementById('localeEn').classList.add('active'); document.getElementById('localeEs').classList.remove('active'); };
+        document.getElementById('localeEs').onclick = () => { currentLocale = 'es'; document.getElementById('localeEs').classList.add('active'); document.getElementById('localeEn').classList.remove('active'); };
+        document.getElementById('localeEn').classList.add('active');
+
+        document.getElementById('modeWellness').onclick = () => {
+            dialogueMode = 'wellness';
+            document.getElementById('modeWellness').classList.add('active');
+            document.getElementById('modeTask').classList.remove('active');
+        };
+        document.getElementById('modeTask').onclick = () => {
+            dialogueMode = 'task';
+            document.getElementById('modeTask').classList.add('active');
+            document.getElementById('modeWellness').classList.remove('active');
+        };
         
         // Focus styling for input
         chatInput.addEventListener('focus', function() {
@@ -150,10 +354,162 @@
                 background: var(--surface-color);
                 box-shadow: 0 0 40px var(--shadow-color);
             }
+            .bubble {
+                max-width: 80%;
+                padding: 0.875rem 1.25rem;
+                border-radius: 1.25rem;
+                font-size: 0.95rem;
+                line-height: 1.5;
+                animation: fadeIn 0.3s ease-out;
+            }
+            #chatMessages {
+                padding-bottom: 10rem;
+            }
+            .bubble-user {
+                background: var(--button-gradient);
+                color: var(--text-inverse);
+                align-self: flex-end;
+                margin-left: auto;
+                border-bottom-right-radius: 0.25rem;
+            }
+            .bubble-assistant {
+                background: var(--surface-color);
+                color: var(--text-primary);
+                align-self: flex-start;
+                border: 1px solid var(--border-color);
+                border-bottom-left-radius: 0.25rem;
+                width: fit-content;
+            }
+            .meta-title {
+                margin-top: 0.75rem;
+                font-weight: 600;
+                font-size: 0.9rem;
+                color: var(--text-secondary);
+            }
+            .meta-list {
+                padding-left: 1.1rem;
+                margin: 0.25rem 0 0;
+                color: var(--text-primary);
+            }
+            .pill-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.35rem;
+                margin-top: 0.75rem;
+            }
+            .pill {
+                font-size: 0.8rem;
+                padding: 0.25rem 0.6rem;
+                border-radius: 999px;
+                border: 1px solid var(--border-color);
+                background: var(--surface-elevated, #fff);
+                color: var(--text-secondary);
+                transition: all 0.2s ease;
+            }
+            .pill.active { background: var(--button-gradient); color: var(--text-inverse); border-color: transparent; }
+            .chip {
+                padding: 0.55rem 0.9rem;
+                border-radius: 999px;
+                border: 1px solid var(--border-color);
+                background: var(--surface-elevated, #fff);
+                color: var(--text-primary);
+                cursor: pointer;
+                font-size: 0.9rem;
+                transition: all 0.2s ease;
+            }
+            .chip:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+            .feedback-bar {
+                padding: 0.75rem 1rem;
+                background: var(--surface-color);
+                border-top: 1px solid var(--border-color);
+                display: flex;
+                gap: 0.5rem;
+                align-items: center;
+                position: sticky;
+                bottom: 0;
+                z-index: 4;
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
+            .feedback-label { color: var(--text-primary); font-weight: 600; }
+            .crisis-card {
+                margin-top: 0.75rem;
+                border: 1px solid var(--border-color);
+                background: linear-gradient(120deg, rgba(239,68,68,0.08), rgba(249,115,22,0.08));
+                padding: 0.9rem 1rem;
+                border-radius: 0.9rem;
+                box-shadow: 0 6px 18px rgba(239, 68, 68, 0.08);
+            }
+            .crisis-title {
+                font-weight: 800;
+                color: #b91c1c;
+                margin-bottom: 0.25rem;
+                letter-spacing: -0.01em;
+            }
+            .crisis-body {
+                color: #9a3412;
+                font-size: 0.94rem;
+                margin-bottom: 0.25rem;
+            }
+            .crisis-chip {
+                display: inline-block;
+                padding: 0.4rem 0.7rem;
+                border-radius: 999px;
+                background: #fff;
+                color: #b91c1c;
+                border: 1px solid rgba(239,68,68,0.3);
+                font-weight: 600;
+                font-size: 0.85rem;
+                margin-right: 0.35rem;
+                margin-bottom: 0.3rem;
+            }
+            .locale-toggle {
+                display: flex;
+                gap: 0.5rem;
+                align-items: center;
+                padding: 0.5rem 1rem;
+            }
+            .locale-label {
+                font-weight: 600;
+                color: var(--text-secondary);
+                font-size: 0.9rem;
+            }
+            .control-bar {
+                display: flex;
+                justify-content: space-between;
+                gap: 0.75rem;
+                flex-wrap: wrap;
+                padding: 0.5rem 1rem;
+            }
+            #quickReplies {
+                position: sticky;
+                bottom: 3.5rem;
+                z-index: 3;
+                box-shadow: 0 -4px 16px rgba(0,0,0,0.04);
+            }
+            .chat-input-container {
+                position: sticky;
+                bottom: 7.5rem;
+                z-index: 3;
+                backdrop-filter: blur(4px);
+                align-items: center;
+            }
             @media (max-width: 600px) {
                 .chat-app {
                     max-width: 100%;
                     box-shadow: none;
+                }
+                #chatMessages {
+                    padding-bottom: 14rem;
+                }
+                .bubble {
+                    max-width: 90%;
+                }
+                .chat-input-container {
+                    bottom: 9rem;
+                }
+                #quickReplies {
+                    bottom: 5rem;
                 }
             }
         `;

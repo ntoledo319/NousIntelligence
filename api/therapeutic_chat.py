@@ -13,6 +13,7 @@ from werkzeug.utils import secure_filename
 
 # Import therapeutic assistant
 from services.emotion_aware_therapeutic_assistant import therapeutic_assistant
+from services.personalization_service import personalization_service
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -73,6 +74,15 @@ def therapeutic_chat():
             'follow_up_suggestions': therapeutic_response.get('follow_up_suggestions', []),
             'therapeutic_approach': therapeutic_response['therapeutic_approach'],
             'tone': therapeutic_response['response']['tone'],
+            'quick_replies': therapeutic_response['response'].get('quick_replies', []),
+            'content_used': therapeutic_response['response'].get('content_used'),
+            'content_title': therapeutic_response['response'].get('content_title'),
+            'content_summary': therapeutic_response['response'].get('content_summary'),
+            'content_steps': therapeutic_response['response'].get('content_steps', []),
+            'content_safety': therapeutic_response['response'].get('content_safety', {}),
+            'nlu_tags': therapeutic_response.get('nlu_tags', []),
+            'dialogue_mode': therapeutic_response['response'].get('dialogue_mode'),
+            'locale': therapeutic_response['response'].get('locale', 'en'),
             'timestamp': therapeutic_response['timestamp']
         })
         
@@ -213,13 +223,14 @@ def voice_therapeutic_response():
         
         # Get any accompanying text
         text_input = request.form.get('text', '')
+        locale = request.form.get('locale')
         
         # Get therapeutic response with focus on audio analysis
         therapeutic_response = therapeutic_assistant.get_therapeutic_response(
             user_input=text_input,
             user_id=user_id,
             audio_data=audio_data,
-            context={'input_mode': 'voice'}
+            context={'input_mode': 'voice', 'locale': locale} if locale else {'input_mode': 'voice'}
         )
         
         return jsonify({
@@ -230,6 +241,15 @@ def voice_therapeutic_response():
             'skills_recommended': therapeutic_response['skills_recommended'],
             'therapeutic_approach': therapeutic_response['therapeutic_approach'],
             'immediate_actions': therapeutic_response['response'].get('immediate_actions', []),
+            'quick_replies': therapeutic_response['response'].get('quick_replies', []),
+            'content_used': therapeutic_response['response'].get('content_used'),
+            'content_title': therapeutic_response['response'].get('content_title'),
+            'content_summary': therapeutic_response['response'].get('content_summary'),
+            'content_steps': therapeutic_response['response'].get('content_steps', []),
+            'content_safety': therapeutic_response['response'].get('content_safety', {}),
+            'nlu_tags': therapeutic_response.get('nlu_tags', []),
+            'dialogue_mode': therapeutic_response['response'].get('dialogue_mode'),
+            'locale': therapeutic_response['response'].get('locale', 'en'),
             'timestamp': therapeutic_response['timestamp']
         })
         
@@ -412,3 +432,46 @@ def emergency_support():
             'immediate_actions': ["Call 988", "Call 911 if in immediate danger"],
             'error': 'System error, but help is still available'
         })
+
+@therapeutic_chat_bp.route('/feedback', methods=['POST'])
+def feedback():
+    """
+    Capture user feedback (helpful/not) for personalization.
+    """
+    try:
+        user_id = get_user_id()
+        if request.is_json:
+            data = request.json
+        else:
+            data = request.form
+
+        content_id = data.get('content_id')
+        helpful = data.get('helpful')
+        tags = data.get('tags', [])
+        locale = data.get('locale', 'en')
+
+        if content_id is None:
+            return jsonify({'success': False, 'error': 'content_id is required'}), 400
+
+        # Cast helpful to bool if passed as string
+        if isinstance(helpful, str):
+            helpful = helpful.lower() in ['true', '1', 'yes', 'y']
+
+        if isinstance(tags, str):
+            try:
+                tags = json.loads(tags)
+            except Exception:
+                tags = [tags]
+
+        personalization_service.record_feedback(
+            user_id=user_id,
+            content_id=content_id,
+            tags=tags if isinstance(tags, list) else [],
+            helpful=helpful,
+            locale=locale
+        )
+
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Error recording feedback: {str(e)}")
+        return jsonify({'success': False, 'error': 'Unable to record feedback'}), 500

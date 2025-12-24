@@ -1,0 +1,164 @@
+[
+  {
+    "id": "dbt_tipp_quick_es",
+    "locale": "es",
+    "title": "Reinicio TIPP rapido para alta angustia",
+    "type": "dbt_distress_tolerance",
+    "tags": ["dbt_tipp", "crisis", "angustia", "panic_attack_skill"],
+    "summary": "Secuencia DBT para bajar la intensidad cuando todo se siente demasiado.",
+    "steps": [
+      "Temperatura: agua fria en la cara o un cubo de hielo 20-30 segundos para activar el reflejo de buceo.",
+      "Ejercicio intenso: 60 segundos de saltos, trotar en el lugar o flexiones de pared.",
+      "Respiracion pausada: inhala 4 segundos, exhala 6 segundos por 1-2 minutos.",
+      "Relajacion muscular progresiva: tensiona y suelta hombros, manos y mandibula."
+    ],
+    "quick_replies": ["Guiar respiracion", "Mostrar anclaje 5-4-3-2-1", "Ver recursos de crisis"],
+    "immediate_actions": [
+      "Si no te sientes seguro, llama al numero de emergencia local (911/112) o a una linea de crisis.",
+      "Quedate donde estas y respira conmigo por un minuto."
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "clinical_reviewed": true,
+      "updated_at": "2025-01-05",
+      "author": "NOUS clinical set"
+    },
+    "safety": {"crisis": true, "not_medical": true}
+  },
+  {
+    "id": "grounding_54321_es",
+    "locale": "es",
+    "title": "Anclaje 5-4-3-2-1",
+    "type": "mindfulness_grounding",
+    "tags": ["grounding", "ansiedad", "panic_attack_skill", "mindfulness"],
+    "summary": "Usa los sentidos para volver al presente y bajar la activacion.",
+    "steps": [
+      "Nombra 5 cosas que puedas ver.",
+      "Nombra 4 cosas que puedas tocar o sentir.",
+      "Nombra 3 cosas que puedas oir.",
+      "Nombra 2 cosas que puedas oler.",
+      "Nombra 1 cosa que puedas saborear o toma un sorbo de agua."
+    ],
+    "quick_replies": ["Guiar 5-4-3-2-1", "Agregar temporizador 2 minutos", "Guardar en mi caja de herramientas"],
+    "metadata": {
+      "version": "1.0.0",
+      "clinical_reviewed": true,
+      "updated_at": "2025-01-05",
+      "author": "NOUS clinical set"
+    },
+    "safety": {"crisis": false, "not_medical": true}
+  },
+  {
+    "id": "cbt_thought_record_es",
+    "locale": "es",
+    "title": "Chequeo de pensamiento CBT",
+    "type": "cbt_restructure",
+    "tags": ["cbt_thought_record", "reestructuracion_cognitiva", "ansiedad", "tristeza"],
+    "summary": "Cuestiona un pensamiento dificil y busca una alternativa mas equilibrada.",
+    "steps": [
+      "Situacion: anota brevemente que paso.",
+      "Pensamiento: escribe la idea dificil en una frase.",
+      "Emocion: nombra la emocion y califica la intensidad 0-10.",
+      "Evidencia a favor/en contra: 2-3 hechos en cada lado.",
+      "Pensamiento equilibrado: crea una frase mas amable y realista."
+    ],
+    "quick_replies": ["Iniciar registro de pensamiento", "Ver distorsiones comunes", "Guardar en diario"],
+    "metadata": {
+      "version": "1.0.0",
+      "clinical_reviewed": true,
+      "updated_at": "2025-01-05",
+      "author": "NOUS clinical set"
+    },
+    "safety": {"crisis": false, "not_medical": true}
+  },
+  {
+    "id": "behavioral_activation_microtask_es",
+    "locale": "es",
+    "title": "Micro tarea de activacion conductual",
+    "type": "behavioral_activation",
+    "tags": ["behavioral_activation", "motivacion", "estado_de_animo", "productivity_bridge"],
+    "summary": "Apoya el animo con una accion pequena y con sentido acorde a tu energia.",
+    "steps": [
+      "Elige un valor: conexion, salud, aprendizaje o calma.",
+      "Selecciona una accion de 5 minutos (enviar un mensaje, estirar, ordenar una superficie, salir a la puerta).",
+      "Ponlo en la agenda en la proxima hora con un recordatorio opcional.",
+      "Despues de hacerlo, nota tu cambio de animo en escala 0-10."
+    ],
+    "quick_replies": ["Programar accion de 5 minutos", "Agregar a tareas", "Poner recordatorio"],
+    "metadata": {
+      "version": "1.0.0",
+      "clinical_reviewed": true,
+      "updated_at": "2025-01-05",
+      "author": "NOUS clinical set"
+    },
+    "safety": {"crisis": false, "not_medical": true}
+  },
+  {
+    "id": "mi_change_talk_es",
+    "locale": "es",
+    "title": "Chequeo de motivacion",
+    "type": "motivational_interviewing",
+    "tags": ["motivational_interviewing", "ambivalencia", "cambio"],
+    "summary": "Evoca tus propias razones para el cambio con preguntas suaves.",
+    "steps": [
+      "Importancia: en 0-10, que tan importante es este cambio? Por que no un numero mas bajo?",
+      "Confianza: en 0-10, que tan seguro te sientes? Que subiria un punto?",
+      "Siguiente paso: una accion en 24 horas que se sienta posible."
+    ],
+    "quick_replies": ["Registrar importancia/confianza", "Idear pasos pequenos", "Compartir un logro"],
+    "metadata": {
+      "version": "1.0.0",
+      "clinical_reviewed": true,
+      "updated_at": "2025-01-05",
+      "author": "NOUS clinical set"
+    },
+    "safety": {"crisis": false, "not_medical": true}
+  },
+  {
+    "id": "crisis_safety_plan_es",
+    "locale": "es",
+    "title": "Guion de seguridad en crisis",
+    "type": "crisis",
+    "tags": ["crisis", "suicidio", "safety_plan", "hotline", "overdose"],
+    "summary": "Validacion, pasos inmediatos de seguridad y acceso rapido a ayuda.",
+    "steps": [
+      "Validacion: tu seguridad importa; gracias por decirlo.",
+      "Entorno: aparta objetos que puedan causar dano y busca acompanamiento seguro si es posible.",
+      "Pedir ayuda: llama a una linea de crisis local o al numero de emergencia; si estas en peligro inmediato, llama al 911/112.",
+      "Anclaje: prueba un paso TIPP (agua fria o respiracion) mientras mantenemos esto breve."
+    ],
+    "quick_replies": ["Ver numeros de crisis", "Guiar anclaje", "Compartir mi plan de seguridad"],
+    "metadata": {
+      "version": "1.0.0",
+      "clinical_reviewed": true,
+      "updated_at": "2025-01-05",
+      "author": "NOUS clinical set"
+    },
+    "safety": {"crisis": true, "not_medical": true, "requires_supervision": true}
+  },
+  {
+    "id": "regional_crisis_us_general_es",
+    "locale": "es",
+    "title": "Lineas de crisis (EE.UU.)",
+    "type": "crisis",
+    "tags": ["crisis", "safety_plan", "hotline", "usa"],
+    "summary": "Si te sientes en riesgo, contacta ahora. Hay personas listas 24/7.",
+    "steps": [
+      "Llama o envia mensaje al 988 (Suicide & Crisis Lifeline).",
+      "Envía 'HELLO' al 741741 (Crisis Text Line).",
+      "Si hay peligro inmediato, marca 911."
+    ],
+    "quick_replies": ["Ver anclaje", "Invitar a alguien de confianza", "Compartir mi plan de seguridad"],
+    "immediate_actions": [
+      "Busca un lugar seguro y aparta objetos peligrosos si puedes.",
+      "Llama al 988 o a alguien de confianza para que te acompanen."
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "clinical_reviewed": true,
+      "updated_at": "2025-01-05",
+      "author": "NOUS clinical set"
+    },
+    "safety": {"crisis": true, "not_medical": true, "requires_supervision": true}
+  }
+]

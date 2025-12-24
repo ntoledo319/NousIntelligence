@@ -10,6 +10,12 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Tuple
 from flask import session
 from sqlalchemy import and_, or_, desc, func
+from services.dialogue_manager import dialogue_manager
+from services.nlu_service import nlu_service, NLUResult
+from services.prompt_persona import persona_prompts
+from services.therapeutic_content_service import therapeutic_content_service
+from services.personalization_service import personalization_service
+from services.analytics_event_service import analytics_event_service
 
 # Setup logger
 logger = logging.getLogger(__name__)
@@ -56,6 +62,19 @@ class EmotionAwareTherapeuticAssistant:
     
     def __init__(self):
         self.ai_service = UnifiedAIService()
+        self.content_service = therapeutic_content_service
+        self.nlu_service = nlu_service
+        self.dialogue_manager = dialogue_manager
+        self.persona = persona_prompts
+        self.allowed_intents = {
+            'cbt',
+            'dbt',
+            'act',
+            'grounding',
+            'behavioral_activation',
+            'motivational_interviewing',
+            'gratitude'
+        }
         
         # Emotion to skill mapping
         self.emotion_skill_mapping = {
@@ -154,6 +173,25 @@ class EmotionAwareTherapeuticAssistant:
         Generate adaptive therapeutic response based on emotional state and therapeutic skills
         """
         try:
+            context = context or {}
+            nlu_result = self.nlu_service.analyze(user_input or "", user_id, context)
+            user_preferences = personalization_service.get_preferences(user_id)
+            locale = context.get('locale') or user_preferences.get('locale') or nlu_result.language or 'en'
+            dialogue_mode = self.dialogue_manager.determine_mode(nlu_result, context)
+
+            if nlu_result.crisis:
+                crisis_response = self._handle_crisis_response(
+                    user_input=user_input,
+                    nlu_result=nlu_result,
+                    locale=locale
+                )
+                analytics_event_service.log_chat_event(user_id, {
+                    'type': 'crisis_response',
+                    'nlu': nlu_result.to_dict(),
+                    'locale': locale
+                })
+                return crisis_response
+
             # Analyze emotional state
             emotion_analysis = self.analyze_emotional_state(user_input, audio_data, user_id)
             primary_emotion = emotion_analysis['primary_emotion']
@@ -174,13 +212,30 @@ class EmotionAwareTherapeuticAssistant:
             # Generate adaptive response
             response = self._generate_adaptive_response(
                 user_input, emotion_analysis, skill_recommendations, 
-                therapeutic_approach, user_profile
+                therapeutic_approach, user_profile, nlu_result, locale, dialogue_mode
             )
             
             # Log interaction for learning
             self._log_therapeutic_interaction(
                 user_id, user_input, emotion_analysis, response, skill_recommendations
             )
+
+            analytics_event_service.log_chat_event(user_id, {
+                'type': 'therapeutic_response',
+                'nlu': nlu_result.to_dict(),
+                'content_used': response.get('content_used'),
+                'dialogue_mode': response.get('dialogue_mode'),
+                'locale': response.get('locale', locale)
+            })
+
+            if response.get('content_used'):
+                personalization_service.record_feedback(
+                    user_id=user_id,
+                    content_id=response['content_used'],
+                    tags=nlu_result.tags,
+                    helpful=None,
+                    locale=response.get('locale', locale)
+                )
             
             return {
                 'response': response,
@@ -188,14 +243,79 @@ class EmotionAwareTherapeuticAssistant:
                 'skills_recommended': skill_recommendations,
                 'therapeutic_approach': therapeutic_approach,
                 'follow_up_suggestions': self._generate_follow_up_suggestions(
-                    primary_emotion, skill_recommendations
+                    primary_emotion, skill_recommendations, response.get('content_used'), dialogue_mode
                 ),
-                'timestamp': datetime.now().isoformat()
+                'timestamp': datetime.now().isoformat(),
+                'nlu_tags': nlu_result.tags
             }
             
         except Exception as e:
             logger.error(f"Error generating therapeutic response: {str(e)}")
             return self._generate_fallback_response(user_input)
+
+    def _handle_crisis_response(self, user_input: str, nlu_result: NLUResult, locale: str) -> Dict[str, Any]:
+        """High-sensitivity crisis response using vetted content and no free-form generation"""
+        tags = list(set(nlu_result.tags + ['crisis']))
+        content = self.content_service.get_best_content(
+            tags=tags,
+            locale=locale,
+            intent=nlu_result.primary_intent,
+            emotion=nlu_result.emotion,
+            crisis_only=True
+        ) or self.content_service.get_fallback_template(locale)
+
+        boundary = self.persona.boundary_line(locale)
+        crisis_disclaimer = self.persona.crisis_disclaimer(locale)
+        text_parts = [
+            "I’m really glad you told me. Your safety matters." if not locale.startswith('es') else "Gracias por decirmelo. Tu seguridad importa.",
+            content.get('summary') or content.get('title', ''),
+            boundary,
+            crisis_disclaimer
+        ]
+        text = " ".join([part for part in text_parts if part])
+
+        immediate_actions = content.get('immediate_actions') or [
+            "Call 988 (US) or your local crisis line.",
+            "If in immediate danger, contact emergency services."
+        ]
+
+        response = {
+            'text': text,
+            'tone': 'urgent and validating',
+            'approach': 'crisis_support',
+            'emotion_acknowledged': nlu_result.emotion,
+            'intensity_level': 'high',
+            'skill_suggestions': self._format_skill_suggestions({'priority': content.get('tags', [])}),
+            'immediate_actions': immediate_actions,
+            'quick_replies': content.get('quick_replies', []) + [self.persona.quick_exit(locale)],
+            'content_used': content.get('id'),
+            'content_title': content.get('title'),
+            'content_summary': content.get('summary'),
+            'content_steps': content.get('steps', [])[:4],
+            'content_safety': content.get('safety', {}),
+            'locale': locale,
+            'dialogue_mode': 'crisis',
+            'type': 'crisis_response'
+        }
+
+        return {
+            'response': response,
+            'emotion_analysis': {
+                'primary_emotion': nlu_result.emotion,
+                'confidence': nlu_result.confidence,
+                'context_factors': ['crisis_risk'],
+                'timestamp': datetime.now().isoformat()
+            },
+            'skills_recommended': {'priority': content.get('tags', [])},
+            'therapeutic_approach': 'crisis_support',
+            'follow_up_suggestions': [
+                "Keep this page open while you contact someone.",
+                "Share this with a trusted person nearby.",
+                "Practice one grounding step while waiting for help."
+            ],
+            'timestamp': datetime.now().isoformat(),
+            'nlu_tags': nlu_result.tags
+        }
     
     def _analyze_context_factors(self, text: str, emotion: str) -> List[str]:
         """Analyze additional context factors that might influence therapeutic approach"""
@@ -359,45 +479,143 @@ class EmotionAwareTherapeuticAssistant:
     
     def _generate_adaptive_response(self, user_input: str, emotion_analysis: Dict,
                                   skill_recommendations: Dict, approach: str,
-                                  user_profile: Dict) -> Dict[str, Any]:
-        """Generate response adapted to user's emotional state and needs"""
+                                  user_profile: Dict, nlu_result: NLUResult,
+                                  locale: str, dialogue_mode: str) -> Dict[str, Any]:
+        """Generate response adapted to user's emotional state and needs with retrieval-first guardrails"""
         primary_emotion = emotion_analysis['primary_emotion']
         intensity = emotion_analysis['emotional_intensity']
-        
-        # Determine therapeutic tone
         tone = self.therapeutic_tones.get(primary_emotion, 'supportive and engaging')
-        
-        # Create AI prompt for therapeutic response
-        ai_prompt = self._create_therapeutic_prompt(
-            user_input, emotion_analysis, skill_recommendations, approach, tone
+
+        tags = self._build_tags(primary_emotion, skill_recommendations, emotion_analysis.get('context_factors', []), nlu_result)
+        crisis_only = dialogue_mode == 'crisis' or 'crisis_risk' in emotion_analysis.get('context_factors', [])
+        content = self.content_service.get_best_content(
+            tags=tags,
+            locale=locale,
+            intent=nlu_result.primary_intent,
+            emotion=primary_emotion,
+            crisis_only=crisis_only
         )
-        
+
+        skill_suggestions = self._format_skill_suggestions(skill_recommendations)
+        quick_replies = self._build_quick_replies(content, skill_recommendations, dialogue_mode, locale)
+        immediate_actions = content.get('immediate_actions', []) if content else self._get_immediate_actions(primary_emotion, intensity)
+
+        response_text = self._generate_guarded_ai_response(
+            user_input, emotion_analysis, skill_recommendations, approach, tone, content, nlu_result, locale, dialogue_mode
+        )
+
+        if not response_text and content:
+            response_text = self._render_content_response(content, tone, locale)
+
+        if not response_text:
+            response_text = "I understand you're going through something difficult. How can I best support you right now?"
+
+        return {
+            'text': response_text,
+            'tone': tone,
+            'approach': approach,
+            'emotion_acknowledged': primary_emotion,
+            'intensity_level': intensity,
+            'skill_suggestions': skill_suggestions,
+            'immediate_actions': immediate_actions,
+            'quick_replies': quick_replies,
+            'content_used': content.get('id') if content else None,
+            'content_title': content.get('title') if content else None,
+            'content_summary': content.get('summary') if content else None,
+            'content_steps': content.get('steps', [])[:4] if content else [],
+            'content_safety': content.get('safety', {}) if content else {},
+            'locale': locale,
+            'dialogue_mode': dialogue_mode,
+            'type': 'therapeutic_response'
+        }
+
+    def _build_tags(self, primary_emotion: str, skill_recommendations: Dict,
+                    context_factors: List[str], nlu_result: NLUResult) -> List[str]:
+        """Combine emotion, NLU tags, and skills into a tag set for retrieval"""
+        tags = set()
+        tags.add(self._normalize_tag(primary_emotion))
+        for factor in context_factors:
+            tags.add(self._normalize_tag(factor))
+        for skill in skill_recommendations.get('priority', []):
+            tags.add(self._normalize_tag(skill))
+        for intent_tag in nlu_result.tags:
+            tags.add(self._normalize_tag(intent_tag))
+        return [tag for tag in tags if tag]
+
+    def _build_quick_replies(self, content: Optional[Dict[str, Any]], skill_recommendations: Dict,
+                             dialogue_mode: str, locale: str) -> List[str]:
+        replies: List[str] = []
+        if content:
+            replies.extend(content.get('quick_replies', []))
+        replies.extend(self.dialogue_manager.quick_replies_for_mode(dialogue_mode, locale))
+        for suggestion in self._format_skill_suggestions(skill_recommendations):
+            quick = suggestion.get('quick_action')
+            if quick:
+                replies.append(quick)
+        # Dedupe while preserving order
+        seen = set()
+        unique_replies = []
+        for reply in replies:
+            if reply not in seen:
+                unique_replies.append(reply)
+                seen.add(reply)
+        return unique_replies[:6]
+
+    def _generate_guarded_ai_response(self, user_input: str, emotion_analysis: Dict,
+                                      skill_recommendations: Dict, approach: str, tone: str,
+                                      content: Optional[Dict[str, Any]], nlu_result: NLUResult,
+                                      locale: str, dialogue_mode: str) -> Optional[str]:
+        """Guardrailed AI response that must anchor to retrieved content or skill list"""
+        if nlu_result.primary_intent and nlu_result.primary_intent not in self.allowed_intents and not content:
+            return None
+
+        safety_mode = "crisis" if nlu_result.crisis else "standard"
+        system_prompt = self.persona.system_prompt(locale, mode=dialogue_mode, safety=safety_mode)
+
+        allowed_lines: List[str] = []
+        if content:
+            if content.get('summary'):
+                allowed_lines.append(content['summary'])
+            allowed_lines.extend(content.get('steps', [])[:4])
+        else:
+            allowed_lines.append(f"Recommended skills: {', '.join(skill_recommendations.get('priority', []))}")
+
+        allowed_lines.append(self.persona.boundary_line(locale))
+        allowed_lines.append(self.persona.quick_exit(locale))
+
+        user_prompt = f"""
+User message: "{user_input}"
+Primary emotion: {emotion_analysis.get('primary_emotion')}
+Intensity: {emotion_analysis.get('emotional_intensity')}
+Allowed content (do not invent beyond these points):
+- {'; '.join([line for line in allowed_lines if line])}
+Tone: {tone}
+Respond in the user's language with 2-3 sentences, validate first, give one actionable step, and keep it brief."""
+
         try:
-            # Get AI response
             ai_response = self.ai_service.chat_completion([
-                {"role": "system", "content": self._get_therapeutic_system_prompt()},
-                {"role": "user", "content": ai_prompt}
-            ])
-            
-            response_text = ai_response.get('content', 'I understand you\'re going through something difficult. How can I best support you right now?')
-            
-            # Add skill suggestions
-            skill_suggestions = self._format_skill_suggestions(skill_recommendations)
-            
-            return {
-                'text': response_text,
-                'tone': tone,
-                'approach': approach,
-                'emotion_acknowledged': primary_emotion,
-                'intensity_level': intensity,
-                'skill_suggestions': skill_suggestions,
-                'immediate_actions': self._get_immediate_actions(primary_emotion, intensity),
-                'type': 'therapeutic_response'
-            }
-            
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ], max_tokens=380, temperature=0.4)
+            return ai_response.get('content')
         except Exception as e:
             logger.error(f"Error generating AI response: {str(e)}")
-            return self._generate_fallback_therapeutic_response(primary_emotion, tone)
+            return None
+
+    def _render_content_response(self, content: Dict[str, Any], tone: str, locale: str) -> str:
+        """Render a concise response from retrieved content without generation"""
+        summary = content.get('summary') or content.get('title') or ''
+        steps = content.get('steps', [])
+        boundary = self.persona.boundary_line(locale)
+        quick_exit = self.persona.quick_exit(locale)
+        parts = [summary, boundary]
+        if steps:
+            parts.append(f"First step: {steps[0]}")
+        parts.append(quick_exit)
+        return " ".join([part for part in parts if part])
+
+    def _normalize_tag(self, value: str) -> str:
+        return value.lower().replace(' ', '_') if value else ''
     
     def _create_therapeutic_prompt(self, user_input: str, emotion_analysis: Dict,
                                  skill_recommendations: Dict, approach: str, tone: str) -> str:
@@ -506,12 +724,17 @@ class EmotionAwareTherapeuticAssistant:
         
         return ['Take a moment to breathe', 'Notice your feelings', 'Be kind to yourself']
     
-    def _generate_follow_up_suggestions(self, emotion: str, skills: Dict) -> List[str]:
+    def _generate_follow_up_suggestions(self, emotion: str, skills: Dict,
+                                       content_used: Optional[str] = None,
+                                       dialogue_mode: str = "wellness") -> List[str]:
         """Generate follow-up suggestions for continued support"""
         suggestions = []
         
         if skills.get('priority'):
             suggestions.append(f"Practice {skills['priority'][0]} for 5 minutes")
+        
+        if content_used:
+            suggestions.append("Save this tool to your toolkit")
         
         suggestions.extend([
             "Log this experience in your mood tracker",
@@ -521,6 +744,11 @@ class EmotionAwareTherapeuticAssistant:
         
         if emotion in ['sad', 'anxious', 'overwhelmed']:
             suggestions.append("Schedule a pleasant activity for later today")
+
+        if dialogue_mode == "task":
+            suggestions.append("Move the next step into your tasks or calendar")
+        elif dialogue_mode == "crisis":
+            suggestions.append("Identify someone you can contact in person today")
         
         return suggestions[:3]
     
