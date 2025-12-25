@@ -111,8 +111,10 @@ def generate_smart_shopping_list(user_id, preferences=None):
 
         # Generate the shopping list using AI
         try:
+            # Use configurable model (default: gpt-4o for high-quality shopping lists)
+            model = os.environ.get("OPENAI_SHOPPING_MODEL", "gpt-4o")
             response = openai.chat.completions.create(
-                model="gpt-4o",  # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+                model=model,
                 messages=[
                     {"role": "system", "content": "You are a helpful shopping assistant that creates organized shopping lists."},
                     {"role": "user", "content": prompt}

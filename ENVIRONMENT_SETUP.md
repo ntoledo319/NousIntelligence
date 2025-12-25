@@ -46,6 +46,26 @@ HUGGINGFACE_API_KEY=hf_xxxxx
 
 # Google Services (https://console.cloud.google.com)
 GOOGLE_API_KEY=AIzaSyxxxxx
+
+# OpenAI (optional - for direct OpenAI access)
+OPENAI_API_KEY=sk-xxxxx
+```
+
+#### AI Model Configuration (2025 Latest - Optimized for Cost/Quality)
+```bash
+# OpenRouter Models - Automatically selected based on task complexity
+OPENROUTER_FREE_MODEL=meta-llama/llama-3.3-70b-instruct:free
+OPENROUTER_BASIC_MODEL=google/gemini-2.0-flash-exp:free
+OPENROUTER_STANDARD_MODEL=deepseek/deepseek-v3.2          # $0.22/M - Best value!
+OPENROUTER_COMPLEX_MODEL=google/gemini-2.5-flash           # $0.30/M input, $2.50/M output
+OPENROUTER_RESEARCH_MODEL=anthropic/claude-sonnet-4.5      # $3/M input, $15/M output
+
+# OpenAI Models (if using direct OpenAI API)
+OPENAI_STANDARD_MODEL=gpt-4o-mini
+OPENAI_RESEARCH_MODEL=gpt-4o
+
+# Gemini Model (for Google AI)
+GEMINI_MODEL=gemini-2.5-flash
 ```
 
 #### External Integrations
@@ -291,6 +311,66 @@ curl http://localhost:5000/auth/status
 ```bash
 curl http://localhost:5000/health
 ```
+
+## 🤖 AI Model Selection Guide (2025)
+
+### Automatic Model Selection
+NOUS automatically selects the optimal model based on task complexity:
+
+- **BASIC**: Free models for simple tasks (`google/gemini-2.0-flash-exp:free`)
+- **STANDARD**: Cost-effective models for regular chat (`deepseek/deepseek-v3.2` - only $0.22/M!)
+- **COMPLEX**: Balanced models for advanced tasks (`google/gemini-2.5-flash`)
+- **RESEARCH**: Premium models for reasoning (`anthropic/claude-sonnet-4.5`)
+
+### Recommended Model Configurations
+
+#### Free Tier (No Cost)
+```bash
+OPENROUTER_FREE_MODEL=meta-llama/llama-3.3-70b-instruct:free
+OPENROUTER_BASIC_MODEL=google/gemini-2.0-flash-exp:free
+OPENROUTER_STANDARD_MODEL=meta-llama/llama-3.3-70b-instruct:free
+```
+
+#### Cost-Optimized ($5-10/month for moderate usage)
+```bash
+OPENROUTER_STANDARD_MODEL=deepseek/deepseek-v3.2        # Best value - $0.22/M
+OPENROUTER_COMPLEX_MODEL=google/gemini-2.5-flash        # $0.30/M input
+OPENROUTER_RESEARCH_MODEL=google/gemini-2.5-flash       # Use for all tasks
+```
+
+#### High Quality (Production-Ready)
+```bash
+OPENROUTER_STANDARD_MODEL=google/gemini-2.5-flash
+OPENROUTER_COMPLEX_MODEL=anthropic/claude-3.5-sonnet
+OPENROUTER_RESEARCH_MODEL=anthropic/claude-sonnet-4.5   # Best coding model
+```
+
+### Available Models on OpenRouter (Dec 2025)
+
+#### **Free Models** 🆓
+- `meta-llama/llama-3.3-70b-instruct:free` - Meta's latest, excellent quality
+- `google/gemini-2.0-flash-exp:free` - Google's experimental fast model
+
+#### **Cost-Effective Models** 💰
+- `deepseek/deepseek-v3.2` - **$0.22/M** - Best value for quality!
+- `google/gemini-2.5-flash` - $0.30/M input - State-of-the-art from Google
+- `openai/gpt-4o-mini` - Balanced OpenAI option
+
+#### **Premium Models** ⭐
+- `anthropic/claude-sonnet-4.5` - $3/M input - Best coding & reasoning
+- `anthropic/claude-3.7-sonnet` - Latest Claude with thinking
+- `openai/gpt-4o` - Latest GPT-4 Omni
+
+### Cost Comparison (Per Million Tokens)
+
+| Model | Input Cost | Output Cost | Best For |
+|-------|-----------|-------------|----------|
+| DeepSeek V3.2 | $0.22 | $0.32 | **Best value overall** |
+| Gemini 2.5 Flash | $0.30 | $2.50 | Fast, high-quality |
+| GPT-4o-mini | $0.15 | $0.60 | OpenAI balanced |
+| GPT-4o | $2.50 | $10.00 | Premium OpenAI |
+| Claude Sonnet 4.5 | $3.00 | $15.00 | **Best coding/reasoning** |
+| Llama 3.3 (free) | $0.00 | $0.00 | Testing/development |
 
 ## 🎯 Best Practices
 

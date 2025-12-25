@@ -218,8 +218,10 @@ class EnhancedTherapeuticAI:
         try:
             import google.generativeai as genai
             genai.configure(api_key=self.gemini_key)
-            model = genai.GenerativeModel('gemini-pro')
-            
+            # Use latest Gemini 2.5 Flash for better therapeutic responses
+            model_name = os.environ.get('GEMINI_MODEL', 'gemini-2.5-flash')
+            model = genai.GenerativeModel(model_name)
+
             response = model.generate_content(prompt)
             
             return {

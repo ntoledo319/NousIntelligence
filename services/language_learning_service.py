@@ -385,8 +385,10 @@ class LanguageLearningService:
             Return as a JSON object with fields: translation, pronunciation, notes
             """
             
+            # Use configurable model (default: gpt-4o-mini for cost-effective translation)
+            model = os.environ.get("OPENAI_TRANSLATION_MODEL", "gpt-4o-mini")
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model=model,
                 messages=[
                     {"role": "system", "content": "You are a professional translator."},
                     {"role": "user", "content": prompt}
@@ -485,8 +487,10 @@ class LanguageLearningService:
             Return as a JSON array with objects containing: sentence, translation, note
             """
             
+            # Use configurable model (default: gpt-4o-mini for cost-effective language learning)
+            model = os.environ.get("OPENAI_LANGUAGE_MODEL", "gpt-4o-mini")
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model=model,
                 messages=[
                     {"role": "system", "content": f"You are a {language_name} language teacher."},
                     {"role": "user", "content": prompt}
