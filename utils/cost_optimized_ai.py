@@ -26,11 +26,19 @@ class CostOptimizedAI:
         self.openrouter_key = os.environ.get("OPENROUTER_API_KEY")
         self.huggingface_key = os.environ.get("HUGGINGFACE_API_KEY")
 
+        # 2025 Model configuration - Latest cost-efficient models
+        self.models = {
+            'basic': os.environ.get("OPENROUTER_BASIC_MODEL", "google/gemini-2.0-flash-exp:free"),
+            'standard': os.environ.get("OPENROUTER_STANDARD_MODEL", "deepseek/deepseek-v3.2"),
+            'complex': os.environ.get("OPENROUTER_COMPLEX_MODEL", "google/gemini-2.5-flash")
+        }
+
         # Track request costs and usage
         self.total_cost = 0.0
         self.request_count = 0
 
         logger.info(f"CostOptimized AI initialized - OpenRouter: {'✓' if self.openrouter_key else '✗'}, HuggingFace: {'✓' if self.huggingface_key else '✗'}")
+        logger.info(f"Model config: {self.models}")
 
     def chat_completion(self,
                        messages: List[Dict[str, str]],
@@ -49,19 +57,19 @@ class CostOptimizedAI:
         Returns:
             Dict with response and metadata
         """
-        # Select model based on complexity and cost
+        # Select model based on complexity and cost (2025 updated models)
         if complexity == TaskComplexity.COMPLEX:
-            model = "anthropic/claude-3-sonnet-20240229"
-            cost_per_1k_input = 0.003
-            cost_per_1k_output = 0.015
+            model = self.models['complex']  # gemini-2.5-flash
+            cost_per_1k_input = 0.0003
+            cost_per_1k_output = 0.0025
         elif complexity == TaskComplexity.STANDARD:
-            model = "google/gemini-pro"
-            cost_per_1k_input = 0.00125
-            cost_per_1k_output = 0.00375
+            model = self.models['standard']  # deepseek-v3.2
+            cost_per_1k_input = 0.000224
+            cost_per_1k_output = 0.00032
         else:  # BASIC
-            model = "google/gemini-pro"  # Still cost-effective for basic tasks
-            cost_per_1k_input = 0.00125
-            cost_per_1k_output = 0.00375
+            model = self.models['basic']  # gemini-2.0-flash-exp:free
+            cost_per_1k_input = 0.0
+            cost_per_1k_output = 0.0
 
         # Try OpenRouter first
         if self.openrouter_key:

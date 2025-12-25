@@ -60,14 +60,26 @@ class UnifiedAIService:
         self.huggingface_key = os.environ.get("HUGGINGFACE_API_KEY")
         self.gemini_key = os.environ.get("GEMINI_API_KEY")
         self.openai_key = os.environ.get("OPENAI_API_KEY")
-        
+
+        # Model configuration with latest 2025 models - optimized for cost/quality balance
+        self.models = {
+            'openrouter_free': os.environ.get("OPENROUTER_FREE_MODEL", "meta-llama/llama-3.3-70b-instruct:free"),
+            'openrouter_basic': os.environ.get("OPENROUTER_BASIC_MODEL", "google/gemini-2.0-flash-exp:free"),
+            'openrouter_standard': os.environ.get("OPENROUTER_STANDARD_MODEL", "deepseek/deepseek-v3.2"),
+            'openrouter_complex': os.environ.get("OPENROUTER_COMPLEX_MODEL", "google/gemini-2.5-flash"),
+            'openrouter_research': os.environ.get("OPENROUTER_RESEARCH_MODEL", "anthropic/claude-sonnet-4.5"),
+            'openai_standard': os.environ.get("OPENAI_STANDARD_MODEL", "gpt-4o-mini"),
+            'openai_research': os.environ.get("OPENAI_RESEARCH_MODEL", "gpt-4o"),
+            'gemini_model': os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+        }
+
         # Cost tracking
         self.total_cost = 0.0
         self.request_count = 0
-        
+
         # Conversation memory for backwards compatibility
         self.conversation_memory = {}
-        
+
         # Initialize available providers
         self.available_providers = []
         if self.openrouter_key:
@@ -78,8 +90,9 @@ class UnifiedAIService:
             self.available_providers.append('gemini')
         if self.openai_key:
             self.available_providers.append('openai')
-            
+
         logger.info(f"Unified AI Service initialized with providers: {self.available_providers}")
+        logger.info(f"Model configuration: {self.models}")
 
     # === COST OPTIMIZED AI FUNCTIONS (from cost_optimized_ai.py) ===
     
@@ -112,12 +125,12 @@ class UnifiedAIService:
             
             # Generate response with selected provider
             if optimal_provider == 'openrouter' and 'openrouter' in self.available_providers:
-                response = self._openrouter_chat(messages, max_tokens, temperature)
+                response = self._openrouter_chat(messages, max_tokens, temperature, complexity)
             elif optimal_provider == 'gemini' and 'gemini' in self.available_providers:
                 response = self._gemini_chat(messages, max_tokens, temperature)
             elif optimal_provider == 'openai' and 'openai' in self.available_providers:
-                # Use GPT-4o for research tasks, GPT-4o-mini for others
-                model = "gpt-4o" if complexity == TaskComplexity.RESEARCH else "gpt-4o-mini"
+                # Use configured models based on complexity
+                model = self.models['openai_research'] if complexity == TaskComplexity.RESEARCH else self.models['openai_standard']
                 response = self._openai_chat(messages, max_tokens, temperature, model)
             else:
                 response = self._fallback_response(messages[-1]['content'] if messages else "Hello")
@@ -342,59 +355,80 @@ class UnifiedAIService:
 
     # === PROVIDER IMPLEMENTATIONS ===
     
-    def _openrouter_chat(self, messages: List[Dict[str, str]], max_tokens: int, temperature: float) -> Dict[str, Any]:
-        """OpenRouter chat implementation"""
+    def _openrouter_chat(self, messages: List[Dict[str, str]], max_tokens: int, temperature: float, complexity: TaskComplexity = TaskComplexity.STANDARD) -> Dict[str, Any]:
+        """OpenRouter chat implementation with dynamic model selection based on complexity"""
         try:
+            # Select model based on complexity for optimal cost/quality balance
+            if complexity == TaskComplexity.RESEARCH:
+                model = self.models['openrouter_research']  # claude-sonnet-4.5 - Best reasoning
+            elif complexity == TaskComplexity.COMPLEX:
+                model = self.models['openrouter_complex']  # gemini-2.5-flash - Balanced
+            elif complexity == TaskComplexity.BASIC:
+                model = self.models['openrouter_basic']  # gemini-2.0-flash-exp:free - Free
+            else:  # STANDARD
+                model = self.models['openrouter_standard']  # deepseek-v3.2 - Cost-effective
+
             headers = {
                 "Authorization": f"Bearer {self.openrouter_key}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "HTTP-Referer": os.environ.get("APP_URL", "https://nous.app"),
+                "X-Title": "NOUS AI Platform"
             }
-            
+
             payload = {
-                "model": "meta-llama/llama-3.1-8b-instruct:free",  # Free model
+                "model": model,
                 "messages": messages,
                 "max_tokens": max_tokens,
                 "temperature": temperature
             }
-            
+
+            logger.info(f"OpenRouter request with model: {model} (complexity: {complexity.name})")
+
             response = requests.post(
                 "https://openrouter.ai/api/v1/chat/completions",
                 headers=headers,
                 json=payload,
                 timeout=30
             )
-            
+
             if response.status_code == 200:
-                return response.json()
+                result = response.json()
+                result['model_used'] = model
+                result['complexity'] = complexity.name
+                return result
             else:
-                logger.error(f"OpenRouter error: {response.status_code}")
+                logger.error(f"OpenRouter error: {response.status_code} - {response.text}")
                 return self._fallback_response(messages[-1]['content'])
-                
+
         except Exception as e:
             logger.error(f"OpenRouter request error: {e}")
             return self._fallback_response(messages[-1]['content'])
 
     def _gemini_chat(self, messages: List[Dict[str, str]], max_tokens: int, temperature: float) -> Dict[str, Any]:
-        """Gemini chat implementation"""
+        """Gemini chat implementation with configurable model"""
         try:
             try:
                 import google.generativeai as genai
                 genai.configure(api_key=self.gemini_key)
-                model = genai.GenerativeModel('gemini-pro')
+                # Use configured Gemini model (default: gemini-2.5-flash)
+                model_name = self.models['gemini_model']
+                model = genai.GenerativeModel(model_name)
+                logger.info(f"Using Gemini model: {model_name}")
             except ImportError:
                 logger.warning("google.generativeai not available")
                 return self._fallback_response(messages[-1]['content'])
-            
+
             # Convert messages to Gemini format
             prompt = messages[-1]['content']
             response = model.generate_content(prompt)
-            
+
             return {
                 "choices": [{
                     "message": {
                         "content": response.text
                     }
-                }]
+                }],
+                "model_used": model_name
             }
         except Exception as e:
             logger.error(f"Gemini error: {e}")
