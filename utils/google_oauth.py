@@ -270,16 +270,7 @@ class GoogleOAuthService:
                 logger.info(f"Using Render hostname: {uri}")
                 return uri
 
-        # 3. Check for Replit deployment
-        repl_url = os.environ.get('REPL_URL') or os.environ.get('REPLIT_DOMAIN')
-        if repl_url:
-            if not repl_url.startswith('http'):
-                repl_url = f"https://{repl_url}"
-            uri = f"{repl_url}/callback/google"
-            logger.info(f"Using Replit URL: {uri}")
-            return uri
-
-        # 4. Try to get from Flask request context
+        # 3. Try to get from Flask request context
         if has_request_context():
             scheme = 'https' if (request.is_secure or request.headers.get('X-Forwarded-Proto') == 'https') else 'http'
             host = request.host
@@ -287,7 +278,7 @@ class GoogleOAuthService:
             logger.info(f"Using request context URL: {uri}")
             return uri
 
-        # 5. Fallback for local development
+        # 4. Fallback for local development
         fallback_uri = "http://localhost:8080/callback/google"
         logger.warning(f"Using localhost fallback: {fallback_uri}")
         return fallback_uri

@@ -163,7 +163,7 @@ class UnifiedAIService:
             headers = {
                 'Authorization': f'Bearer {self.providers["openrouter"]["api_key"]}',
                 'Content-Type': 'application/json',
-                'HTTP-Referer': 'https://nous-assistant.replit.app',
+                'HTTP-Referer': os.environ.get('APP_URL', 'https://nous-assistant.onrender.com'),
                 'X-Title': 'NOUS Personal Assistant'
             }
             

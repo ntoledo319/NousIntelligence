@@ -10,18 +10,29 @@ services:
     name: nous-intelligence-web
     env: python
     region: oregon    # or choose closest region
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn -w 4 -b 0.0.0.0:$PORT main:app
+    plan: starter
+    buildCommand: pip install -e .
+    startCommand: gunicorn --config gunicorn.conf.py main:app
     envVars:
       - key: FLASK_ENV
         value: production
       - key: DATABASE_URL    # This will be automatically filled by Render with the internal DB URL
-        fromDatabase: nous-db
+        fromDatabase:
+          name: nous-db
+          property: connectionString
       - key: SESSION_SECRET
-        value: ${SESSION_SECRET}    # replace with actual secret or set via Render Secrets
+        generateValue: true    # Render will auto-generate a secure secret
       - key: GOOGLE_CLIENT_ID
-        value: ${GOOGLE_CLIENT_ID}  # set these via Render secrets for security
+        sync: false    # Set manually via Render dashboard
       - key: GOOGLE_CLIENT_SECRET
-        value: ${GOOGLE_CLIENT_SECRET}
-    healthCheckPath: /api/health  # Assuming health check endpoint is available
+        sync: false    # Set manually via Render dashboard
+      - key: APP_URL
+        value: https://nous-intelligence-web.onrender.com
+      - key: OAUTH_REDIRECT_URI
+        value: https://nous-intelligence-web.onrender.com/callback/google
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: WEB_CONCURRENCY
+        value: 4
+    healthCheckPath: /api/health
+    autoDeploy: true

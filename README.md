@@ -1,7 +1,7 @@
 # NOUS Intelligence Platform
 ## The $0.66 Mental Health Revolution
 
-[![Deploy Status](https://img.shields.io/badge/deploy-production%20ready-success)](https://nous-intelligence.replit.app)
+[![Deploy Status](https://img.shields.io/badge/deploy-production%20ready-success)](https://nous-intelligence.onrender.com)
 [![Cost Efficiency](https://img.shields.io/badge/cost-97%25%20cheaper-green)](COST_ANALYSIS.md)
 [![Security](https://img.shields.io/badge/security-95%2F100-blue)](SECURITY.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -132,17 +132,27 @@ Autonomous agents providing 24/7 optimization:
 
 ## 🚀 Quick Start
 
-### Option 1: Replit Cloud (Recommended)
+### Option 1: Render Deployment (Recommended)
 ```bash
-# Fork the repository on Replit
-# Set environment variables in Secrets:
+# 1. Fork this repository to your GitHub account
+
+# 2. Create a new Web Service on Render (https://render.com)
+#    - Connect your GitHub repository
+#    - Select "Python" as the environment
+#    - Build Command: pip install -e .
+#    - Start Command: gunicorn --config gunicorn.conf.py main:app
+
+# 3. Add a PostgreSQL database
+#    - Render will automatically set DATABASE_URL
+
+# 4. Set environment variables:
 SESSION_SECRET=your-32-character-secret
-DATABASE_URL=sqlite:///nous.db
 GOOGLE_CLIENT_ID=your-google-oauth-id
 GOOGLE_CLIENT_SECRET=your-google-oauth-secret
+OAUTH_REDIRECT_URI=https://your-app.onrender.com/callback/google
+APP_URL=https://your-app.onrender.com
 
-# Run
-python3 main.py
+# 5. Deploy! Render will automatically build and deploy your app
 ```
 
 ### Option 2: Local Development
@@ -169,7 +179,7 @@ python -c "from app import app, db; app.app_context().push(); db.create_all()"
 python main.py
 ```
 
-### Option 3: Docker Deployment
+### Option 3: Production Docker Deployment
 ```dockerfile
 FROM python:3.13-slim
 COPY . /app

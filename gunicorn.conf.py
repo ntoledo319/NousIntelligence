@@ -6,8 +6,8 @@ import os
 bind = f"0.0.0.0:{os.environ.get('PORT', '8080')}"
 backlog = 2048
 
-# Worker processes - optimized for Replit and performance
-workers = min(multiprocessing.cpu_count() * 2 + 1, 4)  # Cap at 4 for Replit
+# Worker processes - optimized for production performance
+workers = multiprocessing.cpu_count() * 2 + 1  # Scale with available CPU cores
 worker_class = "sync"
 worker_connections = 1000
 timeout = 60  # Increased for optimization processes

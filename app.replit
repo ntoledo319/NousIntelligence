@@ -1,4 +1,0 @@
-[run]
-command = "./launch_nous.sh"
-language = "python"
-onBoot = ""

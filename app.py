@@ -300,10 +300,23 @@ def create_app():
     app.secret_key = secret
     # Use normalized database URL (postgres:// -> postgresql://)
     app.config["SQLALCHEMY_DATABASE_URI"] = AppConfig.get_database_url() if hasattr(AppConfig, 'get_database_url') else AppConfig.SQLALCHEMY_DATABASE_URI
+
+    # Optimized database connection pooling for production
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-        "pool_recycle": 300,  # Regular renewal, like therapy sessions
-        "pool_pre_ping": True,  # Check connection health proactively
+        "pool_size": 10,  # Number of persistent connections
+        "pool_recycle": 300,  # Recycle connections after 5 minutes
+        "pool_pre_ping": True,  # Check connection health before use
+        "max_overflow": 20,  # Allow up to 20 additional connections under load
+        "pool_timeout": 30,  # Wait up to 30 seconds for available connection
+        "echo": False,  # Disable SQL query logging in production
+        "connect_args": {
+            "connect_timeout": 10,  # Connection timeout in seconds
+            "options": "-c timezone=utc",  # Use UTC timezone
+        }
     }
+
+    # Disable modification tracking (performance optimization)
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     
     # Every app needs healthy boundaries
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
@@ -358,6 +371,16 @@ def create_app():
     init_auth(app)
     init_security_headers(app)
     init_session_security(app)
+
+    # Initialize production security (CORS and rate limiting)
+    try:
+        from utils.production_security import init_production_security, apply_security_config
+        apply_security_config(app)
+        init_production_security(app)
+        logger.info("   🔒 Production security (CORS & rate limiting) activated")
+    except ImportError as e:
+        logger.warning(f"   ⚠️ Production security not available: {e}")
+
     logger.info("   🤝 Trust systems activated")
     
     # Create database tables as sacred spaces

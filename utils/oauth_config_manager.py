@@ -99,12 +99,6 @@ class OAuthConfigManager:
             if hostname:
                 return f"https://{hostname}/callback/google"
 
-        replit_url = os.environ.get('REPL_URL') or os.environ.get('REPLIT_DOMAIN')
-        if replit_url:
-            if not replit_url.startswith('http'):
-                replit_url = f"https://{replit_url}"
-            return f"{replit_url}/callback/google"
-
         domain = os.environ.get('CUSTOM_DOMAIN')
         if domain:
             return f"https://{domain}/callback/google"
