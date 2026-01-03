@@ -1,13 +1,16 @@
 """
 Rate Limiting Utility
-Provides rate limiting functionality for Flask routes to prevent abuse
+Provides rate limiting functionality for Flask routes 
+Rate Limiting Utilities - Enhanced for Production
+Implements token bucket algorithm with Redis backend
 """
 
 import time
 from functools import wraps
-from collections import defaultdict, deque
-from flask import request, jsonify, abort
+from flask import request, jsonify, current_app
+from typing import Dict, Tuple, Optional, Callable
 import logging
+import hashlib
 
 logger = logging.getLogger(__name__)
 

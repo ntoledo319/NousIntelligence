@@ -293,10 +293,9 @@ def create_app():
     
     # Set the foundation with love
     secret = AppConfig.SECRET_KEY
-    # In development / testing, fall back to a safe test secret so
-    # sessions work even when SESSION_SECRET is not configured.
-    if not secret and getattr(AppConfig, "DEBUG", False):
-        secret = "dev-secret-key-for-testing-only"
+    # SECURITY: No hardcoded fallback - fail fast if secret missing
+    if not secret:
+        raise ValueError("SECRET_KEY must be set in environment variables")
     app.secret_key = secret
     # Use normalized database URL (postgres:// -> postgresql://)
     app.config["SQLALCHEMY_DATABASE_URI"] = AppConfig.get_database_url() if hasattr(AppConfig, 'get_database_url') else AppConfig.SQLALCHEMY_DATABASE_URI

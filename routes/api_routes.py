@@ -40,12 +40,26 @@ def _escape_text(s: str) -> str:
     # Finally, HTML-escape for safe rendering
     return html.escape(text, quote=True)
 
-def _demo_response(message: str) -> str:
-    # Deterministic, safe fallback response (no external model required)
-    m = message.strip()
-    if not m:
-        return "Say something and I'll respond. Telepathy isn't in the repo yet."
-    return f"✅ Got it. You said: {_escape_text(m)}"
+def _get_ai_response(message: str, user_id: str) -> Dict[str, Any]:
+    """Get response from EmotionAwareTherapeuticAssistant"""
+    try:
+        from services.emotion_aware_therapeutic_assistant import EmotionAwareTherapeuticAssistant
+        assistant = EmotionAwareTherapeuticAssistant()
+        response = assistant.get_therapeutic_response(
+            user_input=message,
+            user_id=user_id,
+            context={}
+        )
+        return response
+    except Exception as e:
+        import logging
+        logging.error(f"AI response error: {e}")
+        # Fallback
+        return {
+            'response': f"I hear you. You said: {_escape_text(message)}",
+            'emotion': None,
+            'skill_recommendations': []
+        }
 
 @api_bp.get("/health")
 def health_v1():
@@ -88,14 +102,19 @@ def chat_api():
     if len(msg) > MAX_MESSAGE_LEN:
         return jsonify({"ok": False, "error": "message_too_long", "limit": MAX_MESSAGE_LEN}), 413
 
+    user_id = session.get("user_id", "demo")
+    
+    # Get AI response
+    ai_response = _get_ai_response(msg, user_id)
+    
     # Optional: store to nous_core runtime if present
     try:
         from services.runtime_service import init_runtime
         from flask import current_app
         rt = init_runtime(current_app)
-        rt["bus"].publish("chat.message", {"message": msg})
+        rt["bus"].publish("chat.message", {"message": msg, "response": ai_response})
         rt["semantic"].upsert(f"chat:{time.time()}", msg, {"kind": "chat"})
     except Exception:
         pass
 
-    return jsonify({"response": _demo_response(msg)})
+    return jsonify(ai_response)
