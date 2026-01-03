@@ -12,30 +12,36 @@ logger = logging.getLogger(__name__)
 
 def _ensure_session_secret() -> str:
     """
-    Guarantee the presence of a strong session secret for production deployments.
-    If the environment lacks `SESSION_SECRET` or provides a weak value, generate
-    a high-entropy fallback, write it back into the environment, and surface a
-    warning so operators can set a persistent secret. This prevents health checks
-    from failing during deploys while keeping sessions functional.
+    Require a strong session secret for production deployments.
+    Fails fast if SESSION_SECRET is missing or weak to prevent session issues
+    in multi-instance deployments and across restarts.
     """
     existing_secret = os.environ.get('SESSION_SECRET') or os.environ.get('SECRET_KEY')
-    if existing_secret and len(existing_secret) >= 32:
+    
+    # In development/testing, allow fallback
+    if os.environ.get('FLASK_ENV') == 'development' or os.environ.get('TESTING') == 'true':
+        if not existing_secret or len(existing_secret) < 32:
+            runtime_secret = secrets.token_hex(32)
+            os.environ['SESSION_SECRET'] = runtime_secret
+            os.environ.setdefault('SECRET_KEY', runtime_secret)
+            logger.info("Development mode: Generated ephemeral session secret")
+            return runtime_secret
         return existing_secret
-
-    runtime_secret = secrets.token_hex(32)
-    os.environ['SESSION_SECRET'] = runtime_secret
-    os.environ.setdefault('SECRET_KEY', runtime_secret)
-    if existing_secret:
-        logger.warning(
-            "SESSION_SECRET was present but too short; generated an ephemeral "
-            "runtime secret. Set a persistent 32+ character secret in the environment."
+    
+    # In production, require explicit secret
+    if not existing_secret:
+        raise ValueError(
+            "SESSION_SECRET environment variable is required for production. "
+            "Generate one with: python -c 'import secrets; print(secrets.token_hex(32))'"
         )
-    else:
-        logger.warning(
-            "SESSION_SECRET not set; generated an ephemeral runtime secret. "
-            "Set a persistent 32+ character secret in the environment."
+    
+    if len(existing_secret) < 32:
+        raise ValueError(
+            f"SESSION_SECRET must be at least 32 characters (currently {len(existing_secret)}). "
+            "Generate a new one with: python -c 'import secrets; print(secrets.token_hex(32))'"
         )
-    return runtime_secret
+    
+    return existing_secret
 
 
 class AppConfig:

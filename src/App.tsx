@@ -42,15 +42,15 @@ const App: React.FC = () => {
 
         <SurfaceCard>
           <SectionHeader>
-            <span>Component Sampler</span>
+            <span>Design System</span>
             <StatusBadge>
               <ShieldCheckIcon width={16} height={16} />
-              Stable theme primitives
+              Limen Harbor Theme
             </StatusBadge>
           </SectionHeader>
           <SectionCopy>
-            Buttons, loading states, and icon affordances demonstrate the Limen Harbor aesthetic for
-            primary and secondary actions.
+            Our calming, accessible design system ensures a consistent and therapeutic user experience
+            across all interactions.
           </SectionCopy>
 
           <ShowcaseGrid>

@@ -43,16 +43,16 @@ class DBTSkillLog(db.Model):
     __tablename__ = 'dbt_skill_logs'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    skill_name = db.Column(db.String(100))
-    category = db.Column(db.String(50))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    skill_name = db.Column(db.String(100), nullable=False)
+    category = db.Column(db.String(50), nullable=False)  # Should reference skill categories
     situation = db.Column(db.Text)
-    effectiveness = db.Column(db.Integer)
+    effectiveness = db.Column(db.Integer, db.CheckConstraint('effectiveness >= 1 AND effectiveness <= 10'))
     notes = db.Column(db.Text)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
 
     # Relationships
-    user = db.relationship('User', backref=db.backref('dbt_skill_logs', lazy=True))
+    user = db.relationship('User', backref=db.backref('dbt_skill_logs', lazy=True, cascade='all, delete-orphan'))
 
     def to_dict(self):
         """Convert to dictionary"""

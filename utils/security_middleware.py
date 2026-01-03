@@ -125,7 +125,11 @@ def generate_request_id() -> str:
 
 
 def is_suspicious_request(request) -> bool:
-    """Check if request shows suspicious patterns"""
+    """
+    Check if request shows suspicious patterns.
+    Note: We use parameterized queries, so SQL injection patterns are removed.
+    Focus on path traversal and code injection which can't be parameterized.
+    """
     suspicious_patterns = [
         '../',  # Path traversal
         '..\\',  # Windows path traversal
@@ -137,10 +141,6 @@ def is_suspicious_request(request) -> bool:
         'vbscript:',  # XSS attempt
         'onload=',  # XSS attempt
         'onerror=',  # XSS attempt
-        '; DROP TABLE',  # SQL injection
-        'UNION SELECT',  # SQL injection
-        '/*',  # SQL comment injection
-        '--',  # SQL comment injection
     ]
     
     # Check URL
@@ -149,7 +149,7 @@ def is_suspicious_request(request) -> bool:
         if pattern.lower() in url_lower:
             return True
     
-    # Check form data
+    # Check form data - only for extreme patterns
     if request.form:
         for value in request.form.values():
             if isinstance(value, str):

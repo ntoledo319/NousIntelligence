@@ -51,13 +51,12 @@
     <!-- Load fonts asynchronously -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"></noscript>
-    <!-- Limen Harbor Theme - Unified landing page styles -->
-    <link rel="stylesheet" href="/static/css/unified-landing.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="manifest" href="/static/manifest.json">
     <link rel="apple-touch-icon" href="/static/favicon.ico">
 </head>
-<body class="bg-harbor font-sans" data-theme="limen-harbor">
+<body class="bg-harbor font-sans antialiased" data-theme="limen-harbor">
     <!-- Efficient Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -72,10 +71,9 @@
         {% endif %}
     {% endwith %}
     
-    <div class="container">
-        <!-- Hero Section -->
+    <div class="landing-page">
         <header class="hero">
-            <div class="hero-content">
+            <div class="hero-content container">
                 <h1 class="hero-title">
                     <span class="logo">🧠</span>
                     NOUS
@@ -83,7 +81,7 @@
                 <p class="hero-subtitle">Your Intelligent Personal Assistant</p>
                 <p class="hero-description">
                     Experience the future of AI-powered assistance. Chat, learn, and grow with NOUS - 
-                    your personalized companion for productivity, creativity, and insight.
+                    your personalized companion for productivity, creativity, and mental wellness.
                 </p>
                 
                 <!-- Crisis Support - Always Available -->
@@ -95,40 +93,38 @@
             </div>
         </header>
 
-        <!-- Features Section -->
         <section class="features">
-            <h2>Why Choose NOUS?</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">💬</div>
-                    <h3>Natural Conversations</h3>
-                    <p>Engage in fluid, context-aware conversations that feel genuinely human.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🎨</div>
-                    <h3>Creative Assistance</h3>
-                    <p>From writing to brainstorming, unlock your creative potential with AI guidance.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">⚡</div>
-                    <h3>Instant Responses</h3>
-                    <p>Get immediate, thoughtful answers to questions across any topic or domain.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🔒</div>
-                    <h3>Secure & Private</h3>
-                    <p>Your conversations are protected with enterprise-grade security.</p>
+            <div class="container">
+                <h2>Why Choose NOUS?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">💬</div>
+                        <h3>Natural Conversations</h3>
+                        <p>Engage in fluid, context-aware conversations that feel genuinely human.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🧠</div>
+                        <h3>Mental Wellness</h3>
+                        <p>Evidence-based therapeutic support with CBT, DBT, and mindfulness techniques.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Instant Insights</h3>
+                        <p>Get immediate, thoughtful responses across any topic or domain.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>Secure & Private</h3>
+                        <p>Enterprise-grade security with HIPAA compliance for your peace of mind.</p>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- CTA Section -->
         <section class="cta">
-            <div class="cta-content">
+            <div class="cta-content container">
                 <h2>Ready to Get Started?</h2>
-                <p>Join thousands of users who have discovered the power of intelligent assistance.</p>
-                
-
+                <p>Join thousands who have discovered the power of AI-assisted mental wellness.</p>
                 
                 <!-- OAuth Error Handling -->
                 {% set oauth_error = request.args.get('oauth_error') %}
@@ -192,7 +188,7 @@
                 </div>
                 
                 <p class="signin-note">
-                    Demo: No signup required • Full features: Google account • Secure & private
+                    Try demo mode instantly or sign in for full features • Secure & private • HIPAA compliant
                 </p>
             </div>
         </section>

@@ -61,19 +61,17 @@ except (ImportError, ModuleNotFoundError):
     pass
 
 try:
-    from .reminder import Reminder
+    from .task_models import Task, Reminder
 except (ImportError, ModuleNotFoundError):
-    pass
+    Task = None
+    Reminder = None
 
 try:
-    from .task import Task
+    from .cbt_models import ThoughtRecord, CognitiveDistortion, MoodEntry
 except (ImportError, ModuleNotFoundError):
-    pass
-
-try:
-    from .habit import Habit
-except (ImportError, ModuleNotFoundError):
-    pass
+    ThoughtRecord = None
+    CognitiveDistortion = None
+    MoodEntry = None
 
 try:
     from .journal import JournalEntry

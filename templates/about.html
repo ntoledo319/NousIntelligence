@@ -4,47 +4,112 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0891b2">
-    <title>About - NOUS Personal Assistant | Limen Harbor</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>About - NOUS Intelligence | Limen Harbor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
 </head>
-<body class="bg-harbor">
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="/" class="nav-brand">NOUS</a>
-            <div class="nav-links">
-                <a href="/">Home</a>
-                <a href="/chat">Chat</a>
-                <a href="/about" class="active">About</a>
-                <a href="/features">Features</a>
+<body class="bg-harbor antialiased">
+    <nav style="background: var(--surface-color); border-bottom: 1px solid var(--border-color); padding: 1rem 0; position: sticky; top: 0; z-index: 100;">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+            <a href="/" style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
+                🧠 NOUS
+            </a>
+            <div style="display: flex; gap: 2rem; align-items: center;">
+                <a href="/" style="color: var(--text-secondary); text-decoration: none; font-weight: 500; transition: color 0.2s;">Home</a>
+                <a href="/chat" style="color: var(--text-secondary); text-decoration: none; font-weight: 500; transition: color 0.2s;">Chat</a>
+                <a href="/about" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">About</a>
+                <a href="/features" style="color: var(--text-secondary); text-decoration: none; font-weight: 500; transition: color 0.2s;">Features</a>
             </div>
         </div>
     </nav>
 
-    <main class="main-content">
-        <div class="container">
-            <h1>About NOUS</h1>
-            <div class="content-section">
-                <p>NOUS is an advanced AI-powered personal assistant designed to help you manage your life more effectively. Our comprehensive platform combines cutting-edge artificial intelligence with intuitive design to provide you with personalized support across multiple areas of your life.</p>
+    <main style="padding: 4rem 0; min-height: calc(100vh - 200px);">
+        <div class="container" style="max-width: 900px;">
+            <header style="text-align: center; margin-bottom: 4rem;">
+                <h1 style="font-size: 3rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1rem; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    About NOUS Intelligence
+                </h1>
+                <p style="font-size: 1.25rem; color: var(--text-secondary);">
+                    Your AI-powered companion for mental wellness and personal growth
+                </p>
+            </header>
+            
+            <div style="background: var(--card-gradient); padding: 3rem; border-radius: var(--border-radius-xl); border: 1px solid var(--border-color); box-shadow: 0 4px 20px var(--shadow-color); margin-bottom: 3rem;">
+                <p style="font-size: 1.125rem; line-height: 1.8; color: var(--text-primary); margin-bottom: 2rem;">
+                    NOUS is an advanced AI-powered platform designed to support your mental health journey. We combine cutting-edge artificial intelligence with evidence-based therapeutic approaches to provide personalized, accessible mental wellness support.
+                </p>
                 
-                <h2>Our Mission</h2>
-                <p>To democratize access to advanced AI assistance while maintaining complete user privacy and control over personal data.</p>
+                <h2 style="font-size: 2rem; font-weight: 600; color: var(--text-primary); margin: 2.5rem 0 1.5rem 0; background: var(--button-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    Our Mission
+                </h2>
+                <p style="font-size: 1.125rem; line-height: 1.8; color: var(--text-primary); margin-bottom: 2rem;">
+                    To democratize access to high-quality mental health support through AI, while maintaining the highest standards of privacy, security, and clinical effectiveness. We believe everyone deserves access to compassionate, evidence-based mental wellness tools.
+                </p>
                 
-                <h2>Key Capabilities</h2>
-                <ul>
-                    <li>Intelligent conversation and task assistance</li>
-                    <li>Mental health and wellness support</li>
-                    <li>Financial management and tracking</li>
-                    <li>Health monitoring and insights</li>
-                    <li>Collaborative family features</li>
-                    <li>Advanced analytics and reporting</li>
+                <h2 style="font-size: 2rem; font-weight: 600; color: var(--text-primary); margin: 2.5rem 0 1.5rem 0; background: var(--button-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    Core Capabilities
+                </h2>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; padding: 1rem; background: var(--surface-color); border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+                        <span style="font-size: 1.5rem;">🧠</span>
+                        <div>
+                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">Evidence-Based Therapy</strong>
+                            <span style="color: var(--text-secondary);">CBT, DBT, and mindfulness-based interventions</span>
+                        </div>
+                    </li>
+                    <li style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; padding: 1rem; background: var(--surface-color); border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+                        <span style="font-size: 1.5rem;">💬</span>
+                        <div>
+                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">Intelligent Conversations</strong>
+                            <span style="color: var(--text-secondary);">Context-aware, empathetic AI interactions</span>
+                        </div>
+                    </li>
+                    <li style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; padding: 1rem; background: var(--surface-color); border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+                        <span style="font-size: 1.5rem;">📊</span>
+                        <div>
+                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">Progress Tracking</strong>
+                            <span style="color: var(--text-secondary);">Monitor your wellness journey with detailed insights</span>
+                        </div>
+                    </li>
+                    <li style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; padding: 1rem; background: var(--surface-color); border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+                        <span style="font-size: 1.5rem;">🔒</span>
+                        <div>
+                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">Privacy & Security</strong>
+                            <span style="color: var(--text-secondary);">HIPAA-compliant, end-to-end encrypted</span>
+                        </div>
+                    </li>
+                    <li style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; padding: 1rem; background: var(--surface-color); border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+                        <span style="font-size: 1.5rem;">🆘</span>
+                        <div>
+                            <strong style="color: var(--text-primary); display: block; margin-bottom: 0.25rem;">Crisis Support</strong>
+                            <span style="color: var(--text-secondary);">24/7 access to crisis resources and intervention</span>
+                        </div>
+                    </li>
                 </ul>
-                
-                <div class="cta-section">
-                    <a href="/chat" class="btn btn-primary">Try NOUS Now</a>
-                    <a href="/features" class="btn btn-secondary">Learn More</a>
+            </div>
+            
+            <div class="cta" style="text-align: center;">
+                <h2 style="font-size: 2.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1rem;">
+                    Start Your Wellness Journey
+                </h2>
+                <p style="font-size: 1.125rem; color: var(--text-secondary); margin-bottom: 2rem;">
+                    Join thousands who trust NOUS for their mental health support
+                </p>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <a href="/chat" class="google-signin-btn primary" style="display: inline-flex;">Start Chatting</a>
+                    <a href="/features" class="demo-btn" style="display: inline-flex;">Explore Features</a>
                 </div>
             </div>
         </div>
     </main>
+    
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 NOUS Intelligence. Built with care for mental wellness.</p>
+        </div>
+    </footer>
 </body>
 </html>

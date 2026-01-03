@@ -4,62 +4,93 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0891b2">
-    <title>Features - NOUS Personal Assistant | Limen Harbor</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Features - NOUS Intelligence | Limen Harbor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
 </head>
-<body class="bg-harbor">
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="/" class="nav-brand">NOUS</a>
-            <div class="nav-links">
-                <a href="/">Home</a>
-                <a href="/chat">Chat</a>
-                <a href="/about">About</a>
-                <a href="/features" class="active">Features</a>
+<body class="bg-harbor antialiased">
+    <nav style="background: var(--surface-color); border-bottom: 1px solid var(--border-color); padding: 1rem 0; position: sticky; top: 0; z-index: 100;">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+            <a href="/" style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
+                🧠 NOUS
+            </a>
+            <div style="display: flex; gap: 2rem; align-items: center;">
+                <a href="/" style="color: var(--text-secondary); text-decoration: none; font-weight: 500; transition: color 0.2s;">Home</a>
+                <a href="/chat" style="color: var(--text-secondary); text-decoration: none; font-weight: 500; transition: color 0.2s;">Chat</a>
+                <a href="/about" style="color: var(--text-secondary); text-decoration: none; font-weight: 500; transition: color 0.2s;">About</a>
+                <a href="/features" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">Features</a>
             </div>
         </div>
     </nav>
 
-    <main class="main-content">
+    <main style="padding: 4rem 0; min-height: calc(100vh - 200px);">
         <div class="container">
-            <h1>NOUS Features</h1>
+            <header style="text-align: center; margin-bottom: 4rem;">
+                <h1 style="font-size: 3rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1rem; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    Comprehensive Features
+                </h1>
+                <p style="font-size: 1.25rem; color: var(--text-secondary); max-width: 42rem; margin: 0 auto;">
+                    Everything you need for mental wellness, productivity, and personal growth in one intelligent platform.
+                </p>
+            </header>
+            
             <div class="features-grid">
                 <div class="feature-card">
+                    <div class="feature-icon">💬</div>
                     <h3>AI Chat Assistant</h3>
                     <p>Intelligent conversational AI that understands context and provides personalized assistance for all your daily needs.</p>
                 </div>
                 
                 <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
                     <h3>Mental Health Support</h3>
                     <p>Comprehensive CBT, DBT, and addiction recovery tools with AI-powered therapeutic guidance and progress tracking.</p>
                 </div>
                 
                 <div class="feature-card">
+                    <div class="feature-icon">💰</div>
                     <h3>Financial Management</h3>
-                    <p>Track expenses, manage budgets, and get insights into your financial health with secure bank integration.</p>
+                    <p>Track expenses, manage budgets, and get insights into your financial health with secure integration.</p>
                 </div>
                 
                 <div class="feature-card">
+                    <div class="feature-icon">❤️</div>
                     <h3>Health & Wellness</h3>
                     <p>Monitor your physical and mental well-being with comprehensive health tracking and personalized recommendations.</p>
                 </div>
                 
                 <div class="feature-card">
+                    <div class="feature-icon">📊</div>
                     <h3>Analytics Dashboard</h3>
                     <p>Detailed insights into your productivity, health patterns, and goal progress with AI-generated recommendations.</p>
                 </div>
                 
                 <div class="feature-card">
-                    <h3>Collaboration Tools</h3>
+                    <div class="feature-icon">👥</div>
+                    <h3>Family Collaboration</h3>
                     <p>Share tasks, coordinate with family members, and manage group activities with collaborative features.</p>
                 </div>
             </div>
             
-            <div class="cta-section">
-                <h2>Ready to Get Started?</h2>
-                <a href="/chat" class="btn btn-primary">Try NOUS Now</a>
+            <div class="cta" style="margin-top: 5rem;">
+                <div class="cta-content">
+                    <h2>Ready to Experience NOUS?</h2>
+                    <p>Start your journey to better mental wellness today.</p>
+                    <div style="margin-top: 2rem;">
+                        <a href="/chat" class="google-signin-btn primary" style="display: inline-flex;">Start Chatting Now</a>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
+    
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 NOUS Intelligence. Built with care for mental wellness.</p>
+        </div>
+    </footer>
 </body>
 </html>

@@ -408,14 +408,7 @@ def create_app():
         logger.warning(f"   🌈 Some pathways need alternative routes: {e}")
         register_basic_routes(app)
     
-    # Register missing API routes blueprint to fix test failures
-    try:
-        from routes.missing_api_routes import missing_api_bp, missing_root_bp
-        app.register_blueprint(missing_api_bp)
-        app.register_blueprint(missing_root_bp)
-        logger.info("   🔧 Missing API routes registered!")
-    except ImportError:
-        logger.warning("   ⚠️ Missing API routes not available")
+    # NOTE: missing_api_routes.py has been deprecated - routes moved to proper blueprints
     
     # Register simple auth API blueprint
     try:
