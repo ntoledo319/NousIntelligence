@@ -14,8 +14,8 @@ const SpinnerContainer = styled.div`
 `;
 
 const Spinner = styled.div`
-  border: 3px solid ${({ theme }) => theme.colors.border.default};
-  border-top: 3px solid ${({ theme }) => theme.colors.primary.default};
+  border: 3px solid ${({ theme }) => theme.colors.border};
+  border-top: 3px solid ${({ theme }) => theme.colors.primary};
   border-radius: 50%;
   width: 40px;
   height: 40px;

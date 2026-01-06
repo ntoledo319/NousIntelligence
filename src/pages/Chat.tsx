@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { useChatStore } from '../store/chatStore';
 import { useAuthStore } from '../store/authStore';
-import { Button } from '../components/Button/Button';
+import Button from '../components/Button/Button';
 import { PaperAirplaneIcon } from '@heroicons/react/24/solid';
 
 const ChatContainer = styled.div`
@@ -14,8 +14,8 @@ const ChatContainer = styled.div`
 `;
 
 const ChatHeader = styled.header`
-  background: ${({ theme }) => theme.colors.surface.default};
-  border-bottom: 1px solid ${({ theme }) => theme.colors.border.default};
+  background: ${({ theme }) => theme.colors.surface};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
   padding: 1rem 1.5rem;
   display: flex;
   justify-content: space-between;
@@ -25,7 +25,7 @@ const ChatHeader = styled.header`
 const ChatTitle = styled.h1`
   font-size: 1.5rem;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme }) => theme.colors.text};
   margin: 0;
 `;
 
@@ -44,9 +44,9 @@ const MessageBubble = styled.div<{ $isUser: boolean }>`
   padding: 0.875rem 1.25rem;
   border-radius: ${({ theme }) => theme.radii.lg};
   background: ${({ $isUser, theme }) =>
-    $isUser ? theme.colors.primary.default : theme.colors.surface.default};
+    $isUser ? theme.colors.primary : theme.colors.surface};
   color: ${({ $isUser, theme }) =>
-    $isUser ? theme.colors.text.inverse : theme.colors.text.primary};
+    $isUser ? theme.colors.textInverse : theme.colors.text};
   box-shadow: ${({ theme }) => theme.shadows.sm};
   word-wrap: break-word;
 `;
@@ -64,8 +64,8 @@ const MessageTime = styled.time`
 `;
 
 const InputArea = styled.div`
-  background: ${({ theme }) => theme.colors.surface.default};
-  border-top: 1px solid ${({ theme }) => theme.colors.border.default};
+  background: ${({ theme }) => theme.colors.surface};
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
   padding: 1rem 1.5rem;
   display: flex;
   gap: 0.75rem;
@@ -74,29 +74,29 @@ const InputArea = styled.div`
 const MessageInput = styled.textarea`
   flex: 1;
   padding: 0.875rem 1rem;
-  border: 1px solid ${({ theme }) => theme.colors.border.default};
+  border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.md};
   font-family: inherit;
   font-size: 1rem;
   resize: none;
   min-height: 48px;
   max-height: 120px;
-  background: ${({ theme }) => theme.colors.background.default};
-  color: ${({ theme }) => theme.colors.text.primary};
+  background: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.text};
 
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.colors.primary.default};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary.default}20;
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}20;
   }
 `;
 
 const EmotionIndicator = styled.div<{ $emotion?: string }>`
   padding: 0.5rem 1rem;
-  background: ${({ theme }) => theme.colors.surface.elevated};
+  background: ${({ theme }) => theme.colors.backgroundSoft};
   border-radius: ${({ theme }) => theme.radii.md};
   font-size: 0.875rem;
-  color: ${({ theme }) => theme.colors.text.secondary};
+  color: ${({ theme }) => theme.colors.textLight};
   display: flex;
   align-items: center;
   gap: 0.5rem;

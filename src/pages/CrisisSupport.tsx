@@ -8,39 +8,39 @@ const Container = styled.div`
 `;
 
 const Alert = styled.div`
-  background: ${({ theme }) => theme.colors.error.bg};
-  border: 2px solid ${({ theme }) => theme.colors.error.default};
+  background: ${({ theme }) => theme.colors.dangerLight};
+  border: 2px solid ${({ theme }) => theme.colors.danger};
   border-radius: ${({ theme }) => theme.radii.lg};
   padding: 1.5rem;
   margin-bottom: 2rem;
 `;
 
 const AlertTitle = styled.h2`
-  color: ${({ theme }) => theme.colors.error.default};
+  color: ${({ theme }) => theme.colors.danger};
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
 `;
 
 const AlertText = styled.p`
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme }) => theme.colors.text};
   line-height: 1.6;
 `;
 
 const Title = styled.h1`
   font-size: 2rem;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme }) => theme.colors.text};
   margin-bottom: 1.5rem;
 `;
 
 const ResourceCard = styled.a`
   display: block;
-  background: ${({ theme }) => theme.colors.surface.default};
+  background: ${({ theme }) => theme.colors.surface};
   padding: 1.5rem;
   border-radius: ${({ theme }) => theme.radii.lg};
   box-shadow: ${({ theme }) => theme.shadows.sm};
-  border: 2px solid ${({ theme }) => theme.colors.border.default};
+  border: 2px solid ${({ theme }) => theme.colors.border};
   margin-bottom: 1rem;
   text-decoration: none;
   transition: all ${({ theme }) => theme.transitions.normal};
@@ -48,7 +48,7 @@ const ResourceCard = styled.a`
   &:hover {
     transform: translateY(-2px);
     box-shadow: ${({ theme }) => theme.shadows.md};
-    border-color: ${({ theme }) => theme.colors.primary.default};
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
@@ -63,8 +63,8 @@ const ResourceIcon = styled.div`
   width: 3rem;
   height: 3rem;
   border-radius: ${({ theme }) => theme.radii.md};
-  background: ${({ theme }) => theme.colors.primary.default};
-  color: ${({ theme }) => theme.colors.text.inverse};
+  background: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.textInverse};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -78,12 +78,12 @@ const ResourceIcon = styled.div`
 const ResourceTitle = styled.h3`
   font-size: 1.25rem;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme }) => theme.colors.text};
   margin: 0;
 `;
 
 const ResourceDescription = styled.p`
-  color: ${({ theme }) => theme.colors.text.secondary};
+  color: ${({ theme }) => theme.colors.textLight};
   line-height: 1.5;
   margin: 0;
 `;
@@ -91,7 +91,7 @@ const ResourceDescription = styled.p`
 const PhoneNumber = styled.div`
   font-size: 1.5rem;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.primary.default};
+  color: ${({ theme }) => theme.colors.primary};
   margin-top: 0.5rem;
 `;
 

@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useAuthStore } from '../store/authStore';
-import { Button } from '../components/Button/Button';
+import Button from '../components/Button/Button';
 import { SparklesIcon, HeartIcon, AcademicCapIcon, ChartBarIcon } from '@heroicons/react/24/outline';
 
 const LandingContainer = styled.div`
@@ -59,7 +59,7 @@ const Title = styled.h1`
   font-size: 3rem;
   font-weight: 800;
   margin-bottom: 1.5rem;
-  color: ${({ theme }) => theme.colors.text.inverse};
+  color: ${({ theme }) => theme.colors.textInverse};
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
   @media (min-width: 768px) {
@@ -71,7 +71,7 @@ const Subtitle = styled.p`
   font-size: 1.5rem;
   font-weight: 400;
   margin-bottom: 2rem;
-  color: ${({ theme }) => theme.colors.text.inverse};
+  color: ${({ theme }) => theme.colors.textInverse};
   opacity: 0.95;
 
   @media (min-width: 768px) {
@@ -84,7 +84,7 @@ const Description = styled.p`
   line-height: 1.7;
   opacity: 0.9;
   margin-bottom: 2.5rem;
-  color: ${({ theme }) => theme.colors.text.inverse};
+  color: ${({ theme }) => theme.colors.textInverse};
 `;
 
 const ButtonGroup = styled.div`
@@ -102,7 +102,7 @@ const ButtonGroup = styled.div`
 
 const FeaturesSection = styled.section`
   padding: 4rem 2rem;
-  background: ${({ theme }) => theme.colors.background.default};
+  background: ${({ theme }) => theme.colors.background};
 `;
 
 const FeaturesGrid = styled.div`
@@ -133,14 +133,14 @@ const FeatureCard = styled.div`
   &:hover {
     transform: translateY(-8px) scale(1.02);
     box-shadow: ${({ theme }) => theme.shadows.lg};
-    border-color: ${({ theme }) => theme.colors.primary.light};
+    border-color: ${({ theme }) => theme.colors.primaryLight};
   }
 `;
 
 const FeatureIcon = styled.div`
   font-size: 3rem;
   margin-bottom: 1rem;
-  color: ${({ theme }) => theme.colors.primary.default};
+  color: ${({ theme }) => theme.colors.primary};
   
   svg {
     width: 3rem;
@@ -152,11 +152,11 @@ const FeatureTitle = styled.h3`
   font-size: 1.5rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 const FeatureDescription = styled.p`
-  color: ${({ theme }) => theme.colors.text.secondary};
+  color: ${({ theme }) => theme.colors.textLight};
   line-height: 1.6;
 `;
 

@@ -1,87 +1,86 @@
 /**
- * NOUS Theme System - Limen Harbor
+ * NOUS Theme System - Sanctuary (Hygge Haven)
  * 
- * A calming, nautical-inspired design language for mental wellness applications.
- * Limen Harbor represents a safe haven - a threshold between storm and calm,
- * designed to provide comfort and serenity for users on their mental health journey.
+ * A therapeutic, emotionally resonant design language rooted in "calm technology".
+ * Inspired by wabi-sabi, nesting, and organic warmth.
  * 
- * @ai_prompt Use Limen Harbor theme colors for a calming, therapeutic UI
+ * @ai_prompt Use Sanctuary theme colors for a therapeutic, lived-in UI
  * @context_boundary Theme system for React components
  */
 
 export const theme = {
   colors: {
-    // Primary Harbor Blues - Calm, trustworthy, therapeutic
-    primary: '#0891b2', // Cyan-600: Harbor water
-    primaryDark: '#0e7490', // Cyan-700: Deeper waters
-    primaryLight: '#22d3ee', // Cyan-400: Surface reflection
-    primarySoft: '#a5f3fc', // Cyan-200: Morning mist
+    // Primary: Sage & Eucalyptus - Healing, grounded nature
+    primary: '#8da399', // Sage Green
+    primaryDark: '#6b8278', // Deep Sage
+    primaryLight: '#b4c5bc', // Light Sage
+    primarySoft: '#d8e2dd', // Mist
+
+    // Secondary: Warm Sand & Clay - Earthy comfort
+    secondary: '#d6cbb6', // Warm Sand
+    secondaryDark: '#b5aa94', // Dark Sand
+    secondaryLight: '#e8e1d3', // Light Sand
+
+    // Semantic Colors - Muted, non-alarming
+    danger: '#c8553d', // Terracotta/Rust (instead of bright red)
+    dangerDark: '#a0402c',
+    dangerLight: '#eebbb1',
     
-    // Secondary Seafoam - Tranquility and growth
-    secondary: '#14b8a6', // Teal-500: Seafoam
-    secondaryDark: '#0d9488', // Teal-600: Deep seafoam
-    secondaryLight: '#5eead4', // Teal-300: Light spray
+    success: '#588157', // Forest Green (instead of neon green)
+    successLight: '#8dbe8b',
     
-    // Semantic Colors
-    danger: '#dc2626', // Red-600: Warning buoy
-    dangerDark: '#b91c1c',
-    dangerLight: '#f87171',
+    warning: '#e09f3e', // Goldenrod (instead of bright orange)
+    warningLight: '#f4d098',
     
-    success: '#059669', // Emerald-600: Safe passage
-    successLight: '#10b981',
+    info: '#648dae', // Slate Blue (instead of bright blue)
+    infoLight: '#a3c2d9',
     
-    warning: '#d97706', // Amber-600: Lighthouse
-    warningLight: '#f59e0b',
-    
-    info: '#0284c7', // Sky-600: Clear skies
-    infoLight: '#0ea5e9',
-    
-    // Text Colors - Clear visibility
-    text: '#134e4a', // Teal-900: Deep navigation
-    textLight: '#115e59', // Teal-800: Harbor signs
-    textMuted: '#5eead4', // Teal-300: Distant shore
-    textDisabled: '#99f6e4', // Teal-200: Faded
-    textInverse: '#ffffff', // White: Light signals
+    // Text Colors - Soft contrast
+    text: '#4a4a4a', // Soft Charcoal (never pure black)
+    textLight: '#6e6e6e', // Warm Grey
+    textMuted: '#949494', // Stone
+    textDisabled: '#c7c7c7', // Pebble
+    textInverse: '#fdfcf8', // Rice Paper
     
     // Neutral Colors
     white: '#ffffff',
     black: '#000000',
     
-    // Surface Colors
-    background: '#f0fdfa', // Teal-50: Harbor fog
-    backgroundSoft: '#f8fafc', // Slate-50: Soft sky
-    surface: '#ffffff', // White: Clean decks
-    surfaceHover: '#ecfeff', // Cyan-50: Touched by water
+    // Surface Colors - Paper-like, warm
+    background: '#fdfcf8', // Rice Paper / Cream
+    backgroundSoft: '#f7f5f0', // Warm Linen
+    surface: '#ffffff',
+    surfaceHover: '#f9f8f6',
     
-    // Border Colors
-    border: '#99f6e4', // Teal-200: Water's edge
-    borderHover: '#5eead4', // Teal-300: Ripple
-    borderFocus: '#0891b2', // Cyan-600: Focus beacon
+    // Border Colors - Soft definition
+    border: '#e6e2d8', // Parchment
+    borderHover: '#d6cbb6', // Sand
+    borderFocus: '#8da399', // Sage
     
     gray: {
-      50: '#f0fdfa',
-      100: '#ccfbf1',
-      200: '#99f6e4',
-      300: '#5eead4',
-      400: '#2dd4bf',
-      500: '#14b8a6',
-      600: '#0d9488',
-      700: '#0f766e',
-      800: '#115e59',
-      900: '#134e4a',
+      50: '#f9f8f6',
+      100: '#f2efe9',
+      200: '#e6e2d8',
+      300: '#d6cbb6',
+      400: '#bcb099',
+      500: '#a39780',
+      600: '#8a7f6b',
+      700: '#706756',
+      800: '#575043',
+      900: '#3d382f',
     },
   },
   
-  // Limen Harbor Gradients
+  // Organic Gradients
   gradients: {
-    hero: 'linear-gradient(135deg, #0891b2 0%, #14b8a6 50%, #0284c7 100%)',
-    heroAlt: 'linear-gradient(135deg, #155e75 0%, #0891b2 50%, #0ea5e9 100%)',
-    button: 'linear-gradient(135deg, #0891b2 0%, #14b8a6 100%)',
-    buttonHover: 'linear-gradient(135deg, #0e7490 0%, #0d9488 100%)',
-    accent: 'linear-gradient(135deg, #14b8a6 0%, #0ea5e9 100%)',
-    calm: 'linear-gradient(180deg, #ecfeff 0%, #f0fdfa 50%, #f0f9ff 100%)',
-    surface: 'linear-gradient(135deg, rgba(240, 253, 250, 0.95) 0%, rgba(236, 254, 255, 0.9) 100%)',
-    card: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 253, 250, 0.95) 100%)',
+    hero: 'linear-gradient(135deg, #fdfcf8 0%, #f2efe9 100%)',
+    heroAlt: 'linear-gradient(135deg, #e8e1d3 0%, #d6cbb6 100%)',
+    button: 'linear-gradient(135deg, #8da399 0%, #7a9187 100%)',
+    buttonHover: 'linear-gradient(135deg, #6b8278 0%, #5d7369 100%)',
+    accent: 'linear-gradient(135deg, #d6cbb6 0%, #c5baab 100%)',
+    calm: 'linear-gradient(180deg, #fdfcf8 0%, #f7f5f0 100%)',
+    surface: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(253, 252, 248, 0.8) 100%)',
+    card: 'linear-gradient(135deg, #ffffff 0%, #fdfcf8 100%)',
   },
   
   spacing: {
@@ -94,7 +93,8 @@ export const theme = {
   },
   
   fonts: {
-    body: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    heading: "'Lora', serif",
+    body: "'Nunito', sans-serif",
   },
   
   fontSizes: {
@@ -117,42 +117,43 @@ export const theme = {
   
   lineHeights: {
     tight: '1.25',
-    normal: '1.5',
-    relaxed: '1.75',
+    normal: '1.6', // Increased for readability/calm
+    relaxed: '1.8',
   },
   
   radii: {
-    sm: '0.25rem',
-    md: '0.375rem',
-    lg: '0.5rem',
-    xl: '0.75rem',
-    '2xl': '1rem',
+    sm: '0.375rem',
+    md: '0.5rem',
+    lg: '0.75rem',
+    xl: '1rem',
+    '2xl': '1.5rem',
     full: '9999px',
   },
   
   shadows: {
-    sm: '0 1px 2px 0 rgba(8, 145, 178, 0.05)',
-    md: '0 4px 6px -1px rgba(8, 145, 178, 0.1), 0 2px 4px -1px rgba(8, 145, 178, 0.06)',
-    lg: '0 10px 15px -3px rgba(8, 145, 178, 0.1), 0 4px 6px -2px rgba(8, 145, 178, 0.05)',
-    xl: '0 20px 25px -5px rgba(8, 145, 178, 0.1), 0 10px 10px -5px rgba(8, 145, 178, 0.04)',
-    '2xl': '0 25px 50px -12px rgba(8, 145, 178, 0.25)',
+    sm: '0 1px 2px 0 rgba(163, 151, 128, 0.05)',
+    md: '0 4px 6px -1px rgba(163, 151, 128, 0.1), 0 2px 4px -1px rgba(163, 151, 128, 0.06)',
+    lg: '0 10px 15px -3px rgba(163, 151, 128, 0.1), 0 4px 6px -2px rgba(163, 151, 128, 0.05)',
+    xl: '0 20px 25px -5px rgba(163, 151, 128, 0.1), 0 10px 10px -5px rgba(163, 151, 128, 0.04)',
+    '2xl': '0 25px 50px -12px rgba(163, 151, 128, 0.25)',
+    inner: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.02)',
   },
   
   transitions: {
-    fast: '0.15s ease-out',
-    normal: '0.3s ease-out',
-    slow: '0.5s ease-out',
+    fast: '0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+    normal: '0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    slow: '0.5s cubic-bezier(0.4, 0, 0.2, 1)',
   },
   
   // Semantic tokens for component usage
   semantic: {
     focus: {
-      ring: '0 0 0 3px rgba(8, 145, 178, 0.15)',
-      borderColor: '#0891b2',
+      ring: '0 0 0 3px rgba(141, 163, 153, 0.2)',
+      borderColor: '#8da399',
     },
     hover: {
-      scale: 'scale(1.02)',
-      translateY: 'translateY(-2px)',
+      scale: 'scale(1.01)', // More subtle
+      translateY: 'translateY(-1px)',
     },
   },
 };
@@ -160,62 +161,62 @@ export const theme = {
 export type Theme = typeof theme;
 
 /**
- * Limen Harbor Dark Theme Variant
- * For users who prefer dark mode or low-light environments
+ * Sanctuary Dark Theme Variant
+ * Warm, cozy night mode (not pitch black)
  */
 export const darkTheme: Theme = {
   ...theme,
   colors: {
     ...theme.colors,
-    primary: '#22d3ee', // Cyan-400: Moonlit waters
-    primaryDark: '#06b6d4', // Cyan-500: Deep night
-    primaryLight: '#67e8f9', // Cyan-300: Starlight on water
-    primarySoft: '#0891b2', // Cyan-600: Distant glow
+    primary: '#8da399', // Sage
+    primaryDark: '#6b8278',
+    primaryLight: '#b4c5bc',
+    primarySoft: '#3d4a44', 
     
-    secondary: '#5eead4', // Teal-300: Bioluminescence
-    secondaryDark: '#2dd4bf', // Teal-400: Glowing foam
-    secondaryLight: '#99f6e4', // Teal-200: Light spray
+    secondary: '#bcb099',
+    secondaryDark: '#a39780',
+    secondaryLight: '#d6cbb6',
     
-    text: '#f0fdfa', // Teal-50: Lighthouse beam
-    textLight: '#ccfbf1', // Teal-100: Soft glow
-    textMuted: '#5eead4', // Teal-300: Distant light
-    textInverse: '#042f2e', // Teal-950: Dark inverse
+    text: '#f2efe9', // Parchment White
+    textLight: '#e6e2d8',
+    textMuted: '#a39780',
+    textInverse: '#3d382f',
     
-    background: '#042f2e', // Teal-950: Deep night harbor
-    backgroundSoft: '#083344', // Cyan-950: Night sky
-    surface: '#134e4a', // Teal-900: Harbor deck
-    surfaceHover: '#115e59', // Teal-800: Moonlit deck
+    background: '#2c2a26', // Dark Walnut/Espresso (warm dark)
+    backgroundSoft: '#36332e', // Lighter Walnut
+    surface: '#3d382f', // Dark Oak
+    surfaceHover: '#454036',
     
-    border: '#115e59', // Teal-800: Night edge
-    borderHover: '#14b8a6', // Teal-500: Active edge
-    borderFocus: '#22d3ee', // Cyan-400: Focus beacon
+    border: '#454036',
+    borderHover: '#575043',
+    borderFocus: '#8da399',
     
     gray: {
-      50: '#042f2e',
-      100: '#134e4a',
-      200: '#115e59',
-      300: '#0f766e',
-      400: '#0d9488',
-      500: '#14b8a6',
-      600: '#2dd4bf',
-      700: '#5eead4',
-      800: '#99f6e4',
-      900: '#ccfbf1',
+      50: '#2c2a26',
+      100: '#3d382f',
+      200: '#454036',
+      300: '#575043',
+      400: '#706756',
+      500: '#8a7f6b',
+      600: '#a39780',
+      700: '#bcb099',
+      800: '#d6cbb6',
+      900: '#e6e2d8',
     },
   },
   gradients: {
     ...theme.gradients,
-    hero: 'linear-gradient(135deg, #155e75 0%, #134e4a 50%, #083344 100%)',
-    heroAlt: 'linear-gradient(135deg, #164e63 0%, #115e59 50%, #134e4a 100%)',
-    card: 'linear-gradient(135deg, rgba(20, 78, 74, 0.95) 0%, rgba(17, 94, 89, 0.9) 100%)',
+    hero: 'linear-gradient(135deg, #2c2a26 0%, #36332e 100%)',
+    heroAlt: 'linear-gradient(135deg, #3d382f 0%, #454036 100%)',
+    card: 'linear-gradient(135deg, #3d382f 0%, #36332e 100%)',
   },
   shadows: {
     ...theme.shadows,
     sm: '0 1px 2px 0 rgba(0, 0, 0, 0.3)',
     md: '0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3)',
     lg: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)',
-    xl: '0 20px 25px -5px rgba(6, 182, 212, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.3)',
-    '2xl': '0 25px 50px -12px rgba(6, 182, 212, 0.25)',
+    xl: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3)',
+    '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
   },
 };
 

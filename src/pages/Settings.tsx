@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import styled from 'styled-components';
 import { useAuthStore } from '../store/authStore';
-import { Button } from '../components/Button/Button';
+import Button from '../components/Button/Button';
 
 const Container = styled.div`
   max-width: 800px;
@@ -12,23 +12,23 @@ const Container = styled.div`
 const Title = styled.h1`
   font-size: 2rem;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme }) => theme.colors.text};
   margin-bottom: 2rem;
 `;
 
 const Card = styled.div`
-  background: ${({ theme }) => theme.colors.surface.default};
+  background: ${({ theme }) => theme.colors.surface};
   padding: 2rem;
   border-radius: ${({ theme }) => theme.radii.lg};
   box-shadow: ${({ theme }) => theme.shadows.sm};
-  border: 1px solid ${({ theme }) => theme.colors.border.default};
+  border: 1px solid ${({ theme }) => theme.colors.border};
   margin-bottom: 1.5rem;
 `;
 
 const SectionTitle = styled.h2`
   font-size: 1.25rem;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme }) => theme.colors.text};
   margin-bottom: 1rem;
 `;
 
@@ -40,24 +40,24 @@ const Label = styled.label`
   display: block;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 const Select = styled.select`
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid ${({ theme }) => theme.colors.border.default};
+  border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.md};
   font-family: inherit;
   font-size: 1rem;
-  background: ${({ theme }) => theme.colors.background.default};
-  color: ${({ theme }) => theme.colors.text.primary};
+  background: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.text};
   cursor: pointer;
 
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.colors.primary.default};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary.default}20;
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}20;
   }
 `;
 
@@ -70,7 +70,12 @@ const CheckboxLabel = styled.label`
   display: flex;
   align-items: center;
   cursor: pointer;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const HelperText = styled.p`
+  margin-bottom: 1rem;
+  color: ${({ theme }) => theme.colors.textLight};
 `;
 
 const Settings: React.FC = () => {
@@ -139,9 +144,9 @@ const Settings: React.FC = () => {
 
       <Card>
         <SectionTitle>Account</SectionTitle>
-        <p style={{ marginBottom: '1rem', color: '#666' }}>
+        <HelperText>
           Signed in as: {user?.email || user?.name || 'Guest'}
-        </p>
+        </HelperText>
         <Button variant="danger" onClick={logout}>
           Sign Out
         </Button>

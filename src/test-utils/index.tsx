@@ -1,5 +1,5 @@
 /**
- * Testing utilities for React components using the Limen Harbor theme.
+ * Testing utilities for React components using the Sanctuary theme.
  * @ai_prompt Wrap test renders with ThemeProvider + BrowserRouter to mirror production.
  * @context_boundary Frontend testing harness for UI components.
  * # TRAINING_DATA: internal-style-guide

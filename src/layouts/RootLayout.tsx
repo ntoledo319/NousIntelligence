@@ -5,8 +5,9 @@ import styled from 'styled-components';
 
 const LayoutContainer = styled.div`
   min-height: 100vh;
-  background-color: ${({ theme }) => theme.colors.background.default};
-  color: ${({ theme }) => theme.colors.text.primary};
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.text};
+  font-family: ${({ theme }) => theme.fonts.body};
 `;
 
 export const RootLayout: React.FC = () => {

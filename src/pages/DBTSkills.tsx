@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import styled from 'styled-components';
 import { useTherapeuticStore } from '../store/therapeuticStore';
-import { Button } from '../components/Button/Button';
+import Button from '../components/Button/Button';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -12,7 +12,7 @@ const Container = styled.div`
 const Title = styled.h1`
   font-size: 2rem;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme }) => theme.colors.text};
   margin-bottom: 2rem;
 `;
 
@@ -23,18 +23,18 @@ const Grid = styled.div`
 `;
 
 const SkillCard = styled.div`
-  background: ${({ theme }) => theme.colors.surface.default};
+  background: ${({ theme }) => theme.colors.surface};
   padding: 1.5rem;
   border-radius: ${({ theme }) => theme.radii.lg};
   box-shadow: ${({ theme }) => theme.shadows.sm};
-  border: 2px solid ${({ theme }) => theme.colors.border.default};
+  border: 2px solid ${({ theme }) => theme.colors.border};
   cursor: pointer;
   transition: all ${({ theme }) => theme.transitions.normal};
 
   &:hover {
     transform: translateY(-4px);
     box-shadow: ${({ theme }) => theme.shadows.md};
-    border-color: ${({ theme }) => theme.colors.primary.default};
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
@@ -42,11 +42,11 @@ const SkillTitle = styled.h3`
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 const SkillDescription = styled.p`
-  color: ${({ theme }) => theme.colors.text.secondary};
+  color: ${({ theme }) => theme.colors.textLight};
   margin-bottom: 1rem;
   line-height: 1.5;
 `;
@@ -54,8 +54,8 @@ const SkillDescription = styled.p`
 const Category = styled.span`
   display: inline-block;
   padding: 0.25rem 0.75rem;
-  background: ${({ theme }) => theme.colors.primary.default}20;
-  color: ${({ theme }) => theme.colors.primary.default};
+  background: ${({ theme }) => theme.colors.primary}20;
+  color: ${({ theme }) => theme.colors.primary};
   border-radius: ${({ theme }) => theme.radii.sm};
   font-size: 0.875rem;
   font-weight: 600;

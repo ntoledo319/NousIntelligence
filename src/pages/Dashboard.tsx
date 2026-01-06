@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { useAuthStore } from '../store/authStore';
 import { useTherapeuticStore } from '../store/therapeuticStore';
 import { useChatStore } from '../store/chatStore';
-import { Button } from '../components/Button/Button';
+import Button from '../components/Button/Button';
 import {
   ChatBubbleLeftRightIcon,
   HeartIcon,
@@ -25,13 +25,13 @@ const Header = styled.header`
 const Greeting = styled.h1`
   font-size: 2.5rem;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme }) => theme.colors.text};
   margin-bottom: 0.5rem;
 `;
 
 const Subheading = styled.p`
   font-size: 1.125rem;
-  color: ${({ theme }) => theme.colors.text.secondary};
+  color: ${({ theme }) => theme.colors.textLight};
 `;
 
 const Grid = styled.div`
@@ -49,12 +49,12 @@ const Grid = styled.div`
 `;
 
 const Card = styled(Link)`
-  background: ${({ theme }) => theme.colors.surface.default};
+  background: ${({ theme }) => theme.colors.surface};
   padding: 2rem;
   border-radius: ${({ theme }) => theme.radii.lg};
   box-shadow: ${({ theme }) => theme.shadows.md};
   transition: all ${({ theme }) => theme.transitions.normal};
-  border: 2px solid ${({ theme }) => theme.colors.border.default};
+  border: 2px solid ${({ theme }) => theme.colors.border};
   text-decoration: none;
   display: flex;
   flex-direction: column;
@@ -63,7 +63,7 @@ const Card = styled(Link)`
   &:hover {
     transform: translateY(-4px);
     box-shadow: ${({ theme }) => theme.shadows.lg};
-    border-color: ${({ theme }) => theme.colors.primary.default};
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
@@ -72,7 +72,7 @@ const CardIcon = styled.div`
   height: 3rem;
   border-radius: ${({ theme }) => theme.radii.md};
   background: ${({ theme }) => theme.gradients.button};
-  color: ${({ theme }) => theme.colors.text.inverse};
+  color: ${({ theme }) => theme.colors.textInverse};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -86,34 +86,34 @@ const CardIcon = styled.div`
 const CardTitle = styled.h3`
   font-size: 1.25rem;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme }) => theme.colors.text};
   margin: 0;
 `;
 
 const CardDescription = styled.p`
-  color: ${({ theme }) => theme.colors.text.secondary};
+  color: ${({ theme }) => theme.colors.textLight};
   line-height: 1.5;
   margin: 0;
 `;
 
 const StatsCard = styled.div`
-  background: ${({ theme }) => theme.colors.surface.default};
+  background: ${({ theme }) => theme.colors.surface};
   padding: 1.5rem;
   border-radius: ${({ theme }) => theme.radii.lg};
   box-shadow: ${({ theme }) => theme.shadows.sm};
-  border: 1px solid ${({ theme }) => theme.colors.border.default};
+  border: 1px solid ${({ theme }) => theme.colors.border};
 `;
 
 const StatLabel = styled.div`
   font-size: 0.875rem;
-  color: ${({ theme }) => theme.colors.text.secondary};
+  color: ${({ theme }) => theme.colors.textLight};
   margin-bottom: 0.5rem;
 `;
 
 const StatValue = styled.div`
   font-size: 2rem;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.primary.default};
+  color: ${({ theme }) => theme.colors.primary};
 `;
 
 const StatsGrid = styled.div`

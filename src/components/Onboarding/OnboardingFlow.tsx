@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import styled from 'styled-components';
 import { useAuthStore } from '../../store/authStore';
-import { Button } from '../Button/Button';
+import Button from '../Button/Button';
 import { ArrowRightIcon, CheckIcon } from '@heroicons/react/24/outline';
 
 const Container = styled.div`
@@ -17,7 +17,7 @@ const Container = styled.div`
 
 const ProgressBar = styled.div`
   height: 4px;
-  background: ${({ theme }) => theme.colors.border.default};
+  background: ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.full};
   margin-bottom: 2rem;
   overflow: hidden;
@@ -31,7 +31,7 @@ const Progress = styled.div<{ $progress: number }>`
 `;
 
 const Card = styled.div`
-  background: ${({ theme }) => theme.colors.surface.default};
+  background: ${({ theme }) => theme.colors.surface};
   padding: 2.5rem;
   border-radius: ${({ theme }) => theme.radii.xl};
   box-shadow: ${({ theme }) => theme.shadows.lg};
@@ -41,11 +41,11 @@ const Title = styled.h2`
   font-size: 1.75rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 const Description = styled.p`
-  color: ${({ theme }) => theme.colors.text.secondary};
+  color: ${({ theme }) => theme.colors.textLight};
   line-height: 1.6;
   margin-bottom: 2rem;
 `;
@@ -59,10 +59,10 @@ const OptionGrid = styled.div`
 const OptionButton = styled.button<{ $selected: boolean }>`
   padding: 1.25rem;
   border: 2px solid ${({ $selected, theme }) =>
-    $selected ? theme.colors.primary.default : theme.colors.border.default};
+    $selected ? theme.colors.primary : theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.lg};
   background: ${({ $selected, theme }) =>
-    $selected ? theme.colors.primary.default}10 : theme.colors.background.default};
+    $selected ? theme.colors.primary + '1a' : theme.colors.background};
   cursor: pointer;
   transition: all ${({ theme }) => theme.transitions.normal};
   text-align: left;
@@ -71,19 +71,19 @@ const OptionButton = styled.button<{ $selected: boolean }>`
   gap: 1rem;
 
   &:hover {
-    border-color: ${({ theme }) => theme.colors.primary.default};
+    border-color: ${({ theme }) => theme.colors.primary};
     transform: translateY(-2px);
   }
 `;
 
 const OptionTitle = styled.div`
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 const OptionDescription = styled.div`
   font-size: 0.875rem;
-  color: ${({ theme }) => theme.colors.text.secondary};
+  color: ${({ theme }) => theme.colors.textLight};
   margin-top: 0.25rem;
 `;
 
@@ -91,7 +91,7 @@ const CheckMark = styled.div<{ $visible: boolean }>`
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: ${({ theme }) => theme.colors.primary.default};
+  background: ${({ theme }) => theme.colors.primary};
   color: white;
   display: flex;
   align-items: center;

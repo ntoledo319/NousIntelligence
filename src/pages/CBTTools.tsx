@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import styled from 'styled-components';
 import { useTherapeuticStore } from '../store/therapeuticStore';
-import { Button } from '../components/Button/Button';
+import Button from '../components/Button/Button';
 import { PlusIcon } from '@heroicons/react/24/outline';
 
 const Container = styled.div`
@@ -20,7 +20,7 @@ const Header = styled.header`
 const Title = styled.h1`
   font-size: 2rem;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 const Grid = styled.div`
@@ -29,11 +29,11 @@ const Grid = styled.div`
 `;
 
 const Card = styled.div`
-  background: ${({ theme }) => theme.colors.surface.default};
+  background: ${({ theme }) => theme.colors.surface};
   padding: 1.5rem;
   border-radius: ${({ theme }) => theme.radii.lg};
   box-shadow: ${({ theme }) => theme.shadows.sm};
-  border: 1px solid ${({ theme }) => theme.colors.border.default};
+  border: 1px solid ${({ theme }) => theme.colors.border};
 `;
 
 const FormGroup = styled.div`
@@ -44,42 +44,42 @@ const Label = styled.label`
   display: block;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 const Input = styled.input`
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid ${({ theme }) => theme.colors.border.default};
+  border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.md};
   font-family: inherit;
   font-size: 1rem;
-  background: ${({ theme }) => theme.colors.background.default};
-  color: ${({ theme }) => theme.colors.text.primary};
+  background: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.text};
 
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.colors.primary.default};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary.default}20;
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}20;
   }
 `;
 
 const TextArea = styled.textarea`
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid ${({ theme }) => theme.colors.border.default};
+  border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.md};
   font-family: inherit;
   font-size: 1rem;
   min-height: 100px;
   resize: vertical;
-  background: ${({ theme }) => theme.colors.background.default};
-  color: ${({ theme }) => theme.colors.text.primary};
+  background: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.text};
 
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.colors.primary.default};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary.default}20;
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}20;
   }
 `;
 
@@ -89,12 +89,12 @@ const ThoughtCard = styled(Card)`
 
 const ThoughtHeader = styled.div`
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme }) => theme.colors.text};
   margin-bottom: 0.5rem;
 `;
 
 const ThoughtText = styled.p`
-  color: ${({ theme }) => theme.colors.text.secondary};
+  color: ${({ theme }) => theme.colors.textLight};
   margin: 0.5rem 0;
 `;
 

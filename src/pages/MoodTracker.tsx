@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import styled from 'styled-components';
 import { useTherapeuticStore } from '../store/therapeuticStore';
-import { Button } from '../components/Button/Button';
+import Button from '../components/Button/Button';
 
 const Container = styled.div`
   max-width: 800px;
@@ -12,16 +12,16 @@ const Container = styled.div`
 const Title = styled.h1`
   font-size: 2rem;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.text.primary};
+  color: ${({ theme }) => theme.colors.text};
   margin-bottom: 2rem;
 `;
 
 const Card = styled.div`
-  background: ${({ theme }) => theme.colors.surface.default};
+  background: ${({ theme }) => theme.colors.surface};
   padding: 2rem;
   border-radius: ${({ theme }) => theme.radii.lg};
   box-shadow: ${({ theme }) => theme.shadows.sm};
-  border: 1px solid ${({ theme }) => theme.colors.border.default};
+  border: 1px solid ${({ theme }) => theme.colors.border};
   margin-bottom: 2rem;
 `;
 
@@ -36,15 +36,15 @@ const MoodButton = styled.button<{ $selected: boolean; $mood: number }>`
   flex: 1;
   padding: 1rem 0.5rem;
   border: 2px solid ${({ $selected, theme }) =>
-    $selected ? theme.colors.primary.default : theme.colors.border.default};
+    $selected ? theme.colors.primary : theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.md};
   background: ${({ $selected, $mood, theme }) => {
-    if (!$selected) return theme.colors.surface.default;
+    if (!$selected) return theme.colors.surface;
     const hue = ($mood - 1) * 12;
     return `hsl(${hue}, 70%, 60%)`;
   }};
   color: ${({ $selected, theme }) =>
-    $selected ? theme.colors.text.inverse : theme.colors.text.primary};
+    $selected ? theme.colors.textInverse : theme.colors.text};
   font-weight: 600;
   cursor: pointer;
   transition: all ${({ theme }) => theme.transitions.fast};
@@ -57,20 +57,20 @@ const MoodButton = styled.button<{ $selected: boolean; $mood: number }>`
 const TextArea = styled.textarea`
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid ${({ theme }) => theme.colors.border.default};
+  border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: ${({ theme }) => theme.radii.md};
   font-family: inherit;
   font-size: 1rem;
   min-height: 100px;
   resize: vertical;
-  background: ${({ theme }) => theme.colors.background.default};
-  color: ${({ theme }) => theme.colors.text.primary};
+  background: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.text};
   margin-bottom: 1rem;
 
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.colors.primary.default};
-    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary.default}20;
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}20;
   }
 `;
 
@@ -91,14 +91,27 @@ const MoodValue = styled.div<{ $mood: number }>`
 `;
 
 const MoodNote = styled.p`
-  color: ${({ theme }) => theme.colors.text.secondary};
+  color: ${({ theme }) => theme.colors.textLight};
   flex: 1;
   margin: 0 1rem;
 `;
 
 const MoodDate = styled.time`
-  color: ${({ theme }) => theme.colors.text.secondary};
+  color: ${({ theme }) => theme.colors.textLight};
   font-size: 0.875rem;
+`;
+
+const SubSectionTitle = styled.h2`
+  margin-bottom: 1rem;
+  color: ${({ theme }) => theme.colors.text};
+  font-size: 1.5rem;
+  font-weight: 600;
+`;
+
+const HelperText = styled.p`
+  text-align: center;
+  color: ${({ theme }) => theme.colors.textLight};
+  margin-bottom: 1rem;
 `;
 
 const MoodTracker: React.FC = () => {
@@ -119,7 +132,7 @@ const MoodTracker: React.FC = () => {
       <Title>Mood Tracker</Title>
       
       <Card>
-        <h2 style={{ marginBottom: '1rem' }}>How are you feeling?</h2>
+        <SubSectionTitle>How are you feeling?</SubSectionTitle>
         <MoodScale>
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((mood) => (
             <MoodButton
@@ -132,9 +145,9 @@ const MoodTracker: React.FC = () => {
             </MoodButton>
           ))}
         </MoodScale>
-        <p style={{ textAlign: 'center', color: '#666', marginBottom: '1rem' }}>
+        <HelperText>
           1 = Very Low | 10 = Very High
-        </p>
+        </HelperText>
 
         {selectedMood && (
           <>
@@ -155,7 +168,7 @@ const MoodTracker: React.FC = () => {
         )}
       </Card>
 
-      <h2 style={{ marginBottom: '1rem' }}>Mood History</h2>
+      <SubSectionTitle>Mood History</SubSectionTitle>
       {moodHistory.map((entry) => (
         <HistoryCard key={entry.id}>
           <MoodValue $mood={entry.mood}>{entry.mood}/10</MoodValue>
