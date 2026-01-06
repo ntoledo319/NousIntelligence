@@ -1,9 +1,12 @@
 # Render Blueprint Specification for NOUS Personal Assistant
+# AI-GENERATED [2025-01-05] - Updated with database migration support
+
 databases:
   - name: nous-db
     engine: postgres
     plan: starter  # use the free Starter plan for Postgres
     # Render will automatically set DATABASE_URL for the service to connect to this DB
+    # Database includes performance indexes from 002_database_audit_fixes migration
 
 services:
   - type: web
@@ -11,8 +14,11 @@ services:
     env: python
     region: oregon    # or choose closest region
     plan: starter
-    buildCommand: pip install -e .
+    buildCommand: |
+      pip install -e . &&
+      pip install alembic psycopg2-binary
     startCommand: gunicorn --config gunicorn.conf.py main:app
+    preDeployCommand: python scripts/render_migrate.py
     envVars:
       - key: FLASK_ENV
         value: production
@@ -34,5 +40,14 @@ services:
         value: 3.11
       - key: WEB_CONCURRENCY
         value: 4
+      # Database connection pool settings for production
+      - key: SQLALCHEMY_POOL_SIZE
+        value: 10
+      - key: SQLALCHEMY_MAX_OVERFLOW
+        value: 20
+      - key: SQLALCHEMY_POOL_RECYCLE
+        value: 300
+      - key: SQLALCHEMY_POOL_TIMEOUT
+        value: 30
     healthCheckPath: /api/health
     autoDeploy: true

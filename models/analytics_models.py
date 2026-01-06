@@ -18,16 +18,16 @@ class UserActivity(db.Model):
     __tablename__ = 'user_activities'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    activity_type = db.Column(db.String(50), nullable=False)  # chat, task, mood, workout, etc.
-    activity_category = db.Column(db.String(50))  # productivity, health, entertainment, etc.
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    activity_type = db.Column(db.String(50), nullable=False, index=True)  # chat, task, mood, workout, etc.
+    activity_category = db.Column(db.String(50), index=True)  # productivity, health, entertainment, etc.
     activity_data = db.Column(db.JSON)  # Flexible data storage
     duration_seconds = db.Column(db.Integer, default=0)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    session_id = db.Column(db.String(64))  # Group activities by session
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    session_id = db.Column(db.String(64), index=True)  # Group activities by session
     
     # Relationships
-    user = db.relationship('User', backref=db.backref('activities', lazy=True))
+    user = db.relationship('User', backref=db.backref('activities', lazy=True, cascade='all, delete-orphan'))
 
     def to_dict(self):
         return {
@@ -46,9 +46,9 @@ class UserMetrics(db.Model):
     __tablename__ = 'user_metrics'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    metric_type = db.Column(db.String(50), nullable=False)  # daily, weekly, monthly
-    metric_date = db.Column(db.Date, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    metric_type = db.Column(db.String(50), nullable=False, index=True)  # daily, weekly, monthly
+    metric_date = db.Column(db.Date, nullable=False, index=True)
     
     # Productivity metrics
     tasks_completed = db.Column(db.Integer, default=0)
@@ -77,50 +77,50 @@ class UserInsight(db.Model):
     __tablename__ = 'user_insights'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    insight_type = db.Column(db.String(50), nullable=False)  # pattern, trend, recommendation
-    insight_category = db.Column(db.String(50))  # productivity, health, behavior
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    insight_type = db.Column(db.String(50), nullable=False, index=True)  # pattern, trend, recommendation
+    insight_category = db.Column(db.String(50), index=True)  # productivity, health, behavior
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
     confidence_score = db.Column(db.Float)  # 0.0 to 1.0
     insight_data = db.Column(db.JSON)  # Supporting data and metrics
-    generated_at = db.Column(db.DateTime, default=datetime.utcnow)
-    expires_at = db.Column(db.DateTime)  # When insight becomes stale
+    generated_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    expires_at = db.Column(db.DateTime, index=True)  # When insight becomes stale
     user_feedback = db.Column(db.String(20))  # helpful, not_helpful, neutral
     
     # Relationships
-    user = db.relationship('User', backref=db.backref('insights', lazy=True))
+    user = db.relationship('User', backref=db.backref('insights', lazy=True, cascade='all, delete-orphan'))
 
 class UserGoals(db.Model):
     """User goals and progress tracking"""
     __tablename__ = 'user_goals'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    goal_type = db.Column(db.String(50), nullable=False)  # productivity, health, learning
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    goal_type = db.Column(db.String(50), nullable=False, index=True)  # productivity, health, learning
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     target_value = db.Column(db.Float)
     current_value = db.Column(db.Float, default=0.0)
     unit = db.Column(db.String(50))  # tasks, minutes, pounds, etc.
-    target_date = db.Column(db.Date)
+    target_date = db.Column(db.Date, index=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     completed_at = db.Column(db.DateTime)
-    status = db.Column(db.String(20), default='active')  # active, completed, paused, cancelled
+    status = db.Column(db.String(20), default='active', index=True)  # active, completed, paused, cancelled
     
     # Progress tracking
     progress_data = db.Column(db.JSON)  # Historical progress points
     
     # Relationships
-    user = db.relationship('User', backref=db.backref('goals', lazy=True))
+    user = db.relationship('User', backref=db.backref('goals', lazy=True, cascade='all, delete-orphan'))
 
 class EngagementMetrics(db.Model):
     """Track user engagement patterns"""
     __tablename__ = 'engagement_metrics'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    date = db.Column(db.Date, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    date = db.Column(db.Date, nullable=False, index=True)
     
     # Session metrics
     sessions_count = db.Column(db.Integer, default=0)
@@ -148,9 +148,9 @@ class RetentionMetrics(db.Model):
     __tablename__ = 'retention_metrics'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    week_number = db.Column(db.Integer, nullable=False)  # Week since signup
-    month_number = db.Column(db.Integer, nullable=False)  # Month since signup
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    week_number = db.Column(db.Integer, nullable=False, index=True)  # Week since signup
+    month_number = db.Column(db.Integer, nullable=False, index=True)  # Month since signup
     
     # Retention flags
     was_active_this_week = db.Column(db.Boolean, default=False)
@@ -173,8 +173,8 @@ class PerformanceMetrics(db.Model):
     __tablename__ = 'performance_metrics'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     
     # Response time metrics
     avg_response_time = db.Column(db.Float)  # in milliseconds

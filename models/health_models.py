@@ -117,14 +117,20 @@ class AAAchievement(db.Model):
     __tablename__ = 'aa_achievements'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     badge_id = db.Column(db.String(50))
     badge_name = db.Column(db.String(100))
     badge_description = db.Column(db.Text)
+    # Support both naming conventions for compatibility
+    achievement_type = db.Column(db.String(50))  # Type/category of achievement
+    title = db.Column(db.String(100))  # Display title
+    description = db.Column(db.Text)  # Full description
+    points = db.Column(db.Integer, default=0)  # Points awarded
     awarded_at = db.Column(db.DateTime, default=datetime.utcnow)
+    earned_at = db.Column(db.DateTime, default=datetime.utcnow)  # Alias for compatibility
 
     # Relationships
-    user = db.relationship('User', backref=db.backref('aa_achievements', lazy=True))
+    user = db.relationship('User', backref=db.backref('aa_achievements', lazy=True, cascade='all, delete-orphan'))
 
     def to_dict(self):
         """Convert to dictionary"""
@@ -132,9 +138,14 @@ class AAAchievement(db.Model):
             'id': self.id,
             'user_id': self.user_id,
             'badge_id': self.badge_id,
-            'badge_name': self.badge_name,
-            'badge_description': self.badge_description,
-            'awarded_at': self.awarded_at.isoformat() if self.awarded_at else None
+            'badge_name': self.badge_name or self.title,
+            'badge_description': self.badge_description or self.description,
+            'achievement_type': self.achievement_type,
+            'title': self.title or self.badge_name,
+            'description': self.description or self.badge_description,
+            'points': self.points,
+            'awarded_at': self.awarded_at.isoformat() if self.awarded_at else None,
+            'earned_at': self.earned_at.isoformat() if self.earned_at else None
         }
 
 class DBTDiaryCard(db.Model):

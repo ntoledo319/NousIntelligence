@@ -110,8 +110,12 @@ def google_login():
 def demo_mode():
     """Activate demo mode - provides immediate access without authentication"""
     # In tests, bypass CSRF enforcement (fixtures post without token)
+    # SECURITY: Only bypass CSRF in non-production testing environments
     from flask import current_app
-    if current_app.config.get("TESTING") or current_app.config.get("TESTING_MODE"):
+    is_testing = current_app.config.get("TESTING") or current_app.config.get("TESTING_MODE")
+    is_production = os.environ.get('ENV') == 'production' or os.environ.get('FLASK_ENV') == 'production'
+    
+    if is_testing and not is_production:
         session.clear()
         session["user"] = {
             "id": "demo_user_test",
@@ -204,6 +208,38 @@ def profile():
     """Display user profile"""
     user_data = session.get('user', {})
     return render_template('auth/profile.html', user=user_data)
+
+@auth_bp.route('/rate-limit-status')
+def rate_limit_status():
+    """Get rate limiting status for monitoring"""
+    try:
+        from utils.rate_limiter import get_rate_limit_status
+        
+        # Get status for different endpoints
+        login_status = get_rate_limit_status(limit=5, window=60)
+        oauth_status = get_rate_limit_status(limit=10, window=60)
+        
+        return jsonify({
+            'status': 'ok',
+            'rate_limits': {
+                'login': {
+                    'limit': login_status['limit'],
+                    'remaining': login_status['remaining'],
+                    'reset_in_seconds': login_status['reset_time'],
+                    'current_requests': login_status['current_requests']
+                },
+                'oauth': {
+                    'limit': oauth_status['limit'],
+                    'remaining': oauth_status['remaining'],
+                    'reset_in_seconds': oauth_status['reset_time'],
+                    'current_requests': oauth_status['current_requests']
+                }
+            },
+            'client_ip': request.headers.get('X-Forwarded-For', request.remote_addr)
+        })
+    except Exception as e:
+        logger.error(f"Rate limit status check failed: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 # Export the blueprint
 __all__ = ['auth_bp']

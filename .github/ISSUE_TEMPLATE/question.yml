@@ -1,0 +1,63 @@
+name: Question
+description: Ask a question about NOUS
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question? We're here to help!
+        
+        **Note:** For general discussions, consider using [GitHub Discussions](https://github.com/ntoledo319/NousIntelligence/discussions) instead.
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Question Category
+      description: What is your question about?
+      options:
+        - Installation/Deployment
+        - Configuration
+        - Features/Usage
+        - AI Integration
+        - Contributing
+        - Sponsorship
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know?
+      placeholder: How do I...?
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What I've Tried
+      description: What have you already tried or researched?
+      placeholder: I've looked at... I've tried...
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other relevant information
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I've searched existing issues and discussions
+          required: true
+        - label: I've checked the documentation
+          required: true

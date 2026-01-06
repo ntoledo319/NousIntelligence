@@ -157,18 +157,33 @@ class TherapeuticRepository:
     # ===== DBT DIARY CARDS =====
     
     @staticmethod
-    def create_diary_card(user_id: int, date: datetime, emotions: Dict,
-                         urges: Dict, skills_used: List[str],
-                         notes: str = '') -> Optional[DBTDiaryCard]:
-        """Create a DBT diary card entry"""
+    def create_diary_card(user_id: int, date: datetime, 
+                         mood_rating: int = None, triggers: str = '',
+                         urges: str = '', skills_used: str = '',
+                         reflection: str = '') -> Optional[DBTDiaryCard]:
+        """Create a DBT diary card entry
+        
+        Args:
+            user_id: The user ID
+            date: Date for the diary card
+            mood_rating: Mood rating 1-10
+            triggers: Text describing triggers
+            urges: Text describing urges
+            skills_used: Text describing skills used
+            reflection: Reflection notes
+            
+        Returns:
+            DBTDiaryCard instance or None on error
+        """
         try:
             card = DBTDiaryCard(
                 user_id=user_id,
                 date=date,
-                emotions=emotions,
+                mood_rating=mood_rating,
+                triggers=triggers,
                 urges=urges,
                 skills_used=skills_used,
-                notes=notes
+                reflection=reflection
             )
             db.session.add(card)
             db.session.commit()
@@ -198,14 +213,29 @@ class TherapeuticRepository:
     @staticmethod
     def award_achievement(user_id: int, achievement_type: str,
                          title: str, description: str,
-                         points: int = 0) -> Optional[AAAchievement]:
-        """Award an AA achievement"""
+                         points: int = 0, badge_id: str = None) -> Optional[AAAchievement]:
+        """Award an AA achievement
+        
+        Args:
+            user_id: The user ID to award the achievement to
+            achievement_type: Category/type of achievement
+            title: Display title for the achievement
+            description: Full description of the achievement
+            points: Points to award (default 0)
+            badge_id: Optional badge identifier
+            
+        Returns:
+            AAAchievement instance or None on error
+        """
         try:
             achievement = AAAchievement(
                 user_id=user_id,
                 achievement_type=achievement_type,
                 title=title,
                 description=description,
+                badge_name=title,  # Mirror for compatibility
+                badge_description=description,
+                badge_id=badge_id,
                 points=points
             )
             db.session.add(achievement)
@@ -222,7 +252,7 @@ class TherapeuticRepository:
         """Get all achievements for a user"""
         try:
             return AAAchievement.query.filter_by(user_id=user_id)\
-                .order_by(desc(AAAchievement.earned_at))\
+                .order_by(desc(AAAchievement.awarded_at))\
                 .all()
         except Exception as e:
             logger.error(f"Error getting achievements: {e}")
@@ -233,7 +263,7 @@ class TherapeuticRepository:
         """Calculate total achievement points for a user"""
         try:
             result = db.session.query(func.sum(AAAchievement.points))\
-                .filter_by(user_id=user_id)\
+                .filter(AAAchievement.user_id == user_id)\
                 .scalar()
             return int(result) if result else 0
         except Exception as e:

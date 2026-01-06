@@ -176,6 +176,7 @@
         {% endif %}
         
         <form method="POST" action="{{ url_for('auth.demo_mode') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="demo-btn">
                 🚀 Try Demo Mode
             </button>

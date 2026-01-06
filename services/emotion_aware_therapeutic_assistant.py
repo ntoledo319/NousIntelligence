@@ -34,7 +34,8 @@ try:
     from utils.dbt_helper import get_skill_recommendations as get_dbt_recommendations, log_dbt_skill
     from utils.cbt_helper import recommend_coping_skill, log_mood, get_coping_skills
 except ImportError as e:
-    print(f"Import warning: {e}")  # Temporary fallback until logger is defined
+    import logging
+    logging.getLogger(__name__).warning(f"Import warning - using fallback implementations: {e}")
     # Fallback implementations
     def detect_emotion_from_text(text):
         return {'emotion': 'neutral', 'confidence': 0.5}

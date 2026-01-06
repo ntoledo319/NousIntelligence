@@ -111,6 +111,34 @@ class AppConfig:
     DATABASE_URL = os.environ.get('DATABASE_URL')
     SQLALCHEMY_DATABASE_URI = DATABASE_URL or 'sqlite:///nous_healing_journey.db'
     
+    # Production connection pool settings (optimized for Render PostgreSQL)
+    SQLALCHEMY_POOL_SIZE = int(os.environ.get('SQLALCHEMY_POOL_SIZE', 10))
+    SQLALCHEMY_MAX_OVERFLOW = int(os.environ.get('SQLALCHEMY_MAX_OVERFLOW', 20))
+    SQLALCHEMY_POOL_RECYCLE = int(os.environ.get('SQLALCHEMY_POOL_RECYCLE', 300))  # 5 minutes
+    SQLALCHEMY_POOL_TIMEOUT = int(os.environ.get('SQLALCHEMY_POOL_TIMEOUT', 30))
+    SQLALCHEMY_POOL_PRE_PING = True  # Verify connections before use
+    SQLALCHEMY_TRACK_MODIFICATIONS = False  # Disable event system overhead
+    
+    @classmethod
+    def get_sqlalchemy_engine_options(cls) -> Dict[str, Any]:
+        """Get SQLAlchemy engine options for production PostgreSQL.
+        
+        Returns optimized connection pool settings for Render deployment.
+        """
+        db_url = cls.get_database_url()
+        
+        # SQLite doesn't support connection pooling
+        if 'sqlite' in db_url:
+            return {}
+        
+        return {
+            'pool_size': cls.SQLALCHEMY_POOL_SIZE,
+            'max_overflow': cls.SQLALCHEMY_MAX_OVERFLOW,
+            'pool_recycle': cls.SQLALCHEMY_POOL_RECYCLE,
+            'pool_timeout': cls.SQLALCHEMY_POOL_TIMEOUT,
+            'pool_pre_ping': cls.SQLALCHEMY_POOL_PRE_PING,
+        }
+    
     @classmethod
     def to_dict(cls) -> Dict[str, Any]:
         """Export configuration as dictionary"""

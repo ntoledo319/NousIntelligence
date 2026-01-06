@@ -58,11 +58,11 @@ class UserRepository:
 
     @staticmethod
     def search_users(query: str, limit: int = 10) -> List[User]:
-        """Search users by name or email"""
+        """Search users by username or email"""
         search_pattern = f"%{query}%"
         return User.query.filter(
             db.or_(
-                User.name.ilike(search_pattern),
+                User.username.ilike(search_pattern),
                 User.email.ilike(search_pattern)
             )
         ).limit(limit).all()

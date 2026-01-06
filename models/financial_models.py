@@ -17,7 +17,7 @@ class BankAccount(db.Model):
     __tablename__ = 'bank_accounts'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     account_name = db.Column(db.String(100), nullable=False)
     account_type = db.Column(db.String(50), nullable=False)  # checking, savings, credit
     account_number_masked = db.Column(db.String(20))  # Only last 4 digits
@@ -52,22 +52,21 @@ class Transaction(db.Model):
     __tablename__ = 'transactions'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    account_id = db.Column(db.Integer, db.ForeignKey('bank_accounts.id'), nullable=False)
-    transaction_type = db.Column(db.String(20), nullable=False)  # income, expense, transfer
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    account_id = db.Column(db.Integer, db.ForeignKey('bank_accounts.id', ondelete='CASCADE'), nullable=False, index=True)
+    transaction_type = db.Column(db.String(20), nullable=False, index=True)  # income, expense, transfer
     amount = db.Column(db.Numeric(10, 2), nullable=False)
     description = db.Column(db.String(255))
-    category_id = db.Column(db.Integer, db.ForeignKey('expense_categories.id'))
+    category_id = db.Column(db.Integer, db.ForeignKey('expense_categories.id', ondelete='SET NULL'), index=True)
     merchant = db.Column(db.String(100))
-    transaction_date = db.Column(db.Date, nullable=False)
+    transaction_date = db.Column(db.Date, nullable=False, index=True)
     is_recurring = db.Column(db.Boolean, default=False)
     tags = db.Column(db.JSON)  # Array of tags
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
-    user = db.relationship('User', backref=db.backref('transactions', lazy=True))
-    account = db.relationship('BankAccount', backref='transactions')
+    user = db.relationship('User', backref=db.backref('transactions', lazy=True, cascade='all, delete-orphan'))
 
     def to_dict(self):
         return {
@@ -91,7 +90,7 @@ class ExpenseCategory(db.Model):
     __tablename__ = 'expense_categories'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=True, index=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     color = db.Column(db.String(7), default='#6366f1')
@@ -125,14 +124,14 @@ class Budget(db.Model):
     __tablename__ = 'budgets'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     budget_type = db.Column(db.String(20), default='monthly')
     total_amount = db.Column(db.Numeric(10, 2), nullable=False)
-    start_date = db.Column(db.Date, nullable=False)
-    end_date = db.Column(db.Date, nullable=False)
-    is_active = db.Column(db.Boolean, default=True)
+    start_date = db.Column(db.Date, nullable=False, index=True)
+    end_date = db.Column(db.Date, nullable=False, index=True)
+    is_active = db.Column(db.Boolean, default=True, index=True)
     alert_threshold = db.Column(db.Float, default=0.8)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -194,14 +193,14 @@ class Bill(db.Model):
     __tablename__ = 'bills'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     amount = db.Column(db.Numeric(10, 2), nullable=False)
-    category_id = db.Column(db.Integer, db.ForeignKey('expense_categories.id'))
+    category_id = db.Column(db.Integer, db.ForeignKey('expense_categories.id', ondelete='SET NULL'), index=True)
     frequency = db.Column(db.String(20), default='monthly')  # weekly, monthly, quarterly, yearly
     due_day = db.Column(db.Integer)  # Day of month/week
-    next_due_date = db.Column(db.Date)
+    next_due_date = db.Column(db.Date, index=True)
     account_id = db.Column(db.Integer, db.ForeignKey('bank_accounts.id'))
     is_active = db.Column(db.Boolean, default=True)
     is_autopay = db.Column(db.Boolean, default=False)
@@ -238,8 +237,8 @@ class Investment(db.Model):
     __tablename__ = 'investments'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    symbol = db.Column(db.String(10), nullable=False)  # Stock symbol
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    symbol = db.Column(db.String(10), nullable=False, index=True)  # Stock symbol
     name = db.Column(db.String(200))
     investment_type = db.Column(db.String(50))  # stock, bond, crypto, etc.
     quantity = db.Column(db.Numeric(10, 4), default=0)
@@ -292,14 +291,14 @@ class FinancialGoal(db.Model):
     __tablename__ = 'financial_goals'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
-    goal_type = db.Column(db.String(50))  # savings, debt_payoff, investment, etc.
+    goal_type = db.Column(db.String(50), index=True)  # savings, debt_payoff, investment, etc.
     target_amount = db.Column(db.Numeric(12, 2), nullable=False)
     current_amount = db.Column(db.Numeric(12, 2), default=0)
-    target_date = db.Column(db.Date)
-    is_completed = db.Column(db.Boolean, default=False)
+    target_date = db.Column(db.Date, index=True)
+    is_completed = db.Column(db.Boolean, default=False, index=True)
     priority = db.Column(db.String(20), default='medium')  # low, medium, high
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     completed_at = db.Column(db.DateTime)

@@ -54,10 +54,10 @@ class UnifiedGoogleService:
             return True
             
         except ImportError:
-            print("Google API libraries not available. Install with: pip install google-auth google-auth-oauthlib google-api-python-client")
+            logger.warning("Google API libraries not available. Install with: pip install google-auth google-auth-oauthlib google-api-python-client")
             return False
         except Exception as e:
-            print(f"Authentication error: {e}")
+            logger.error(f"Authentication error: {e}")
             return False
     
     def get_service(self, service_name: str, version: str = 'v1'):
@@ -74,7 +74,7 @@ class UnifiedGoogleService:
             
             return self.services[service_name]
         except Exception as e:
-            print(f"Error getting {service_name} service: {e}")
+            logger.error(f"Error getting {service_name} service: {e}")
             return None
     
     # Gmail Integration
@@ -102,7 +102,7 @@ class UnifiedGoogleService:
             return send_message
             
         except Exception as e:
-            print(f"Gmail send error: {e}")
+            logger.error(f"Gmail send error: {e}")
             return False
     
     def get_emails(self, query: str = None, max_results: int = 10, user_id: str = 'me'):
@@ -143,7 +143,7 @@ class UnifiedGoogleService:
             return email_list
             
         except Exception as e:
-            print(f"Gmail fetch error: {e}")
+            logger.error(f"Gmail fetch error: {e}")
             return []
     
     # Drive Integration
@@ -174,7 +174,7 @@ class UnifiedGoogleService:
             return file.get('id')
             
         except Exception as e:
-            print(f"Drive upload error: {e}")
+            logger.error(f"Drive upload error: {e}")
             return None
     
     def download_file(self, file_id: str, destination: str):
@@ -201,7 +201,7 @@ class UnifiedGoogleService:
             return True
             
         except Exception as e:
-            print(f"Drive download error: {e}")
+            logger.error(f"Drive download error: {e}")
             return False
     
     def list_files(self, folder_id: str = None, max_results: int = 10):
@@ -222,7 +222,7 @@ class UnifiedGoogleService:
             return results.get('files', [])
             
         except Exception as e:
-            print(f"Drive list error: {e}")
+            logger.error(f"Drive list error: {e}")
             return []
     
     # Docs Integration  
@@ -252,7 +252,7 @@ class UnifiedGoogleService:
             return doc
             
         except Exception as e:
-            print(f"Docs create error: {e}")
+            logger.error(f"Docs create error: {e}")
             return None
     
     def update_document(self, document_id: str, content: str, insert_index: int = 1):
@@ -277,7 +277,7 @@ class UnifiedGoogleService:
             return True
             
         except Exception as e:
-            print(f"Docs update error: {e}")
+            logger.error(f"Docs update error: {e}")
             return False
     
     # Sheets Integration
@@ -298,7 +298,7 @@ class UnifiedGoogleService:
             return sheet
             
         except Exception as e:
-            print(f"Sheets create error: {e}")
+            logger.error(f"Sheets create error: {e}")
             return None
     
     def update_spreadsheet(self, sheet_id: str, range_name: str, values: List[List]):
@@ -322,7 +322,7 @@ class UnifiedGoogleService:
             return result
             
         except Exception as e:
-            print(f"Sheets update error: {e}")
+            logger.error(f"Sheets update error: {e}")
             return False
     
     def read_spreadsheet(self, sheet_id: str, range_name: str):
@@ -340,7 +340,7 @@ class UnifiedGoogleService:
             return result.get('values', [])
             
         except Exception as e:
-            print(f"Sheets read error: {e}")
+            logger.error(f"Sheets read error: {e}")
             return []
     
     # Maps Integration
@@ -348,7 +348,7 @@ class UnifiedGoogleService:
         """Get directions via Google Maps"""
         api_key = os.environ.get('GOOGLE_MAPS_API_KEY')
         if not api_key:
-            print("Google Maps API key not found")
+            logger.warning("Google Maps API key not found")
             return None
         
         try:
@@ -364,17 +364,17 @@ class UnifiedGoogleService:
             return directions
             
         except ImportError:
-            print("googlemaps library not available. Install with: pip install googlemaps")
+            logger.warning("googlemaps library not available. Install with: pip install googlemaps")
             return None
         except Exception as e:
-            print(f"Maps directions error: {e}")
+            logger.error(f"Maps directions error: {e}")
             return None
     
     def search_places(self, query: str, location: str = None, radius: int = 5000):
         """Search places via Google Maps"""
         api_key = os.environ.get('GOOGLE_MAPS_API_KEY')
         if not api_key:
-            print("Google Maps API key not found")
+            logger.warning("Google Maps API key not found")
             return []
         
         try:
@@ -398,23 +398,23 @@ class UnifiedGoogleService:
                 return places.get('results', [])
             
         except ImportError:
-            print("googlemaps library not available")
+            logger.warning("googlemaps library not available")
             return []
         except Exception as e:
-            print(f"Maps search error: {e}")
+            logger.error(f"Maps search error: {e}")
             return []
     
     # Photos Integration
     def upload_photo(self, photo_path: str, album_id: str = None):
         """Upload photo to Google Photos"""
         # Note: Google Photos API requires special handling
-        print("Google Photos upload requires additional setup")
+        logger.info("Google Photos upload requires additional setup")
         return None
     
     def create_album(self, album_title: str):
         """Create photo album"""
         # Implementation for Google Photos album creation
-        print("Google Photos album creation requires additional setup")
+        logger.info("Google Photos album creation requires additional setup")
         return None
 
 # Backward compatibility functions

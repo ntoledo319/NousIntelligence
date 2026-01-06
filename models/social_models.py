@@ -28,7 +28,7 @@ class SupportGroup(db.Model):
     max_members = db.Column(db.Integer, default=50)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    created_by = db.Column(db.String(100), db.ForeignKey('users.id'))
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))
     
     # VOCAB: Support Group - A safe space for peer support
     # Relationships
@@ -56,7 +56,7 @@ class GroupMembership(db.Model):
     __tablename__ = 'group_memberships'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(100), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     group_id = db.Column(db.Integer, db.ForeignKey('support_groups.id'), nullable=False)
     role = db.Column(db.String(20), default='member')  # member, moderator, admin
     joined_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -74,8 +74,8 @@ class PeerConnection(db.Model):
     __tablename__ = 'peer_connections'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(100), db.ForeignKey('users.id'), nullable=False)
-    peer_id = db.Column(db.String(100), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    peer_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     connection_type = db.Column(db.String(20), default='peer')  # peer, mentor, mentee
     status = db.Column(db.String(20), default='pending')  # pending, accepted, blocked
     requested_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -151,7 +151,7 @@ class GroupPost(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     group_id = db.Column(db.Integer, db.ForeignKey('support_groups.id'), nullable=False)
-    user_id = db.Column(db.String(100), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     title = db.Column(db.String(200))
     content = db.Column(db.Text, nullable=False)
     post_type = db.Column(db.String(20), default='discussion')  # discussion, question, achievement
@@ -172,7 +172,7 @@ class GroupComment(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     post_id = db.Column(db.Integer, db.ForeignKey('group_posts.id'), nullable=False)
-    user_id = db.Column(db.String(100), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     

@@ -58,7 +58,7 @@ class UserAchievement(db.Model):
     __tablename__ = 'user_achievements'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(100), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     achievement_id = db.Column(db.Integer, db.ForeignKey('achievements.id'), nullable=False)
     earned_at = db.Column(db.DateTime, default=datetime.utcnow)
     progress = db.Column(db.Float, default=100.0)  # Percentage for partial progress
@@ -76,7 +76,7 @@ class WellnessStreak(db.Model):
     __tablename__ = 'wellness_streaks'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(100), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     streak_type = db.Column(db.String(50), nullable=False)  # meditation, mood_log, exercise, etc.
     current_streak = db.Column(db.Integer, default=0)
     longest_streak = db.Column(db.Integer, default=0)
@@ -117,7 +117,7 @@ class UserPoints(db.Model):
     __tablename__ = 'user_points'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(100), db.ForeignKey('users.id'), nullable=False, unique=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, unique=True, index=True)
     total_points = db.Column(db.Integer, default=0)
     current_level = db.Column(db.Integer, default=1)
     points_to_next_level = db.Column(db.Integer, default=100)
@@ -159,7 +159,7 @@ class PointTransaction(db.Model):
     __tablename__ = 'point_transactions'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(100), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     points = db.Column(db.Integer, nullable=False)
     transaction_type = db.Column(db.String(50))  # earned, spent, bonus
     reason = db.Column(db.String(200))
@@ -176,7 +176,7 @@ class Leaderboard(db.Model):
     __tablename__ = 'leaderboard_entries'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(100), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     leaderboard_type = db.Column(db.String(50), nullable=False)  # weekly, monthly, all-time
     category = db.Column(db.String(50), nullable=False)  # overall, wellness, social, etc.
     score = db.Column(db.Integer, nullable=False)
@@ -221,7 +221,7 @@ class ChallengeParticipation(db.Model):
     __tablename__ = 'challenge_participations'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(100), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     challenge_id = db.Column(db.Integer, db.ForeignKey('challenges.id'), nullable=False)
     joined_at = db.Column(db.DateTime, default=datetime.utcnow)
     completed_at = db.Column(db.DateTime)

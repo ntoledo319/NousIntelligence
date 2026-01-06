@@ -103,11 +103,37 @@ The PostgreSQL database is automatically created with:
 - **Region**: Same as web service
 - **Connection**: Automatic via `DATABASE_URL`
 
-**Connection Pool Settings** (already configured in code):
-- Pool size: 10 connections
-- Max overflow: 20 additional connections
-- Connection timeout: 30 seconds
-- Pool recycle: 5 minutes
+**Connection Pool Settings** (configured via environment variables):
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SQLALCHEMY_POOL_SIZE` | 10 | Base connection pool size |
+| `SQLALCHEMY_MAX_OVERFLOW` | 20 | Additional connections allowed |
+| `SQLALCHEMY_POOL_RECYCLE` | 300 | Connection recycle time (seconds) |
+| `SQLALCHEMY_POOL_TIMEOUT` | 30 | Connection timeout (seconds) |
+
+### Database Migrations
+
+Migrations run automatically during deployment via `preDeployCommand`:
+
+```bash
+python scripts/render_migrate.py
+```
+
+The migration script:
+1. Tests database connectivity
+2. Creates tables if they don't exist
+3. Runs Alembic migrations (if configured)
+4. Falls back gracefully on errors
+
+**Manual Migration** (if needed):
+```bash
+# SSH into Render shell or run locally with DATABASE_URL set
+python scripts/render_migrate.py
+```
+
+**Recent Migrations**:
+- `002_database_audit_fixes` - Adds 50+ performance indexes, fixes FK types, adds cascade deletes
 
 ### Performance Optimization
 
@@ -253,6 +279,20 @@ Render will:
 2. Verify database is in same region as web service
 3. Check database status in Render dashboard
 4. Review logs for specific connection errors
+
+#### 2b. Database Migration Failures
+
+**Error**: `Migration failed` in deploy logs
+
+**Solution**:
+1. Check pre-deploy logs in Render dashboard
+2. Verify DATABASE_URL is correctly set
+3. Run migration manually:
+   ```bash
+   python scripts/render_migrate.py
+   ```
+4. Check for conflicting migrations in `migrations/versions/`
+5. If fresh database, tables will be created via fallback
 
 #### 3. Import Errors
 
@@ -487,5 +527,6 @@ Your NOUS Intelligence Platform is now running in production on Render with ente
 
 ---
 
-*Last updated: 2025-12-25*
+*Last updated: 2025-01-05*  
+*Database audit fixes: 002_database_audit_fixes migration*
 *NOUS Intelligence Platform v1.0*
