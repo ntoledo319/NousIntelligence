@@ -26,6 +26,7 @@ import array
 import struct
 import math
 import time
+from utils.unified_ai_service import get_unified_ai_service
 
 logger = logging.getLogger(__name__)
 
@@ -479,11 +480,19 @@ class VoiceOptimizer:
 
         logger.info(f"Processing batch of {len(batch)} audio items")
 
-        # TODO: Implement batched processing through AI service manager
-        # This would be connected to the AI service for bulk processing
+        # Collect audio data for batch processing
+        audio_data_list = [item.get("audio_data") for item in batch]
 
-        # For now, process each item individually
-        for item in batch:
+        # Use AI service manager for bulk processing
+        try:
+            ai_service = get_unified_ai_service()
+            transcriptions = ai_service.batch_speech_to_text(audio_data_list)
+        except Exception as e:
+            logger.error(f"Failed to process batch with AI service: {e}")
+            transcriptions = ["Processing failed"] * len(batch)
+
+        # Process each item with its result
+        for i, item in enumerate(batch):
             try:
                 callback = item.get("callback")
                 if callable(callback):
@@ -491,7 +500,11 @@ class VoiceOptimizer:
                     audio_data = item.get("audio_data")
                     metadata = item.get("metadata", {})
 
-                    # The callback function would need to handle the transcription
+                    # Add transcription to metadata
+                    result_text = transcriptions[i] if i < len(transcriptions) else "Processing error"
+                    metadata["transcription"] = result_text
+
+                    # The callback function handles the result
                     callback(audio_data, metadata)
             except Exception as e:
                 logger.error(f"Error processing batch item: {str(e)}")

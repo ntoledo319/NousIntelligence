@@ -17,6 +17,7 @@ import io
 from typing import Dict, List, Any, Optional, Union, Tuple
 from enum import Enum
 from functools import lru_cache
+from concurrent.futures import ThreadPoolExecutor
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -179,6 +180,30 @@ class UnifiedAIService:
         except Exception as e:
             logger.error(f"STT error: {e}")
             return "Speech recognition error"
+
+    def batch_speech_to_text(self, audio_data_list: List[bytes]) -> List[str]:
+        """
+        Batch process speech-to-text using parallel execution
+
+        Args:
+            audio_data_list: List of audio data bytes
+
+        Returns:
+            List of transcription strings in same order as input
+        """
+        if not audio_data_list:
+            return []
+
+        if 'huggingface' not in self.available_providers:
+            return ["Speech recognition not available"] * len(audio_data_list)
+
+        try:
+            with ThreadPoolExecutor(max_workers=min(10, len(audio_data_list))) as executor:
+                results = list(executor.map(self.speech_to_text, audio_data_list))
+            return results
+        except Exception as e:
+            logger.error(f"Batch STT error: {e}")
+            return ["Batch processing error"] * len(audio_data_list)
 
     # === AI HELPER FUNCTIONS (from ai_helper.py) ===
     
