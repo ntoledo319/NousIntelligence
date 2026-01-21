@@ -13,6 +13,7 @@ import logging
 import os
 from typing import Dict, List, Any, Optional, Union
 import random
+from datetime import datetime
 from flask import session
 from utils.unified_auth import login_required, demo_allowed, get_demo_user, is_authenticated
 
@@ -255,7 +256,12 @@ class SpotifyAIIntegration:
 
         try:
             # Get user's recently played tracks
-            recent_tracks = self.spotify_client.get_recently_played(limit=50)
+            recent_tracks_data = self.spotify_client.get_recently_played(limit=50)
+            # Handle if the response is a dict containing items (as returned by SpotifyAPI)
+            if isinstance(recent_tracks_data, dict):
+                recent_tracks = recent_tracks_data.get('items', [])
+            else:
+                recent_tracks = recent_tracks_data
 
             # Get user's top tracks for the specified time range
             top_tracks = self.spotify_client.get_top_tracks(time_range=time_range, limit=50)
@@ -350,18 +356,56 @@ class SpotifyAIIntegration:
             recent_tracks: List of recently played tracks
 
         Returns:
-            Dict with listening pattern insights
+            Dict with listening pattern insights (minutes listened per time of day)
         """
         if not recent_tracks:
             return {}
 
-        # TODO: Extract time of day patterns from timestamps
-        # This is a placeholder for now
-        return {
-            "morning": 30,
-            "afternoon": 45,
-            "evening": 120,
+        patterns = {
+            "morning": 0,
+            "afternoon": 0,
+            "evening": 0,
         }
+
+        for item in recent_tracks:
+            # Handle if the item is just the track or the played_at wrapper
+            # Spotify recent_tracks items structure:
+            # { "track": { "duration_ms": ... }, "played_at": "..." }
+
+            played_at_str = item.get("played_at")
+            track = item.get("track", {})
+            duration_ms = track.get("duration_ms", 0)
+
+            if not played_at_str:
+                continue
+
+            try:
+                # played_at is ISO 8601, e.g. "2016-12-13T20:44:04.589Z"
+                # Handle Z timezone if present
+                played_at_str = played_at_str.replace("Z", "+00:00")
+                dt = datetime.fromisoformat(played_at_str)
+
+                # Determine time of day (using UTC hour)
+                hour = dt.hour
+                duration_min = duration_ms / 60000.0
+
+                # Buckets:
+                # Morning: 5:00 - 11:59
+                # Afternoon: 12:00 - 17:59
+                # Evening: 18:00 - 04:59
+                if 5 <= hour < 12:
+                    patterns["morning"] += duration_min
+                elif 12 <= hour < 18:
+                    patterns["afternoon"] += duration_min
+                else:
+                    patterns["evening"] += duration_min
+
+            except (ValueError, TypeError) as e:
+                self.logger.warning(f"Error analyzing listening pattern for track: {e}")
+                continue
+
+        # Round to integers
+        return {k: int(v) for k, v in patterns.items()}
 
     def _analyze_mood_distribution(self, audio_features: Dict[str, Dict[str, Any]]) -> Dict[str, int]:
         """
